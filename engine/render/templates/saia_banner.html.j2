@@ -1,0 +1,39 @@
+{# SAIA alert banner (SPEC 12 step 6b). Wide banner strip, brand tokens. #}
+{% import "_brand.html.j2" as brand %}
+<title>SAIA Banner {{ vm.ref }} | {{ vm.brand_name }}</title>
+<style>
+  {{ brand.tokens_css() }}
+  .banner {
+    max-width: 1200px; margin: 24px auto; background: var(--ink); color: #EFE9DD;
+    display: grid; grid-template-columns: 1.4fr 1fr; min-height: 300px;
+    box-shadow: 0 2px 6px rgba(25,22,19,.08), 0 18px 44px rgba(25,22,19,.13);
+  }
+  .banner .copy { padding: 40px 44px; display: flex; flex-direction: column; justify-content: center; }
+  .kicker { font-size: 12px; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); }
+  .banner h1 { font-size: clamp(24px, 3.4vw, 34px); font-weight: 800; line-height: 1.14; color: #FFFFFF; margin: 14px 0 10px; }
+  .banner .meta { font-size: 14px; color: #C9C1B2; line-height: 1.6; }
+  .banner .badge {
+    align-self: flex-start; margin-top: 18px; background: var(--gold); color: var(--ink);
+    font-weight: 800; font-size: 13px; letter-spacing: .16em; text-transform: uppercase; padding: 9px 16px; border-radius: 3px;
+  }
+  .banner .art { background: var(--gold-deep) center/cover no-repeat; position: relative; }
+  .banner .art .goldedge { position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--gold); }
+  .saia { padding: 14px 44px; background: var(--gold-pale); color: var(--gold-deep); font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+  @media (max-width: 640px) { .banner { grid-template-columns: 1fr; } .banner .copy { padding: 28px 20px; } .banner .art { min-height: 180px; } .saia { padding-left: 20px; padding-right: 20px; } }
+</style>
+
+<div class="banner">
+  <div class="copy">
+    <div class="kicker">Auction alert | {{ vm.ref }}</div>
+    <h1>{{ vm.headline }}</h1>
+    <div class="meta">
+      {% if vm.location_line %}{{ vm.location_line }}<br/>{% endif %}
+      {% if vm.size_str %}{{ vm.size_str }} m2{% endif %}{% if vm.beds %} &middot; {{ vm.beds }} bed{% endif %}{% if vm.baths %} &middot; {{ vm.baths }} bath{% endif %}{% if vm.flatlet_present %} &middot; flatlet{% endif %}
+    </div>
+    <span class="badge">{{ vm.badge_label }}</span>
+  </div>
+  <div class="art" {% if vm.hero_src %}style="background-image:url('{{ vm.hero_src }}')"{% endif %}>
+    <span class="goldedge"></span>
+  </div>
+</div>
+<div class="saia">Member: SA Institute of Auctioneers &middot; {{ vm.brand_phone }} &middot; {{ vm.brand_web }}</div>

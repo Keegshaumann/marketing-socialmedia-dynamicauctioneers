@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as ui %}
+
+{% block title %}Post DP{{ dp }}{% endblock %}
+{% block subheading %}
+  <div class="topbar__sub">
+    Distribution and change requests{% if state %} &middot; {{ ui.state_badge(state) }}{% endif %}
+  </div>
+{% endblock %}
+
+{% block topbar_actions %}
+  <a class="btn btn--ghost btn--sm" href="/artifacts/{{ dp }}">{{ ui.icon('photo') }}<span>Artifacts</span></a>
+{% endblock %}
+
+{% block content %}
+<div class="stack stack--lg">
+
+  {# ---- Live result region (HTMX target) ---------------------------- #}
+  <div id="post-result" aria-live="polite"></div>
+
+  {# ---- Channel routing --------------------------------------------- #}
+  <section class="panel">
+    <div class="panel__head"><h2 class="panel__title">{{ ui.icon('send') }} Channels to post</h2></div>
+    <div class="panel__body">
+      {% if not distribute_available %}
+      <div class="banner banner--info">
+        {{ ui.icon('note') }}
+        <div class="banner__body">
+          <div class="banner__title">Distribution engine not loaded</div>
+          <div>Triggering distribution will queue a post job for the worker instead (Phase 5 placeholder).</div>
+        </div>
+      </div>
+      {% endif %}
+      <div class="ledger-wrap mt-1">
+        <table class="ledger">
+          <thead>
+            <tr><th>Channel</th><th>Routed</th><th>Enabled</th><th>Will post</th></tr>
+          </thead>
+          <tbody>
+            {% for ch in channels %}
+            <tr class="stagger" style="--i: {{ loop.index0 }}">
+              <td class="ledger__prop">{{ ch.channel|replace('_', ' ')|title }}</td>
+              <td>{% if ch.routed %}{{ ui.icon('check') }}{% else %}<span class="muted">-</span>{% endif %}</td>
+              <td>{% if ch.enabled %}{{ ui.icon('check') }}{% else %}<span class="muted">-</span>{% endif %}</td>
+              <td>
+                {% if ch.will_post %}
+                  <span class="badge badge--ok"><span class="dot"></span>Yes</span>
+                {% else %}
+                  <span class="badge badge--neutral"><span class="dot"></span>No</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="actionbar mt-2">
+        <div class="actionbar__note">Posts after gate 3. Live posting is a placeholder pending the GHL token.</div>
+        <div class="spacer"></div>
+        {{ ui.button('Trigger distribution', variant='gold', icon_name='send',
+           attrs='hx-post="/post/' ~ dp ~ '/distribute" hx-target="#post-result" hx-swap="innerHTML" data-gold-sweep') }}
+      </div>
+    </div>
+  </section>
+
+  {# ---- Request changes --------------------------------------------- #}
+  <section class="panel">
+    <div class="panel__head"><h2 class="panel__title">{{ ui.icon('flag') }} Request changes</h2></div>
+    <div class="panel__body">
+      <form hx-post="/post/{{ dp }}/change-request" hx-target="#post-result" hx-swap="innerHTML">
+        <div class="field">
+          <label class="label" for="reason">What needs to change?</label>
+          <textarea class="textarea" id="reason" name="reason" placeholder="Describe the change; this re-renders and returns to gate 2."></textarea>
+        </div>
+        <div class="row">
+          {{ ui.button('Request changes and re-render', variant='primary', icon_name='arrow', type='submit') }}
+        </div>
+      </form>
+      <div class="banner banner--note mt-2">
+        {{ ui.icon('note') }}
+        <div class="banner__body">
+          <div class="banner__title">Changing a live post</div>
+          <div>{{ delete_caveat }}</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ---- Proof of Marketing ------------------------------------------ #}
+  <section class="panel">
+    <div class="panel__head"><h2 class="panel__title">{{ ui.icon('shield') }} Proof of Marketing</h2></div>
+    <div class="panel__body">
+      {% include '_artifact_status.html' %}
+    </div>
+  </section>
+
+</div>
+{% endblock %}

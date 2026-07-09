@@ -1,0 +1,25 @@
+Subject: Your adverts are ready for approval - DP {{ dp }}
+
+Dear Client,
+
+Thank you for entrusting {{ brand.name }} with the marketing of your property.
+We have prepared the adverts and would like your approval before they go live.
+
+  Property : {{ headline }}
+{% if address %}  Address  : {{ address }}
+{% endif %}{% if suburb %}  Suburb   : {{ suburb }}
+{% endif %}  Price    : {{ price_display }}
+  Method   : {% if method == 'auction' %}On auction{% else %}Offers invited{% endif %}
+
+{% if terms %}Key terms:
+{% for term in terms %}  - {{ term }}
+{% endfor %}
+{% endif %}Please reply to this email to confirm you are happy for us to proceed, or let
+us know if you would like any changes.
+
+Viewings are by appointment through {{ contact_public }}.
+
+Kind regards,
+{{ brand.name }}
+{{ brand.phone }} | {{ brand.email }}
+{{ brand.web }}

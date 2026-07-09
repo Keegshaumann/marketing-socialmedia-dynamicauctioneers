@@ -1,0 +1,35 @@
+{% import '_macros.html' as ui %}
+<div id="gallery" class="gallery-grid">
+  {% for t in tiles %}
+    <div class="tile stagger" style="--i:{{ loop.index0 }}">
+      <div class="tile__body">
+        {% if t.is_text %}
+          <pre style="white-space:pre-wrap;max-height:240px;overflow:auto;margin:0;font-size:12px;line-height:1.5">{{ t.preview }}</pre>
+        {% else %}
+          <iframe src="{{ t.src }}" title="{{ t.label }} preview" loading="lazy" sandbox=""
+                  style="width:100%;height:240px;border:0;background:#fff"></iframe>
+        {% endif %}
+      </div>
+      <div class="tile__cap">
+        <span>{{ ui.icon('file', 'icon--sm') }}{{ t.label }}</span>
+        <a class="btn btn--ghost btn--sm" href="{{ t.src }}" target="_blank" rel="noopener">
+          {{ ui.icon('download', 'icon--sm') }}<span>Open</span>
+        </a>
+      </div>
+    </div>
+  {% else %}
+    <div class="empty">
+      <div class="empty__title">No artifacts yet</div>
+      <div class="empty__text">Nothing has been rendered for DP {{ dp }} yet.</div>
+    </div>
+  {% endfor %}
+</div>
+
+{% if toast is defined and toast %}
+  <div hx-swap-oob="afterbegin:#toasts">
+    <div class="toast toast--{{ toast.tone }}" data-ttl="4200">
+      <div class="toast__title">{{ toast.title }}</div>
+      <div class="toast__text">{{ toast.text }}</div>
+    </div>
+  </div>
+{% endif %}

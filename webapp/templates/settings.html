@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as ui %}
+
+{% block title %}Settings{% endblock %}
+{% block subheading %}<div class="topbar__sub">Credentials, channel routing and approvers</div>{% endblock %}
+{% block content_mod %}content--narrow{% endblock %}
+
+{% block content %}
+<div class="stack stack--lg">
+
+  {# ---- Credentials -------------------------------------------------- #}
+  <section class="panel">
+    <div class="panel__head"><h2 class="panel__title">{{ ui.icon('shield') }} Distribution and Canva credentials</h2></div>
+    <div class="panel__body">
+      <form hx-post="/settings/credentials" hx-target="#credentials-status" hx-swap="innerHTML">
+        <div class="eyebrow"><span class="dot"></span>GoHighLevel Social Planner</div>
+        <div class="field">
+          <label class="label" for="ghl_token">Private Integration token</label>
+          <input class="input" type="password" id="ghl_token" name="ghl_token"
+                 placeholder="{{ 'configured, leave blank to keep' if ghl_token_set else 'paste token' }}"
+                 autocomplete="off">
+          <div class="hint">Used to post social channels after gate 3. Live posting stays a placeholder until this is set.</div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label class="label" for="ghl_location_id">Sub-account (location) id</label>
+            <input class="input" type="text" id="ghl_location_id" name="ghl_location_id"
+                   value="{{ settings.get('ghl_location_id', '') }}" autocomplete="off">
+          </div>
+          <div class="field">
+            <label class="label" for="ghl_account_map">Account map (JSON)</label>
+            <input class="input" type="text" id="ghl_account_map" name="ghl_account_map"
+                   value="{{ settings.get('ghl_account_map', '') }}" placeholder='{"facebook":"..."}' autocomplete="off">
+          </div>
+        </div>
+
+        <div class="h-rule"></div>
+        <div class="eyebrow"><span class="dot"></span>Canva Connect</div>
+        <div class="grid-2">
+          <div class="field">
+            <label class="label" for="canva_client_id">Client id</label>
+            <input class="input" type="text" id="canva_client_id" name="canva_client_id"
+                   value="{{ settings.get('canva_client_id', '') }}" autocomplete="off">
+          </div>
+          <div class="field">
+            <label class="label" for="canva_client_secret">Client secret</label>
+            <input class="input" type="password" id="canva_client_secret" name="canva_client_secret"
+                   placeholder="{{ 'configured' if canva_secret_set else 'paste secret' }}" autocomplete="off">
+          </div>
+          <div class="field">
+            <label class="label" for="canva_refresh_token">Refresh token</label>
+            <input class="input" type="password" id="canva_refresh_token" name="canva_refresh_token"
+                   placeholder="{{ 'configured' if canva_refresh_set else 'paste token' }}" autocomplete="off">
+          </div>
+          <div class="field">
+            <label class="label" for="canva_template_map">Template map (path)</label>
+            <input class="input" type="text" id="canva_template_map" name="canva_template_map"
+                   value="{{ settings.get('canva_template_map', '') }}" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="h-rule"></div>
+        <div class="field">
+          <label class="label" for="output_root">Output root (where artifacts are written)</label>
+          <input class="input" type="text" id="output_root" name="output_root"
+                 value="{{ settings.get('output_root', '') }}" placeholder=".">
+        </div>
+
+        <div id="credentials-status" aria-live="polite"></div>
+        <div class="row mt-1">
+          {{ ui.button('Save credentials', variant='primary', icon_name='check', type='submit') }}
+        </div>
+      </form>
+    </div>
+  </section>
+
+  {# ---- Channels ----------------------------------------------------- #}
+  <section class="panel">
+    <div class="panel__head"><h2 class="panel__title">{{ ui.icon('send') }} Channel routing</h2></div>
+    <div class="panel__body">
+      <form hx-post="/settings/channels" hx-target="#channels-status" hx-swap="innerHTML">
+        <p class="muted mt-0">Toggle which channels a property is distributed to. The routing matrix still gates by value and type at post time.</p>
+        <div class="stack stack--sm mt-1">
+          {% for ch in channels %}
+          <label class="checkline">
+            <input type="checkbox" name="channel_{{ ch.key }}" {{ 'checked' if ch.enabled else '' }}>
+            <span>{{ ch.label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        <div id="channels-status" aria-live="polite"></div>
+        <div class="row mt-1">
+          {{ ui.button('Save channels', variant='primary', icon_name='check', type='submit') }}
+        </div>
+      </form>
+    </div>
+  </section>
+
+  {# ---- Approvers ---------------------------------------------------- #}
+  <section class="panel">
+    <div class="panel__head"><h2 class="panel__title">{{ ui.icon('mail') }} Approver email list</h2></div>
+    <div class="panel__body">
+      <form hx-post="/settings/approvers" hx-target="#approvers-status" hx-swap="innerHTML">
+        <div class="field">
+          <label class="label" for="approver_emails">Approver addresses</label>
+          <textarea class="textarea" id="approver_emails" name="approver_emails"
+                    placeholder="one per line or comma separated">{{ approver_emails }}</textarea>
+          <div class="hint">Gate emails (internal approval and client approval links) go to these addresses.</div>
+        </div>
+        <div id="approvers-status" aria-live="polite"></div>
+        <div class="row mt-1">
+          {{ ui.button('Save approvers', variant='primary', icon_name='check', type='submit') }}
+        </div>
+      </form>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

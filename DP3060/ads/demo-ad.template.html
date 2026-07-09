@@ -1,0 +1,242 @@
+<title>DP3060 — 3 Bed Home with Flatlet, Pelham North | Dynamic Auctioneers</title>
+<style>
+  @font-face { font-family: 'Montserrat'; font-weight: 400; font-style: normal; src: url(%%FONT_R%%) format('woff'); }
+  @font-face { font-family: 'Montserrat'; font-weight: 600; font-style: normal; src: url(%%FONT_SB%%) format('woff'); }
+  @font-face { font-family: 'Montserrat'; font-weight: 800; font-style: normal; src: url(%%FONT_XB%%) format('woff'); }
+
+  :root {
+    --gold: #B08D4A;
+    --gold-deep: #8C6D33;
+    --gold-pale: #F1E8D6;
+    --ink: #191613;
+    --body: #2B2620;
+    --muted: #877E70;
+    --hairline: #E5DFD4;
+    --ground: #EFEBE3;
+    --sheet: #FFFFFF;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    font-family: 'Montserrat', 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
+    color: var(--body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .sheet {
+    max-width: 860px;
+    margin: 28px auto 48px;
+    background: var(--sheet);
+    box-shadow: 0 2px 6px rgba(25,22,19,.08), 0 18px 44px rgba(25,22,19,.13);
+  }
+
+  .letterhead { display: block; width: 100%; height: auto; }
+  .goldrule { height: 5px; background: linear-gradient(90deg, var(--gold-deep), var(--gold) 45%, #D9BC7E 70%, var(--gold-deep)); }
+
+  .inner { padding: 34px 44px 0; }
+
+  .eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--gold-deep);
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .eyebrow .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--gold); flex: none; }
+
+  h1 {
+    font-size: clamp(26px, 4.2vw, 38px); font-weight: 800; line-height: 1.12;
+    letter-spacing: -.01em; color: var(--ink); margin: 12px 0 8px; text-wrap: balance;
+  }
+  .address { font-size: 14.5px; color: var(--muted); margin: 0 0 18px; line-height: 1.5; }
+
+  .offerline { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+  .badge {
+    background: var(--ink); color: #F3E7CB;
+    font-weight: 800; font-size: 13px; letter-spacing: .16em; text-transform: uppercase;
+    padding: 10px 18px; border-left: 4px solid var(--gold);
+  }
+  .offerline .viewing { font-size: 12.5px; font-weight: 600; letter-spacing: .04em; color: var(--muted); }
+
+  .hero { display: grid; grid-template-columns: 1.55fr 1fr; gap: 10px; }
+  .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hero .stack { display: grid; grid-template-rows: 1fr 1fr; gap: 10px; min-width: 0; }
+  .hero figure { margin: 0; position: relative; min-height: 0; }
+  .hero .cap, .gallery .cap {
+    position: absolute; left: 0; bottom: 0;
+    background: rgba(25,22,19,.72); color: #EFE9DD;
+    font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+    padding: 4px 9px;
+  }
+
+  .facts {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    border-top: 2px solid var(--ink); border-bottom: 1px solid var(--hairline);
+    margin: 26px 0;
+  }
+  .facts > div { padding: 14px 8px 15px; text-align: center; border-right: 1px solid var(--hairline); }
+  .facts > div:last-child { border-right: 0; }
+  .facts .num { font-size: 21px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .facts .num sup { font-size: 12px; font-weight: 600; }
+  .facts .lbl { font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; }
+  .cols h2 {
+    font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--ink); margin: 0 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--gold);
+    display: inline-block;
+  }
+  .cols ul { list-style: none; margin: 0; padding: 0; }
+  .cols li {
+    font-size: 14px; line-height: 1.5; padding: 7px 0 7px 20px; position: relative;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .cols li:last-child { border-bottom: 0; }
+  .cols li::before { content: ''; position: absolute; left: 2px; top: 15px; width: 7px; height: 7px; background: var(--gold); }
+
+  .location {
+    margin: 28px 0 0; padding: 14px 18px; background: var(--gold-pale);
+    font-size: 13px; font-weight: 600; color: var(--gold-deep);
+    display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; line-height: 1.6;
+  }
+  .location .pin { font-weight: 800; letter-spacing: .14em; text-transform: uppercase; font-size: 11px; color: var(--ink); }
+
+  .gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 28px 44px; }
+  .gallery figure { margin: 0; position: relative; }
+  .gallery img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; }
+
+  .terms { background: var(--ink); color: #C9C1B2; padding: 20px 44px; }
+  .terms .t-head { font-size: 10.5px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+  .terms p { margin: 0; font-size: 12px; line-height: 1.8; }
+  .terms b { color: #EFE9DD; font-weight: 600; }
+
+  .cta { display: flex; justify-content: space-between; align-items: center; gap: 18px; flex-wrap: wrap; padding: 22px 44px; }
+  .cta .call { font-size: 13px; font-weight: 600; color: var(--muted); }
+  .cta .num-big { font-size: 24px; font-weight: 800; color: var(--ink); letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+  .cta .mail { font-size: 13px; font-weight: 600; color: var(--gold-deep); }
+
+  .reg {
+    border-top: 1px solid var(--hairline); padding: 14px 44px 20px;
+    font-size: 10px; line-height: 1.7; color: var(--muted); letter-spacing: .02em;
+  }
+  .reg .demo-note { color: #B3A891; margin-top: 4px; }
+
+  @media (max-width: 640px) {
+    .inner, .gallery, .terms, .cta, .reg { padding-left: 20px; padding-right: 20px; }
+    .hero { grid-template-columns: 1fr; }
+    .hero .stack { grid-template-rows: none; grid-template-columns: 1fr 1fr; }
+    .facts { grid-template-columns: repeat(3, 1fr); }
+    .facts > div:nth-child(3) { border-right: 0; }
+    .facts > div:nth-child(n+4) { border-top: 1px solid var(--hairline); }
+    .cols { grid-template-columns: 1fr; gap: 22px; }
+    .gallery { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media print {
+    body { background: #fff; }
+    .sheet { margin: 0; box-shadow: none; max-width: none; }
+  }
+</style>
+
+<div class="sheet">
+  <img class="letterhead" src="%%LETTERHEAD%%" alt="Dynamic Auctioneers — 086 155 2288, properties.admin@dynamicauctioneers.co.za, 187 Gouws Avenue, Raslouw AH, Centurion" />
+  <div class="goldrule"></div>
+
+  <div class="inner">
+    <div class="eyebrow">
+      <span>Property for sale</span><span class="dot"></span>
+      <span>Ref DP3060</span><span class="dot"></span>
+      <span>Pelham North, Pietermaritzburg</span>
+    </div>
+
+    <h1>3 Bedroom Home with a Separate Flatlet</h1>
+    <p class="address">Unit 1, SS Kyalami, 40 Topham Road, Pelham North, Pietermaritzburg, KwaZulu&#8209;Natal</p>
+
+    <div class="offerline">
+      <span class="badge">Offers Invited</span>
+      <span class="viewing">Viewing strictly by appointment</span>
+    </div>
+
+    <div class="hero">
+      <figure>
+        <img src="%%HERO%%" alt="Open-plan lounge and dining area" />
+        <span class="cap">Open-plan living</span>
+      </figure>
+      <div class="stack">
+        <figure>
+          <img src="%%P_KITCHEN%%" alt="Kitchen" />
+          <span class="cap">Kitchen</span>
+        </figure>
+        <figure>
+          <img src="%%P_BEDROOM%%" alt="Main bedroom" />
+          <span class="cap">Main bedroom</span>
+        </figure>
+      </div>
+    </div>
+
+    <div class="facts">
+      <div><div class="num">185 m<sup>2</sup></div><div class="lbl">Unit size</div></div>
+      <div><div class="num">3</div><div class="lbl">Bedrooms</div></div>
+      <div><div class="num">2</div><div class="lbl">Bathrooms</div></div>
+      <div><div class="num">1</div><div class="lbl">Bed flatlet</div></div>
+      <div><div class="num">Pool</div><div class="lbl">In complex</div></div>
+    </div>
+
+    <div class="cols">
+      <div>
+        <h2>Main residence</h2>
+        <ul>
+          <li>Main bedroom with en-suite bathroom</li>
+          <li>Full family bathroom plus separate toilet</li>
+          <li>Open-plan living and dining, wooden floors</li>
+          <li>Kitchen</li>
+          <li>Prepaid water meter</li>
+        </ul>
+      </div>
+      <div>
+        <h2>Flatlet &amp; complex</h2>
+        <ul>
+          <li>1 bedroom flatlet with own en-suite</li>
+          <li>Flatlet kitchen, lounge and patio</li>
+          <li>Swimming pool and playground</li>
+          <li>Communal braai area</li>
+          <li>Remote-controlled access, ample guest parking</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="location">
+      <span class="pin">Location</span>
+      <span>220 m from Pietermaritzburg Girls' High School &nbsp;&bull;&nbsp; under 1 km from Makro &nbsp;&bull;&nbsp; Southgate Shopping Centre 1.5 km</span>
+    </div>
+  </div>
+
+  <div class="gallery">
+    <figure><img src="%%P_PATIO%%" alt="Covered patio and garden" /><span class="cap">Patio</span></figure>
+    <figure><img src="%%P_FLATLET%%" alt="Flatlet bedroom" /><span class="cap">Flatlet</span></figure>
+    <figure><img src="%%P_KITCHEN2%%" alt="Kitchen with wooden floors" /><span class="cap">Kitchen</span></figure>
+    <figure><img src="%%P_BEDROOM2%%" alt="Second bedroom" /><span class="cap">Bedroom</span></figure>
+  </div>
+
+  <div class="terms">
+    <div class="t-head">Terms of sale</div>
+    <p><b>10% deposit</b> on the purchase price, payable by the purchaser on submission of an offer &nbsp;&bull;&nbsp; <b>5% commission</b> plus VAT on the purchase price, payable by the seller &nbsp;&bull;&nbsp; <b>30 days</b> for guarantees of the balance from date of acceptance &nbsp;&bull;&nbsp; <b>Occupation</b> on registration of transfer &nbsp;&bull;&nbsp; Electrical COC, SPLUMA and transfer certificates for the purchaser's account &nbsp;&bull;&nbsp; Arrear rates and levies for the seller's account</p>
+  </div>
+
+  <div class="cta">
+    <div>
+      <div class="call">Enquiries &amp; viewing appointments</div>
+      <div class="num-big">086 155 2288</div>
+    </div>
+    <div>
+      <div class="mail">properties.admin@dynamicauctioneers.co.za</div>
+      <div class="mail">dynamicauctioneers.co.za</div>
+    </div>
+  </div>
+
+  <div class="reg">
+    Dynamic Solutions 1068 (Pty) Ltd T/A Dynamic Auctioneers &nbsp;&bull;&nbsp; Reg 2018/014769/07 &nbsp;&bull;&nbsp; VAT 4050206442 &nbsp;&bull;&nbsp; Registered with the PPRA &nbsp;&bull;&nbsp; Member: SAIA, National Auction Association
+    <div class="demo-note">Demo artifact: generated automatically from the DP3060 Lightstone EVM report and Property Report. E&amp;OE.</div>
+  </div>
+</div>

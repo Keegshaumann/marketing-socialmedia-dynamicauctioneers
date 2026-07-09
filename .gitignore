@@ -1,0 +1,10 @@
+.env
+engine.db
+engine.db-*
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
+node_modules/
+*.log

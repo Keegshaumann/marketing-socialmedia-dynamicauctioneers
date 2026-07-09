@@ -1,0 +1,95 @@
+{# ===========================================================================
+   Dynamic Auctioneers Platform - shared Jinja macros.
+   ONE icon set (Tabler line icons, 24 viewBox, stroke=currentColor). Screen
+   templates import these:  {% import '_macros.html' as ui %}
+   =========================================================================== #}
+
+{# ---- Icon set (single source; add paths here only) --------------------- #}
+{%- set _ICONS = {
+  'board':    ['M4 5h16', 'M4 12h16', 'M4 19h16', 'M9 5v14'],
+  'intake':   ['M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2', 'M7 9l5 -5l5 5', 'M12 4v12'],
+  'settings': ['M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z', 'M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0'],
+  'user':     ['M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0', 'M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2'],
+  'logout':   ['M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2', 'M9 12h12l-3 -3', 'M18 15l3 -3'],
+  'check':    ['M5 12l5 5l10 -10'],
+  'x':        ['M18 6l-12 12', 'M6 6l12 12'],
+  'note':     ['M12 9v4', 'M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z', 'M12 16h.01'],
+  'block':    ['M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0 -18', 'M5.7 5.7l12.6 12.6'],
+  'clock':    ['M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0 -18', 'M12 7v5l3 3'],
+  'chevron':  ['M9 6l6 6l-6 6'],
+  'arrow':    ['M5 12h14', 'M13 6l6 6l-6 6'],
+  'download': ['M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2', 'M7 11l5 5l5 -5', 'M12 4v12'],
+  'mail':     ['M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z', 'M3 7l9 6l9 -6'],
+  'building': ['M3 21h18', 'M5 21v-16a2 2 0 0 1 2 -2h6a2 2 0 0 1 2 2v16', 'M9 7h4', 'M9 11h4', 'M9 15h4'],
+  'photo':    ['M4 4h16a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-14a1 1 0 0 1 1 -1z', 'M15 8h.01', 'M4 15l4 -4c.928 -.893 2.072 -.893 3 0l5 5', 'M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3'],
+  'plus':     ['M12 5v14', 'M5 12h14'],
+  'flag':     ['M5 5v16', 'M5 5h11l-2 4l2 4h-11'],
+  'search':   ['M10 3a7 7 0 1 0 0 14a7 7 0 0 0 0 -14', 'M21 21l-6 -6'],
+  'send':     ['M10 14l11 -11', 'M21 3l-6.5 18a.55 .55 0 0 1 -1 0l-3.5 -7l-7 -3.5a.55 .55 0 0 1 0 -1l18 -6.5'],
+  'shield':   ['M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3'],
+  'file':     ['M14 3v4a1 1 0 0 0 1 1h4', 'M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z'],
+  'dot':      ['M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0'],
+} -%}
+
+{% macro icon(name, cls='') -%}
+  {%- set paths = _ICONS.get(name, _ICONS['dot']) -%}
+  <svg class="icon {{ cls }}" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+       aria-hidden="true" focusable="false">
+    {%- for d in paths %}<path d="{{ d }}"></path>{% endfor -%}
+  </svg>
+{%- endmacro %}
+
+{# ---- State badge ------------------------------------------------------- #}
+{# tone + human label for each of the 13 lifecycle states (engine/store.py) #}
+{%- set _STATE = {
+  'intake':         {'tone': 'neutral', 'label': 'Intake',         'icon': 'intake'},
+  'extracted':      {'tone': 'info',    'label': 'Extracted',      'icon': 'file'},
+  'flags_raised':   {'tone': 'note',    'label': 'Flags raised',   'icon': 'flag'},
+  'verified':       {'tone': 'ok',      'label': 'Verified',       'icon': 'check'},
+  'drafted':        {'tone': 'info',    'label': 'Drafted',        'icon': 'file'},
+  'approved':       {'tone': 'ok',      'label': 'Approved',       'icon': 'check'},
+  'client_approved':{'tone': 'ok',      'label': 'Client approved','icon': 'check'},
+  'assets_built':   {'tone': 'info',    'label': 'Assets built',   'icon': 'photo'},
+  'live':           {'tone': 'gold',    'label': 'Live',           'icon': 'send'},
+  'updated':        {'tone': 'note',    'label': 'Updated',        'icon': 'arrow'},
+  'sold':           {'tone': 'ink',     'label': 'Sold',           'icon': 'check'},
+  'withdrawn':      {'tone': 'block',   'label': 'Withdrawn',      'icon': 'x'},
+  'archived':       {'tone': 'neutral', 'label': 'Archived',       'icon': 'file'},
+} -%}
+
+{% macro state_badge(state, fresh=false) -%}
+  {%- set s = _STATE.get(state, {'tone': 'neutral', 'label': state|replace('_', ' ')|title, 'icon': 'dot'}) -%}
+  <span class="badge badge--{{ s.tone }}{{ ' polish-blur-bridge' if fresh else '' }}"
+        data-state="{{ state }}">
+    <span class="dot"></span>{{ s.label }}
+  </span>
+{%- endmacro %}
+
+{# ---- Flag pill (compact) and full flag row ---------------------------- #}
+{% macro flag_pill(severity, text) -%}
+  {%- set sev = 'block' if severity == 'block' else 'note' -%}
+  <span class="flag-pill flag-pill--{{ sev }}">{{ icon(sev, 'icon--sm') }}{{ text }}</span>
+{%- endmacro %}
+
+{% macro flag(flag) -%}
+  {%- set sev = 'block' if flag.severity == 'block' else 'note' -%}
+  <div class="flag flag--{{ sev }}">
+    <span class="flag__icon">{{ icon(sev) }}</span>
+    <div class="flag__body">
+      <div class="flag__title">{{ flag.title }}<span class="flag__code">{{ flag.code }}</span></div>
+      {% if flag.evidence %}<div class="flag__evidence">{{ flag.evidence }}</div>{% endif %}
+      {% if flag.action %}<div class="flag__action"><b>Action</b> {{ flag.action }}</div>{% endif %}
+    </div>
+  </div>
+{%- endmacro %}
+
+{# ---- Button ------------------------------------------------------------
+   variant: primary | gold | ghost | danger   |   icon: an _ICONS key
+   attrs: raw attribute string (HTMX etc.), pass with |safe from caller.    #}
+{% macro button(label, variant='primary', icon_name=none, type='button', size='', attrs='') -%}
+  <button type="{{ type }}" class="btn btn--{{ variant }}{{ ' btn--' ~ size if size else '' }}" {{ attrs|safe }}>
+    {%- if icon_name %}{{ icon(icon_name) }}{% endif -%}
+    <span>{{ label }}</span>
+  </button>
+{%- endmacro %}

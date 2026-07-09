@@ -1,0 +1,25 @@
+{% import '_macros.html' as ui %}
+{%- set tone = tone or 'note' -%}
+<div class="banner banner--{{ 'ok' if tone == 'ok' else ('error' if tone == 'block' else 'note') }}" role="status">
+  {{ ui.icon('check' if tone == 'ok' else ('x' if tone == 'block' else 'flag')) }}
+  <div class="banner__body">
+    <div class="banner__title">{{ title }}{% if state %} &middot; {{ ui.state_badge(state, fresh=true) }}{% endif %}</div>
+    <div>{{ summary }}</div>
+    {% if pack_path %}<div class="muted mt-1">Ready-to-post pack: {{ pack_path }}</div>{% endif %}
+    {% if notes %}
+      <ul class="muted mt-1">
+        {% for note in notes %}<li>{{ note }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+</div>
+
+{# OOB toast for immediate feedback; app.js auto-dismisses it #}
+<div class="toast toast--{{ 'ok' if tone == 'ok' else ('block' if tone == 'block' else 'note') }}"
+     hx-swap-oob="beforeend:#toasts" role="status" data-ttl="4200">
+  {{ ui.icon('check' if tone == 'ok' else ('x' if tone == 'block' else 'flag')) }}
+  <div>
+    <div class="toast__title">{{ title }}</div>
+    <div class="toast__text">DP{{ dp }}</div>
+  </div>
+</div>

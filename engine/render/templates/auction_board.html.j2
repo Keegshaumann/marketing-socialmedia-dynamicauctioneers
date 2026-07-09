@@ -1,0 +1,48 @@
+{# Print-ready auction board (SPEC 12 step 6d). Portrait board sized for print;
+   large legible type, brand chrome, hero image, headline, ref and contact. #}
+{% import "_brand.html.j2" as brand %}
+<title>Auction Board {{ vm.ref }} | {{ vm.brand_name }}</title>
+<style>
+  {{ brand.tokens_css() }}
+  body { background: var(--ground); }
+  .board {
+    width: 600px; max-width: 92vw; margin: 24px auto; background: var(--sheet);
+    box-shadow: 0 2px 6px rgba(25,22,19,.08), 0 18px 44px rgba(25,22,19,.13); overflow: hidden;
+  }
+  .board .head { background: var(--ink); color: #F3E7CB; text-align: center; padding: 26px 24px 20px; }
+  .board .mark { font-weight: 800; font-size: 30px; letter-spacing: -.04em; border: 3px solid var(--gold); display: inline-block; padding: 2px 12px; color: #fff; }
+  .board .name { font-size: 20px; font-weight: 800; letter-spacing: .18em; margin-top: 10px; }
+  .board .name b { color: var(--gold); }
+  .board .hero img { width: 100%; height: auto; display: block; }
+  .board .body { padding: 30px 34px; text-align: center; }
+  .board .badge { display: inline-block; background: var(--gold); color: var(--ink); font-weight: 800; font-size: 18px; letter-spacing: .16em; text-transform: uppercase; padding: 12px 24px; border-radius: 3px; }
+  .board h1 { font-size: 34px; font-weight: 800; line-height: 1.12; color: var(--ink); margin: 20px 0 10px; }
+  .board .addr { font-size: 17px; color: var(--muted); margin: 0 0 18px; }
+  .board .facts { font-size: 18px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; margin: 8px 0 4px; }
+  .board .ref { font-size: 13px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--gold-deep); }
+  .board .call { background: var(--ink); color: #fff; text-align: center; padding: 22px; }
+  .board .call .num { font-size: 40px; font-weight: 800; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+  .board .call .web { font-size: 15px; color: var(--gold); margin-top: 6px; }
+  @media print { body { background: #fff; } .board { margin: 0; box-shadow: none; width: 100%; max-width: none; } }
+</style>
+
+<div class="board">
+  <div class="head">
+    <span class="mark">DS</span>
+    <div class="name">DYNAMIC <b>AUCTIONEERS</b></div>
+  </div>
+  {% if vm.hero_src %}<div class="hero"><img src="{{ vm.hero_src }}" alt="{{ vm.headline }}" /></div>{% endif %}
+  <div class="body">
+    <span class="badge">{{ vm.badge_label }}</span>
+    <h1>{{ vm.headline }}</h1>
+    {% if vm.address %}<p class="addr">{{ vm.address }}</p>{% endif %}
+    <div class="facts">
+      {% if vm.beds %}{{ vm.beds }} bed{% endif %}{% if vm.baths %} &middot; {{ vm.baths }} bath{% endif %}{% if vm.size_str %} &middot; {{ vm.size_str }} m2{% endif %}{% if vm.flatlet_present %} &middot; flatlet{% endif %}
+    </div>
+    <div class="ref">Ref {{ vm.ref }}</div>
+  </div>
+  <div class="call">
+    <div class="num">{{ vm.brand_phone }}</div>
+    <div class="web">{{ vm.brand_web }}</div>
+  </div>
+</div>

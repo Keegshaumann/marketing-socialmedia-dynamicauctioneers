@@ -1,0 +1,66 @@
+{% import '_macros.html' as ui %}<!doctype html>
+<html lang="en-ZA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Dynamic Auctioneers{% endblock %} | Dynamic Auctioneers</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/htmx.min.js" defer></script>
+  <script src="/static/app.js" defer></script>
+</head>
+<body hx-headers='{"X-Requested-With": "htmx"}'>
+  {# request/user are guarded so the template renders under a bare Jinja harness #}
+  {%- set _path = request.url.path if request is defined and request else '' -%}
+  {%- set _user = user if user is defined else none -%}
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar__brand">
+        <div class="sidebar__wordmark">Dynamic Auctioneers</div>
+        <div class="sidebar__tag">Marketing Platform</div>
+      </div>
+      <nav class="sidebar__nav" aria-label="Primary">
+        <a class="nav-item {{ 'is-active' if _path == '/' or _path.startswith('/board') else '' }}" href="/board">
+          {{ ui.icon('board') }}<span>Board</span>
+        </a>
+        <a class="nav-item {{ 'is-active' if _path.startswith('/intake') else '' }}" href="/intake">
+          {{ ui.icon('intake') }}<span>Intake</span>
+        </a>
+        <a class="nav-item {{ 'is-active' if _path.startswith('/settings') else '' }}" href="/settings">
+          {{ ui.icon('settings') }}<span>Settings</span>
+        </a>
+      </nav>
+      <div class="sidebar__user">
+        {% if _user %}
+          <div class="who">{{ _user.email }}</div>
+          <div class="role">{{ _user.role }}</div>
+          <a class="logout" href="/logout">{{ ui.icon('logout', 'icon--sm') }}<span>Sign out</span></a>
+        {% else %}
+          <a class="logout" href="/login">{{ ui.icon('user', 'icon--sm') }}<span>Sign in</span></a>
+        {% endif %}
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div>
+          <div class="topbar__title">{% block heading %}{{ self.title() }}{% endblock %}</div>
+          {% block subheading %}{% endblock %}
+        </div>
+        <div class="topbar__actions">{% block topbar_actions %}{% endblock %}</div>
+      </header>
+      <div class="goldrule"></div>
+
+      <main class="content {% block content_mod %}{% endblock %}" role="main">
+        <div class="content-inner">
+          {% block content %}{% endblock %}
+        </div>
+      </main>
+    </div>
+  </div>
+
+  {# HTMX toast region: partials may hx-swap-oob into here #}
+  <div class="toasts" id="toasts" aria-live="polite" aria-atomic="false">
+    {% block toasts %}{% endblock %}
+  </div>
+</body>
+</html>

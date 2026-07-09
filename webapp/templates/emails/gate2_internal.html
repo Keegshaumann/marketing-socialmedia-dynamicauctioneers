@@ -1,0 +1,26 @@
+To: admin@dynamicauctioneers.co.za
+Subject: Adverts ready for approval - DP {{ dp }}{% if suburb %}, {{ suburb }}{% endif %}
+
+Hello,
+
+The adverts for DP {{ dp }} are drafted and ready for your review.
+
+  Property : {{ headline }}
+{% if address %}  Address  : {{ address }}
+{% endif %}  Price    : {{ price_display }}
+  Method   : {% if method == 'auction' %}On auction{% else %}Offers invited{% endif %}
+
+You can action this from here, no login needed. Each link works once:
+
+  Approve the adverts:
+  {{ links.approve }}
+
+  Request changes:
+  {{ links.changes }}
+
+If you would rather review the full gallery first, open the platform and go to
+Ad review for DP {{ dp }}.
+
+Regards,
+{{ brand.name }}
+{{ brand.phone }} | {{ brand.email }}

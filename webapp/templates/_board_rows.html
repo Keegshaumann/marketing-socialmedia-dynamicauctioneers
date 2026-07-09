@@ -1,0 +1,24 @@
+{% import '_macros.html' as ui %}
+{%- for r in rows %}
+<tr class="{{ 'stagger' if animate else '' }}" style="--i:{{ loop.index0 }};">
+  <td class="ledger__dp">{{ r.dp }}</td>
+  <td class="ledger__prop">
+    {{ r.property }}
+    {% if r.sub %}<span class="sub">{{ r.sub }}</span>{% endif %}
+  </td>
+  <td>{{ ui.state_badge(r.state) }}</td>
+  <td class="ledger__meta">{{ r.days.label }}</td>
+  <td class="ledger__meta">{{ r.owner }}</td>
+  <td class="ledger__next">
+    {% if r.next.href %}
+      <a class="btn btn--{{ r.next.variant }} btn--sm" href="{{ r.next.href }}">
+        <span>{{ r.next.label }}</span>{{ ui.icon('chevron', 'icon--sm') }}
+      </a>
+    {% else %}
+      <span class="muted">{{ r.next.label }}</span>
+    {% endif %}
+  </td>
+</tr>
+{%- else %}
+<tr><td colspan="6" class="muted" style="padding:22px 16px;">No records yet.</td></tr>
+{%- endfor %}

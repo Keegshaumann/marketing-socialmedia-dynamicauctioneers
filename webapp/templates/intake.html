@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as ui %}
+{% block title %}Intake{% endblock %}
+{% block heading %}Intake{% endblock %}
+{% block subheading %}<div class="topbar__sub">Drop a property's document pair to start the pipeline</div>{% endblock %}
+{% block content_mod %}content--narrow{% endblock %}
+
+{% block content %}
+<div class="eyebrow mt-0"><span class="dot"></span>New property<span class="dot"></span>Lightstone EVM + Property Report</div>
+
+<form class="mt-2" hx-post="/intake/upload" hx-encoding="multipart/form-data"
+      hx-target="#intake-result" hx-swap="innerHTML" hx-trigger="change, submit">
+  <div class="dropzone" data-dropzone tabindex="0" role="button"
+       aria-label="Drop the two source PDFs, or press to browse">
+    {{ ui.icon('intake', 'icon--xl') }}
+    <div class="dropzone__title">Drop the document pair here</div>
+    <div class="dropzone__hint">Two PDFs named with the DP number, for example
+      "3060 - EVM_Report.pdf" and "3060 - PROPERTY REPORT.pdf". Or press to browse.</div>
+    <input type="file" name="files" accept="application/pdf,.pdf" multiple class="sr-only">
+  </div>
+  <div class="row mt-2">
+    <span class="hint">Extraction runs in the background. You can leave this page once a job starts.</span>
+    <span class="spacer"></span>
+    <button type="submit" class="btn btn--ghost btn--sm">{{ ui.icon('arrow') }}<span>Upload</span></button>
+  </div>
+</form>
+
+<div id="intake-result" class="mt-3"></div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{# Email blast copy: subject A/B + preheader + body. No emojis, no em/en dashes.
+   CTA links carry ?dp=<n> for CRM attribution. #}
+# Email Blast {{ vm.ref }}
+
+**Subject A:** {{ vm.headline }}: {{ vm.badge_label | lower }}
+**Subject B:** New listing{% if vm.suburb %} in {{ vm.suburb }}{% endif %}{% if vm.flatlet_present %} (with rental income potential){% endif %}
+
+**Preheader:** {% if vm.size_str %}{{ vm.size_str }} m2 {% endif %}{% if vm.title_type_label %}{{ vm.title_type_label | lower }} {% endif %}listing.{% if vm.viewing_by_appt %} Viewing by appointment.{% endif %}
+
+---
+
+Hi [first name]
+
+A new listing has just opened{% if vm.badge_label == "Offers Invited" %} for offers{% endif %}{% if vm.location_line %} in {{ vm.location_line }}{% endif %}.
+
+**{{ vm.headline }}**
+{% if vm.address %}
+{{ vm.address }}
+{% endif %}
+
+{% if vm.features_main %}{{ vm.features_main | join('; ') }}.{% endif %}{% if vm.flatlet_present %} The drawcard: a separate {% if vm.flatlet_beds %}{{ vm.flatlet_beds }} bedroom {% endif %}flatlet. Live in the main home and let the flatlet, or keep extended family close.{% endif %}
+
+{% if vm.features_complex %}The complex offers {{ vm.features_complex | join('; ') | lower }}.{% endif %}
+
+{% if vm.badge_label == "Offers Invited" %}**Offers are invited.**{% elif vm.badge_label == "On Auction" %}**This property goes on auction.**{% endif %}{% if vm.terms %} {{ vm.terms[0] }}.{% endif %}
+
+[View the full listing](?dp={{ vm.dp }})  [Request the info pack](?dp={{ vm.dp }})
+
+{% if vm.viewing_by_appt %}Viewing is strictly by appointment.
+
+{% endif %}
+{{ vm.brand_name }}
+{{ vm.brand_phone }} | {{ vm.brand_email }}
+Registered with the PPRA
+
+---
+*Format notes: segment by area and budget band. CTA buttons link with ?dp={{ vm.dp }} for CRM attribution.*

@@ -1,0 +1,192 @@
+"""Job board, login and root routing (M8, Phase 4, screen 1).
+
+The board is the platform's home: a ruled ledger of every property record with
+its lifecycle state, days in that state, the last human to act, and the next
+action. The ledger body refreshes itself over HTMX so a job finishing in the
+background (extraction, render, a gate transition) shows up without a reload.
+
+This module also owns the small auth surface (``/login``, ``/logout``) and the
+root redirect, because those sit outside any single screen's prefix.
+
+POPIA: the board reads only non-PII columns (dp, state, suburb, title type,
+price display) from the store's indexed columns. No owner or occupant detail is
+loaded here, so the ledger cannot leak PII.
+"""
+
+from __future__ import annotations
+
+import sqlite3
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Form, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
+
+from webapp import auth, models
+
+router = APIRouter()
+
+
+# --- shared render helper -------------------------------------------------
+
+def _view(request: Request, name: str, ctx: Optional[dict] = None, status_code: int = 200):
+    templates = request.app.state.templates
+    data: Dict[str, Any] = {"user": auth.current_user(request)}
+    if ctx:
+        data.update(ctx)
+    return templates.TemplateResponse(request, name, data, status_code=status_code)
+
+
+# --- next-action mapping (state -> what a human does next) ----------------
+# href targets follow the platform's screen prefixes; a screen still being
+# built simply 404s the link without affecting the board.
+
+def _next_action(dp: str, state: str) -> Dict[str, Any]:
+    table = {
+        "intake":          ("Awaiting extraction", None, "muted"),
+        "extracted":       ("Verify", f"/gates/verify/{dp}", "primary"),
+        "flags_raised":    ("Review flags", f"/gates/verify/{dp}", "primary"),
+        "verified":        ("Draft ad", f"/gates/ad/{dp}", "primary"),
+        "drafted":         ("Review ad", f"/gates/ad/{dp}", "gold"),
+        "approved":        ("Client approval", f"/gates/client/{dp}", "gold"),
+        "client_approved": ("Build assets", f"/artifacts/{dp}", "primary"),
+        "assets_built":    ("Post", f"/post/{dp}", "gold"),
+        "live":            ("View pack", f"/artifacts/{dp}", "ghost"),
+        "updated":         ("Re-approve", f"/gates/ad/{dp}", "gold"),
+        "sold":            ("Archive", None, "muted"),
+        "withdrawn":       ("Archive", None, "muted"),
+        "archived":        ("Complete", None, "muted"),
+    }
+    label, href, variant = table.get(state, ("Open", f"/artifacts/{dp}", "ghost"))
+    return {"label": label, "href": href, "variant": variant}
+
+
+def _days_in_state(entered_at: Optional[str]) -> Dict[str, Any]:
+    if not entered_at:
+        return {"n": None, "label": "-"}
+    try:
+        entered = datetime.fromisoformat(entered_at)
+    except ValueError:
+        return {"n": None, "label": "-"}
+    if entered.tzinfo is None:
+        entered = entered.replace(tzinfo=timezone.utc)
+    delta = datetime.now(timezone.utc) - entered
+    days = max(delta.days, 0)
+    return {"n": days, "label": "today" if days == 0 else f"{days}d"}
+
+
+def _owner_from_note(note: Optional[str]) -> Optional[str]:
+    """Pull the actor out of a state-event note like 'signoff gate=1 user=x'."""
+    if not note or "user=" not in note:
+        return None
+    tail = note.split("user=", 1)[1].strip()
+    actor = tail.split()[0] if tail else ""
+    actor = actor.rstrip(":,")
+    return actor or None
+
+
+def _load_rows(db_path: str) -> List[Dict[str, Any]]:
+    """Return the ledger rows (one per record), newest activity first.
+
+    Reads only the store's non-PII indexed columns plus the state-event trail
+    for days-in-state and the last actor.
+    """
+    conn = sqlite3.connect(models.resolve_db_path(db_path))
+    conn.row_factory = sqlite3.Row
+    try:
+        records = conn.execute(
+            """
+            SELECT dp, state, suburb, title_type, price_display, updated_at
+              FROM records
+             ORDER BY updated_at DESC, dp
+            """
+        ).fetchall()
+        rows: List[Dict[str, Any]] = []
+        for rec in records:
+            dp = rec["dp"]
+            state = rec["state"]
+            entered = conn.execute(
+                "SELECT MAX(at) AS at FROM state_events "
+                "WHERE dp = ? AND to_state = ?",
+                (dp, state),
+            ).fetchone()
+            last_actor = conn.execute(
+                "SELECT note FROM state_events "
+                "WHERE dp = ? AND note LIKE '%user=%' ORDER BY id DESC LIMIT 1",
+                (dp,),
+            ).fetchone()
+            title_type = (rec["title_type"] or "").title() or None
+            price = rec["price_display"]
+            sub_bits = [b for b in (title_type, price) if b]
+            rows.append(
+                {
+                    "dp": dp,
+                    "state": state,
+                    "property": rec["suburb"] or f"DP {dp}",
+                    "sub": "  ".join(sub_bits),
+                    "days": _days_in_state(entered["at"] if entered else None),
+                    "owner": _owner_from_note(last_actor["note"] if last_actor else None)
+                    or "Unassigned",
+                    "next": _next_action(dp, state),
+                }
+            )
+        return rows
+    finally:
+        conn.close()
+
+
+# --- root + auth ----------------------------------------------------------
+
+@router.get("/", include_in_schema=False)
+def root() -> RedirectResponse:
+    return RedirectResponse("/board", status_code=303)
+
+
+@router.get("/login", response_class=HTMLResponse)
+def login_form(request: Request):
+    # Already signed in: send them to the board.
+    if auth.current_user(request) is not None:
+        return RedirectResponse("/board", status_code=303)
+    return _view(request, "login.html", {"error": None})
+
+
+@router.post("/login", response_class=HTMLResponse)
+def login_submit(
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...),
+):
+    if auth.login_user(request, email, password):
+        return RedirectResponse("/board", status_code=303)
+    return _view(
+        request,
+        "login.html",
+        {"error": "Those credentials were not recognised.", "email": email},
+        status_code=401,
+    )
+
+
+@router.get("/logout", include_in_schema=False)
+def logout(request: Request) -> RedirectResponse:
+    auth.logout(request)
+    return RedirectResponse("/login", status_code=303)
+
+
+# --- board ----------------------------------------------------------------
+
+@router.get("/board", response_class=HTMLResponse)
+def board(request: Request):
+    user = auth.current_user(request)
+    if user is None:
+        return RedirectResponse("/login", status_code=303)
+    rows = _load_rows(auth.db_path_for(request))
+    return _view(request, "board.html", {"rows": rows, "animate": True})
+
+
+@router.get("/board/rows", response_class=HTMLResponse)
+def board_rows(request: Request):
+    """The ledger body only: HTMX polls this to keep the board live."""
+    if auth.current_user(request) is None:
+        return RedirectResponse("/login", status_code=303)
+    rows = _load_rows(auth.db_path_for(request))
+    return _view(request, "_board_rows.html", {"rows": rows, "animate": False})

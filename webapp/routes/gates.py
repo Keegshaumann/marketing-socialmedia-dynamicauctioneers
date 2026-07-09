@@ -1,0 +1,505 @@
+"""The three human approval gates (M8, Phase 4).
+
+This module owns the operator-facing gate screens and the actions behind them.
+Each gate is a point where a named human takes responsibility before a record
+moves closer to being marketed, and every action here is recorded on the audit
+trail (``engine.store`` state events) so the board always reflects the truth.
+
+- **Gate 1 (verification review).** Renders the deterministic verification memo
+  and its flags. A blocking flag must be resolved or overridden *with a written
+  reason* before sign-off; the reason is passed straight to
+  ``engine.verify.sign_off`` (which refuses otherwise). A successful sign-off
+  moves the record ``-> verified``, generates the draft artifacts, and advances
+  it ``-> drafted`` so it lands on gate 2.
+- **Gate 2 (ad review).** Shows the artifact gallery rendered *only* from
+  ``record.public_view()`` (POPIA: no owner or occupant PII can reach a tile).
+  An approver may edit the human copy (stored back on ``record.marketing`` and
+  re-rendered), request changes (re-runs render, stays on gate 2), or approve
+  (``drafted -> approved``). The page also renders the internal approval email
+  with tokenised one-click links, so an approver can action gate 2 from their
+  inbox without logging in (see ``email_approve.py``).
+- **Gate 3 (client approval).** Renders a pre-drafted client email to copy and
+  send manually, and logs the client's approval (date + user) which transitions
+  the record ``approved -> client_approved``.
+
+Design rules baked in here:
+- Public artifacts and both emails are built from ``public_view()`` only.
+- The worker never renders owner PII; neither does any template in this module.
+- SA English, no em/en dashes, no emojis in any copy.
+"""
+
+from __future__ import annotations
+
+import json
+from datetime import date
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
+from starlette.templating import Jinja2Templates
+
+from engine.render import FORMATS
+from engine.render.html_backend import BRAND
+from engine.render.service import render_all
+from engine.schema import Marketing, PropertyRecord
+from engine.store import IllegalTransition, RecordStore
+from engine.verify import (
+    Flag,
+    SignOffRefused,
+    build_memo,
+    deterministic_checks,
+    sign_off,
+)
+from webapp import models, tokens
+from webapp.auth import current_user, require_role
+
+router = APIRouter(prefix="/gates", tags=["gates"])
+
+_TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates"
+templates = Jinja2Templates(directory=str(_TEMPLATE_DIR))
+
+# One-click approval links stay valid for a week (an approver may be travelling).
+_APPROVE_TTL = 7 * 24 * 3600
+
+# Formats worth previewing inline as text vs embedding as a visual frame.
+_TEXT_MIME_HINTS = ("text/markdown", "text/plain")
+
+
+# --- small helpers --------------------------------------------------------
+
+def _db(request: Request) -> str:
+    override = getattr(getattr(request, "app", None), "state", None)
+    candidate = getattr(override, "db_path", None) if override is not None else None
+    return models.resolve_db_path(candidate)
+
+
+def _output_root(db_path: str) -> str:
+    return models.get_setting(db_path, "output_root") or "."
+
+
+def _store(db_path: str) -> RecordStore:
+    return RecordStore(db_path)
+
+
+def _load(db_path: str, dp: str) -> PropertyRecord:
+    store = _store(db_path)
+    try:
+        record = store.get(dp)
+    finally:
+        store.close()
+    if record is None:
+        raise HTTPException(status_code=404, detail=f"No record for DP {dp}.")
+    return record
+
+
+def _state(db_path: str, dp: str) -> Optional[str]:
+    store = _store(db_path)
+    try:
+        return store.get_state(dp)
+    finally:
+        store.close()
+
+
+def _advance(db_path: str, dp: str, to_state: str, note: str) -> "tuple[bool, str]":
+    """Transition if legal (idempotent, never crashes).
+
+    Returns ``(moved, new_state)`` where ``moved`` is True when the record is now
+    at ``to_state`` (either it just transitioned or it was already there) and
+    False when the transition was illegal and refused. Callers use ``moved`` so
+    they never record a sign-off for a transition that did not actually happen.
+    """
+    store = _store(db_path)
+    try:
+        current = store.get_state(dp)
+        if current == to_state:
+            return True, current
+        try:
+            store.transition(dp, to_state, note=note)
+        except IllegalTransition:
+            return False, current
+        return True, store.get_state(dp)
+    finally:
+        store.close()
+
+
+def _signoff(db_path: str, dp: str, gate: str, user: str, note: str) -> None:
+    store = _store(db_path)
+    try:
+        store.record_signoff(dp, gate=gate, user=user, note=note)
+    finally:
+        store.close()
+
+
+def _render(db_path: str, dp: str) -> List[Any]:
+    """Render every artifact for ``dp`` from public_view. Never raises upward."""
+    store = _store(db_path)
+    try:
+        return render_all(dp, store, output_root=_output_root(db_path))
+    finally:
+        store.close()
+
+
+def _artifacts_dir(db_path: str, dp: str) -> Path:
+    return Path(_output_root(db_path)) / f"DP{dp}" / "artifacts"
+
+
+def _manifest(db_path: str, dp: str) -> List[Dict[str, Any]]:
+    path = _artifacts_dir(db_path, dp) / "manifest.json"
+    if not path.exists():
+        return []
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (ValueError, OSError):
+        return []
+    return data if isinstance(data, list) else []
+
+
+def _gallery(db_path: str, dp: str) -> List[Dict[str, Any]]:
+    """Return the gallery view-model: one entry per rendered artifact.
+
+    Text artifacts carry an inline preview (safe: rendered from public_view);
+    visual artifacts (html/svg) are shown via the artifact-serving route in an
+    embedded frame. The manifest is rebuilt on demand if it is missing.
+    """
+    manifest = _manifest(db_path, dp)
+    if not manifest:
+        _render(db_path, dp)
+        manifest = _manifest(db_path, dp)
+
+    tiles: List[Dict[str, Any]] = []
+    for art in manifest:
+        fmt = art.get("fmt")
+        mime = art.get("mime") or ""
+        path = art.get("path")
+        is_text = any(mime.startswith(h) for h in _TEXT_MIME_HINTS)
+        preview = ""
+        if is_text and path:
+            try:
+                preview = Path(path).read_text(encoding="utf-8")[:1600]
+            except OSError:
+                preview = ""
+        tiles.append(
+            {
+                "fmt": fmt,
+                "label": (fmt or "").replace("_", " ").title(),
+                "mime": mime,
+                "is_text": is_text,
+                "preview": preview,
+                "src": f"/gates/{dp}/ads/artifact/{fmt}",
+                "version": art.get("version", 1),
+            }
+        )
+    tiles.sort(key=lambda t: FORMATS.index(t["fmt"]) if t["fmt"] in FORMATS else 999)
+    return tiles
+
+
+def _memo_view(record: PropertyRecord) -> Dict[str, Any]:
+    """Build the gate-1 view-model: flags + corroborated facts + memo markdown."""
+    flags = deterministic_checks(record)
+    identity = record.identity
+    valuation = record.valuation
+    physical = record.physical
+
+    facts: List[tuple] = []
+    if physical is not None and physical.unit_size_m2 is not None:
+        facts.append(("Extent / unit size", f"{physical.unit_size_m2:g} m2"))
+    if identity is not None and identity.title_deed_no:
+        facts.append(("Title deed", identity.title_deed_no))
+    if valuation is not None and valuation.municipal_valuation is not None:
+        facts.append(("Municipal valuation", f"R{int(valuation.municipal_valuation):,}".replace(",", " ")))
+    if identity is not None and identity.gps and len(identity.gps) == 2:
+        facts.append(("GPS", f"{identity.gps[0]}, {identity.gps[1]}"))
+    if physical is not None and physical.bedrooms is not None:
+        facts.append(("Bedrooms (main unit)", str(physical.bedrooms)))
+    if physical is not None and physical.zoning:
+        facts.append(("Zoning", physical.zoning))
+
+    address = ""
+    suburb = ""
+    if identity is not None:
+        address = identity.street_address or identity.legal_description or ""
+        suburb = identity.suburb or ""
+
+    block_flags = [f for f in flags if f.severity == "block"]
+    note_flags = [f for f in flags if f.severity != "block"]
+    return {
+        "flags": flags,
+        "block_flags": block_flags,
+        "note_flags": note_flags,
+        "facts": facts,
+        "address": address,
+        "suburb": suburb,
+        "memo_markdown": build_memo(record, flags),
+    }
+
+
+def _email_view(record: PropertyRecord) -> Dict[str, Any]:
+    """View-model for both gate emails, from public_view only (no PII)."""
+    public = record.public_view()
+    identity = public.get("identity") or {}
+    marketing = public.get("marketing") or {}
+    sale = public.get("sale_process") or {}
+    viewing = sale.get("viewing") or {}
+    return {
+        "dp": record.dp,
+        "headline": marketing.get("headline") or f"Property DP{record.dp}",
+        "price_display": marketing.get("price_display") or "Price on application",
+        "address": identity.get("street_address") or identity.get("legal_description") or "",
+        "suburb": identity.get("suburb") or "",
+        "method": sale.get("method") or "offers_invited",
+        "terms": sale.get("terms") or [],
+        "contact_public": viewing.get("contact_public") or f"{BRAND['name']} | {BRAND['phone']} | {BRAND['email']}",
+        "brand": BRAND,
+    }
+
+
+def _abs(request: Request, path: str) -> str:
+    return str(request.base_url).rstrip("/") + path
+
+
+def _approval_links(request: Request, db_path: str, dp: str, approver: str) -> Dict[str, str]:
+    """Sign two single-use tokens (approve / request-changes) for gate 2."""
+    approve = tokens.sign(
+        {"dp": dp, "gate": "2", "action": "approve", "approver": approver},
+        _APPROVE_TTL,
+        db_path,
+    )
+    changes = tokens.sign(
+        {"dp": dp, "gate": "2", "action": "changes", "approver": approver},
+        _APPROVE_TTL,
+        db_path,
+    )
+    return {
+        "approve": _abs(request, f"/email/gate2?token={approve}"),
+        "changes": _abs(request, f"/email/gate2?token={changes}"),
+    }
+
+
+# --- gate 1: verification review -----------------------------------------
+
+@router.get("/{dp}/verify", response_class=HTMLResponse)
+def gate1_page(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
+    db_path = _db(request)
+    record = _load(db_path, dp)
+    view = _memo_view(record)
+    return templates.TemplateResponse(
+        request,
+        "gate1_verify.html",
+        {
+            "user": user,
+            "dp": dp,
+            "state": _state(db_path, dp),
+            "record": record,
+            **view,
+        },
+    )
+
+
+@router.post("/{dp}/verify")
+async def gate1_signoff(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
+    db_path = _db(request)
+    record = _load(db_path, dp)
+    form = await request.form()
+
+    # Collect a written override reason for each block flag (field override__CODE).
+    overrides: Dict[str, str] = {}
+    for f in deterministic_checks(record):
+        if f.severity != "block":
+            continue
+        reason = str(form.get(f"override__{f.code}", "")).strip()
+        if reason:
+            overrides[f.code] = reason
+
+    store = _store(db_path)
+    try:
+        sign_off(dp, store, user=user["email"], override_notes=overrides or None)
+    except SignOffRefused as exc:
+        view = _memo_view(record)
+        return templates.TemplateResponse(
+            request,
+            "gate1_verify.html",
+            {
+                "user": user,
+                "dp": dp,
+                "state": _state(db_path, dp),
+                "record": record,
+                "error": str(exc),
+                **view,
+            },
+            status_code=400,
+        )
+    finally:
+        store.close()
+
+    # Signed off -> verified. Draft the artifacts and advance to gate 2.
+    _render(db_path, dp)
+    _advance(db_path, dp, "drafted", note=f"drafts generated after sign-off by {user['email']}")
+    return RedirectResponse(url=f"/gates/{dp}/ads", status_code=303)
+
+
+# --- gate 2: ad review ----------------------------------------------------
+
+@router.get("/{dp}/ads", response_class=HTMLResponse)
+def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
+    db_path = _db(request)
+    record = _load(db_path, dp)
+    tiles = _gallery(db_path, dp)
+    links = _approval_links(request, db_path, dp, user["email"])
+    email_html = templates.get_template("emails/gate2_internal.html").render(
+        **_email_view(record), links=links
+    )
+    marketing = record.marketing or Marketing()
+    return templates.TemplateResponse(
+        request,
+        "gate2_ads.html",
+        {
+            "user": user,
+            "dp": dp,
+            "state": _state(db_path, dp),
+            "record": record,
+            "tiles": tiles,
+            "headline": marketing.headline or "",
+            "price_display": marketing.price_display or "",
+            "approval_email": email_html,
+            "links": links,
+        },
+    )
+
+
+@router.get("/{dp}/ads/artifact/{fmt}")
+def gate2_artifact(dp: str, fmt: str, request: Request, user: dict = Depends(require_role("approver"))):
+    """Serve one rendered artifact file (PII-free: rendered from public_view)."""
+    if fmt not in FORMATS:
+        raise HTTPException(status_code=404, detail="Unknown format.")
+    db_path = _db(request)
+    for art in _manifest(db_path, dp):
+        if art.get("fmt") == fmt and art.get("path"):
+            path = Path(art["path"])
+            if path.exists():
+                return FileResponse(str(path), media_type=art.get("mime") or "text/plain")
+    raise HTTPException(status_code=404, detail="Artifact not rendered yet.")
+
+
+def _save_copy(db_path: str, dp: str, headline: str, price_display: str) -> None:
+    """Store human copy edits back on ``record.marketing`` (SPEC M5)."""
+    store = _store(db_path)
+    try:
+        record = store.get(dp)
+        if record is None:
+            return
+        if record.marketing is None:
+            record.marketing = Marketing()
+        if headline.strip():
+            record.marketing.headline = headline.strip()
+        if price_display.strip():
+            record.marketing.price_display = price_display.strip()
+        store.upsert(record)
+    finally:
+        store.close()
+
+
+@router.post("/{dp}/ads/copy", response_class=HTMLResponse)
+async def gate2_copy(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
+    db_path = _db(request)
+    form = await request.form()
+    _save_copy(db_path, dp, str(form.get("headline", "")), str(form.get("price_display", "")))
+    _render(db_path, dp)  # re-render so the edit lands on every artifact
+    return templates.TemplateResponse(
+        request,
+        "partials/_gate2_gallery.html",
+        {
+            "dp": dp,
+            "tiles": _gallery(db_path, dp),
+            "toast": {"tone": "ok", "title": "Copy saved", "text": "Artifacts re-rendered with the new wording."},
+        },
+    )
+
+
+@router.post("/{dp}/ads/changes", response_class=HTMLResponse)
+async def gate2_changes(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
+    db_path = _db(request)
+    form = await request.form()
+    note = str(form.get("note", "")).strip() or "Changes requested."
+    _save_copy(db_path, dp, str(form.get("headline", "")), str(form.get("price_display", "")))
+    _signoff(db_path, dp, gate="2", user=user["email"], note=f"changes requested: {note}")
+    _render(db_path, dp)  # regenerate and return to gate 2
+    return templates.TemplateResponse(
+        request,
+        "partials/_gate2_gallery.html",
+        {
+            "dp": dp,
+            "tiles": _gallery(db_path, dp),
+            "toast": {"tone": "note", "title": "Changes requested", "text": "Artifacts regenerated. Still on gate 2 for review."},
+        },
+    )
+
+
+def action_gate2_approve(db_path: str, dp: str, approver: str) -> str:
+    """Approve gate 2: record the sign-off and move ``drafted -> approved``.
+
+    Shared by the logged-in button and the tokenised email link so both paths
+    behave identically. Returns the resulting state. The sign-off is recorded
+    only when the transition actually happens, so an out-of-order approval does
+    not leave a false audit entry.
+    """
+    moved, state = _advance(db_path, dp, "approved", note=f"gate 2 approved by {approver}")
+    if moved:
+        _signoff(db_path, dp, gate="2", user=approver, note="internal ad approval")
+    return state
+
+
+def action_gate2_changes(db_path: str, dp: str, approver: str, note: str) -> str:
+    """Request changes via the email path: log the note and re-render."""
+    _signoff(db_path, dp, gate="2", user=approver, note=f"changes requested: {note}")
+    _render(db_path, dp)
+    return _state(db_path, dp)
+
+
+@router.post("/{dp}/ads/approve")
+def gate2_approve(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
+    db_path = _db(request)
+    state = action_gate2_approve(db_path, dp, user["email"])
+    # Only advance to gate 3 when the record actually reached "approved"; an
+    # out-of-order approval stays put and returns to the gate 2 view.
+    if state not in ("approved", "client_approved", "assets_built", "live", "updated"):
+        target = f"/gates/{dp}/ads"
+    else:
+        target = f"/gates/{dp}/client"
+    if request.headers.get("HX-Request"):
+        return Response(status_code=204, headers={"HX-Redirect": target})
+    return RedirectResponse(url=target, status_code=303)
+
+
+# --- gate 3: client approval ---------------------------------------------
+
+@router.get("/{dp}/client", response_class=HTMLResponse)
+def gate3_page(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
+    db_path = _db(request)
+    record = _load(db_path, dp)
+    client_email = templates.get_template("emails/client_draft.html").render(**_email_view(record))
+    return templates.TemplateResponse(
+        request,
+        "gate3_client.html",
+        {
+            "user": user,
+            "dp": dp,
+            "state": _state(db_path, dp),
+            "record": record,
+            "client_email": client_email,
+            "today": date.today().isoformat(),
+        },
+    )
+
+
+@router.post("/{dp}/client/approve")
+async def gate3_approve(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
+    db_path = _db(request)
+    form = await request.form()
+    when = str(form.get("approved_on", "")).strip() or date.today().isoformat()
+    moved, _ = _advance(db_path, dp, "client_approved", note=f"client approval logged by {user['email']}")
+    if moved:
+        _signoff(db_path, dp, gate="3", user=user["email"], note=f"client approved on {when}")
+    if request.headers.get("HX-Request"):
+        return Response(status_code=204, headers={"HX-Redirect": f"/board"})
+    return RedirectResponse(url="/board", status_code=303)

@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as ui %}
+{% block title %}Job board{% endblock %}
+{% block heading %}Job board{% endblock %}
+{% block subheading %}<div class="topbar__sub">Every property, its state and the next action</div>{% endblock %}
+
+{% block topbar_actions %}
+  <a class="btn btn--gold" href="/intake">{{ ui.icon('plus') }}<span>New intake</span></a>
+{% endblock %}
+
+{% block content %}
+<div class="eyebrow mt-0"><span class="dot"></span>Ledger<span class="dot"></span>{{ rows|length }} record{{ '' if rows|length == 1 else 's' }}</div>
+
+{% if rows %}
+<div class="ledger-wrap mt-2">
+  <table class="ledger">
+    <thead>
+      <tr>
+        <th style="width:78px;">DP</th>
+        <th>Property</th>
+        <th>State</th>
+        <th>In state</th>
+        <th>Owner</th>
+        <th style="width:170px;">Next action</th>
+      </tr>
+    </thead>
+    <tbody id="ledger-body"
+           hx-get="/board/rows" hx-trigger="every 6s" hx-swap="innerHTML"
+           hx-target="#ledger-body">
+      {% include '_board_rows.html' %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty mt-2">
+  {{ ui.icon('intake', 'icon--xl') }}
+  <div class="empty__title">No records yet</div>
+  <div class="empty__text">Drop a document pair to begin. Extraction, verification and rendering run in the background and appear here.</div>
+  <a class="btn btn--gold empty__cta" href="/intake">{{ ui.icon('plus') }}<span>Start an intake</span></a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,42 @@
+{% import '_macros.html' as ui %}
+{#- Job progress card. While the job is active it polls itself; on settle it
+   swaps to a final banner with a link to the board. -#}
+<div id="job-{{ job.id }}" class="panel enter"
+     {% if polling %}hx-get="/intake/job/{{ job.id }}" hx-trigger="load delay:1200ms"
+        hx-swap="outerHTML" hx-target="#job-{{ job.id }}"{% endif %}>
+  <div class="panel__head">
+    <div class="panel__title">Intake job {{ job.id }}{% if job.dp %} &middot; DP {{ job.dp }}{% endif %}</div>
+    {% if polling %}
+      <span class="badge badge--info"><span class="dot"></span>{{ job.state }}</span>
+    {% elif tone == 'ok' %}
+      <span class="badge badge--ok"><span class="dot"></span>Done</span>
+    {% elif tone == 'error' %}
+      <span class="badge badge--block"><span class="dot"></span>Error</span>
+    {% else %}
+      <span class="badge badge--note"><span class="dot"></span>Skipped</span>
+    {% endif %}
+  </div>
+  <div class="panel__body">
+    {% if polling %}
+      <div class="progress" aria-hidden="true"><div class="progress__bar" style="width:64%;"></div></div>
+      <p class="hint mt-2">Reading the document pair and extracting the record. This card updates itself.</p>
+    {% else %}
+      <div class="banner banner--{{ 'error' if tone == 'error' else ('ok' if tone == 'ok' else 'note') }}" role="status">
+        {{ ui.icon('check' if tone == 'ok' else ('block' if tone == 'error' else 'note')) }}
+        <div class="banner__body">
+          <div class="banner__title">
+            {% if tone == 'ok' %}Record extracted{% elif tone == 'error' %}Job failed{% else %}Pair received{% endif %}
+          </div>
+          <div>{{ job.detail or 'No further detail.' }}</div>
+        </div>
+      </div>
+      {% if missing %}
+        <p class="hint mt-2">Note: could not classify {{ missing | join(' and ') }}. Check the file was named with its DP number.</p>
+      {% endif %}
+      <div class="row mt-2">
+        <a class="btn btn--primary btn--sm" href="/board">{{ ui.icon('board') }}<span>View on board</span></a>
+        <a class="btn btn--ghost btn--sm" href="/intake">{{ ui.icon('plus') }}<span>Another intake</span></a>
+      </div>
+    {% endif %}
+  </div>
+</div>

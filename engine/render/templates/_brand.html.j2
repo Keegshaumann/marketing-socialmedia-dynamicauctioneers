@@ -1,0 +1,84 @@
+{#
+  Shared Dynamic Auctioneers brand chrome for the visual (HTML) artifacts.
+  One place for the palette tokens, the font stack, the CSS text letterhead, the
+  gold rule, and the regulatory footer. Individual templates import these macros
+  and add their own format-specific CSS on top.
+
+  Font: no woff files ship in the repo (the Phase 0 demo-ad embedded base64
+  Montserrat), so we use a Montserrat-or-system stack. Drop-in self-hosting can be
+  added later by declaring @font-face here.
+#}
+
+{% macro tokens_css() %}
+  :root {
+    --gold: #B08D4A;
+    --gold-deep: #8C6D33;
+    --gold-pale: #F1E8D6;
+    --ink: #191613;
+    --body: #2B2620;
+    --muted: #877E70;
+    --hairline: #E5DFD4;
+    --ground: #EFEBE3;
+    --sheet: #FFFFFF;
+    --font: 'Montserrat', 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    font-family: var(--font);
+    color: var(--body);
+    -webkit-font-smoothing: antialiased;
+  }
+  .goldrule {
+    height: 5px;
+    background: linear-gradient(90deg, var(--gold-deep), var(--gold) 45%, #D9BC7E 70%, var(--gold-deep));
+  }
+  .lh {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 24px; flex-wrap: wrap;
+    background: var(--sheet); padding: 22px 44px;
+  }
+  .lh-brand { display: flex; align-items: center; gap: 16px; }
+  .lh-mark {
+    font-weight: 800; font-size: 34px; letter-spacing: -.04em;
+    color: var(--ink); border: 3px solid var(--gold); padding: 2px 10px; line-height: 1;
+  }
+  .lh-name { font-size: 22px; font-weight: 800; letter-spacing: .14em; color: var(--ink); }
+  .lh-name b { color: var(--gold-deep); font-weight: 800; }
+  .lh-contact { font-size: 12px; line-height: 1.7; color: var(--body); text-align: right; }
+  .lh-contact .lh-web { color: var(--gold-deep); font-weight: 600; }
+  .reg {
+    border-top: 1px solid var(--hairline); padding: 14px 44px 20px;
+    font-size: 10px; line-height: 1.7; color: var(--muted); letter-spacing: .02em;
+  }
+  .reg .demo-note { color: #B3A891; margin-top: 4px; }
+  @media (max-width: 640px) {
+    .lh { padding: 18px 20px; }
+    .lh-contact { text-align: left; }
+    .reg { padding-left: 20px; padding-right: 20px; }
+  }
+{% endmacro %}
+
+{% macro letterhead(vm) %}
+  <div class="lh">
+    <div class="lh-brand">
+      <span class="lh-mark">DS</span>
+      <span class="lh-name">DYNAMIC <b>AUCTIONEERS</b></span>
+    </div>
+    <div class="lh-contact">
+      <div>{{ vm.brand_phone }}</div>
+      <div>{{ vm.brand_email }}</div>
+      <div>{{ vm.brand_address }}</div>
+      <div class="lh-web">{{ vm.brand_web }}</div>
+    </div>
+  </div>
+  <div class="goldrule"></div>
+{% endmacro %}
+
+{% macro footer(vm) %}
+  <div class="reg">
+    {{ vm.brand_reg }}
+    <div class="demo-note">{{ vm.generated_note }}</div>
+  </div>
+{% endmacro %}

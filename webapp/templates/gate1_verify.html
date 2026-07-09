@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as ui %}
+
+{% block title %}Verification review{% endblock %}
+{% block heading %}Verification review{% endblock %}
+{% block subheading %}
+  <div class="topbar__sub">DP {{ dp }}{% if address %} · {{ address }}{% endif %}</div>
+{% endblock %}
+{% block topbar_actions %}{{ ui.state_badge(state) }}{% endblock %}
+{% block content_mod %}content--narrow{% endblock %}
+
+{% block content %}
+  {% if error %}
+    <div class="banner banner--error" role="alert">
+      <div class="banner__title">Sign-off refused</div>
+      <div class="banner__body">{{ error }}</div>
+    </div>
+  {% endif %}
+
+  <div class="sheet enter">
+    <div class="sheet__letterhead">
+      <div>
+        <div class="eyebrow">Gate 1 · Verification memo</div>
+        <div style="font-size:22px;font-weight:600">DP {{ dp }}</div>
+      </div>
+      <div class="sheet__address">
+        {% if address %}<div>{{ address }}</div>{% endif %}
+        {% if suburb %}<div class="muted">{{ suburb }}</div>{% endif %}
+      </div>
+    </div>
+
+    <div class="sheet__body">
+      <div class="panel">
+        <div class="panel__head"><div class="panel__title">Corroborated facts</div></div>
+        <div class="panel__body">
+          {% if facts %}
+            <table class="kv">
+              {% for label, value in facts %}
+                <tr><td class="k">{{ label }}</td><td class="v num">{{ value }}</td></tr>
+              {% endfor %}
+            </table>
+          {% else %}
+            <p class="muted">No corroborated facts on record.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="h-rule"></div>
+
+      <form method="post" action="/gates/{{ dp }}/verify" class="stack">
+        <div class="panel">
+          <div class="panel__head">
+            <div class="panel__title">Flags</div>
+            {% if block_flags %}{{ ui.flag_pill('block', block_flags|length ~ ' blocking') }}{% endif %}
+            {% if note_flags %}{{ ui.flag_pill('note', note_flags|length ~ ' to note') }}{% endif %}
+          </div>
+          <div class="panel__body stack">
+            {% if not flags %}
+              <div class="empty">
+                <div class="empty__title">No flags raised</div>
+                <div class="empty__text">The sources agree on every checked fact. You may sign off.</div>
+              </div>
+            {% endif %}
+
+            {% for f in block_flags %}
+              {{ ui.flag(f) }}
+              <div class="field">
+                <label class="label" for="ov-{{ f.code }}">Written reason to override {{ f.code }}</label>
+                <textarea class="textarea" id="ov-{{ f.code }}" name="override__{{ f.code }}" rows="2"
+                          placeholder="Explain how this blocking flag was resolved. Required to sign off."></textarea>
+                <div class="hint">A blocking flag cannot be signed past without a recorded reason.</div>
+              </div>
+            {% endfor %}
+
+            {% for f in note_flags %}
+              {{ ui.flag(f) }}
+            {% endfor %}
+          </div>
+        </div>
+
+        <details class="mt-2">
+          <summary class="muted">View the full memo</summary>
+          <pre class="card mt-1" style="white-space:pre-wrap">{{ memo_markdown }}</pre>
+        </details>
+
+        <div class="actionbar" data-gold-sweep-host>
+          <div class="actionbar__note">
+            {% if block_flags %}
+              Resolve or override the {{ block_flags|length }} blocking flag(s), then sign off.
+            {% else %}
+              Signing off records your name and moves DP {{ dp }} to drafting.
+            {% endif %}
+          </div>
+          <div class="spacer"></div>
+          {{ ui.button('Sign off and draft', variant='gold', icon_name='check', type='submit', attrs='data-gold-sweep') }}
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

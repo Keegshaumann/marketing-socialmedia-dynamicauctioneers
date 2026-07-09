@@ -1,0 +1,188 @@
+{# Branded one-pager demo ad (print-ready A4 + web). Port of the Phase 0
+   DP3060/ads/demo-ad.template.html: the %%...%% placeholders are now Jinja vars
+   and the brand chrome comes from _brand.html.j2. Facts render only when the
+   record carries them (no invented facts). #}
+{% import "_brand.html.j2" as brand %}
+<title>{{ vm.ref }} {{ vm.headline }} | {{ vm.brand_name }}</title>
+<style>
+  {{ brand.tokens_css() }}
+
+  .sheet {
+    max-width: 860px; margin: 28px auto 48px; background: var(--sheet);
+    box-shadow: 0 2px 6px rgba(25,22,19,.08), 0 18px 44px rgba(25,22,19,.13);
+  }
+  .inner { padding: 34px 44px 0; }
+
+  .eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--gold-deep);
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  .eyebrow .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--gold); flex: none; }
+
+  h1 {
+    font-size: clamp(26px, 4.2vw, 38px); font-weight: 800; line-height: 1.12;
+    letter-spacing: -.01em; color: var(--ink); margin: 12px 0 8px; text-wrap: balance;
+  }
+  .address { font-size: 14.5px; color: var(--muted); margin: 0 0 18px; line-height: 1.5; }
+
+  .offerline { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+  .badge {
+    background: var(--ink); color: #F3E7CB; font-weight: 800; font-size: 13px;
+    letter-spacing: .16em; text-transform: uppercase; padding: 10px 18px; border-left: 4px solid var(--gold);
+  }
+  .offerline .viewing { font-size: 12.5px; font-weight: 600; letter-spacing: .04em; color: var(--muted); }
+
+  .hero { display: grid; grid-template-columns: 1.55fr 1fr; gap: 10px; }
+  .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hero .stack { display: grid; grid-template-rows: 1fr 1fr; gap: 10px; min-width: 0; }
+  .hero figure { margin: 0; position: relative; min-height: 0; }
+
+  .facts {
+    display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+    border-top: 2px solid var(--ink); border-bottom: 1px solid var(--hairline); margin: 26px 0;
+  }
+  .facts > div { padding: 14px 8px 15px; text-align: center; border-right: 1px solid var(--hairline); }
+  .facts > div:last-child { border-right: 0; }
+  .facts .num { font-size: 21px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .facts .num sup { font-size: 12px; font-weight: 600; }
+  .facts .lbl { font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; }
+  .cols h2 {
+    font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--ink); margin: 0 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--gold); display: inline-block;
+  }
+  .cols ul { list-style: none; margin: 0; padding: 0; }
+  .cols li {
+    font-size: 14px; line-height: 1.5; padding: 7px 0 7px 20px; position: relative;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .cols li:last-child { border-bottom: 0; }
+  .cols li::before { content: ''; position: absolute; left: 2px; top: 15px; width: 7px; height: 7px; background: var(--gold); }
+
+  .location {
+    margin: 28px 0 0; padding: 14px 18px; background: var(--gold-pale);
+    font-size: 13px; font-weight: 600; color: var(--gold-deep);
+    display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; line-height: 1.6;
+  }
+  .location .pin { font-weight: 800; letter-spacing: .14em; text-transform: uppercase; font-size: 11px; color: var(--ink); }
+
+  .gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 28px 44px; }
+  .gallery figure { margin: 0; position: relative; }
+  .gallery img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; }
+
+  .terms { background: var(--ink); color: #C9C1B2; padding: 20px 44px; }
+  .terms .t-head { font-size: 10.5px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+  .terms ul { margin: 0; padding-left: 18px; }
+  .terms li { font-size: 12px; line-height: 1.7; }
+
+  .cta { display: flex; justify-content: space-between; align-items: center; gap: 18px; flex-wrap: wrap; padding: 22px 44px; background: var(--sheet); }
+  .cta .call { font-size: 13px; font-weight: 600; color: var(--muted); }
+  .cta .num-big { font-size: 24px; font-weight: 800; color: var(--ink); letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+  .cta .mail { font-size: 13px; font-weight: 600; color: var(--gold-deep); }
+
+  @media (max-width: 640px) {
+    .inner, .gallery, .terms, .cta { padding-left: 20px; padding-right: 20px; }
+    .hero { grid-template-columns: 1fr; }
+    .hero .stack { grid-template-rows: none; grid-template-columns: 1fr 1fr; }
+    .facts { grid-auto-flow: row; grid-template-columns: repeat(3, 1fr); grid-auto-columns: auto; }
+    .cols { grid-template-columns: 1fr; gap: 22px; }
+    .gallery { grid-template-columns: 1fr 1fr; }
+  }
+  @media print {
+    body { background: #fff; }
+    .sheet { margin: 0; box-shadow: none; max-width: none; }
+  }
+</style>
+
+<div class="sheet">
+  {{ brand.letterhead(vm) }}
+
+  <div class="inner">
+    <div class="eyebrow">
+      <span>Property for sale</span><span class="dot"></span>
+      <span>Ref {{ vm.ref }}</span>
+      {% if vm.location_line %}<span class="dot"></span><span>{{ vm.location_line }}</span>{% endif %}
+    </div>
+
+    <h1>{{ vm.headline }}</h1>
+    {% if vm.address %}<p class="address">{{ vm.address }}</p>{% endif %}
+
+    <div class="offerline">
+      <span class="badge">{{ vm.badge_label }}</span>
+      {% if vm.viewing_by_appt %}<span class="viewing">Viewing strictly by appointment</span>{% endif %}
+    </div>
+
+    {% if vm.hero_src %}
+    <div class="hero">
+      <figure><img src="{{ vm.hero_src }}" alt="{{ vm.headline }}" /></figure>
+      {% if vm.stack_photos %}
+      <div class="stack">
+        {% for src in vm.stack_photos %}
+        <figure><img src="{{ src }}" alt="Property photo" /></figure>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="facts">
+      {% if vm.size_str %}<div><div class="num">{{ vm.size_str }} m<sup>2</sup></div><div class="lbl">Unit size</div></div>{% endif %}
+      {% if vm.beds %}<div><div class="num">{{ vm.beds }}</div><div class="lbl">Bedrooms</div></div>{% endif %}
+      {% if vm.baths %}<div><div class="num">{{ vm.baths }}</div><div class="lbl">Bathrooms</div></div>{% endif %}
+      {% if vm.flatlet_present and vm.flatlet_beds %}<div><div class="num">{{ vm.flatlet_beds }}</div><div class="lbl">Bed flatlet</div></div>{% endif %}
+      {% if vm.title_type_label %}<div><div class="num" style="font-size:15px">{{ vm.title_type_label }}</div><div class="lbl">Title</div></div>{% endif %}
+    </div>
+
+    <div class="cols">
+      {% if vm.features_main %}
+      <div>
+        <h2>Main residence</h2>
+        <ul>{% for f in vm.features_main %}<li>{{ f }}</li>{% endfor %}</ul>
+      </div>
+      {% endif %}
+      {% if vm.features_complex %}
+      <div>
+        <h2>Flatlet &amp; complex</h2>
+        <ul>{% for f in vm.features_complex %}<li>{{ f }}</li>{% endfor %}</ul>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if vm.location_line %}
+    <div class="location">
+      <span class="pin">Location</span>
+      <span>{{ vm.location_line }}</span>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if vm.gallery_photos %}
+  <div class="gallery">
+    {% for src in vm.gallery_photos %}
+    <figure><img src="{{ src }}" alt="Property photo" /></figure>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if vm.terms %}
+  <div class="terms">
+    <div class="t-head">Terms of sale</div>
+    <ul>{% for t in vm.terms %}<li>{{ t }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+
+  <div class="cta">
+    <div>
+      <div class="call">Enquiries and viewing appointments</div>
+      <div class="num-big">{{ vm.brand_phone }}</div>
+    </div>
+    <div>
+      <div class="mail">{{ vm.brand_email }}</div>
+      <div class="mail">{{ vm.brand_web }}</div>
+    </div>
+  </div>
+
+  {{ brand.footer(vm) }}
+</div>

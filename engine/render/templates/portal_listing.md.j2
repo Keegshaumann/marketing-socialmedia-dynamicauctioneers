@@ -1,0 +1,26 @@
+{# Property24-ready listing copy. Derived from record fields; no invented facts. #}
+# Property24 Listing {{ vm.ref }}
+
+**Listing title:** {{ vm.headline }}
+**Price display:** {{ vm.price_display }}
+{% if vm.title_type_label %}**Property type:** {{ vm.title_type_label }}
+{% endif %}
+{% if vm.beds or vm.baths or vm.size_str %}**{% if vm.beds %}Beds: {{ vm.beds }}{% endif %}{% if vm.baths %} | Baths: {{ vm.baths }}{% endif %}{% if vm.size_str %} | Size: {{ vm.size_str }} m2{% endif %}**
+{% endif %}
+
+---
+
+{% if vm.address %}{{ vm.headline }} at {{ vm.address }}.{% else %}{{ vm.headline }}.{% endif %}{% if vm.features_main %} This home offers {{ vm.features_main | join('; ') | lower }}.{% endif %}
+
+{% if vm.flatlet_present %}A separate {% if vm.flatlet_beds %}{{ vm.flatlet_beds }} bedroom {% endif %}flatlet adds room for extended family or rental income.
+
+{% endif %}
+{% if vm.features_complex %}The complex offers {{ vm.features_complex | join('; ') | lower }}.
+
+{% endif %}
+{% if vm.badge_label == "Offers Invited" %}Offers are invited.{% elif vm.badge_label == "On Auction" %}This property goes on auction.{% endif %}{% if vm.terms %} {{ vm.terms[0] }}.{% endif %}
+
+{% if vm.viewing_by_appt %}Viewing strictly by appointment.
+
+{% endif %}
+**{{ vm.brand_name }}** | {{ vm.brand_phone }} | {{ vm.brand_email }}

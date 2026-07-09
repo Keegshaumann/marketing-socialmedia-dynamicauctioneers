@@ -1,0 +1,35 @@
+{% import '_macros.html' as ui %}
+<div id="status-board" hx-get="/artifacts/{{ dp }}/status" hx-trigger="every 10s" hx-swap="outerHTML">
+  {% if board %}
+  <div class="ledger-wrap">
+    <table class="ledger">
+      <thead>
+        <tr>
+          <th>Channel</th>
+          <th>Status</th>
+          <th class="col-num">Version</th>
+          <th>When</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in board %}
+        <tr class="stagger" style="--i: {{ loop.index0 }}">
+          <td class="ledger__prop">{{ row.label }}</td>
+          <td>
+            <span class="badge badge--{{ row.tone }}"><span class="dot"></span>{{ row.status }}</span>
+          </td>
+          <td class="col-num num">{{ row.version if row.version is not none else '-' }}</td>
+          <td class="ledger__meta">{{ row.at or 'not yet' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">
+    {{ ui.icon('send') }}
+    <div class="empty__title">Nothing posted yet</div>
+    <div class="empty__text">Enable channels in Settings and trigger distribution to build the Proof of Marketing trail.</div>
+  </div>
+  {% endif %}
+</div>

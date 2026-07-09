@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as ui %}
+
+{% block title %}Advert approval{% endblock %}
+{% block heading %}Advert approval{% endblock %}
+{% block content_mod %}content--narrow{% endblock %}
+
+{% block content %}
+  <div class="sheet enter">
+    <div class="sheet__letterhead">
+      <div>
+        <div class="eyebrow">Dynamic Auctioneers · Gate 2</div>
+        <div style="font-size:22px;font-weight:600">{{ title }}</div>
+      </div>
+    </div>
+    <div class="sheet__body stack">
+      {% if phase == 'confirm' %}
+        <p>You are about to <b>{{ action_label|lower }}</b> for <b>DP {{ dp }}</b>.</p>
+        <p class="muted">This link works once. Confirm to record your decision. No login is needed.</p>
+        <form method="post" action="/email/gate2" class="stack">
+          <input type="hidden" name="token" value="{{ token }}">
+          {% if action == 'changes' %}
+            <div class="field">
+              <label class="label" for="note">What needs to change</label>
+              <textarea class="textarea" id="note" name="note" rows="3"
+                        placeholder="Note the change for the marketing team."></textarea>
+            </div>
+          {% endif %}
+          <div class="actionbar" data-gold-sweep-host>
+            <div class="spacer"></div>
+            {{ ui.button(action_label, variant='gold', icon_name='check', type='submit', attrs='data-gold-sweep') }}
+          </div>
+        </form>
+
+      {% elif phase == 'done' %}
+        <div class="banner banner--ok" role="status">
+          <div class="banner__title">{{ title }}</div>
+          <div class="banner__body">{{ message }}</div>
+        </div>
+        {% if state %}<p class="muted">DP {{ dp }} is now {{ state|replace('_', ' ') }}.</p>{% endif %}
+
+      {% else %}
+        <div class="banner banner--error" role="alert">
+          <div class="banner__title">{{ title }}</div>
+          <div class="banner__body">{{ message }}</div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

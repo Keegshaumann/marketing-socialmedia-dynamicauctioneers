@@ -1,0 +1,8 @@
+{% import '_macros.html' as ui %}
+<div class="banner banner--error enter" role="alert">
+  {{ ui.icon('block') }}
+  <div class="banner__body">
+    <div class="banner__title">Upload could not start</div>
+    <div>{{ message }}</div>
+  </div>
+</div>

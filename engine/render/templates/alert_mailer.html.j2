@@ -1,0 +1,46 @@
+{# Alert-mailer HTML (SPEC 12 step 6b): a single-column email body with the
+   letterhead chrome, hero, facts, and a CTA. Inline-ish layout for email clients. #}
+{% import "_brand.html.j2" as brand %}
+<title>Alert Mailer {{ vm.ref }} | {{ vm.brand_name }}</title>
+<style>
+  {{ brand.tokens_css() }}
+  .mail { max-width: 640px; margin: 24px auto; background: var(--sheet); box-shadow: 0 2px 6px rgba(25,22,19,.08), 0 18px 44px rgba(25,22,19,.13); }
+  .mail .hero img { width: 100%; height: auto; display: block; }
+  .mail .body { padding: 28px 36px; }
+  .mail .kicker { font-size: 11px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--gold-deep); }
+  .mail h1 { font-size: 26px; font-weight: 800; line-height: 1.15; color: var(--ink); margin: 10px 0 6px; }
+  .mail .addr { font-size: 14px; color: var(--muted); margin: 0 0 18px; }
+  .mail .facts { display: flex; gap: 24px; flex-wrap: wrap; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--hairline); padding: 14px 0; margin-bottom: 20px; }
+  .mail .facts div { font-variant-numeric: tabular-nums; }
+  .mail .facts .n { font-size: 20px; font-weight: 800; color: var(--ink); }
+  .mail .facts .l { font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .mail p { font-size: 14px; line-height: 1.6; color: var(--body); }
+  .mail .cta-btn { display: inline-block; margin: 12px 0; background: var(--ink); color: #F3E7CB; text-decoration: none; font-weight: 800; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; padding: 13px 22px; border-left: 4px solid var(--gold); }
+  @media (max-width: 640px) { .mail .body { padding: 22px 20px; } }
+</style>
+
+<div class="mail">
+  {{ brand.letterhead(vm) }}
+  {% if vm.hero_src %}<div class="hero"><img src="{{ vm.hero_src }}" alt="{{ vm.headline }}" /></div>{% endif %}
+  <div class="body">
+    <div class="kicker">New listing | {{ vm.ref }}</div>
+    <h1>{{ vm.headline }}</h1>
+    {% if vm.address %}<p class="addr">{{ vm.address }}</p>{% endif %}
+
+    <div class="facts">
+      {% if vm.size_str %}<div><div class="n">{{ vm.size_str }} m2</div><div class="l">Unit size</div></div>{% endif %}
+      {% if vm.beds %}<div><div class="n">{{ vm.beds }}</div><div class="l">Bedrooms</div></div>{% endif %}
+      {% if vm.baths %}<div><div class="n">{{ vm.baths }}</div><div class="l">Bathrooms</div></div>{% endif %}
+      {% if vm.flatlet_present and vm.flatlet_beds %}<div><div class="n">{{ vm.flatlet_beds }}</div><div class="l">Bed flatlet</div></div>{% endif %}
+    </div>
+
+    {% if vm.features_main %}<p>{{ vm.features_main | join('; ') }}.</p>{% endif %}
+    {% if vm.flatlet_present %}<p>Includes a separate {% if vm.flatlet_beds %}{{ vm.flatlet_beds }} bedroom {% endif %}flatlet with income potential.</p>{% endif %}
+
+    <p><strong>{{ vm.badge_label }}.</strong>{% if vm.viewing_by_appt %} Viewing strictly by appointment.{% endif %}</p>
+
+    <a class="cta-btn" href="?dp={{ vm.dp }}">View the listing</a>
+    <p style="font-size:13px;color:var(--muted)">Enquiries: {{ vm.brand_phone }} &middot; {{ vm.brand_email }}</p>
+  </div>
+  {{ brand.footer(vm) }}
+</div>

@@ -1,0 +1,136 @@
+{
+  "dp": "3060",
+  "parent_dp": null,
+  "status": "draft_pending_verification_signoff",
+  "record_created": "2026-07-08",
+  "sources": {
+    "lightstone_evm": {
+      "file": "Lightstone/3060 - EVM_Report_40_Topham_Road__PIETERMARITZBURG__KwaZulu-Natal.pdf",
+      "report_id": "BDDCFEE9-EF5F-4CCC-9FC5-602C36A210D9",
+      "report_date": "2026-07-03",
+      "purchased_by": "Gerrie Venter"
+    },
+    "property_report": {
+      "file": "Property Reports/3060 - PROPERTY REPORT.pdf",
+      "prepared_by": "Gerrie Venter",
+      "figures_as_at": "2026-07-06"
+    }
+  },
+  "identity": {
+    "title_type": "sectional",
+    "scheme": "SS KYALAMI (51/1978)",
+    "unit": 1,
+    "legal_description": "Section 1 of Plan 51/1978, Kyalami, situated at Portion 77, Erf 281, Pietermaritzburg",
+    "street_address": "Unit 1 Kyalami, 40 Topham Road, Pelham North, Pietermaritzburg",
+    "suburb": "Pelham North",
+    "municipality": "Msunduzi",
+    "municipality_note": "Property Report spells it MUSINDUZI; official spelling per Lightstone/deeds is Msunduzi",
+    "province": "KwaZulu-Natal",
+    "gps": [-29.62401, 30.383523],
+    "title_deed_no": "ST35834/2021"
+  },
+  "physical": {
+    "unit_size_m2": 185,
+    "mother_erf_m2": 8046,
+    "zoning": "Residential",
+    "bedrooms": 3,
+    "bathrooms_main_unit": 2,
+    "separate_toilet": true,
+    "garages": null,
+    "garages_conflict": "Lightstone attributes say 3 garages; physical inspection lists none (ample guest parking). Unresolved, omitted from marketing until confirmed.",
+    "flatlet": {
+      "present": true,
+      "bedrooms": 1,
+      "ensuite": true,
+      "kitchen": true,
+      "lounge": true,
+      "patio": true,
+      "note": "Not visible in Lightstone desktop data; found on inspection. Likely explains Lightstone's 3-bathroom count."
+    },
+    "features_main": [
+      "3 bedrooms, main with en-suite (bath, toilet, basin)",
+      "Full family bathroom plus separate toilet",
+      "Open-plan living and dining room",
+      "Kitchen",
+      "Prepaid water meter (electricity conventional)"
+    ],
+    "features_complex": [
+      "Swimming pool and playground",
+      "Communal braai area",
+      "Ample guest parking",
+      "Remote-access estate security"
+    ]
+  },
+  "valuation": {
+    "evm_range": [890000, 1050000],
+    "suburb_bands": { "low": 450000, "mid": 735000, "high": 1020000 },
+    "municipal_valuation": 960000,
+    "municipal_valuation_year": 2024,
+    "estimated_monthly_rates": 1288,
+    "comparables_avg_sales_price": 867250,
+    "same_scheme_sale": {
+      "unit": 14,
+      "scheme": "SS KYALAMI",
+      "size_m2": 107,
+      "price": 620000,
+      "terms": "cash",
+      "sale_date": "2025-07-04",
+      "rand_per_m2": 5794
+    }
+  },
+  "financials_internal": {
+    "last_sale": { "price": 900000, "date": "2021-04-12", "deed": "ST35834/2021" },
+    "bond": { "amount": 945000, "institution": "Standard Bank", "bond_no": "SB19352/2021" },
+    "outstanding_rates_taxes_water": 3610.36,
+    "outstanding_levies": 10731.85,
+    "as_at": "2026-07-06",
+    "note": "Internal only. Never surfaces in marketing artifacts."
+  },
+  "sale_process": {
+    "method": "offers_invited",
+    "terms": [
+      "10% deposit on the purchase price payable by the purchaser on submitting an offer",
+      "5% commission on the purchase price plus VAT, payable by the seller",
+      "30 days for guarantees of the balance of the purchase price from date of acceptance",
+      "Occupation on registration of transfer",
+      "Electrical COC, SPLUMA and all certificates for successful registration for the account of the purchaser",
+      "Arrear rates and levies for the account of the seller"
+    ],
+    "viewing": {
+      "by_appointment": true,
+      "contact_public": "Dynamic Auctioneers | 086 155 2288 | properties.admin@dynamicauctioneers.co.za",
+      "contact_internal_only": "Occupant: Tahera Kader 067 410 5758 (do not publish; POPIA)"
+    }
+  },
+  "marketing": {
+    "headline": "3 Bedroom Home with Separate Flatlet in Pelham North",
+    "price_display": "Offers invited",
+    "channel_routing": {
+      "property24": true,
+      "own_website": true,
+      "facebook": true,
+      "whatsapp_broadcast": true,
+      "email_list": true,
+      "jamesedition": false,
+      "jamesedition_reason": "Below R10m threshold",
+      "private_property": false,
+      "private_property_reason": "Excluded per channel policy"
+    },
+    "hero_photo": "photos/p6_img14_276x207.png",
+    "gallery": [
+      "photos/p6_img12_276x207.png",
+      "photos/p6_img09_276x207.png",
+      "photos/p7_img15_276x207.png",
+      "photos/p8_img21_155x207.png"
+    ]
+  },
+  "compliance": {
+    "owner_pii_redacted": true,
+    "notes": "Owner full name and ID number appear in both source documents (Property Report cover and Lightstone owner block). Excluded from every public artifact. Occupant phone number kept internal."
+  },
+  "verification": {
+    "status": "flags_raised",
+    "memo": "verification-memo.md",
+    "human_signoff": null
+  }
+}

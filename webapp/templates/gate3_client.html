@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as ui %}
+
+{% block title %}Client approval{% endblock %}
+{% block heading %}Client approval{% endblock %}
+{% block subheading %}<div class="topbar__sub">DP {{ dp }}</div>{% endblock %}
+{% block topbar_actions %}{{ ui.state_badge(state) }}{% endblock %}
+{% block content_mod %}content--narrow{% endblock %}
+
+{% block content %}
+  <div class="sheet enter">
+    <div class="sheet__letterhead">
+      <div>
+        <div class="eyebrow">Gate 3 · Client approval</div>
+        <div style="font-size:22px;font-weight:600">DP {{ dp }}</div>
+      </div>
+    </div>
+    <div class="sheet__body stack">
+      <div class="panel">
+        <div class="panel__head">
+          <div class="panel__title">Pre-drafted client email</div>
+          <a class="btn btn--ghost btn--sm" href="mailto:?subject=Adverts%20for%20your%20approval">
+            {{ ui.icon('mail', 'icon--sm') }}<span>Open in mail</span>
+          </a>
+        </div>
+        <div class="panel__body">
+          <p class="muted">Copy this into an email to the client. Send it manually, then log their reply below.</p>
+          <pre class="card mt-1" style="white-space:pre-wrap">{{ client_email }}</pre>
+        </div>
+      </div>
+
+      <div class="h-rule"></div>
+
+      <div class="panel">
+        <div class="panel__head"><div class="panel__title">Log the client's approval</div></div>
+        <div class="panel__body">
+          <form hx-post="/gates/{{ dp }}/client/approve" class="stack">
+            <div class="field">
+              <label class="label" for="approved_by">Approved by</label>
+              <input class="input" id="approved_by" name="approved_by" value="{{ user.email if user else '' }}" readonly>
+            </div>
+            <div class="field">
+              <label class="label" for="approved_on">Date the client approved</label>
+              <input class="input" id="approved_on" name="approved_on" type="date" value="{{ today }}">
+              <div class="hint">This is recorded on the audit trail and moves DP {{ dp }} to client approved.</div>
+            </div>
+            <div class="actionbar" data-gold-sweep-host>
+              <div class="actionbar__note">Only log this once the client has confirmed in writing.</div>
+              <div class="spacer"></div>
+              {{ ui.button('Log client approval', variant='gold', icon_name='check', type='submit', attrs='data-gold-sweep') }}
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
