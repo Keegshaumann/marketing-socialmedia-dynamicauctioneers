@@ -39,7 +39,10 @@ except ImportError:  # pragma: no cover
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 _API = "https://api.canva.com/rest/v1"
-_BACKEND_TEXT_FIELDS = {"headline", "price", "body", "address", "suburb", "dp"}
+_BACKEND_TEXT_FIELDS = {
+    "headline", "price", "body", "address", "suburb", "dp",
+    "property_ref", "master_ref", "beds", "baths", "garages", "size", "features",
+}
 
 
 def _get(path: str, token: str) -> dict:

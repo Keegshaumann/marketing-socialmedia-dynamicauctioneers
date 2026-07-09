@@ -63,6 +63,7 @@ class Identity(_Base):
     province: Optional[str] = None
     gps: Optional[List[float]] = None  # [lat, lon]
     title_deed_no: Optional[str] = None
+    mandate_ref: Optional[str] = None  # DA mandate/instruction no. ("MASTER REF" on ads); shared by sub-lots (DP3035.1/.2). null until sourced.
 
 
 # --- physical (Property Report / inspection wins) ------------------------

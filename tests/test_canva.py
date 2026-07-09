@@ -92,7 +92,17 @@ def test_autofill_payload_carries_only_public_view(golden_record):
         photos=[],
         copy={"headline": "Public headline", "price_display": "Offers invited"},
     )
-    data = CanvaBackend()._autofill_data(request, asset_ids=[])
+    # A dataset covering every field the composer can emit, so the poison
+    # scan exercises the full payload (stat bar + tagline + ref included).
+    dataset = {
+        "headline": "text", "price": "text", "body": "text",
+        "address": "text", "suburb": "text", "dp": "text",
+        "property_ref": "text", "beds": "text", "baths": "text",
+        "garages": "text", "size": "text", "features": "text",
+    }
+    data = CanvaBackend()._autofill_data(
+        request, asset_ids=[], dataset=dataset, image_slots=[]
+    )
     blob = json.dumps(data)
     for marker in POISON_MARKERS:
         assert marker not in blob

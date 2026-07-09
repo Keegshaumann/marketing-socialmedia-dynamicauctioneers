@@ -27,7 +27,8 @@
     "municipality_note": "Property Report spells it MUSINDUZI; official spelling per Lightstone/deeds is Msunduzi",
     "province": "KwaZulu-Natal",
     "gps": [-29.62401, 30.383523],
-    "title_deed_no": "ST35834/2021"
+    "title_deed_no": "ST35834/2021",
+    "mandate_ref": null
   },
   "physical": {
     "unit_size_m2": 185,

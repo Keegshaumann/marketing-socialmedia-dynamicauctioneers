@@ -39,6 +39,7 @@ from __future__ import annotations
 import base64
 import json
 import os
+import re
 import time
 import urllib.error
 import urllib.parse
@@ -78,10 +79,123 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
 
+# --- record -> ad-tile field composers -----------------------------------
+# A DA property brand template exposes short "stat bar" fields (beds, baths,
+# garages, size) and a features tagline in addition to headline/price. These
+# helpers turn public-view physical data into those tile strings. Every value
+# traces to a record field (SPEC hard rule 3): a missing or unconfirmed stat
+# returns None (field left unset) rather than an invented figure.
+
+def _stat_label(value: Any, unit: str) -> Optional[str]:
+    """``3 -> "3 BED"``. Non-positive / non-int -> None (field stays unset)."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int) and value > 0:
+        return f"{value} {unit}"
+    return None
+
+
+def _size_label(value: Any) -> Optional[str]:
+    """``185 -> "185m²"``. Falsy -> None."""
+    if isinstance(value, (int, float)) and value > 0:
+        return f"{int(value)}m²"
+    return None
+
+
+def _garage_label(physical: Dict[str, Any]) -> Optional[str]:
+    """Garage tile text, honestly.
+
+    A confirmed count renders as ``DOUBLE GARAGE`` / ``3 GARAGES``. When the
+    count is unknown (``garages`` is null — e.g. the DP3060 Lightstone-vs-
+    inspection conflict) the engine never invents one: it falls back to
+    ``GUEST PARKING`` only if the record's complex features actually mention
+    parking, otherwise leaves the field unset.
+    """
+    count = physical.get("garages")
+    if isinstance(count, bool):
+        count = None
+    if isinstance(count, int) and count > 0:
+        return {1: "1 GARAGE", 2: "DOUBLE GARAGE"}.get(count, f"{count} GARAGES")
+    complex_feats = " ".join(physical.get("features_complex") or []).lower()
+    if "parking" in complex_feats:
+        return "GUEST PARKING"
+    return None
+
+
+def _feature_tagline(physical: Dict[str, Any]) -> Optional[str]:
+    """A short ``A | B | C`` highlight strip from the record's features.
+
+    Prefers named draws (separate flatlet, pool, estate security, braai);
+    falls back to the first complex feature verbatim. Capped at three parts.
+    """
+    parts: List[str] = []
+    flatlet = physical.get("flatlet") or {}
+    if flatlet.get("present"):
+        parts.append("SEPARATE FLATLET")
+    complex_feats = physical.get("features_complex") or []
+    joined = " ".join(complex_feats).lower()
+    for needle, label in (
+        ("pool", "POOL & GARDEN"),
+        ("security", "ESTATE SECURITY"),
+        ("braai", "BRAAI AREA"),
+    ):
+        if needle in joined and len(parts) < 3:
+            parts.append(label)
+    if not parts and complex_feats:
+        parts.append(str(complex_feats[0]).upper())
+    return " | ".join(parts[:3]) or None
+
+
+_AD_HEADLINE_MAX = 40  # chars that fit the tile headline box before it wraps into the FOR SALE badge
+
+# Fields the engine always sends when the template exposes them, even blank, so a
+# stale template default (e.g. a demo "MASTER REF") is cleared rather than shown.
+_ALWAYS_EMIT = {"master_ref"}
+
+
+def _ad_headline(record: Dict[str, Any], copy: Dict[str, Any]) -> Optional[str]:
+    """A headline sized for the ad tile.
+
+    Uses the record/copy headline when it fits; when it would overflow the box
+    (wrapping into the badge, as on DP3060) it falls back to a concise form
+    composed from structured fields — still every word tracing to the record.
+    """
+    headline = (copy or {}).get("headline") or (record.get("marketing") or {}).get("headline")
+    if not headline:
+        return None
+    if len(headline) <= _AD_HEADLINE_MAX:
+        return headline
+    physical = record.get("physical") or {}
+    identity = record.get("identity") or {}
+    beds = physical.get("bedrooms")
+    core = f"{beds}-Bed Home" if isinstance(beds, int) and beds > 0 else "Home"
+    if (physical.get("flatlet") or {}).get("present"):
+        core += " + Flatlet"
+    suburb = identity.get("suburb")
+    return f"{core} in {suburb}" if suburb else core
+
+
+def _master_ref(identity: Dict[str, Any]) -> str:
+    """Ad "MASTER REF" line from the DA mandate ref, or ``""`` to blank the field.
+
+    Never inherits another property's number: with no mandate on record the
+    engine returns an empty string so the template placeholder is cleared.
+    """
+    ref = identity.get("mandate_ref")
+    return f"MASTER REF: {ref}" if ref else ""
+
+
+def _slot_index(name: str) -> int:
+    """Trailing integer of a ``photoN`` field name, for natural slot ordering."""
+    match = re.search(r"(\d+)$", name)
+    return int(match.group(1)) if match else 0
+
+
 class CanvaBackend(RenderBackend):
     """Canva Connect autofill backend (D14 scaffold, stdlib ``urllib`` only)."""
 
     name: str = "canva"
+    renders_locally: bool = False  # artifact is rendered by Canva's cloud, then downloaded
 
     # --- capability reporting -------------------------------------------
 
@@ -136,12 +250,17 @@ class CanvaBackend(RenderBackend):
             )
 
         access_token = self._access_token()
-        asset_ids = [
-            self._upload_asset(access_token, photo)
-            for photo in request.photos
-            if photo
-        ]
-        data = self._autofill_data(request, asset_ids)
+        dataset = self._get_dataset(access_token, brand_template_id)
+        image_slots = sorted(
+            (name for name, typ in dataset.items() if typ == "image"),
+            key=_slot_index,
+        )
+        # Upload only as many photos as the template has image slots — no
+        # wasted uploads, and Canva rejects autofills that reference a slot
+        # the template does not expose.
+        photos = [photo for photo in request.photos if photo][: len(image_slots)]
+        asset_ids = [self._upload_asset(access_token, photo) for photo in photos]
+        data = self._autofill_data(request, asset_ids, dataset, image_slots)
         design_id = self._run_autofill(access_token, brand_template_id, data)
         export_url, ext, mime = self._export_design(access_token, design_id, request.fmt)
         out_path = self._download(export_url, request, ext)
@@ -256,36 +375,73 @@ class CanvaBackend(RenderBackend):
 
     # --- autofill --------------------------------------------------------
 
+    def _get_dataset(self, access_token: str, brand_template_id: str) -> Dict[str, str]:
+        """Return ``{field_name: type}`` for a brand template's autofill dataset.
+
+        Lets the backend emit only the fields a template actually exposes, so one
+        backend serves every DA template (ad tile, auction board, mailer) and
+        Canva never 400s on an unknown field.
+        """
+        headers = {"Authorization": f"Bearer {access_token}", "Accept": "application/json"}
+        payload = self._http_json(
+            "GET",
+            f"{_API_BASE}/brand-templates/{brand_template_id}/dataset",
+            headers=headers,
+        )
+        dataset = payload.get("dataset") or {}
+        return {name: (spec or {}).get("type") for name, spec in dataset.items()}
+
     def _autofill_data(
-        self, request: RenderRequest, asset_ids: List[str]
+        self,
+        request: RenderRequest,
+        asset_ids: List[str],
+        dataset: Dict[str, str],
+        image_slots: List[str],
     ) -> Dict[str, Dict[str, Any]]:
         """Build the Canva autofill ``data`` map from public fields + copy only.
 
-        Field names below are the placeholder names a DA brand template would
-        expose; they are scaffolded until real templates exist (D12). Only
-        ``public_record`` (public_view) and ``copy`` are read, so owner PII is
-        structurally out of reach.
+        A candidate value is computed for every field a DA template might expose,
+        then only the fields the template's ``dataset`` actually declares (and of
+        the matching type) are sent. Only ``public_record`` (public_view) and
+        ``copy`` are read, so owner PII is structurally out of reach; every value
+        traces to a record field, and a missing/unconfirmed stat is left unset
+        rather than invented (SPEC hard rule 3).
         """
         record = request.public_record or {}
         copy = request.copy or {}
         identity = record.get("identity") or {}
         marketing = record.get("marketing") or {}
+        physical = record.get("physical") or {}
+
+        candidates: Dict[str, Any] = {
+            "headline": _ad_headline(record, copy),
+            "price": copy.get("price_display") or marketing.get("price_display"),
+            "body": copy.get("body"),
+            "address": identity.get("street_address"),
+            "suburb": identity.get("suburb"),
+            "dp": request.dp,
+            # The DA template bakes the "PROPERTY REF:" / "MASTER REF:" labels into
+            # the field element, so the engine sends the full display line.
+            "property_ref": f"PROPERTY REF: DP{request.dp}" if request.dp else None,
+            "master_ref": _master_ref(identity),
+            "beds": _stat_label(physical.get("bedrooms"), "BED"),
+            "baths": _stat_label(physical.get("bathrooms_main_unit"), "BATH"),
+            "garages": _garage_label(physical),
+            "size": _size_label(physical.get("unit_size_m2")),
+            "features": _feature_tagline(physical),
+        }
 
         fields: Dict[str, Dict[str, Any]] = {}
-
-        def _text(field_name: str, value: Any) -> None:
+        for name, value in candidates.items():
+            if dataset.get(name) != "text":
+                continue
             if value:
-                fields[field_name] = {"type": "text", "text": str(value)}
+                fields[name] = {"type": "text", "text": str(value)}
+            elif name in _ALWAYS_EMIT:
+                fields[name] = {"type": "text", "text": ""}
 
-        _text("headline", copy.get("headline") or marketing.get("headline"))
-        _text("price", copy.get("price_display") or marketing.get("price_display"))
-        _text("body", copy.get("body"))
-        _text("address", identity.get("street_address"))
-        _text("suburb", identity.get("suburb"))
-        _text("dp", request.dp)
-
-        for index, asset_id in enumerate(asset_ids, start=1):
-            fields[f"photo{index}"] = {"type": "image", "asset_id": asset_id}
+        for slot, asset_id in zip(image_slots, asset_ids):
+            fields[slot] = {"type": "image", "asset_id": asset_id}
 
         return fields
 

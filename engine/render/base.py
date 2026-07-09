@@ -66,6 +66,12 @@ class RenderBackend:
 
     name: str = "base"
 
+    # Whether the backend produces the artifact bytes on this machine (html) or
+    # via a remote service (Canva). Backends that render remotely enforce their
+    # PII contract on the outbound *payload* (public_view only), not on locally
+    # scannable output, so the offline byte-level poison test skips them.
+    renders_locally: bool = True
+
     def available(self) -> "tuple[bool, str]":
         """Return ``(ok, reason)``. A misconfigured backend reports why it is
         unavailable instead of raising, so other engine commands keep working."""

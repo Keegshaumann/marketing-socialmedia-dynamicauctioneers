@@ -115,10 +115,15 @@ def test_demo_ad_renders_real_facts_and_brand_tokens(golden_record, tmp_path):
 @pytest.mark.parametrize("backend_name", BACKENDS)
 def test_poison_marker_pii_absent_from_every_artifact(backend_name, golden_record, tmp_path):
     be = get_backend(backend_name)
+    if not be.renders_locally:
+        # Remote-rendering backends (Canva) produce artifact bytes off-machine, so
+        # there is nothing local to scan here; their PII contract is enforced on
+        # the outbound payload and checked offline in tests/test_canva.py.
+        pytest.skip(f"{backend_name} renders remotely; payload PII checked in test_canva.py")
     ok, reason = be.available()
     if not ok:
-        # An unconfigured backend (Canva offline) renders nothing to leak; its
-        # public_view-only contract is checked in its own test module.
+        # An unconfigured backend renders nothing to leak; its public_view-only
+        # contract is checked in its own test module.
         pytest.skip(f"{backend_name} backend unavailable offline: {reason}")
 
     store = _store_with(_poison(golden_record))
