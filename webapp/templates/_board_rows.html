@@ -6,7 +6,15 @@
     {{ r.property }}
     {% if r.sub %}<span class="sub">{{ r.sub }}</span>{% endif %}
   </td>
-  <td>{{ ui.state_badge(r.state) }}</td>
+  <td>
+    <div class="track" role="img" aria-label="Stage {{ r.stage + 1 }} of 5, {{ r.state|replace('_',' ') }}">
+      {%- for i in range(5) %}
+        <span class="track__dot {{ 'is-done' if i < r.stage else ('is-now' if i == r.stage else '') }}"></span>
+        {%- if not loop.last %}<span class="track__seg {{ 'is-done' if i < r.stage else '' }}"></span>{% endif %}
+      {%- endfor %}
+    </div>
+    <div class="track__label {{ 'is-flag' if r.state == 'flags_raised' else '' }}">{{ r.state|replace('_', ' ')|title }}</div>
+  </td>
   <td class="ledger__meta">{{ r.days.label }}</td>
   <td class="ledger__meta">{{ r.owner }}</td>
   <td class="ledger__next">

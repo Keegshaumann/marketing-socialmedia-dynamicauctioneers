@@ -16,7 +16,74 @@
 
   // ---- Drag-drop intake -------------------------------------------------
   // Wires any [data-dropzone] element to a hidden file <input> (data-input).
-  // On drop: fills the input and submits the closest form (HTMX handles POST).
+  // On drop/browse: fills the input and shows the chosen files IN the zone, so
+  // the user can confirm the pair before pressing Upload (the form submits on
+  // click, not on change — no silent auto-upload).
+  var _FILE_SVG = '<svg class="icon icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path></svg>';
+  var _CHECK_SVG = '<svg class="icon icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10"></path></svg>';
+
+  function _fmtSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  }
+
+  // Render the selected files into the dropzone as confirmation chips.
+  // Names use textContent (never innerHTML), so filenames can't inject markup.
+  function renderDropzoneFiles(zone, input) {
+    var box = zone.querySelector('[data-dropzone-files]');
+    if (!box) return;
+    var files = (input && input.files) ? input.files : [];
+    var form = zone.closest('form');
+    var submit = form ? form.querySelector('[data-intake-submit]') : null;
+
+    box.textContent = '';
+    if (!files.length) {
+      zone.classList.remove('is-filled');
+      if (submit) submit.classList.remove('is-ready');
+      return;
+    }
+
+    zone.classList.add('is-filled');
+    if (submit) submit.classList.add('is-ready');
+
+    var n = files.length;
+    var head = document.createElement('div');
+    head.className = 'dropzone__files-head ' + (n === 2 ? 'is-ok' : 'is-note');
+    head.innerHTML = (n === 2 ? _CHECK_SVG : '');
+    var headText = document.createElement('span');
+    headText.textContent = n === 1 ? '1 file selected' : n + ' files ready';
+    head.appendChild(headText);
+    box.appendChild(head);
+
+    Array.prototype.forEach.call(files, function (f) {
+      var row = document.createElement('div');
+      row.className = 'dropzone__file';
+      var ic = document.createElement('span');
+      ic.className = 'dropzone__file-icon';
+      ic.innerHTML = _FILE_SVG;
+      var name = document.createElement('span');
+      name.className = 'dropzone__file-name';
+      name.textContent = f.name;
+      var size = document.createElement('span');
+      size.className = 'dropzone__file-size';
+      size.textContent = _fmtSize(f.size);
+      row.appendChild(ic);
+      row.appendChild(name);
+      row.appendChild(size);
+      box.appendChild(row);
+    });
+
+    if (n !== 2) {
+      var note = document.createElement('div');
+      note.className = 'dropzone__files-note';
+      note.textContent = n < 2
+        ? 'Add the second PDF - the Lightstone EVM and the Property Report make the pair.'
+        : 'That is more than a pair. The engine expects two PDFs per property.';
+      box.appendChild(note);
+    }
+  }
+
   function wireDropzones(root) {
     (root || document).querySelectorAll('[data-dropzone]').forEach(function (zone) {
       if (zone.__wired) return;
@@ -45,6 +112,11 @@
       zone.addEventListener('keydown', function (e) {
         if ((e.key === 'Enter' || e.key === ' ') && input) { e.preventDefault(); input.click(); }
       });
+      // show the picked files (drop dispatches 'change' on the input too)
+      if (input) {
+        input.addEventListener('change', function () { renderDropzoneFiles(zone, input); });
+        renderDropzoneFiles(zone, input);
+      }
     });
   }
 

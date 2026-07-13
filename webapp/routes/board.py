@@ -61,6 +61,34 @@ def _next_action(dp: str, state: str) -> Dict[str, Any]:
     return {"label": label, "href": href, "variant": variant}
 
 
+# --- pipeline stage (state -> position on the 5-step track) ---------------
+# The lifecycle has 13 states; the board shows them condensed onto five
+# milestones so a row reads as a progress track (Intake -> Verify -> Draft ->
+# Approve -> Live) rather than an opaque status word.
+
+STAGES = ("Intake", "Verify", "Draft", "Approve", "Live")
+_STAGE_INDEX = {
+    "intake": 0, "extracted": 1, "flags_raised": 1, "verified": 2,
+    "drafted": 2, "approved": 3, "client_approved": 3, "assets_built": 3,
+    "live": 4, "updated": 4, "sold": 4, "withdrawn": 4, "archived": 4,
+}
+
+
+def _pipeline_stage(state: str) -> int:
+    return _STAGE_INDEX.get(state, 0)
+
+
+def _deck_stats(rows: List[Dict[str, Any]]) -> Dict[str, int]:
+    """The command-deck KPIs: live listings, the action queue, open flags, total."""
+    live = sum(1 for r in rows if r["state"] in ("live", "updated"))
+    flags = sum(1 for r in rows if r["state"] == "flags_raised")
+    queue = sum(
+        1 for r in rows
+        if r["next"]["href"] and r["state"] not in ("live", "updated")
+    )
+    return {"live": live, "queue": queue, "flags": flags, "total": len(rows)}
+
+
 def _days_in_state(entered_at: Optional[str]) -> Dict[str, Any]:
     if not entered_at:
         return {"n": None, "label": "-"}
@@ -128,6 +156,7 @@ def _load_rows(db_path: str) -> List[Dict[str, Any]]:
                     "owner": _owner_from_note(last_actor["note"] if last_actor else None)
                     or "Unassigned",
                     "next": _next_action(dp, state),
+                    "stage": _pipeline_stage(state),
                 }
             )
         return rows
@@ -180,7 +209,7 @@ def board(request: Request):
     if user is None:
         return RedirectResponse("/login", status_code=303)
     rows = _load_rows(auth.db_path_for(request))
-    return _view(request, "board.html", {"rows": rows, "animate": True})
+    return _view(request, "board.html", {"rows": rows, "animate": True, "stats": _deck_stats(rows)})
 
 
 @router.get("/board/rows", response_class=HTMLResponse)

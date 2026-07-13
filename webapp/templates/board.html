@@ -12,13 +12,32 @@
 <div class="eyebrow mt-0"><span class="dot"></span>Ledger<span class="dot"></span>{{ rows|length }} record{{ '' if rows|length == 1 else 's' }}</div>
 
 {% if rows %}
-<div class="ledger-wrap mt-2">
+<div class="deck mt-2">
+  <div class="stat stat--live">
+    <div class="stat__label">{{ ui.icon('send', 'icon--sm') }}Live</div>
+    <div class="stat__num">{{ stats.live if stats is defined else 0 }}</div>
+  </div>
+  <div class="stat">
+    <div class="stat__label">{{ ui.icon('clock', 'icon--sm') }}In queue</div>
+    <div class="stat__num">{{ stats.queue if stats is defined else 0 }}</div>
+  </div>
+  <div class="stat stat--flag">
+    <div class="stat__label">{{ ui.icon('flag', 'icon--sm') }}Flags open</div>
+    <div class="stat__num">{{ stats.flags if stats is defined else 0 }}</div>
+  </div>
+  <div class="stat">
+    <div class="stat__label">{{ ui.icon('board', 'icon--sm') }}Total</div>
+    <div class="stat__num">{{ stats.total if stats is defined else rows|length }}</div>
+  </div>
+</div>
+
+<div class="ledger-wrap mt-3">
   <table class="ledger">
     <thead>
       <tr>
         <th style="width:78px;">DP</th>
         <th>Property</th>
-        <th>State</th>
+        <th style="width:200px;">Stage</th>
         <th>In state</th>
         <th>Owner</th>
         <th style="width:170px;">Next action</th>

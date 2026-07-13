@@ -13,32 +13,32 @@
   {%- set _path = request.url.path if request is defined and request else '' -%}
   {%- set _user = user if user is defined else none -%}
   <div class="app">
-    <aside class="sidebar">
-      <div class="sidebar__brand">
-        <div class="sidebar__wordmark">Dynamic Auctioneers</div>
-        <div class="sidebar__tag">Marketing Platform</div>
-      </div>
-      <nav class="sidebar__nav" aria-label="Primary">
-        <a class="nav-item {{ 'is-active' if _path == '/' or _path.startswith('/board') else '' }}" href="/board">
-          {{ ui.icon('board') }}<span>Board</span>
+    <header class="appbar">
+      <a class="appbar__brand" href="/board" aria-label="Dynamic Auctioneers home">
+        <span class="appbar__mark" aria-hidden="true"></span>
+        <span class="appbar__word">Dynamic Auctioneers</span>
+      </a>
+      <nav class="appbar__nav" aria-label="Primary">
+        <a class="navlink {{ 'is-active' if _path == '/' or _path.startswith('/board') else '' }}" href="/board">
+          {{ ui.icon('board', 'icon--sm') }}<span>Board</span>
         </a>
-        <a class="nav-item {{ 'is-active' if _path.startswith('/intake') else '' }}" href="/intake">
-          {{ ui.icon('intake') }}<span>Intake</span>
+        <a class="navlink {{ 'is-active' if _path.startswith('/intake') else '' }}" href="/intake">
+          {{ ui.icon('intake', 'icon--sm') }}<span>Intake</span>
         </a>
-        <a class="nav-item {{ 'is-active' if _path.startswith('/settings') else '' }}" href="/settings">
-          {{ ui.icon('settings') }}<span>Settings</span>
+        <a class="navlink {{ 'is-active' if _path.startswith('/settings') else '' }}" href="/settings">
+          {{ ui.icon('settings', 'icon--sm') }}<span>Settings</span>
         </a>
       </nav>
-      <div class="sidebar__user">
+      <div class="appbar__user">
         {% if _user %}
-          <div class="who">{{ _user.email }}</div>
-          <div class="role">{{ _user.role }}</div>
-          <a class="logout" href="/logout">{{ ui.icon('logout', 'icon--sm') }}<span>Sign out</span></a>
+          <span class="appbar__who">{{ _user.email }}</span>
+          <span class="appbar__role">{{ _user.role }}</span>
+          <a class="appbar__logout" href="/logout" aria-label="Sign out">{{ ui.icon('logout', 'icon--sm') }}</a>
         {% else %}
-          <a class="logout" href="/login">{{ ui.icon('user', 'icon--sm') }}<span>Sign in</span></a>
+          <a class="navlink" href="/login">{{ ui.icon('user', 'icon--sm') }}<span>Sign in</span></a>
         {% endif %}
       </div>
-    </aside>
+    </header>
 
     <div class="main">
       <header class="topbar">
