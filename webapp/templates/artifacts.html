@@ -24,19 +24,26 @@
       {% if artifacts %}
       <div class="gallery-grid">
         {% for art in artifacts %}
-        <a class="tile" href="{{ art.url }}" target="_blank" rel="noopener">
-          {% if art.kind == 'image' %}
-            <img class="tile__img" src="{{ art.url }}" alt="{{ art.label }} for DP{{ dp }}">
-          {% else %}
-            <div class="tile__img" style="display:flex;align-items:center;justify-content:center;">
-              {{ ui.icon(('file' if art.kind == 'text' else 'photo'), 'icon--lg') }}
+        <div style="display:flex;flex-direction:column;gap:.4rem">
+          <a class="tile" href="{{ art.url }}" target="_blank" rel="noopener">
+            {% if art.kind == 'image' %}
+              <img class="tile__img" src="{{ art.url }}" alt="{{ art.label }} for DP{{ dp }}">
+            {% else %}
+              <div class="tile__img" style="display:flex;align-items:center;justify-content:center;">
+                {{ ui.icon(('file' if art.kind == 'text' else 'photo'), 'icon--lg') }}
+              </div>
+            {% endif %}
+            <div class="tile__body">
+              <span class="tile__cap">{{ art.label }}</span>
+              <span class="badge badge--neutral"><span class="dot"></span>v{{ art.version }}</span>
             </div>
+          </a>
+          {% if art.edit_url %}
+          <a class="btn btn--ghost btn--sm" href="{{ art.edit_url }}" target="_blank" rel="noopener">
+            {{ ui.icon('arrow', 'icon--sm') }}<span>Open in Canva</span>
+          </a>
           {% endif %}
-          <div class="tile__body">
-            <span class="tile__cap">{{ art.label }}</span>
-            <span class="badge badge--neutral"><span class="dot"></span>v{{ art.version }}</span>
-          </div>
-        </a>
+        </div>
         {% endfor %}
       </div>
       {% else %}

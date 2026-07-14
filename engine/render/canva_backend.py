@@ -261,7 +261,9 @@ class CanvaBackend(RenderBackend):
         photos = [photo for photo in request.photos if photo][: len(image_slots)]
         asset_ids = [self._upload_asset(access_token, photo) for photo in photos]
         data = self._autofill_data(request, asset_ids, dataset, image_slots)
-        design_id = self._run_autofill(access_token, brand_template_id, data)
+        design = self._run_autofill(access_token, brand_template_id, data)
+        design_id = design.get("id")
+        edit_url = self._design_url(design)
         export_url, ext, mime = self._export_design(access_token, design_id, request.fmt)
         out_path = self._download(export_url, request, ext)
         return Artifact(
@@ -271,6 +273,8 @@ class CanvaBackend(RenderBackend):
             path=str(out_path),
             mime=mime,
             version=1,
+            design_id=design_id,
+            edit_url=edit_url,
         )
 
     # --- config ----------------------------------------------------------
@@ -447,8 +451,13 @@ class CanvaBackend(RenderBackend):
 
     def _run_autofill(
         self, access_token: str, brand_template_id: str, data: Dict[str, Dict[str, Any]]
-    ) -> str:
-        """Create an autofill job on the brand template and poll to a design id."""
+    ) -> Dict[str, Any]:
+        """Create an autofill job on the brand template and poll to a design.
+
+        Returns the finished ``design`` object (carries at least ``id`` and,
+        depending on the API version, an edit ``url`` / ``urls`` block) so the
+        caller can record a link back to the editable Canva design.
+        """
         headers = {
             "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json",
@@ -459,7 +468,28 @@ class CanvaBackend(RenderBackend):
         created = self._http_json("POST", f"{_API_BASE}/autofills", headers=headers, body=body)
         job_id = created["job"]["id"]
         job = self._poll_job(access_token, f"{_API_BASE}/autofills/{job_id}", "autofill")
-        return job["result"]["design"]["id"]
+        design = job["result"]["design"]
+        return design if isinstance(design, dict) else {"id": design}
+
+    @staticmethod
+    def _design_url(design: Dict[str, Any]) -> Optional[str]:
+        """Best link to open/edit a Canva design, across API-version shapes.
+
+        Prefers an explicit edit URL, then a view URL, then a top-level ``url``,
+        and finally reconstructs the standard edit URL from the design id. Returns
+        ``None`` only when the design carries no id at all.
+        """
+        urls = design.get("urls") or {}
+        direct = (
+            urls.get("edit_url")
+            or urls.get("view_url")
+            or design.get("url")
+            or design.get("view_url")
+        )
+        if direct:
+            return direct
+        design_id = design.get("id")
+        return f"https://www.canva.com/design/{design_id}/edit" if design_id else None
 
     # --- export + download ----------------------------------------------
 

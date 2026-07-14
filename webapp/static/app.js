@@ -12,6 +12,17 @@
     window.htmx.config.defaultSwapStyle = 'innerHTML';
     window.htmx.config.defaultSettleDelay = 20;
     window.htmx.config.globalViewTransitions = false;
+    // htmx 2.x does not swap 4xx responses by default, which would silently hide
+    // our guard/validation partials (the distribute 409 blocks, intake 400,
+    // gate sign-off refusals). Swap 4xx bodies into the target so the user sees
+    // why the action stopped; leave 5xx as genuine errors (no swap).
+    document.body.addEventListener('htmx:beforeSwap', function (e) {
+      var status = e.detail.xhr && e.detail.xhr.status;
+      if (status >= 400 && status < 500) {
+        e.detail.shouldSwap = true;
+        e.detail.isError = false;
+      }
+    });
   }
 
   // ---- Drag-drop intake -------------------------------------------------

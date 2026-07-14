@@ -117,9 +117,14 @@ class RecordStore:
         """
         dp = record.dp
         record_json = record.model_dump_json()
-        suburb = record.identity.suburb if record.identity else None
-        title_type = record.identity.title_type if record.identity else None
-        price_display = record.marketing.price_display if record.marketing else None
+        # Index columns come from public_view() so human_overrides (e.g. a
+        # corrected suburb or price) show on the board, not the sourced value.
+        public = record.public_view()
+        identity = public.get("identity") or {}
+        marketing = public.get("marketing") or {}
+        suburb = identity.get("suburb")
+        title_type = identity.get("title_type")
+        price_display = marketing.get("price_display")
         now = _now()
 
         existing = self.conn.execute(
@@ -263,6 +268,45 @@ class RecordStore:
             """
         ).fetchall()
         return [dict(row) for row in rows]
+
+    def list_events(self, dp: str) -> List[dict]:
+        """Return the append-only ``state_events`` rows for ``dp``, oldest first."""
+        rows = self.conn.execute(
+            """
+            SELECT id, dp, from_state, to_state, at, note
+              FROM state_events
+             WHERE dp = ?
+             ORDER BY id
+            """,
+            (dp,),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def internally_approved_since_last_edit(self, dp: str) -> bool:
+        """Whether an internal gate-2 sign-off followed the most recent field edit.
+
+        A small-edit repost needs exactly one internal approval, and anything
+        that opens a fresh edit cycle after that approval invalidates it. Two
+        things open a cycle: a field edit (``gate=edit``/``gate=price`` on the
+        note) and a ``live -> updated`` reopen (which may carry no edit event of
+        its own, e.g. a change request or a bare re-open). ``gate=repost`` is the
+        internal repost approval (distinct from a ``gate=2`` change-request, so a
+        change request never counts as approval). Returns ``False`` when no
+        approval followed the last cycle-opening event.
+        """
+        last_edit = None
+        last_approval = None
+        for ev in self.list_events(dp):
+            note = ev.get("note") or ""
+            eid = ev.get("id")
+            reopened = ev.get("from_state") == "live" and ev.get("to_state") == "updated"
+            if reopened or "gate=edit" in note or "gate=price" in note:
+                last_edit = eid
+            elif "gate=repost" in note:
+                last_approval = eid
+        if last_approval is None:
+            return False
+        return last_edit is None or last_approval > last_edit
 
     def close(self) -> None:
         self.conn.close()

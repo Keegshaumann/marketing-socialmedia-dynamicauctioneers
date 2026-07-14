@@ -366,6 +366,252 @@ def test_poison_pii_absent_from_gate2_view_and_board():
             assert marker.encode("utf-8") not in blob, f"{marker} leaked into {path.name}"
 
 
+# --- small edits on a live listing: edit -> approve -> repost -------------
+
+def _seed_golden_live(dp: str) -> None:
+    """Seed a golden clone directly at ``live`` (renders cleanly through html)."""
+    _needs_golden()
+    record = PropertyRecord.model_validate_json(GOLDEN_RECORD.read_text(encoding="utf-8"))
+    record.dp = dp
+    store = RecordStore(DB_PATH)
+    try:
+        store.upsert(record, state="live")
+    finally:
+        store.close()
+
+
+def _public_view(dp: str) -> dict:
+    store = RecordStore(DB_PATH)
+    try:
+        return store.get(dp).public_view()
+    finally:
+        store.close()
+
+
+def test_board_gate_links_use_the_valid_shape():
+    dp = "7104"
+    _seed_minimal(dp, "verified")
+    client = _client()
+    _login_admin(client)
+    board = client.get("/board")
+    assert board.status_code == 200
+    assert f"/gates/{dp}/ads" in board.text      # fixed href shape
+    assert f"/gates/ad/{dp}" not in board.text   # old broken shape is gone
+
+
+def test_live_edit_reopens_and_applies_override():
+    dp = "7101"
+    _seed_golden_live(dp)
+    client = _client()
+    _login_admin(client)
+
+    # The editor shows the update-cycle delete caveat for a live listing.
+    page = client.get(f"/gates/{dp}/ads")
+    assert page.status_code == 200, page.text
+    assert "Editing a live listing" in page.text
+
+    # Save a small edit: address (a human_overrides fact) + price.
+    resp = client.post(
+        f"/gates/{dp}/ads/copy",
+        data={"street_address": "17 Kingfisher Lane", "price_display": "900000"},
+    )
+    assert resp.status_code == 200, resp.text
+
+    # Editing a live listing reopened it into the update cycle.
+    assert _state(dp) == "updated"
+    pv = _public_view(dp)
+    assert pv["identity"]["street_address"] == "17 Kingfisher Lane"
+    assert pv["marketing"]["price_display"] == "R900 000"  # typed number formatted
+
+
+def test_repost_requires_internal_approval_then_delete_ack():
+    dp = "7102"
+    _seed_golden_live(dp)
+    client = _client()
+    _login_admin(client)
+
+    client.post(f"/gates/{dp}/ads/copy", data={"suburb": "Riverbend"})
+    assert _state(dp) == "updated"
+
+    # Blocked before an internal approval is recorded (even with the ack ticked).
+    blocked = client.post(f"/post/{dp}/distribute", data={"deleted_old_posts": "1"})
+    assert blocked.status_code == 409
+    assert "internal approval" in blocked.text.lower()
+
+    # Approve the adverts (gate 2): an update cycle routes to the repost screen.
+    approve = client.post(f"/gates/{dp}/ads/approve", follow_redirects=False)
+    assert approve.status_code in (204, 303)
+    target = approve.headers.get("HX-Redirect") or approve.headers.get("location")
+    assert target == f"/post/{dp}"
+
+    # Still blocked until the operator confirms the old posts were deleted.
+    no_ack = client.post(f"/post/{dp}/distribute")
+    assert no_ack.status_code == 409
+    assert "deleted" in no_ack.text.lower()
+
+    # With the confirmation, the repost proceeds and the record goes live.
+    ok = client.post(f"/post/{dp}/distribute", data={"deleted_old_posts": "1"})
+    assert ok.status_code == 200, ok.text
+    assert _state(dp) == "live"
+
+
+def test_editor_never_exposes_or_writes_popia_fields():
+    dp = "7103"
+    _seed_golden_live(dp)
+    client = _client()
+    _login_admin(client)
+
+    page = client.get(f"/gates/{dp}/ads")
+    assert "financials_internal" not in page.text
+    assert "id_number" not in page.text
+
+    # A crafted POST of a POPIA field name is ignored (not a known editable
+    # field): no override is written and public_view stays PII-free.
+    client.post(
+        f"/gates/{dp}/ads/copy",
+        data={"financials_internal.owner.name": POISON_OWNER, "suburb": "Riverbend"},
+    )
+    pv = _public_view(dp)
+    assert "financials_internal" not in pv
+    store = RecordStore(DB_PATH)
+    try:
+        overrides = store.get(dp).human_overrides or {}
+    finally:
+        store.close()
+    assert all(not k.startswith("financials_internal") for k in overrides)
+
+
+# --- small-edits: guards, routing, coverage ------------------------------
+
+def test_empty_save_is_a_noop_on_live():
+    dp = "7201"
+    _seed_golden_live(dp)
+    client = _client()
+    _login_admin(client)
+    resp = client.post(f"/gates/{dp}/ads/copy", data={})  # nothing filled in
+    assert resp.status_code == 200
+    assert _state(dp) == "live"  # an empty save must not reopen the listing
+
+
+def test_first_time_gate2_approve_routes_to_gate3_plain_and_htmx():
+    _seed_minimal("7202", "drafted")
+    _seed_minimal("7203", "drafted")
+    client = _client()
+    _login_admin(client)
+
+    plain = client.post("/gates/7202/ads/approve", follow_redirects=False)
+    assert plain.status_code == 303
+    assert plain.headers["location"] == "/gates/7202/client"
+    assert _state("7202") == "approved"
+
+    hx = client.post("/gates/7203/ads/approve", headers={"HX-Request": "true"}, follow_redirects=False)
+    assert hx.status_code == 204
+    assert hx.headers["HX-Redirect"] == "/gates/7203/client"
+    assert _state("7203") == "approved"
+
+
+def test_distribute_blocked_when_not_postable():
+    dp = "7204"
+    _seed_minimal(dp, "drafted")
+    client = _client()
+    _login_admin(client)
+    resp = client.post(f"/post/{dp}/distribute")
+    assert resp.status_code == 409
+    assert "client approval" in resp.text.lower()
+    assert _state(dp) == "drafted"
+
+
+def test_board_reflects_suburb_and_price_override():
+    dp = "7205"
+    _seed_golden_live(dp)
+    client = _client()
+    _login_admin(client)
+    client.post(f"/gates/{dp}/ads/copy", data={"suburb": "Riverbend", "price_display": "900000"})
+    board = client.get("/board")
+    assert board.status_code == 200
+    assert "Riverbend" in board.text
+    assert "R900 000" in board.text
+
+
+def test_terms_split_and_method_allowlist():
+    dp = "7206"
+    _seed_golden_live(dp)
+    client = _client()
+    _login_admin(client)
+    client.post(f"/gates/{dp}/ads/copy", data={"terms": "Auction 20 Aug 2026\nDeposit 10%", "method": "auction"})
+    pv = _public_view(dp)
+    assert pv["sale_process"]["terms"] == ["Auction 20 Aug 2026", "Deposit 10%"]
+    assert pv["sale_process"]["method"] == "auction"
+    # A junk method value is not a valid option, so nothing is written.
+    client.post(f"/gates/{dp}/ads/copy", data={"method": "junk"})
+    store = RecordStore(DB_PATH)
+    try:
+        overrides = store.get(dp).human_overrides or {}
+    finally:
+        store.close()
+    assert overrides.get("sale_process.method") == "auction"
+
+
+def test_blank_fields_do_not_overwrite():
+    dp = "7207"
+    _seed_golden_live(dp)
+    client = _client()
+    _login_admin(client)
+    pv0 = _public_view(dp)
+    orig_headline = pv0["marketing"]["headline"]
+    orig_suburb = pv0["identity"]["suburb"]
+    client.post(
+        f"/gates/{dp}/ads/copy",
+        data={"price_display": "900000", "headline": "", "suburb": "", "street_address": "", "terms": ""},
+    )
+    pv1 = _public_view(dp)
+    assert pv1["marketing"]["price_display"] == "R900 000"
+    assert pv1["marketing"]["headline"] == orig_headline
+    assert pv1["identity"]["suburb"] == orig_suburb
+
+
+def test_open_in_canva_link_only_when_edit_url_present():
+    import json as _json
+    dp = "7208"
+    _seed_golden_live(dp)
+    client = _client()
+    _login_admin(client)
+
+    # Default html backend -> no design link on the gallery.
+    page = client.get(f"/gates/{dp}/ads")
+    assert "Open in Canva" not in page.text
+
+    # Inject a Canva edit_url into the (now-rendered) manifest and re-fetch.
+    man_path = _TMP / f"DP{dp}" / "artifacts" / "manifest.json"
+    man = _json.loads(man_path.read_text(encoding="utf-8"))
+    for art in man:
+        if art["fmt"] == "demo_ad":
+            art["design_id"] = "DAF1"
+            art["edit_url"] = "https://www.canva.com/design/DAF1/edit"
+    man_path.write_text(_json.dumps(man), encoding="utf-8")
+
+    page2 = client.get(f"/gates/{dp}/ads")
+    assert "Open in Canva" in page2.text
+    assert "canva.com/design/DAF1/edit" in page2.text
+
+
+def test_edit_render_failure_is_graceful(monkeypatch):
+    dp = "7209"
+    _seed_golden_live(dp)
+    client = _client()
+    _login_admin(client)
+
+    from webapp.routes import gates as gates_mod
+
+    def _boom(*a, **k):
+        raise RuntimeError("Canva quota exceeded")
+
+    monkeypatch.setattr(gates_mod, "_save_edits", _boom)
+    resp = client.post(f"/gates/{dp}/ads/copy", data={"suburb": "Riverbend"})
+    assert resp.status_code == 200  # graceful, not a 500
+    assert "Re-render failed" in resp.text
+
+
 # --- smoke boot (real lifespan: worker start/stop) -----------------------
 
 def test_app_boots_via_testclient():

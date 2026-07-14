@@ -40,8 +40,15 @@ from typing import List, Optional, Tuple, Union
 from engine.render import get_backend
 from engine.render.base import FORMATS, Artifact, RenderRequest
 from engine.render.copy import generate_copy
-from engine.schema import Marketing, PropertyRecord
+from engine.schema import Marketing, PropertyRecord, override_key_allowed
 from engine.store import RecordStore
+
+# The two fields that keep dedicated homes on ``record.marketing`` (the copy
+# channel) rather than riding the ``human_overrides`` facts channel: price
+# carries its own audit/format handling and headline has a copy overlay the LLM
+# would otherwise regenerate. Everything else is a ``human_overrides`` key.
+_PRICE_PATH = "marketing.price_display"
+_HEADLINE_PATH = "marketing.headline"
 
 
 @dataclass
@@ -51,6 +58,16 @@ class PriceChange:
     dp: str
     old: Optional[str]
     new: str
+    state: Optional[str]
+    artifacts: List[Artifact] = field(default_factory=list)
+
+
+@dataclass
+class EditChange:
+    """The outcome of ``apply_edits``: the fields changed plus the re-rendered set."""
+
+    dp: str
+    changes: dict  # public-view path -> value actually applied
     state: Optional[str]
     artifacts: List[Artifact] = field(default_factory=list)
 
@@ -74,7 +91,10 @@ def _format_price(amount: Union[int, float, str]) -> str:
     if isinstance(amount, (int, float)):
         return _rand(amount)
     text = str(amount).strip()
-    digits = re.sub(r"[^\d]", "", text)
+    # Drop a decimal fraction first, so "900000.50" formats as R900 000, not the
+    # cents-concatenated R90 000 050.
+    whole = re.split(r"\.\d+", text, maxsplit=1)[0]
+    digits = re.sub(r"[^\d]", "", whole)
     if digits:
         return _rand(int(digits))
     return text
@@ -145,6 +165,8 @@ def _write_manifest(output_root: str, dp: str, artifacts: List[Artifact]) -> Non
             "path": art.path,
             "mime": art.mime,
             "version": art.version,
+            "design_id": art.design_id,
+            "edit_url": art.edit_url,
         }
         for art in artifacts
     ]
@@ -158,6 +180,18 @@ def _load_record(dp: str, store: RecordStore) -> PropertyRecord:
     if record is None:
         raise KeyError(f"No record for DP {dp}")
     return record
+
+
+def _read_public_path(record: PropertyRecord, path: str):
+    """Read the current value at a dotted ``public_view()`` path (the effective,
+    override-aware value), or ``None`` if any segment is absent. Used to capture
+    the before-value for the audit trail."""
+    node = record.public_view()
+    for part in path.split("."):
+        if not isinstance(node, dict):
+            return None
+        node = node.get(part)
+    return node
 
 
 def _prepare(record: PropertyRecord, output_root: str, client=None) -> Tuple[dict, dict, List[str]]:
@@ -292,4 +326,68 @@ def set_price(
         new=new_display,
         state=store.get_state(dp),
         artifacts=artifacts,
+    )
+
+
+def apply_edits(
+    dp: str,
+    store: RecordStore,
+    changes: dict,
+    user: str,
+    backend: Optional[str] = None,
+    output_root: str = ".",
+    client=None,
+) -> EditChange:
+    """Apply human edits to a record's public fields, then re-render once.
+
+    ``changes`` maps a dotted public-view path (e.g. ``identity.street_address``,
+    ``sale_process.method``) to its new value. Routing keeps one home per field:
+    ``marketing.price_display`` is formatted and written to its own field (the
+    single price path), ``marketing.headline`` rides the copy overlay, and every
+    other public fact is written to ``human_overrides`` so the sourced value stays
+    pristine and survives a re-extraction (SPEC hard rule 3). A POPIA-protected
+    path is refused. Each field is logged to the audit trail (old -> new); the
+    record is upserted once and all artifacts are re-rendered once, so a
+    multi-field save costs a single render. The lifecycle transition that a live
+    edit needs (``live -> updated``) is owned by the reopen step, not here.
+    """
+    record = _load_record(dp, store)
+    # Validate every field up front, so a POPIA-protected key raises before any
+    # field is mutated or any audit row written (no partial edit / stray audit).
+    for path in changes:
+        if path not in (_PRICE_PATH, _HEADLINE_PATH) and not override_key_allowed(path):
+            raise ValueError(f"Field {path!r} cannot be edited: it is POPIA-protected.")
+
+    applied: dict = {}
+    for path, value in changes.items():
+        old = _read_public_path(record, path)
+        if path == _PRICE_PATH:
+            new_value = _format_price(value)
+            if record.marketing is None:
+                record.marketing = Marketing()
+            record.marketing.price_display = new_value
+            gate = "price"
+        elif path == _HEADLINE_PATH:
+            new_value = value
+            if record.marketing is None:
+                record.marketing = Marketing()
+            record.marketing.headline = new_value
+            gate = "edit"
+        else:
+            new_value = value
+            if record.human_overrides is None:
+                record.human_overrides = {}
+            record.human_overrides[path] = new_value
+            gate = "edit"
+        applied[path] = new_value
+        store.record_signoff(
+            dp, gate=gate, user=user, note=f"{path}: {old} -> {new_value}"
+        )
+
+    store.upsert(record)
+    artifacts = render_all(
+        dp, store, backend=backend, output_root=output_root, client=client
+    )
+    return EditChange(
+        dp=dp, changes=applied, state=store.get_state(dp), artifacts=artifacts
     )

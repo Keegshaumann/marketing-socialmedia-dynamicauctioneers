@@ -55,12 +55,31 @@
         </table>
       </div>
 
+      {% if state == 'updated' %}
+      <div class="banner banner--note mt-2">
+        {{ ui.icon('note') }}
+        <div class="banner__body">
+          <div class="banner__title">Reposting a changed listing</div>
+          <div>{{ delete_caveat }}</div>
+        </div>
+      </div>
+      <div class="actionbar mt-2">
+        <label class="row" style="gap:.5rem;align-items:center">
+          <input type="checkbox" id="deleted_old_posts" name="deleted_old_posts" value="1">
+          <span>I have manually deleted the old Instagram and TikTok posts</span>
+        </label>
+        <div class="spacer"></div>
+        {{ ui.button('Repost to channels', variant='gold', icon_name='send',
+           attrs='hx-post="/post/' ~ dp ~ '/distribute" hx-include="#deleted_old_posts" hx-target="#post-result" hx-swap="innerHTML" data-gold-sweep') }}
+      </div>
+      {% else %}
       <div class="actionbar mt-2">
         <div class="actionbar__note">Posts after gate 3. Live posting is a placeholder pending the GHL token.</div>
         <div class="spacer"></div>
         {{ ui.button('Trigger distribution', variant='gold', icon_name='send',
            attrs='hx-post="/post/' ~ dp ~ '/distribute" hx-target="#post-result" hx-swap="innerHTML" data-gold-sweep') }}
       </div>
+      {% endif %}
     </div>
   </section>
 

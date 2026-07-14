@@ -109,6 +109,7 @@ def _artifact_view(db_path: str, dp: str) -> List[Dict[str, Any]]:
                 "mime": art.get("mime", ""),
                 "version": art.get("version", 1),
                 "url": f"/artifacts/{dp}/file/{fmt}",
+                "edit_url": art.get("edit_url"),
             }
         )
     return out

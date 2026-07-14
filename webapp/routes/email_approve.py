@@ -108,7 +108,10 @@ def gate2_action(request: Request, token: str = Form(...), note: str = Form(""))
     else:
         state = action_gate2_approve(db_path, dp, approver)
         title = "Adverts approved"
-        message = f"Thank you. DP{dp} is approved and has moved on to client approval."
+        if state == "updated":
+            message = f"Thank you. DP{dp} is approved and ready to repost."
+        else:
+            message = f"Thank you. DP{dp} is approved and has moved on to client approval."
 
     return templates.TemplateResponse(
         request,

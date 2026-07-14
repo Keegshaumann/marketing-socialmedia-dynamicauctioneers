@@ -59,6 +59,11 @@ class Artifact:
     path: str
     mime: str
     version: int = 1
+    # Backend-side design identity + a link to open/edit it (Canva design id and
+    # edit URL). None for backends that render locally (html). Lets a human open
+    # the exact source design behind a rendered artifact.
+    design_id: Optional[str] = None
+    edit_url: Optional[str] = None
 
 
 class RenderBackend:

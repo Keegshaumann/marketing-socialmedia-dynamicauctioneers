@@ -9,6 +9,15 @@
 {% block topbar_actions %}{{ ui.state_badge(state) }}{% endblock %}
 
 {% block content %}
+  {% if is_update %}
+  <div class="banner banner--note">
+    {{ ui.icon('note') }}
+    <div class="banner__body">
+      <div class="banner__title">Editing a live listing</div>
+      <div>{{ delete_caveat }}</div>
+    </div>
+  </div>
+  {% endif %}
   <div class="grid-2">
     <div class="stack">
       <div class="panel">
@@ -21,7 +30,7 @@
 
     <div class="stack">
       <div class="panel">
-        <div class="panel__head"><div class="panel__title">Human copy edits</div></div>
+        <div class="panel__head"><div class="panel__title">Edit ad details</div></div>
         <div class="panel__body">
           <form hx-post="/gates/{{ dp }}/ads/copy" hx-target="#gallery" hx-swap="outerHTML" class="stack">
             <div class="field">
@@ -29,9 +38,30 @@
               <input class="input" id="headline" name="headline" value="{{ headline }}">
             </div>
             <div class="field">
-              <label class="label" for="price_display">Price display</label>
+              <label class="label" for="price_display">Price</label>
               <input class="input" id="price_display" name="price_display" value="{{ price_display }}">
-              <div class="hint">Edits are stored on the record and re-rendered onto every advert.</div>
+              <div class="hint">Type a number like 900000; it formats to R900 000.</div>
+            </div>
+            <div class="field">
+              <label class="label" for="street_address">Street address</label>
+              <input class="input" id="street_address" name="street_address" value="{{ street_address }}">
+            </div>
+            <div class="field">
+              <label class="label" for="suburb">Suburb</label>
+              <input class="input" id="suburb" name="suburb" value="{{ suburb }}">
+            </div>
+            <div class="field">
+              <label class="label" for="method">Sale method</label>
+              <select class="input" id="method" name="method">
+                {% if not method %}<option value="" selected>&mdash; not set &mdash;</option>{% endif %}
+                <option value="offers_invited" {% if method == 'offers_invited' %}selected{% endif %}>Offers invited</option>
+                <option value="auction" {% if method == 'auction' %}selected{% endif %}>Auction</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="label" for="terms">Terms and dates (one per line)</label>
+              <textarea class="textarea" id="terms" name="terms" rows="3">{{ terms }}</textarea>
+              <div class="hint">The auction date goes here as a line, e.g. Auction 20 Aug 2026. Blank fields are left unchanged.</div>
             </div>
             {{ ui.button('Save and re-render', variant='primary', icon_name='check', type='submit') }}
           </form>
@@ -62,7 +92,7 @@
           </div>
           <details class="mt-1">
             <summary class="muted">View the email to send to admin@dynamicauctioneers.co.za</summary>
-            <pre class="card mt-1" style="white-space:pre-wrap">{{ approval_email }}</pre>
+            <pre class="card mt-1" style="white-space:pre-wrap;overflow-x:auto;overflow-wrap:anywhere">{{ approval_email }}</pre>
           </details>
         </div>
       </div>
@@ -70,7 +100,9 @@
   </div>
 
   <div class="actionbar" data-gold-sweep-host>
-    <div class="actionbar__note">Approving moves DP {{ dp }} to client approval (gate 3).</div>
+    <div class="actionbar__note">
+      {% if is_update %}Approving records the internal sign-off and takes you to repost.{% else %}Approving moves DP {{ dp }} to client approval (gate 3).{% endif %}
+    </div>
     <div class="spacer"></div>
     {{ ui.button('Request changes', variant='ghost', icon_name='note', type='button',
         attrs='hx-post="/gates/' ~ dp ~ '/ads/changes" hx-target="#gallery" hx-swap="outerHTML"'|safe) }}

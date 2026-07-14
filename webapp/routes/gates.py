@@ -39,10 +39,11 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 from starlette.templating import Jinja2Templates
 
+from engine.distribute.ghl import DELETE_CAVEAT
 from engine.render import FORMATS
 from engine.render.html_backend import BRAND
-from engine.render.service import render_all
-from engine.schema import Marketing, PropertyRecord
+from engine.render.service import apply_edits, render_all
+from engine.schema import PropertyRecord
 from engine.store import IllegalTransition, RecordStore
 from engine.verify import (
     Flag,
@@ -164,7 +165,12 @@ def _gallery(db_path: str, dp: str) -> List[Dict[str, Any]]:
     """
     manifest = _manifest(db_path, dp)
     if not manifest:
-        _render(db_path, dp)
+        try:
+            _render(db_path, dp)
+        except Exception:
+            # Render backend unavailable (e.g. Canva quota/network); show an
+            # empty gallery rather than 500 the whole editor page.
+            return []
         manifest = _manifest(db_path, dp)
 
     tiles: List[Dict[str, Any]] = []
@@ -188,6 +194,7 @@ def _gallery(db_path: str, dp: str) -> List[Dict[str, Any]]:
                 "preview": preview,
                 "src": f"/gates/{dp}/ads/artifact/{fmt}",
                 "version": art.get("version", 1),
+                "edit_url": art.get("edit_url"),
             }
         )
     tiles.sort(key=lambda t: FORMATS.index(t["fmt"]) if t["fmt"] in FORMATS else 999)
@@ -349,18 +356,30 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
     email_html = templates.get_template("emails/gate2_internal.html").render(
         **_email_view(record), links=links
     )
-    marketing = record.marketing or Marketing()
+    state = _state(db_path, dp)
+    # Prefill from public_view so any existing human override shows (not the
+    # sourced value), and the editor edits from what the ad actually says.
+    pv = record.public_view()
+    identity = pv.get("identity") or {}
+    sale = pv.get("sale_process") or {}
+    marketing_pv = pv.get("marketing") or {}
     return templates.TemplateResponse(
         request,
         "gate2_ads.html",
         {
             "user": user,
             "dp": dp,
-            "state": _state(db_path, dp),
+            "state": state,
             "record": record,
             "tiles": tiles,
-            "headline": marketing.headline or "",
-            "price_display": marketing.price_display or "",
+            "headline": marketing_pv.get("headline") or "",
+            "price_display": marketing_pv.get("price_display") or "",
+            "street_address": identity.get("street_address") or "",
+            "suburb": identity.get("suburb") or "",
+            "method": sale.get("method") or "",
+            "terms": "\n".join(sale.get("terms") or []),
+            "is_update": state in ("live", "updated"),
+            "delete_caveat": DELETE_CAVEAT,
             "approval_email": email_html,
             "links": links,
         },
@@ -381,20 +400,67 @@ def gate2_artifact(dp: str, fmt: str, request: Request, user: dict = Depends(req
     raise HTTPException(status_code=404, detail="Artifact not rendered yet.")
 
 
-def _save_copy(db_path: str, dp: str, headline: str, price_display: str) -> None:
-    """Store human copy edits back on ``record.marketing`` (SPEC M5)."""
+# Editable public fields: form field name -> dotted public-view path. Owner /
+# occupant / financial fields are absent from public_view, so they can never
+# appear here (POPIA hard rule 1); apply_edits refuses a protected path anyway.
+_EDIT_TEXT_FIELDS = {
+    "headline": "marketing.headline",
+    "price_display": "marketing.price_display",
+    "street_address": "identity.street_address",
+    "suburb": "identity.suburb",
+}
+_SALE_METHODS = ("offers_invited", "auction")
+
+
+def _collect_edit_fields(form) -> dict:
+    """Build the public-view edit map from a submitted form (non-empty only).
+
+    A blank text input is skipped so it never wipes an existing value. ``terms``
+    is a textarea, one term per line, stored as a list.
+    """
+    fields: dict = {}
+    for name, path in _EDIT_TEXT_FIELDS.items():
+        value = str(form.get(name, "")).strip()
+        if value:
+            fields[path] = value
+    method = str(form.get("method", "")).strip()
+    if method in _SALE_METHODS:
+        fields["sale_process.method"] = method
+    terms_raw = str(form.get("terms", "")).strip()
+    if terms_raw:
+        fields["sale_process.terms"] = [
+            line.strip() for line in terms_raw.splitlines() if line.strip()
+        ]
+    return fields
+
+
+def _save_edits(db_path: str, dp: str, fields: dict, user: str) -> None:
+    """Apply human edits and re-render once (engine ``apply_edits``).
+
+    No-op when nothing changed. Price is formatted and every other public fact
+    rides ``human_overrides`` so the sourced value stays intact (SPEC hard
+    rule 3); each field is logged to the audit trail.
+    """
+    if not fields:
+        return
     store = _store(db_path)
     try:
-        record = store.get(dp)
-        if record is None:
-            return
-        if record.marketing is None:
-            record.marketing = Marketing()
-        if headline.strip():
-            record.marketing.headline = headline.strip()
-        if price_display.strip():
-            record.marketing.price_display = price_display.strip()
-        store.upsert(record)
+        apply_edits(dp, store, fields, user, output_root=_output_root(db_path))
+    finally:
+        store.close()
+
+
+def _reopen_if_live(db_path: str, dp: str, user: str) -> None:
+    """Move a ``live`` listing into the update cycle on its first edit.
+
+    Editing an already-posted listing starts an update: ``live -> updated`` so
+    the record re-passes the internal approval before it can repost. Any other
+    state is left alone (a first-time edit at ``drafted`` must not jump ahead).
+    """
+    store = _store(db_path)
+    try:
+        if store.get_state(dp) == "live":
+            store.transition(dp, "updated", note=f"reopened for edit by {user}")
     finally:
         store.close()
 
@@ -403,16 +469,31 @@ def _save_copy(db_path: str, dp: str, headline: str, price_display: str) -> None
 async def gate2_copy(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
     db_path = _db(request)
     form = await request.form()
-    _save_copy(db_path, dp, str(form.get("headline", "")), str(form.get("price_display", "")))
-    _render(db_path, dp)  # re-render so the edit lands on every artifact
+    fields = _collect_edit_fields(form)
+    if fields:
+        # Only a real edit reopens a live listing into the update cycle.
+        _reopen_if_live(db_path, dp, user["email"])
+        try:
+            _save_edits(db_path, dp, fields, user["email"])
+            toast = {"tone": "ok", "title": "Saved", "text": "Artifacts re-rendered with your edits."}
+        except ValueError as exc:
+            # A POPIA-protected field was refused before anything was saved.
+            toast = {"tone": "block", "title": "Edit refused", "text": str(exc)}
+        except Exception as exc:  # a render backend failure (e.g. Canva quota / network)
+            toast = {
+                "tone": "block",
+                "title": "Re-render failed",
+                "text": (
+                    "Your edit was saved, but the artifacts could not be re-rendered "
+                    f"({type(exc).__name__}). Try again, or switch the render backend."
+                ),
+            }
+    else:
+        toast = {"tone": "note", "title": "No changes", "text": "Nothing to save. A blank field keeps its current value."}
     return templates.TemplateResponse(
         request,
         "partials/_gate2_gallery.html",
-        {
-            "dp": dp,
-            "tiles": _gallery(db_path, dp),
-            "toast": {"tone": "ok", "title": "Copy saved", "text": "Artifacts re-rendered with the new wording."},
-        },
+        {"dp": dp, "tiles": _gallery(db_path, dp), "toast": toast},
     )
 
 
@@ -421,7 +502,6 @@ async def gate2_changes(dp: str, request: Request, user: dict = Depends(require_
     db_path = _db(request)
     form = await request.form()
     note = str(form.get("note", "")).strip() or "Changes requested."
-    _save_copy(db_path, dp, str(form.get("headline", "")), str(form.get("price_display", "")))
     _signoff(db_path, dp, gate="2", user=user["email"], note=f"changes requested: {note}")
     _render(db_path, dp)  # regenerate and return to gate 2
     return templates.TemplateResponse(
@@ -436,13 +516,20 @@ async def gate2_changes(dp: str, request: Request, user: dict = Depends(require_
 
 
 def action_gate2_approve(db_path: str, dp: str, approver: str) -> str:
-    """Approve gate 2: record the sign-off and move ``drafted -> approved``.
+    """Approve gate 2. Returns the resulting state.
 
     Shared by the logged-in button and the tokenised email link so both paths
-    behave identically. Returns the resulting state. The sign-off is recorded
-    only when the transition actually happens, so an out-of-order approval does
-    not leave a false audit entry.
+    behave identically. Two cases:
+    - an update cycle (state ``updated``) is a small-edit repost: record one
+      internal approval (``gate=repost``) and stay in ``updated`` -- the client
+      already approved this listing at first go-live, so gate 3 is not re-run;
+    - otherwise move ``drafted -> approved`` and record the internal ad approval.
+    The sign-off is recorded only when the move actually happens, so an
+    out-of-order approval leaves no false audit entry.
     """
+    if _state(db_path, dp) == "updated":
+        _signoff(db_path, dp, gate="repost", user=approver, note="internal approval for repost")
+        return _state(db_path, dp)
     moved, state = _advance(db_path, dp, "approved", note=f"gate 2 approved by {approver}")
     if moved:
         _signoff(db_path, dp, gate="2", user=approver, note="internal ad approval")
@@ -460,12 +547,12 @@ def action_gate2_changes(db_path: str, dp: str, approver: str, note: str) -> str
 def gate2_approve(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
     db_path = _db(request)
     state = action_gate2_approve(db_path, dp, user["email"])
-    # Only advance to gate 3 when the record actually reached "approved"; an
-    # out-of-order approval stays put and returns to the gate 2 view.
-    if state not in ("approved", "client_approved", "assets_built", "live", "updated"):
-        target = f"/gates/{dp}/ads"
+    if state == "updated":
+        target = f"/post/{dp}"          # small-edit repost: straight to distribution
+    elif state == "approved":
+        target = f"/gates/{dp}/client"  # first-time: on to gate 3 (client approval)
     else:
-        target = f"/gates/{dp}/client"
+        target = f"/gates/{dp}/ads"     # nothing moved (e.g. still live): back to editor
     if request.headers.get("HX-Request"):
         return Response(status_code=204, headers={"HX-Redirect": target})
     return RedirectResponse(url=target, status_code=303)

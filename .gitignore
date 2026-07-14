@@ -8,3 +8,6 @@ venv/
 .DS_Store
 node_modules/
 *.log
+
+# local demo scaffolding (webapp Canva demo)
+.demo-run/

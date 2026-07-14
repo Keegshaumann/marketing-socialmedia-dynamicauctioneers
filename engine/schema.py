@@ -19,7 +19,7 @@ Design rules baked in here:
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -200,6 +200,70 @@ class Verification(_Base):
     human_signoff: Optional[str] = None
 
 
+# --- human overrides (POPIA-guarded editor layer) ------------------------
+# A marketer may correct a public fact on an already-sourced record (e.g. a
+# suburb typo, a changed sale method). The correction is stored as a top-level
+# ``human_overrides`` map of dotted public-view path -> replacement value and
+# applied last by ``public_view()``, so the sourced Lightstone / Property-Report
+# layer stays pristine (SPEC hard rule 3: every field still traces to a source)
+# and the edit survives a re-extraction. An override can never reach a POPIA
+# path: the guard below rejects any key that would recreate a stripped field.
+
+_OVERRIDE_FORBIDDEN_PREFIXES = ("financials_internal",)
+_OVERRIDE_FORBIDDEN_PATHS = ("sale_process.viewing.contact_internal_only",)
+
+
+def override_key_allowed(path: str) -> bool:
+    """Whether ``path`` may be set as a ``human_overrides`` key (POPIA guard).
+
+    Rejects the whole ``financials_internal`` group and the occupant's private
+    cell, so an override can never resurrect a field ``public_view()`` strips.
+    A key is refused when it is a forbidden path, an **ancestor** of one (a
+    whole-dict override that would carry the stripped field back in), or a
+    **descendant** under one.
+    """
+    if not path:
+        return False
+    head = path.split(".", 1)[0]
+    if head in _OVERRIDE_FORBIDDEN_PREFIXES:
+        return False
+    for forbidden in _OVERRIDE_FORBIDDEN_PATHS:
+        if path == forbidden or forbidden.startswith(path + ".") or path.startswith(forbidden + "."):
+            return False
+    return True
+
+
+def _strip_pii(data: dict) -> None:
+    """Remove the POPIA internal layer from a projection dict, in place."""
+    data.pop("financials_internal", None)
+    sale = data.get("sale_process")
+    if isinstance(sale, dict):
+        viewing = sale.get("viewing")
+        if isinstance(viewing, dict):
+            viewing.pop("contact_internal_only", None)
+
+
+def _apply_overrides(data: dict, overrides: dict) -> None:
+    """Apply a dotted-path override map onto the already-stripped ``data`` dict.
+
+    Walks each dotted key, creating intermediate dicts as needed, and does a
+    whole-value leaf replacement. Runs on the PII-stripped projection and skips
+    any forbidden key, so an override can never re-add a POPIA field.
+    """
+    for path, value in (overrides or {}).items():
+        if not path or not override_key_allowed(path):
+            continue
+        parts = path.split(".")
+        node = data
+        for part in parts[:-1]:
+            child = node.get(part)
+            if not isinstance(child, dict):
+                child = {}
+                node[part] = child
+            node = child
+        node[parts[-1]] = value
+
+
 # --- top-level record ----------------------------------------------------
 
 class PropertyRecord(_Base):
@@ -216,6 +280,9 @@ class PropertyRecord(_Base):
     marketing: Optional[Marketing] = None
     compliance: Optional[Compliance] = None
     verification: Optional[Verification] = None
+    # Dotted public-view path -> human replacement value; applied last by
+    # public_view(). Never a POPIA path (guarded in _apply_overrides / on write).
+    human_overrides: Optional[Dict[str, Any]] = None
 
     def public_view(self) -> dict:
         """Return a projection safe for public renderers (SPEC 4.4).
@@ -224,12 +291,16 @@ class PropertyRecord(_Base):
         ``financials_internal`` group and the occupant's private cell in
         ``sale_process.viewing.contact_internal_only``. A renderer handed this
         dict cannot leak PII because the PII is not present in it.
+
+        Human edits stored in ``human_overrides`` are applied last, after the
+        PII strip, and cannot recreate a stripped POPIA path (see
+        ``_apply_overrides``). The sourced record fields are left untouched.
         """
         data = self.model_dump(mode="json")
-        data.pop("financials_internal", None)
-        sale = data.get("sale_process")
-        if isinstance(sale, dict):
-            viewing = sale.get("viewing")
-            if isinstance(viewing, dict):
-                viewing.pop("contact_internal_only", None)
+        _strip_pii(data)
+        overrides = data.pop("human_overrides", None) or {}
+        _apply_overrides(data, overrides)
+        # Defence in depth: overrides are applied last and are guarded on write,
+        # but strip again so no override shape can leave a POPIA field behind.
+        _strip_pii(data)
         return data

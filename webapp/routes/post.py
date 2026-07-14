@@ -44,13 +44,10 @@ templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 _SOCIAL = {"facebook", "instagram", "linkedin", "tiktok", "x"}
 
 # SPEC section 12 step 8 reality, surfaced verbatim so the delete limit is no
-# surprise. Mirrors engine.distribute.ghl.DELETE_CAVEAT (imported when present).
-_DELETE_CAVEAT = (
-    "GHL delete only clears the Social Planner queue. It does not remove posts "
-    "already live on the connected pages, and Instagram and TikTok have no delete "
-    "API. Changed live posts are handled by regenerate-and-repost (a REDUCED "
-    "update); removing a live Instagram or TikTok post is a manual step."
-)
+# surprise. Single source of truth: import the leaf constant from ghl (gates.py
+# already imports it at top level, so it is always available) instead of keeping
+# a copy here that can drift.
+from engine.distribute.ghl import DELETE_CAVEAT as _DELETE_CAVEAT
 
 
 # --- distribute package (guarded; Phase 5 may still be a scaffold) ---------
@@ -178,47 +175,72 @@ def post_page(
     )
 
 
+def _blocked(request, db_path: str, dp: str, state, summary: str, title: str = "Blocked"):
+    """A 409 block response for the post screen: nothing was distributed."""
+    return templates.TemplateResponse(
+        request,
+        "_post_result.html",
+        _ctx(
+            request,
+            dp=dp,
+            state=state,
+            live=False,
+            summary=summary,
+            pack_path=None,
+            notes=[],
+            board=_status_board(db_path, dp),
+            tone="block",
+            title=title,
+        ),
+        status_code=409,
+    )
+
+
 @router.post("/post/{dp}/distribute")
-def trigger_distribution(
+async def trigger_distribution(
     request: Request,
     dp: str,
     user: dict = Depends(auth.require_role("marketing")),
 ):
     """Trigger distribution after gate 3: build the pack, log per channel, go live."""
     db_path = auth.db_path_for(request)
+    form = await request.form()
 
-    # Gate 3 guard: nothing is distributed (no manual pack, no live GHL post,
-    # no channel_status) until client approval has been recorded. Only records
-    # at or past client_approved may be posted.
+    # Gate guard: nothing is distributed (no manual pack, no live GHL post, no
+    # channel_status) until the record is postable. A first listing needs client
+    # approval (gate 3). A small-edit repost (state "updated") instead needs one
+    # internal approval recorded since its last edit, and an explicit
+    # confirmation that the old IG/TikTok posts were deleted by hand (they have
+    # no delete API, SPEC 12 step 8).
     _POSTABLE = {"client_approved", "assets_built", "live", "updated"}
     from engine.store import RecordStore as _RS
 
     _guard_store = _RS(db_path)
     try:
         _current = _guard_store.get_state(dp)
+        _repost_approved = _guard_store.internally_approved_since_last_edit(dp)
     finally:
         _guard_store.close()
+
     if _current not in _POSTABLE:
-        return templates.TemplateResponse(
-            request,
-            "_post_result.html",
-            _ctx(
-                request,
-                dp=dp,
-                state=_current,
-                live=False,
-                summary=(
-                    "Cannot distribute: client approval (gate 3) has not been "
-                    "recorded for this property yet."
-                ),
-                pack_path=None,
-                notes=[],
-                board=_status_board(db_path, dp),
-                tone="block",
-                title="Blocked",
-            ),
-            status_code=409,
+        return _blocked(
+            request, db_path, dp, _current,
+            "Cannot distribute: client approval (gate 3) has not been recorded "
+            "for this property yet.",
         )
+    if _current == "updated":
+        if not _repost_approved:
+            return _blocked(
+                request, db_path, dp, _current,
+                "This update needs internal approval before it can repost. "
+                "Approve the adverts at gate 2 first.",
+            )
+        if not form.get("deleted_old_posts"):
+            return _blocked(
+                request, db_path, dp, _current,
+                "Confirm you have manually deleted the old Instagram and TikTok "
+                "posts before reposting (they have no delete API).",
+            )
 
     distribute = _load_distribute()
     output_root = _output_root(db_path)

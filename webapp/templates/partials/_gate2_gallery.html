@@ -12,9 +12,16 @@
       </div>
       <div class="tile__cap">
         <span>{{ ui.icon('file', 'icon--sm') }}{{ t.label }}</span>
-        <a class="btn btn--ghost btn--sm" href="{{ t.src }}" target="_blank" rel="noopener">
-          {{ ui.icon('download', 'icon--sm') }}<span>Open</span>
-        </a>
+        <div class="row" style="gap:.4rem">
+          {% if t.edit_url %}
+          <a class="btn btn--ghost btn--sm" href="{{ t.edit_url }}" target="_blank" rel="noopener">
+            {{ ui.icon('arrow', 'icon--sm') }}<span>Open in Canva</span>
+          </a>
+          {% endif %}
+          <a class="btn btn--ghost btn--sm" href="{{ t.src }}" target="_blank" rel="noopener">
+            {{ ui.icon('download', 'icon--sm') }}<span>Open</span>
+          </a>
+        </div>
       </div>
     </div>
   {% else %}
