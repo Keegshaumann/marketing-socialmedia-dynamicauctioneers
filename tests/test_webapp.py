@@ -612,6 +612,195 @@ def test_edit_render_failure_is_graceful(monkeypatch):
     assert "Re-render failed" in resp.text
 
 
+# --- gate-2 photo upload / management ------------------------------------
+
+# A minimal valid 1x1 PNG for upload tests.
+_PNG_1X1 = (
+    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+    b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00"
+    b"\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+)
+
+
+def _seed_live_no_photos(dp: str) -> None:
+    """Golden clone at ``live`` with its photos cleared, so uploads start clean."""
+    _needs_golden()
+    record = PropertyRecord.model_validate_json(GOLDEN_RECORD.read_text(encoding="utf-8"))
+    record.dp = dp
+    if record.marketing is None:
+        record.marketing = Marketing()
+    record.marketing.hero_photo = None
+    record.marketing.gallery = []
+    store = RecordStore(DB_PATH)
+    try:
+        store.upsert(record, state="live")
+    finally:
+        store.close()
+
+
+def test_photo_upload_hero_delete_and_serve():
+    dp = "7301"
+    _seed_live_no_photos(dp)
+    client = _client()
+    _login_admin(client)
+
+    resp = client.post(
+        f"/gates/{dp}/ads/photos/upload",
+        files=[
+            ("files", ("front.png", _PNG_1X1, "image/png")),
+            ("files", ("back.png", _PNG_1X1, "image/png")),
+        ],
+    )
+    assert resp.status_code == 200, resp.text
+    assert _state(dp) == "updated"  # editing photos reopens the update cycle
+    pv = _public_view(dp)
+    assert pv["marketing"]["hero_photo"] == "photos/front.png"  # first upload is the lead
+    assert "photos/back.png" in (pv["marketing"]["gallery"] or [])
+
+    # the serve route returns the file (this is what makes advert-preview images resolve)
+    served = client.get(f"/gates/{dp}/ads/photos/front.png")
+    assert served.status_code == 200
+    assert served.headers["content-type"] == "image/png"
+    assert served.content[:8] == b"\x89PNG\r\n\x1a\n"
+
+    # set the other photo as the lead
+    client.post(f"/gates/{dp}/ads/photos/hero", data={"name": "back.png"})
+    assert _public_view(dp)["marketing"]["hero_photo"] == "photos/back.png"
+
+    # delete one
+    client.post(f"/gates/{dp}/ads/photos/delete", data={"name": "front.png"})
+    pv = _public_view(dp)
+    remaining = [pv["marketing"].get("hero_photo")] + (pv["marketing"].get("gallery") or [])
+    assert "photos/front.png" not in remaining
+
+
+def test_photo_upload_rejects_non_image_and_does_not_reopen():
+    dp = "7302"
+    _seed_live_no_photos(dp)
+    client = _client()
+    _login_admin(client)
+    resp = client.post(
+        f"/gates/{dp}/ads/photos/upload",
+        files=[("files", ("notes.txt", b"not an image", "text/plain"))],
+    )
+    assert resp.status_code == 200
+    assert "No photos added" in resp.text
+    assert not (_public_view(dp)["marketing"].get("gallery") or [])
+    assert _state(dp) == "live"  # a rejected upload is not an edit; the listing stays live
+
+
+def test_photo_serve_missing_returns_404():
+    dp = "7303"
+    _seed_live_no_photos(dp)
+    client = _client()
+    _login_admin(client)
+    assert client.get(f"/gates/{dp}/ads/photos/nope.png").status_code == 404
+
+
+def test_photo_delete_hero_promotes_next_to_lead():
+    dp = "7304"
+    _seed_live_no_photos(dp)
+    client = _client()
+    _login_admin(client)
+    client.post(f"/gates/{dp}/ads/photos/upload", files=[
+        ("files", ("front.png", _PNG_1X1, "image/png")),
+        ("files", ("back.png", _PNG_1X1, "image/png")),
+    ])
+    assert _public_view(dp)["marketing"]["hero_photo"] == "photos/front.png"
+    client.post(f"/gates/{dp}/ads/photos/delete", data={"name": "front.png"})
+    assert _public_view(dp)["marketing"]["hero_photo"] == "photos/back.png"  # next promoted
+
+
+def test_photo_noops_do_not_reopen_live_listing():
+    dp = "7308"
+    _seed_live_no_photos(dp)  # live, no photos
+    client = _client()
+    _login_admin(client)
+    # deleting a non-existent photo is a no-op and must not knock live -> updated
+    r = client.post(f"/gates/{dp}/ads/photos/delete", data={"name": "ghost.png"})
+    assert r.status_code == 200 and "No change" in r.text
+    assert _state(dp) == "live"
+    # setting a non-existent (or already-lead) photo as lead is likewise a no-op
+    r2 = client.post(f"/gates/{dp}/ads/photos/hero", data={"name": "ghost.png"})
+    assert r2.status_code == 200 and "No change" in r2.text
+    assert _state(dp) == "live"
+
+
+def test_photo_upload_on_drafted_renders_without_reopening():
+    dp = "7305"
+    _needs_golden()
+    record = PropertyRecord.model_validate_json(GOLDEN_RECORD.read_text(encoding="utf-8"))
+    record.dp = dp
+    record.marketing = record.marketing or Marketing()
+    record.marketing.hero_photo = None
+    record.marketing.gallery = []
+    store = RecordStore(DB_PATH)
+    try:
+        store.upsert(record, state="drafted")
+    finally:
+        store.close()
+    client = _client()
+    _login_admin(client)
+    r = client.post(f"/gates/{dp}/ads/photos/upload", files=[("files", ("a.png", _PNG_1X1, "image/png"))])
+    assert r.status_code == 200
+    assert _public_view(dp)["marketing"]["hero_photo"] == "photos/a.png"
+    assert _state(dp) == "drafted"  # not live, so no reopen — just re-rendered
+
+
+def test_photo_upload_oversized_rejected(monkeypatch):
+    dp = "7306"
+    _seed_live_no_photos(dp)
+    client = _client()
+    _login_admin(client)
+    from webapp.routes import gates as gates_mod
+    monkeypatch.setattr(gates_mod, "_MAX_PHOTO_BYTES", 4)  # the 1x1 PNG exceeds this
+    r = client.post(f"/gates/{dp}/ads/photos/upload", files=[("files", ("big.png", _PNG_1X1, "image/png"))])
+    assert r.status_code == 200
+    assert "No photos added" in r.text
+    assert not (_public_view(dp)["marketing"].get("gallery") or [])
+    assert _state(dp) == "live"
+
+
+def test_photo_upload_dedups_duplicate_filename():
+    dp = "7307"
+    _seed_live_no_photos(dp)
+    client = _client()
+    _login_admin(client)
+    client.post(f"/gates/{dp}/ads/photos/upload", files=[
+        ("files", ("front.png", _PNG_1X1, "image/png")),
+        ("files", ("front.png", _PNG_1X1, "image/png")),
+    ])
+    pv = _public_view(dp)
+    allp = [pv["marketing"]["hero_photo"]] + (pv["marketing"]["gallery"] or [])
+    assert "photos/front.png" in allp and "photos/front_1.png" in allp
+    assert client.get(f"/gates/{dp}/ads/photos/front.png").status_code == 200
+    assert client.get(f"/gates/{dp}/ads/photos/front_1.png").status_code == 200
+
+
+def test_photo_upload_response_swaps_gallery_and_photos_oob():
+    dp = "7310"
+    _seed_live_no_photos(dp)
+    client = _client()
+    _login_admin(client)
+    body = client.post(f"/gates/{dp}/ads/photos/upload", files=[("files", ("front.png", _PNG_1X1, "image/png"))]).text
+    assert 'id="gallery"' in body
+    assert 'id="photos"' in body
+    assert 'hx-swap-oob="true"' in body
+    assert f"/gates/{dp}/ads/photos/front.png" in body   # thumbnail url
+    assert "badge--ok" in body                            # lead badge
+
+
+def test_advert_preview_img_points_at_serve_route():
+    dp = "7311"
+    _seed_live_no_photos(dp)
+    client = _client()
+    _login_admin(client)
+    client.post(f"/gates/{dp}/ads/photos/upload", files=[("files", ("front.png", _PNG_1X1, "image/png"))])
+    html = client.get(f"/gates/{dp}/ads/artifact/demo_ad").text
+    # resolves to /gates/{dp}/ads/photos/front.png in the sandboxed preview iframe
+    assert 'src="../photos/front.png"' in html
+
+
 # --- smoke boot (real lifespan: worker start/stop) -----------------------
 
 def test_app_boots_via_testclient():

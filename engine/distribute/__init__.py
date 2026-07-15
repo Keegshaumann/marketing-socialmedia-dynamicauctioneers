@@ -2,8 +2,8 @@
 
 Distribution has two arms. API channels post automatically once their
 credentials exist: GoHighLevel's Social Planner (``ghl``, D11) for the social
-pages and WhatsApp via Peach/BotSailor (``whatsapp``). Every other channel gets
-a ready-to-post pack (``packs``) that a human works down. The channel routing
+pages. Every other channel gets a ready-to-post pack (``packs``) that a human
+works down. The channel routing
 matrix (``routing``) decides which channels a property goes to, and the
 per-channel status log (``packs.log_posted`` / ``list_status``) records what
 actually went out per DP per channel per version (the Proof of Marketing trail).
@@ -42,12 +42,6 @@ from engine.distribute.routing import (
     is_commercial,
     property_value,
 )
-from engine.distribute.whatsapp import (
-    audience_from_tags,
-    build_broadcast,
-    crm_audience,
-    send_broadcast,
-)
 
 __all__ = [
     # routing (SPEC 5.6)
@@ -67,9 +61,4 @@ __all__ = [
     "log_posted",
     "list_status",
     "price_drop_burst",
-    # WhatsApp broadcast
-    "build_broadcast",
-    "send_broadcast",
-    "audience_from_tags",
-    "crm_audience",
 ]

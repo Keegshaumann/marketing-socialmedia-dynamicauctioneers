@@ -47,7 +47,7 @@ GHL_API_BASE = "https://services.leadconnectorhq.com"
 GHL_API_VERSION = "2021-07-28"
 
 # The channels the Social Planner API handles (D11). Anything else in a routing
-# matrix (Property24, own website, WhatsApp, email, JamesEdition) is posted by a
+# matrix (Property24, own website, email, JamesEdition) is posted by a
 # different mechanism and is ignored here.
 GHL_SOCIAL_CHANNELS: tuple[str, ...] = (
     "facebook",
@@ -142,7 +142,7 @@ def _caption_for(artifacts: List[Any], dp: str) -> str:
     line keyed to the DP. Never raises: a missing or unreadable file just yields
     the fallback.
     """
-    preferred = ("facebook_post", "whatsapp_blast", "email_blast")
+    preferred = ("facebook_post", "email_blast")
     by_fmt = {_artifact_attr(a, "fmt"): a for a in artifacts}
     for fmt in preferred:
         artifact = by_fmt.get(fmt)

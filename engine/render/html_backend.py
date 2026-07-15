@@ -16,7 +16,7 @@ Design rules baked in here:
   rather than invented (no hallucinated facts in a client-facing artifact, SPEC 8).
 - SA English, no em or en dashes, no emojis in any rendered copy.
 
-Text formats (portal_listing, facebook_post, whatsapp_blast, email_blast) render to
+Text formats (portal_listing, facebook_post, email_blast) render to
 ``.md`` / ``.txt``; visual formats (demo_ad, info_pack, saia_banner, alert_mailer,
 auction_board) to ``.html``; webapp_icon to an ``.svg`` tile. Artifacts are written
 to ``<output_root>/DP<dp>/artifacts/<fmt>.<ext>``.
@@ -54,7 +54,6 @@ BRAND: Dict[str, str] = {
 _FORMAT_SPEC: Dict[str, Tuple[str, str, str]] = {
     "portal_listing": ("portal_listing.md.j2", "md", "text/markdown"),
     "facebook_post": ("facebook_post.md.j2", "md", "text/markdown"),
-    "whatsapp_blast": ("whatsapp_blast.txt.j2", "txt", "text/plain"),
     "email_blast": ("email_blast.md.j2", "md", "text/markdown"),
     "demo_ad": ("demo_ad.html.j2", "html", "text/html"),
     "info_pack": ("info_pack.html.j2", "html", "text/html"),

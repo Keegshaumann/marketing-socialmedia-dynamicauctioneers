@@ -171,7 +171,6 @@ class ChannelRouting(_Base):
     property24: Optional[bool] = None
     own_website: Optional[bool] = None
     facebook: Optional[bool] = None
-    whatsapp_broadcast: Optional[bool] = None
     email_list: Optional[bool] = None
     jamesedition: Optional[bool] = None
     jamesedition_reason: Optional[str] = None

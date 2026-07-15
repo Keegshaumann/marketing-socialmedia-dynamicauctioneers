@@ -585,7 +585,6 @@ def _cmd_crm_add(args: argparse.Namespace) -> int:
 def _cmd_crm_match(args: argparse.Namespace) -> int:
     """List the buyers matched to a listing plus its broadcast line (M7)."""
     from engine.crm import broadcast_text, matched_buyers
-    from engine.distribute import build_broadcast
 
     dp = _normalise_dp(args.dp)
     store = RecordStore(args.db)
@@ -609,10 +608,6 @@ def _cmd_crm_match(args: argparse.Namespace) -> int:
             )
     else:
         print("  no matched buyers yet.")
-
-    print("  broadcast message:")
-    for line in build_broadcast(record).splitlines():
-        print(f"    {line}")
     return 0
 
 
@@ -763,7 +758,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     crm_add.add_argument(
         "source",
-        help="Enquiry source, for example whatsapp, email or facebook.",
+        help="Enquiry source, for example email, facebook or sms.",
     )
     crm_add.add_argument(
         "raw",

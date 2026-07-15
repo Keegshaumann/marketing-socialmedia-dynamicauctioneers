@@ -40,7 +40,6 @@ templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 FORMAT_META: Dict[str, Dict[str, str]] = {
     "portal_listing": {"label": "Portal listing", "kind": "text"},
     "facebook_post": {"label": "Facebook post", "kind": "text"},
-    "whatsapp_blast": {"label": "WhatsApp blast", "kind": "text"},
     "email_blast": {"label": "Email blast", "kind": "text"},
     "demo_ad": {"label": "Demo advert", "kind": "page"},
     "info_pack": {"label": "Info pack", "kind": "page"},

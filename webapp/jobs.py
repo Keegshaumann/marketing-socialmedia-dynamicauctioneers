@@ -162,7 +162,6 @@ def _handle_post(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, str]
         "property24",
         "own_website",
         "facebook",
-        "whatsapp_broadcast",
         "email_list",
     ]
 

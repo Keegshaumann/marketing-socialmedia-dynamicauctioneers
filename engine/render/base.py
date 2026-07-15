@@ -21,7 +21,6 @@ from typing import List, Optional
 FORMATS: List[str] = [
     "portal_listing",   # Property24-ready copy (.md)
     "facebook_post",    # FB post + boost notes (.md)
-    "whatsapp_blast",   # WhatsApp broadcast, "reply <DP>" hook (.txt)
     "email_blast",      # subject A/B + body (.md)
     "demo_ad",          # branded one-pager, print-ready A4 + web (.html)
     "info_pack",        # buyer-facing Property Report variant (.html)

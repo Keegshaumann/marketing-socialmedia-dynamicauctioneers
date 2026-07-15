@@ -39,7 +39,7 @@ templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 # --- configuration surface -----------------------------------------------
 
 # Channels a property can be routed to. ``default_on`` mirrors the SPEC 5.6
-# routing baseline (every property → P24, own site, FB, WhatsApp, email) so a
+# routing baseline (every property → P24, own site, FB, email) so a
 # fresh install already routes sensibly before anyone touches this screen.
 CHANNELS = [
     ("property24", "Property24", True),
@@ -48,7 +48,6 @@ CHANNELS = [
     ("instagram", "Instagram", True),
     ("linkedin", "LinkedIn", False),
     ("tiktok", "TikTok", False),
-    ("whatsapp_broadcast", "WhatsApp broadcast", True),
     ("email_list", "Email list", True),
     ("jamesedition", "JamesEdition (from R10m)", False),
 ]

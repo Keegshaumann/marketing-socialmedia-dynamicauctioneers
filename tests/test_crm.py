@@ -56,7 +56,7 @@ def test_record_enquiry_tags_dp_and_category(tmp_path):
 
     contact = record_enquiry(
         db_path,
-        source="whatsapp",
+        source="sms",
         raw="reply 3060, keen buyer, jane@example.com",
     )
 
@@ -106,7 +106,7 @@ def test_matched_buyers_returns_matches(tmp_path):
 
     # Two buyers enquire about the industrial listing (tagged industrial /
     # Mkondeni / R5m_plus).
-    record_enquiry(db_path, "whatsapp", "reply 4000, amy@example.com")
+    record_enquiry(db_path, "sms", "reply 4000, amy@example.com")
     record_enquiry(db_path, "facebook", "lead=99001 ?dp=4000")
     # An unrelated residential buyer must not match.
     record_enquiry(db_path, "email", "reply 3060, tom@example.com")
@@ -136,7 +136,7 @@ def test_broadcast_text_reads_correctly_and_has_no_em_dash(tmp_path):
     industrial = _industrial("4000")
     _seed(db_path, industrial)
 
-    record_enquiry(db_path, "whatsapp", "reply 4000, amy@example.com")
+    record_enquiry(db_path, "sms", "reply 4000, amy@example.com")
     record_enquiry(db_path, "facebook", "lead=99001 ?dp=4000")
     matched = matched_buyers(db_path, industrial)
 
@@ -152,7 +152,7 @@ def test_broadcast_text_singular_buyer(tmp_path):
     industrial = _industrial("4000")
     _seed(db_path, industrial)
 
-    record_enquiry(db_path, "whatsapp", "reply 4000, amy@example.com")
+    record_enquiry(db_path, "sms", "reply 4000, amy@example.com")
     matched = matched_buyers(db_path, industrial)
 
     line = broadcast_text(industrial, matched)

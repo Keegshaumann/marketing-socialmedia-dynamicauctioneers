@@ -60,7 +60,7 @@ class _Base(BaseModel):
 
 
 class FormatCopy(_Base):
-    """Copy for a single text channel (portal, Facebook, WhatsApp)."""
+    """Copy for a single text channel (portal, Facebook)."""
 
     headline: Optional[str] = None
     body: Optional[str] = None
@@ -88,7 +88,6 @@ class CopyBundle(_Base):
     terms: Optional[List[str]] = None
     portal_listing: Optional[FormatCopy] = None
     facebook_post: Optional[FormatCopy] = None
-    whatsapp_blast: Optional[FormatCopy] = None
     email_blast: Optional[EmailCopy] = None
 
 
@@ -233,12 +232,6 @@ def _template_copy(record: PropertyRecord) -> dict:
         f"Enquiries: {contact}."
     )
 
-    # WhatsApp: short, with the "reply <DP>" enquiry hook.
-    wa_body = (
-        f"{headline.rstrip('.')}. {price_display}. "
-        f"Reply {dp} to enquire, or contact {contact}."
-    )
-
     # Email: two subject lines for A/B, plus a fuller body.
     subject_a = f"{headline.rstrip('.')} | {price_display}"
     if suburb:
@@ -261,7 +254,6 @@ def _template_copy(record: PropertyRecord) -> dict:
         "framing": "auction" if method == "auction" else "offers",
         "portal_listing": {"headline": headline, "body": portal_body},
         "facebook_post": {"headline": headline, "body": fb_body},
-        "whatsapp_blast": {"headline": headline, "body": wa_body},
         "email_blast": {
             "subject_a": subject_a,
             "subject_b": subject_b,
@@ -293,8 +285,7 @@ SYSTEM_PROMPT = (
     "\n"
     "Channels: write a headline and a price display line, a short summary, the "
     "sale terms, and per-channel copy: a formal portal listing, a punchy "
-    "Facebook post, a short WhatsApp broadcast that ends with a \"reply <DP "
-    "number>\" enquiry hook, and an email with two subject lines (A and B) for "
+    "Facebook post, and an email with two subject lines (A and B) for "
     "testing plus a body. Every fact must trace to a field in the record; leave "
     "anything the record does not contain out rather than guessing."
 )

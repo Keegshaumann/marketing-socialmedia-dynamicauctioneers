@@ -3,13 +3,13 @@
 The hard-coded routing matrix that decides which channels a property is
 distributed to. This is pure code: no external calls, no credentials, fully
 deterministic and testable. The downstream posting modules
-(``engine.distribute.ghl``, ``.whatsapp``, ``.packs``) consult this matrix to
+(``engine.distribute.ghl`` and ``.packs``) consult this matrix to
 decide what to push and what to park as a manual pack.
 
 The rules (SPEC 5.6 "M6 - Distribution", D5):
 
-- **Every property** goes to Property24, the own website, Facebook, the WhatsApp
-  broadcast list and the email list.
+- **Every property** goes to Property24, the own website, Facebook and the
+  email list.
 - **>= R10m** additionally goes to JamesEdition (the luxury portal).
 - **Industrial or commercial** additionally goes to the commercial portals (the
   specific portals are TBD, open question #4 for the parser side; the routing
@@ -145,7 +145,6 @@ def channel_matrix(record: PropertyRecord) -> Dict[str, bool]:
         "property24": True,
         "own_website": True,
         "facebook": True,
-        "whatsapp_broadcast": True,
         "email_list": True,
         # >= R10m (SPEC 5.6 row 2).
         "jamesedition": over_threshold,

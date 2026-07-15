@@ -1,255 +1,5 @@
 [
     {
-        "label": "os",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "os",
-        "description": "os",
-        "detail": "os",
-        "documentation": {}
-    },
-    {
-        "label": "pathlib",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "PurePosixPath",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "annotations",
-        "importPath": "__future__",
-        "description": "__future__",
-        "isExtraImport": true,
-        "detail": "__future__",
-        "documentation": {}
-    },
-    {
         "label": "annotations",
         "importPath": "__future__",
         "description": "__future__",
@@ -636,6 +386,15 @@
         "documentation": {}
     },
     {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
         "label": "dataclass",
         "importPath": "dataclasses",
         "description": "dataclasses",
@@ -781,30 +540,6 @@
     },
     {
         "label": "Dict",
-        "importPath": "typing",
-        "description": "typing",
-        "isExtraImport": true,
-        "detail": "typing",
-        "documentation": {}
-    },
-    {
-        "label": "Optional",
-        "importPath": "typing",
-        "description": "typing",
-        "isExtraImport": true,
-        "detail": "typing",
-        "documentation": {}
-    },
-    {
-        "label": "Iterable",
-        "importPath": "typing",
-        "description": "typing",
-        "isExtraImport": true,
-        "detail": "typing",
-        "documentation": {}
-    },
-    {
-        "label": "List",
         "importPath": "typing",
         "description": "typing",
         "isExtraImport": true,
@@ -1612,6 +1347,231 @@
         "description": "datetime",
         "isExtraImport": true,
         "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "pathlib",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "PurePosixPath",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
         "documentation": {}
     },
     {
@@ -2774,6 +2734,14 @@
         "documentation": {}
     },
     {
+        "label": "apply_photos",
+        "importPath": "engine.render.service",
+        "description": "engine.render.service",
+        "isExtraImport": true,
+        "detail": "engine.render.service",
+        "documentation": {}
+    },
+    {
         "label": "render_all",
         "importPath": "engine.render.service",
         "description": "engine.render.service",
@@ -2807,6 +2775,14 @@
     },
     {
         "label": "apply_edits",
+        "importPath": "engine.render.service",
+        "description": "engine.render.service",
+        "isExtraImport": true,
+        "detail": "engine.render.service",
+        "documentation": {}
+    },
+    {
+        "label": "apply_photos",
         "importPath": "engine.render.service",
         "description": "engine.render.service",
         "isExtraImport": true,
@@ -3337,6 +3313,14 @@
         "documentation": {}
     },
     {
+        "label": "File",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
         "label": "HTTPException",
         "importPath": "fastapi",
         "description": "fastapi",
@@ -3346,6 +3330,14 @@
     },
     {
         "label": "Request",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "UploadFile",
         "importPath": "fastapi",
         "description": "fastapi",
         "isExtraImport": true,
@@ -3779,105 +3771,6 @@
         "documentation": {}
     },
     {
-        "label": "ROOT",
-        "kind": 5,
-        "importPath": ".demo-run.launch_canva",
-        "description": ".demo-run.launch_canva",
-        "peekOfCode": "ROOT = pathlib.Path(__file__).resolve().parent.parent\nfor line in (ROOT / \".env\").read_text().splitlines():\n    s = line.strip()\n    if s and not s.startswith(\"#\") and \"=\" in s:\n        key, val = s.split(\"=\", 1)\n        os.environ[key] = val.strip().strip('\"').strip(\"'\")\nos.environ.pop(\"ANTHROPIC_API_KEY\", None)          # keep copy offline/fast\nos.environ[\"ENGINE_RENDERER\"] = \"canva\"            # force the Canva backend\nos.environ[\"ENGINE_DB\"] = str(ROOT / \".demo-run\" / \"engine.db\")\nos.environ[\"APP_SECRET\"] = \"local-demo-secret\"",
-        "detail": ".demo-run.launch_canva",
-        "documentation": {}
-    },
-    {
-        "label": "os.environ[\"ENGINE_RENDERER\"]",
-        "kind": 5,
-        "importPath": ".demo-run.launch_canva",
-        "description": ".demo-run.launch_canva",
-        "peekOfCode": "os.environ[\"ENGINE_RENDERER\"] = \"canva\"            # force the Canva backend\nos.environ[\"ENGINE_DB\"] = str(ROOT / \".demo-run\" / \"engine.db\")\nos.environ[\"APP_SECRET\"] = \"local-demo-secret\"\nos.execvp(\n    \"python3\",\n    [\"python3\", \"-m\", \"uvicorn\", \"webapp.main:app\",\n     \"--host\", \"127.0.0.1\", \"--port\", \"8010\", \"--log-level\", \"warning\"],\n)",
-        "detail": ".demo-run.launch_canva",
-        "documentation": {}
-    },
-    {
-        "label": "os.environ[\"ENGINE_DB\"]",
-        "kind": 5,
-        "importPath": ".demo-run.launch_canva",
-        "description": ".demo-run.launch_canva",
-        "peekOfCode": "os.environ[\"ENGINE_DB\"] = str(ROOT / \".demo-run\" / \"engine.db\")\nos.environ[\"APP_SECRET\"] = \"local-demo-secret\"\nos.execvp(\n    \"python3\",\n    [\"python3\", \"-m\", \"uvicorn\", \"webapp.main:app\",\n     \"--host\", \"127.0.0.1\", \"--port\", \"8010\", \"--log-level\", \"warning\"],\n)",
-        "detail": ".demo-run.launch_canva",
-        "documentation": {}
-    },
-    {
-        "label": "os.environ[\"APP_SECRET\"]",
-        "kind": 5,
-        "importPath": ".demo-run.launch_canva",
-        "description": ".demo-run.launch_canva",
-        "peekOfCode": "os.environ[\"APP_SECRET\"] = \"local-demo-secret\"\nos.execvp(\n    \"python3\",\n    [\"python3\", \"-m\", \"uvicorn\", \"webapp.main:app\",\n     \"--host\", \"127.0.0.1\", \"--port\", \"8010\", \"--log-level\", \"warning\"],\n)",
-        "detail": ".demo-run.launch_canva",
-        "documentation": {}
-    },
-    {
-        "label": "ROOT",
-        "kind": 5,
-        "importPath": ".demo-run.launch_html",
-        "description": ".demo-run.launch_html",
-        "peekOfCode": "ROOT = pathlib.Path(__file__).resolve().parent.parent\nos.environ.pop(\"ANTHROPIC_API_KEY\", None)\nos.environ.pop(\"ENGINE_RENDERER\", None)            # default html backend\nos.environ[\"ENGINE_DB\"] = str(ROOT / \".demo-run\" / \"engine.db\")\nos.environ[\"APP_SECRET\"] = \"local-demo-secret\"\nos.execvp(\n    \"python3\",\n    [\"python3\", \"-m\", \"uvicorn\", \"webapp.main:app\",\n     \"--host\", \"127.0.0.1\", \"--port\", \"8010\", \"--log-level\", \"warning\"],\n)",
-        "detail": ".demo-run.launch_html",
-        "documentation": {}
-    },
-    {
-        "label": "os.environ[\"ENGINE_DB\"]",
-        "kind": 5,
-        "importPath": ".demo-run.launch_html",
-        "description": ".demo-run.launch_html",
-        "peekOfCode": "os.environ[\"ENGINE_DB\"] = str(ROOT / \".demo-run\" / \"engine.db\")\nos.environ[\"APP_SECRET\"] = \"local-demo-secret\"\nos.execvp(\n    \"python3\",\n    [\"python3\", \"-m\", \"uvicorn\", \"webapp.main:app\",\n     \"--host\", \"127.0.0.1\", \"--port\", \"8010\", \"--log-level\", \"warning\"],\n)",
-        "detail": ".demo-run.launch_html",
-        "documentation": {}
-    },
-    {
-        "label": "os.environ[\"APP_SECRET\"]",
-        "kind": 5,
-        "importPath": ".demo-run.launch_html",
-        "description": ".demo-run.launch_html",
-        "peekOfCode": "os.environ[\"APP_SECRET\"] = \"local-demo-secret\"\nos.execvp(\n    \"python3\",\n    [\"python3\", \"-m\", \"uvicorn\", \"webapp.main:app\",\n     \"--host\", \"127.0.0.1\", \"--port\", \"8010\", \"--log-level\", \"warning\"],\n)",
-        "detail": ".demo-run.launch_html",
-        "documentation": {}
-    },
-    {
-        "label": "ROOT",
-        "kind": 5,
-        "importPath": ".demo-run.launch_mixed",
-        "description": ".demo-run.launch_mixed",
-        "peekOfCode": "ROOT = pathlib.Path(__file__).resolve().parent.parent\nfor line in (ROOT / \".env\").read_text().splitlines():\n    s = line.strip()\n    if s and not s.startswith(\"#\") and \"=\" in s:\n        key, val = s.split(\"=\", 1)\n        os.environ[key] = val.strip().strip('\"').strip(\"'\")\nos.environ.pop(\"ANTHROPIC_API_KEY\", None)          # keep copy offline/fast\nos.environ[\"ENGINE_RENDERER\"] = \"mixed\"            # per-format: canva + html\nos.environ[\"ENGINE_DB\"] = str(ROOT / \".demo-run\" / \"engine.db\")\nos.environ[\"APP_SECRET\"] = \"local-demo-secret\"",
-        "detail": ".demo-run.launch_mixed",
-        "documentation": {}
-    },
-    {
-        "label": "os.environ[\"ENGINE_RENDERER\"]",
-        "kind": 5,
-        "importPath": ".demo-run.launch_mixed",
-        "description": ".demo-run.launch_mixed",
-        "peekOfCode": "os.environ[\"ENGINE_RENDERER\"] = \"mixed\"            # per-format: canva + html\nos.environ[\"ENGINE_DB\"] = str(ROOT / \".demo-run\" / \"engine.db\")\nos.environ[\"APP_SECRET\"] = \"local-demo-secret\"\nos.execvp(\n    \"python3\",\n    [\"python3\", \"-m\", \"uvicorn\", \"webapp.main:app\",\n     \"--host\", \"127.0.0.1\", \"--port\", \"8010\", \"--log-level\", \"warning\"],\n)",
-        "detail": ".demo-run.launch_mixed",
-        "documentation": {}
-    },
-    {
-        "label": "os.environ[\"ENGINE_DB\"]",
-        "kind": 5,
-        "importPath": ".demo-run.launch_mixed",
-        "description": ".demo-run.launch_mixed",
-        "peekOfCode": "os.environ[\"ENGINE_DB\"] = str(ROOT / \".demo-run\" / \"engine.db\")\nos.environ[\"APP_SECRET\"] = \"local-demo-secret\"\nos.execvp(\n    \"python3\",\n    [\"python3\", \"-m\", \"uvicorn\", \"webapp.main:app\",\n     \"--host\", \"127.0.0.1\", \"--port\", \"8010\", \"--log-level\", \"warning\"],\n)",
-        "detail": ".demo-run.launch_mixed",
-        "documentation": {}
-    },
-    {
-        "label": "os.environ[\"APP_SECRET\"]",
-        "kind": 5,
-        "importPath": ".demo-run.launch_mixed",
-        "description": ".demo-run.launch_mixed",
-        "peekOfCode": "os.environ[\"APP_SECRET\"] = \"local-demo-secret\"\nos.execvp(\n    \"python3\",\n    [\"python3\", \"-m\", \"uvicorn\", \"webapp.main:app\",\n     \"--host\", \"127.0.0.1\", \"--port\", \"8010\", \"--log-level\", \"warning\"],\n)",
-        "detail": ".demo-run.launch_mixed",
-        "documentation": {}
-    },
-    {
         "label": "PlannerResult",
         "kind": 6,
         "importPath": "engine.distribute.ghl",
@@ -3918,7 +3811,7 @@
         "kind": 5,
         "importPath": "engine.distribute.ghl",
         "description": "engine.distribute.ghl",
-        "peekOfCode": "logger = logging.getLogger(__name__)\n# GHL Social Planner endpoint shape. The API base and version header are stable;\n# the concrete location id and account ids are per sub-account (see PLACEHOLDER).\nGHL_API_BASE = \"https://services.leadconnectorhq.com\"\nGHL_API_VERSION = \"2021-07-28\"\n# The channels the Social Planner API handles (D11). Anything else in a routing\n# matrix (Property24, own website, WhatsApp, email, JamesEdition) is posted by a\n# different mechanism and is ignored here.\nGHL_SOCIAL_CHANNELS: tuple[str, ...] = (\n    \"facebook\",",
+        "peekOfCode": "logger = logging.getLogger(__name__)\n# GHL Social Planner endpoint shape. The API base and version header are stable;\n# the concrete location id and account ids are per sub-account (see PLACEHOLDER).\nGHL_API_BASE = \"https://services.leadconnectorhq.com\"\nGHL_API_VERSION = \"2021-07-28\"\n# The channels the Social Planner API handles (D11). Anything else in a routing\n# matrix (Property24, own website, email, JamesEdition) is posted by a\n# different mechanism and is ignored here.\nGHL_SOCIAL_CHANNELS: tuple[str, ...] = (\n    \"facebook\",",
         "detail": "engine.distribute.ghl",
         "documentation": {}
     },
@@ -3927,7 +3820,7 @@
         "kind": 5,
         "importPath": "engine.distribute.ghl",
         "description": "engine.distribute.ghl",
-        "peekOfCode": "GHL_API_BASE = \"https://services.leadconnectorhq.com\"\nGHL_API_VERSION = \"2021-07-28\"\n# The channels the Social Planner API handles (D11). Anything else in a routing\n# matrix (Property24, own website, WhatsApp, email, JamesEdition) is posted by a\n# different mechanism and is ignored here.\nGHL_SOCIAL_CHANNELS: tuple[str, ...] = (\n    \"facebook\",\n    \"instagram\",\n    \"linkedin\",\n    \"tiktok\",",
+        "peekOfCode": "GHL_API_BASE = \"https://services.leadconnectorhq.com\"\nGHL_API_VERSION = \"2021-07-28\"\n# The channels the Social Planner API handles (D11). Anything else in a routing\n# matrix (Property24, own website, email, JamesEdition) is posted by a\n# different mechanism and is ignored here.\nGHL_SOCIAL_CHANNELS: tuple[str, ...] = (\n    \"facebook\",\n    \"instagram\",\n    \"linkedin\",\n    \"tiktok\",",
         "detail": "engine.distribute.ghl",
         "documentation": {}
     },
@@ -3936,7 +3829,7 @@
         "kind": 5,
         "importPath": "engine.distribute.ghl",
         "description": "engine.distribute.ghl",
-        "peekOfCode": "GHL_API_VERSION = \"2021-07-28\"\n# The channels the Social Planner API handles (D11). Anything else in a routing\n# matrix (Property24, own website, WhatsApp, email, JamesEdition) is posted by a\n# different mechanism and is ignored here.\nGHL_SOCIAL_CHANNELS: tuple[str, ...] = (\n    \"facebook\",\n    \"instagram\",\n    \"linkedin\",\n    \"tiktok\",\n    \"x\",",
+        "peekOfCode": "GHL_API_VERSION = \"2021-07-28\"\n# The channels the Social Planner API handles (D11). Anything else in a routing\n# matrix (Property24, own website, email, JamesEdition) is posted by a\n# different mechanism and is ignored here.\nGHL_SOCIAL_CHANNELS: tuple[str, ...] = (\n    \"facebook\",\n    \"instagram\",\n    \"linkedin\",\n    \"tiktok\",\n    \"x\",",
         "detail": "engine.distribute.ghl",
         "documentation": {}
     },
@@ -3981,7 +3874,7 @@
         "kind": 2,
         "importPath": "engine.distribute.packs",
         "description": "engine.distribute.packs",
-        "peekOfCode": "def price_drop_burst(record_before, record_after) -> Optional[dict]:\n    \"\"\"Return a REDUCED re-engagement event when the price dropped, else ``None``.\n    A price *decrease* is a marketing event, not silent maintenance (SPEC M6): it\n    queues a re-engagement blast on WhatsApp and Facebook labelled REDUCED. A\n    price rise, an unchanged price, or a record with no comparable figure on\n    either side (for example ``\"Offers invited\"``) returns ``None``.\n    ``record_before`` / ``record_after`` may be ``PropertyRecord`` instances or\n    plain dicts. The figure is read from ``marketing.price_display``.\n    \"\"\"\n    before = _as_record_dict(record_before)",
+        "peekOfCode": "def price_drop_burst(record_before, record_after) -> Optional[dict]:\n    \"\"\"Return a REDUCED re-engagement event when the price dropped, else ``None``.\n    A price *decrease* is a marketing event, not silent maintenance (SPEC M6): it\n    queues a re-engagement blast on Facebook labelled REDUCED. A\n    price rise, an unchanged price, or a record with no comparable figure on\n    either side (for example ``\"Offers invited\"``) returns ``None``.\n    ``record_before`` / ``record_after`` may be ``PropertyRecord`` instances or\n    plain dicts. The figure is read from ``marketing.price_display``.\n    \"\"\"\n    before = _as_record_dict(record_before)",
         "detail": "engine.distribute.packs",
         "documentation": {}
     },
@@ -3990,7 +3883,7 @@
         "kind": 5,
         "importPath": "engine.distribute.packs",
         "description": "engine.distribute.packs",
-        "peekOfCode": "_FORMAT_USE = {\n    \"portal_listing\": \"Property24 / JamesEdition listing copy\",\n    \"facebook_post\": \"Facebook post copy\",\n    \"whatsapp_blast\": \"WhatsApp broadcast text\",\n    \"email_blast\": \"Email campaign subject and body\",\n    \"demo_ad\": \"Branded advert image (attach to every channel)\",\n    \"info_pack\": \"Buyer info pack for the auction page\",\n    \"webapp_icon\": \"Upcoming-auction website tile\",\n    \"saia_banner\": \"SAIA alert banner\",\n    \"alert_mailer\": \"Alert mailer HTML and audience list\",",
+        "peekOfCode": "_FORMAT_USE = {\n    \"portal_listing\": \"Property24 / JamesEdition listing copy\",\n    \"facebook_post\": \"Facebook post copy\",\n    \"email_blast\": \"Email campaign subject and body\",\n    \"demo_ad\": \"Branded advert image (attach to every channel)\",\n    \"info_pack\": \"Buyer info pack for the auction page\",\n    \"webapp_icon\": \"Upcoming-auction website tile\",\n    \"saia_banner\": \"SAIA alert banner\",\n    \"alert_mailer\": \"Alert mailer HTML and audience list\",\n    \"auction_board\": \"Print-ready auction board\",",
         "detail": "engine.distribute.packs",
         "documentation": {}
     },
@@ -4037,51 +3930,6 @@
         "description": "engine.distribute.routing",
         "peekOfCode": "_COMMERCIAL_RE = re.compile(\n    r\"\\b(\" + \"|\".join(_COMMERCIAL_TOKENS) + r\")\\b\", re.IGNORECASE\n)\ndef _parse_price_display(price_display: Optional[str]) -> Optional[float]:\n    \"\"\"Return the rand amount embedded in ``price_display``, or ``None``.\n    Handles displays like ``\"R 12 500 000\"`` or ``\"R12,500,000\"``. A textual\n    display with no digits (\"Offers invited\") returns ``None`` so the caller\n    falls through to the valuation figures. Requires at least four digits to\n    avoid treating a stray number (a bedroom count leaking in) as a price.\n    \"\"\"",
         "detail": "engine.distribute.routing",
-        "documentation": {}
-    },
-    {
-        "label": "build_broadcast",
-        "kind": 2,
-        "importPath": "engine.distribute.whatsapp",
-        "description": "engine.distribute.whatsapp",
-        "peekOfCode": "def build_broadcast(record, reduced: bool = False) -> str:\n    \"\"\"Compose the WhatsApp broadcast text for a listing, with the reply hook.\n    Uses only public fields. When ``reduced`` is set the message leads with a\n    REDUCED line, which is what a price-drop burst sends (SPEC M6). SA English,\n    no em dashes, no emojis.\n    \"\"\"\n    public = _public(record)\n    dp = public.get(\"dp\") or \"\"\n    marketing = public.get(\"marketing\") or {}\n    identity = public.get(\"identity\") or {}",
-        "detail": "engine.distribute.whatsapp",
-        "documentation": {}
-    },
-    {
-        "label": "audience_from_tags",
-        "kind": 2,
-        "importPath": "engine.distribute.whatsapp",
-        "description": "engine.distribute.whatsapp",
-        "peekOfCode": "def audience_from_tags(\n    contacts: Iterable,\n    tags: Iterable[str],\n    match: str = \"any\",\n) -> List:\n    \"\"\"Filter ``contacts`` to those matching ``tags`` (pure, no database).\n    ``match=\"any\"`` (default) keeps a contact sharing at least one tag;\n    ``match=\"all\"`` requires every wanted tag. Each contact may be a dict or an\n    object exposing a ``tags`` field (list or comma-separated string). Contacts\n    are returned unchanged, preserving whatever the caller passed in.",
-        "detail": "engine.distribute.whatsapp",
-        "documentation": {}
-    },
-    {
-        "label": "crm_audience",
-        "kind": 2,
-        "importPath": "engine.distribute.whatsapp",
-        "description": "engine.distribute.whatsapp",
-        "peekOfCode": "def crm_audience(\n    db_path: Optional[str | Path],\n    tags: Iterable[str],\n    match: str = \"any\",\n) -> List[dict]:\n    \"\"\"Build the audience from the CRM ``contacts`` table, filtered by ``tags``.\n    The ``contacts`` table is produced by ``engine.crm`` (M7). This reads it\n    defensively: if the table does not exist yet (seed database, CRM not built),\n    the audience is empty rather than an error. Rows are returned as dicts and\n    filtered through ``audience_from_tags``.",
-        "detail": "engine.distribute.whatsapp",
-        "documentation": {}
-    },
-    {
-        "label": "build_broadcast_payload",
-        "kind": 2,
-        "importPath": "engine.distribute.whatsapp",
-        "description": "engine.distribute.whatsapp",
-        "peekOfCode": "def build_broadcast_payload(message: str, audience: List, line: Optional[str] = None) -> dict:\n    \"\"\"Shape the provider-agnostic broadcast request (offline-testable).\n    Recipients are reduced to phone identifiers where available; a contact with\n    no phone/whatsapp field is dropped from the send list. No network call.\n    \"\"\"\n    recipients: List[str] = []\n    for contact in audience:\n        if isinstance(contact, dict):\n            phone = contact.get(\"whatsapp\") or contact.get(\"phone\")\n        else:",
-        "detail": "engine.distribute.whatsapp",
-        "documentation": {}
-    },
-    {
-        "label": "send_broadcast",
-        "kind": 2,
-        "importPath": "engine.distribute.whatsapp",
-        "description": "engine.distribute.whatsapp",
-        "peekOfCode": "def send_broadcast(\n    record,\n    db_path: Optional[str | Path] = None,\n    tags: Optional[Iterable[str]] = None,\n    reduced: bool = False,\n    line: Optional[str] = None,\n) -> dict:\n    \"\"\"Send (or, without a line, stage) a WhatsApp broadcast for a listing.\n    Builds the message and the CRM-tag audience, then either hands off to the\n    provider or, when no Peach/BotSailor line is configured, returns a",
-        "detail": "engine.distribute.whatsapp",
         "documentation": {}
     },
     {
@@ -4215,7 +4063,7 @@
         "kind": 6,
         "importPath": "engine.render.copy",
         "description": "engine.render.copy",
-        "peekOfCode": "class _Base(BaseModel):\n    model_config = ConfigDict(extra=\"forbid\")\nclass FormatCopy(_Base):\n    \"\"\"Copy for a single text channel (portal, Facebook, WhatsApp).\"\"\"\n    headline: Optional[str] = None\n    body: Optional[str] = None\nclass EmailCopy(_Base):\n    \"\"\"Email copy carries two subject lines for A/B testing plus a body.\"\"\"\n    subject_a: Optional[str] = None\n    subject_b: Optional[str] = None",
+        "peekOfCode": "class _Base(BaseModel):\n    model_config = ConfigDict(extra=\"forbid\")\nclass FormatCopy(_Base):\n    \"\"\"Copy for a single text channel (portal, Facebook).\"\"\"\n    headline: Optional[str] = None\n    body: Optional[str] = None\nclass EmailCopy(_Base):\n    \"\"\"Email copy carries two subject lines for A/B testing plus a body.\"\"\"\n    subject_a: Optional[str] = None\n    subject_b: Optional[str] = None",
         "detail": "engine.render.copy",
         "documentation": {}
     },
@@ -4224,7 +4072,7 @@
         "kind": 6,
         "importPath": "engine.render.copy",
         "description": "engine.render.copy",
-        "peekOfCode": "class FormatCopy(_Base):\n    \"\"\"Copy for a single text channel (portal, Facebook, WhatsApp).\"\"\"\n    headline: Optional[str] = None\n    body: Optional[str] = None\nclass EmailCopy(_Base):\n    \"\"\"Email copy carries two subject lines for A/B testing plus a body.\"\"\"\n    subject_a: Optional[str] = None\n    subject_b: Optional[str] = None\n    body: Optional[str] = None\nclass CopyBundle(_Base):",
+        "peekOfCode": "class FormatCopy(_Base):\n    \"\"\"Copy for a single text channel (portal, Facebook).\"\"\"\n    headline: Optional[str] = None\n    body: Optional[str] = None\nclass EmailCopy(_Base):\n    \"\"\"Email copy carries two subject lines for A/B testing plus a body.\"\"\"\n    subject_a: Optional[str] = None\n    subject_b: Optional[str] = None\n    body: Optional[str] = None\nclass CopyBundle(_Base):",
         "detail": "engine.render.copy",
         "documentation": {}
     },
@@ -4278,7 +4126,7 @@
         "kind": 5,
         "importPath": "engine.render.copy",
         "description": "engine.render.copy",
-        "peekOfCode": "DYNAMIC_CONTACT_PUBLIC = (\n    \"Dynamic Auctioneers | 086 155 2288 | properties.admin@dynamicauctioneers.co.za\"\n)\n# --- copy schema (structured output) -------------------------------------\nclass _Base(BaseModel):\n    model_config = ConfigDict(extra=\"forbid\")\nclass FormatCopy(_Base):\n    \"\"\"Copy for a single text channel (portal, Facebook, WhatsApp).\"\"\"\n    headline: Optional[str] = None\n    body: Optional[str] = None",
+        "peekOfCode": "DYNAMIC_CONTACT_PUBLIC = (\n    \"Dynamic Auctioneers | 086 155 2288 | properties.admin@dynamicauctioneers.co.za\"\n)\n# --- copy schema (structured output) -------------------------------------\nclass _Base(BaseModel):\n    model_config = ConfigDict(extra=\"forbid\")\nclass FormatCopy(_Base):\n    \"\"\"Copy for a single text channel (portal, Facebook).\"\"\"\n    headline: Optional[str] = None\n    body: Optional[str] = None",
         "detail": "engine.render.copy",
         "documentation": {}
     },
@@ -4360,6 +4208,15 @@
         "importPath": "engine.render.service",
         "description": "engine.render.service",
         "peekOfCode": "def apply_edits(\n    dp: str,\n    store: RecordStore,\n    changes: dict,\n    user: str,\n    backend: Optional[str] = None,\n    output_root: str = \".\",\n    client=None,\n) -> EditChange:\n    \"\"\"Apply human edits to a record's public fields, then re-render once.",
+        "detail": "engine.render.service",
+        "documentation": {}
+    },
+    {
+        "label": "apply_photos",
+        "kind": 2,
+        "importPath": "engine.render.service",
+        "description": "engine.render.service",
+        "peekOfCode": "def apply_photos(\n    dp: str,\n    store: RecordStore,\n    hero: Optional[str],\n    gallery: List[str],\n    user: str,\n    backend: Optional[str] = None,\n    output_root: str = \".\",\n    client=None,\n) -> EditChange:",
         "detail": "engine.render.service",
         "documentation": {}
     },
@@ -4872,7 +4729,7 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class SaleProcess(_Base):\n    method: Optional[str] = None  # \"offers_invited\" | \"auction\"\n    terms: Optional[List[str]] = None\n    viewing: Optional[Viewing] = None\n# --- marketing (system + human edits) ------------------------------------\nclass ChannelRouting(_Base):\n    property24: Optional[bool] = None\n    own_website: Optional[bool] = None\n    facebook: Optional[bool] = None\n    whatsapp_broadcast: Optional[bool] = None",
+        "peekOfCode": "class SaleProcess(_Base):\n    method: Optional[str] = None  # \"offers_invited\" | \"auction\"\n    terms: Optional[List[str]] = None\n    viewing: Optional[Viewing] = None\n# --- marketing (system + human edits) ------------------------------------\nclass ChannelRouting(_Base):\n    property24: Optional[bool] = None\n    own_website: Optional[bool] = None\n    facebook: Optional[bool] = None\n    email_list: Optional[bool] = None",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -4881,7 +4738,7 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class ChannelRouting(_Base):\n    property24: Optional[bool] = None\n    own_website: Optional[bool] = None\n    facebook: Optional[bool] = None\n    whatsapp_broadcast: Optional[bool] = None\n    email_list: Optional[bool] = None\n    jamesedition: Optional[bool] = None\n    jamesedition_reason: Optional[str] = None\n    private_property: Optional[bool] = None\n    private_property_reason: Optional[str] = None",
+        "peekOfCode": "class ChannelRouting(_Base):\n    property24: Optional[bool] = None\n    own_website: Optional[bool] = None\n    facebook: Optional[bool] = None\n    email_list: Optional[bool] = None\n    jamesedition: Optional[bool] = None\n    jamesedition_reason: Optional[str] = None\n    private_property: Optional[bool] = None\n    private_property_reason: Optional[str] = None\nclass Marketing(_Base):",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -5313,7 +5170,7 @@
         "kind": 2,
         "importPath": "tests.test_crm",
         "description": "tests.test_crm",
-        "peekOfCode": "def test_record_enquiry_tags_dp_and_category(tmp_path):\n    db_path = tmp_path / \"engine.db\"\n    _seed(db_path, _residential(\"3060\"))\n    contact = record_enquiry(\n        db_path,\n        source=\"whatsapp\",\n        raw=\"reply 3060, keen buyer, jane@example.com\",\n    )\n    assert contact.dp == \"3060\"\n    assert contact.category == \"residential\"",
+        "peekOfCode": "def test_record_enquiry_tags_dp_and_category(tmp_path):\n    db_path = tmp_path / \"engine.db\"\n    _seed(db_path, _residential(\"3060\"))\n    contact = record_enquiry(\n        db_path,\n        source=\"sms\",\n        raw=\"reply 3060, keen buyer, jane@example.com\",\n    )\n    assert contact.dp == \"3060\"\n    assert contact.category == \"residential\"",
         "detail": "tests.test_crm",
         "documentation": {}
     },
@@ -5340,7 +5197,7 @@
         "kind": 2,
         "importPath": "tests.test_crm",
         "description": "tests.test_crm",
-        "peekOfCode": "def test_matched_buyers_returns_matches(tmp_path):\n    db_path = tmp_path / \"engine.db\"\n    industrial = _industrial(\"4000\")\n    _seed(db_path, industrial)\n    _seed(db_path, _residential(\"3060\"))\n    # Two buyers enquire about the industrial listing (tagged industrial /\n    # Mkondeni / R5m_plus).\n    record_enquiry(db_path, \"whatsapp\", \"reply 4000, amy@example.com\")\n    record_enquiry(db_path, \"facebook\", \"lead=99001 ?dp=4000\")\n    # An unrelated residential buyer must not match.",
+        "peekOfCode": "def test_matched_buyers_returns_matches(tmp_path):\n    db_path = tmp_path / \"engine.db\"\n    industrial = _industrial(\"4000\")\n    _seed(db_path, industrial)\n    _seed(db_path, _residential(\"3060\"))\n    # Two buyers enquire about the industrial listing (tagged industrial /\n    # Mkondeni / R5m_plus).\n    record_enquiry(db_path, \"sms\", \"reply 4000, amy@example.com\")\n    record_enquiry(db_path, \"facebook\", \"lead=99001 ?dp=4000\")\n    # An unrelated residential buyer must not match.",
         "detail": "tests.test_crm",
         "documentation": {}
     },
@@ -5358,7 +5215,7 @@
         "kind": 2,
         "importPath": "tests.test_crm",
         "description": "tests.test_crm",
-        "peekOfCode": "def test_broadcast_text_reads_correctly_and_has_no_em_dash(tmp_path):\n    db_path = tmp_path / \"engine.db\"\n    industrial = _industrial(\"4000\")\n    _seed(db_path, industrial)\n    record_enquiry(db_path, \"whatsapp\", \"reply 4000, amy@example.com\")\n    record_enquiry(db_path, \"facebook\", \"lead=99001 ?dp=4000\")\n    matched = matched_buyers(db_path, industrial)\n    line = broadcast_text(industrial, matched)\n    assert line == \"new industrial property in Mkondeni - 2 matched buyers\"\n    # A hyphen, never an em or en dash.",
+        "peekOfCode": "def test_broadcast_text_reads_correctly_and_has_no_em_dash(tmp_path):\n    db_path = tmp_path / \"engine.db\"\n    industrial = _industrial(\"4000\")\n    _seed(db_path, industrial)\n    record_enquiry(db_path, \"sms\", \"reply 4000, amy@example.com\")\n    record_enquiry(db_path, \"facebook\", \"lead=99001 ?dp=4000\")\n    matched = matched_buyers(db_path, industrial)\n    line = broadcast_text(industrial, matched)\n    assert line == \"new industrial property in Mkondeni - 2 matched buyers\"\n    # A hyphen, never an em or en dash.",
         "detail": "tests.test_crm",
         "documentation": {}
     },
@@ -5367,7 +5224,7 @@
         "kind": 2,
         "importPath": "tests.test_crm",
         "description": "tests.test_crm",
-        "peekOfCode": "def test_broadcast_text_singular_buyer(tmp_path):\n    db_path = tmp_path / \"engine.db\"\n    industrial = _industrial(\"4000\")\n    _seed(db_path, industrial)\n    record_enquiry(db_path, \"whatsapp\", \"reply 4000, amy@example.com\")\n    matched = matched_buyers(db_path, industrial)\n    line = broadcast_text(industrial, matched)\n    assert line == \"new industrial property in Mkondeni - 1 matched buyer\"",
+        "peekOfCode": "def test_broadcast_text_singular_buyer(tmp_path):\n    db_path = tmp_path / \"engine.db\"\n    industrial = _industrial(\"4000\")\n    _seed(db_path, industrial)\n    record_enquiry(db_path, \"sms\", \"reply 4000, amy@example.com\")\n    matched = matched_buyers(db_path, industrial)\n    line = broadcast_text(industrial, matched)\n    assert line == \"new industrial property in Mkondeni - 1 matched buyer\"",
         "detail": "tests.test_crm",
         "documentation": {}
     },
@@ -5502,7 +5359,7 @@
         "kind": 5,
         "importPath": "tests.test_distribute",
         "description": "tests.test_distribute",
-        "peekOfCode": "STANDARD_CHANNELS = (\n    \"property24\",\n    \"own_website\",\n    \"facebook\",\n    \"whatsapp_broadcast\",\n    \"email_list\",\n)\n# --- record builders -----------------------------------------------------\ndef _record(\n    dp: str = \"3060\",",
+        "peekOfCode": "STANDARD_CHANNELS = (\n    \"property24\",\n    \"own_website\",\n    \"facebook\",\n    \"email_list\",\n)\n# --- record builders -----------------------------------------------------\ndef _record(\n    dp: str = \"3060\",\n    *,",
         "detail": "tests.test_distribute",
         "documentation": {}
     },
@@ -5655,7 +5512,25 @@
         "kind": 2,
         "importPath": "tests.test_edits",
         "description": "tests.test_edits",
-        "peekOfCode": "def test_format_price_handles_decimals_and_phrases():\n    assert _format_price(\"900000\") == \"R900 000\"\n    assert _format_price(\"900000.50\") == \"R900 000\"      # cents dropped, not concatenated\n    assert _format_price(900000) == \"R900 000\"\n    assert _format_price(\"R2 500 000\") == \"R2 500 000\"\n    assert _format_price(\"Offers invited\") == \"Offers invited\"",
+        "peekOfCode": "def test_format_price_handles_decimals_and_phrases():\n    assert _format_price(\"900000\") == \"R900 000\"\n    assert _format_price(\"900000.50\") == \"R900 000\"      # cents dropped, not concatenated\n    assert _format_price(900000) == \"R900 000\"\n    assert _format_price(\"R2 500 000\") == \"R2 500 000\"\n    assert _format_price(\"Offers invited\") == \"Offers invited\"\n# --- photos ---------------------------------------------------------------\ndef test_apply_photos_writes_canonical_hero_gallery_and_rerenders(live_store, tmp_path):\n    res = apply_photos(\n        \"9100\", live_store, \"photos/front.png\", [\"photos/side.png\", \"photos/kitchen.png\"],",
+        "detail": "tests.test_edits",
+        "documentation": {}
+    },
+    {
+        "label": "test_apply_photos_writes_canonical_hero_gallery_and_rerenders",
+        "kind": 2,
+        "importPath": "tests.test_edits",
+        "description": "tests.test_edits",
+        "peekOfCode": "def test_apply_photos_writes_canonical_hero_gallery_and_rerenders(live_store, tmp_path):\n    res = apply_photos(\n        \"9100\", live_store, \"photos/front.png\", [\"photos/side.png\", \"photos/kitchen.png\"],\n        user=\"nikki@da\", output_root=str(tmp_path),\n    )\n    rec = live_store.get(\"9100\")\n    # written to the canonical marketing fields (so Canva uploads them too), not overrides\n    assert rec.marketing.hero_photo == \"photos/front.png\"\n    assert rec.marketing.gallery == [\"photos/side.png\", \"photos/kitchen.png\"]\n    assert not (rec.human_overrides or {})",
+        "detail": "tests.test_edits",
+        "documentation": {}
+    },
+    {
+        "label": "test_apply_photos_clears_when_empty",
+        "kind": 2,
+        "importPath": "tests.test_edits",
+        "description": "tests.test_edits",
+        "peekOfCode": "def test_apply_photos_clears_when_empty(live_store, tmp_path):\n    apply_photos(\"9100\", live_store, \"photos/a.png\", [], user=\"nikki@da\", output_root=str(tmp_path))\n    apply_photos(\"9100\", live_store, None, [], user=\"nikki@da\", output_root=str(tmp_path))\n    rec = live_store.get(\"9100\")\n    assert rec.marketing.hero_photo is None\n    assert rec.marketing.gallery == []",
         "detail": "tests.test_edits",
         "documentation": {}
     },
@@ -6434,6 +6309,96 @@
         "documentation": {}
     },
     {
+        "label": "test_photo_upload_hero_delete_and_serve",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_photo_upload_hero_delete_and_serve():\n    dp = \"7301\"\n    _seed_live_no_photos(dp)\n    client = _client()\n    _login_admin(client)\n    resp = client.post(\n        f\"/gates/{dp}/ads/photos/upload\",\n        files=[\n            (\"files\", (\"front.png\", _PNG_1X1, \"image/png\")),\n            (\"files\", (\"back.png\", _PNG_1X1, \"image/png\")),",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_photo_upload_rejects_non_image_and_does_not_reopen",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_photo_upload_rejects_non_image_and_does_not_reopen():\n    dp = \"7302\"\n    _seed_live_no_photos(dp)\n    client = _client()\n    _login_admin(client)\n    resp = client.post(\n        f\"/gates/{dp}/ads/photos/upload\",\n        files=[(\"files\", (\"notes.txt\", b\"not an image\", \"text/plain\"))],\n    )\n    assert resp.status_code == 200",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_photo_serve_missing_returns_404",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_photo_serve_missing_returns_404():\n    dp = \"7303\"\n    _seed_live_no_photos(dp)\n    client = _client()\n    _login_admin(client)\n    assert client.get(f\"/gates/{dp}/ads/photos/nope.png\").status_code == 404\ndef test_photo_delete_hero_promotes_next_to_lead():\n    dp = \"7304\"\n    _seed_live_no_photos(dp)\n    client = _client()",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_photo_delete_hero_promotes_next_to_lead",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_photo_delete_hero_promotes_next_to_lead():\n    dp = \"7304\"\n    _seed_live_no_photos(dp)\n    client = _client()\n    _login_admin(client)\n    client.post(f\"/gates/{dp}/ads/photos/upload\", files=[\n        (\"files\", (\"front.png\", _PNG_1X1, \"image/png\")),\n        (\"files\", (\"back.png\", _PNG_1X1, \"image/png\")),\n    ])\n    assert _public_view(dp)[\"marketing\"][\"hero_photo\"] == \"photos/front.png\"",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_photo_noops_do_not_reopen_live_listing",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_photo_noops_do_not_reopen_live_listing():\n    dp = \"7308\"\n    _seed_live_no_photos(dp)  # live, no photos\n    client = _client()\n    _login_admin(client)\n    # deleting a non-existent photo is a no-op and must not knock live -> updated\n    r = client.post(f\"/gates/{dp}/ads/photos/delete\", data={\"name\": \"ghost.png\"})\n    assert r.status_code == 200 and \"No change\" in r.text\n    assert _state(dp) == \"live\"\n    # setting a non-existent (or already-lead) photo as lead is likewise a no-op",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_photo_upload_on_drafted_renders_without_reopening",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_photo_upload_on_drafted_renders_without_reopening():\n    dp = \"7305\"\n    _needs_golden()\n    record = PropertyRecord.model_validate_json(GOLDEN_RECORD.read_text(encoding=\"utf-8\"))\n    record.dp = dp\n    record.marketing = record.marketing or Marketing()\n    record.marketing.hero_photo = None\n    record.marketing.gallery = []\n    store = RecordStore(DB_PATH)\n    try:",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_photo_upload_oversized_rejected",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_photo_upload_oversized_rejected(monkeypatch):\n    dp = \"7306\"\n    _seed_live_no_photos(dp)\n    client = _client()\n    _login_admin(client)\n    from webapp.routes import gates as gates_mod\n    monkeypatch.setattr(gates_mod, \"_MAX_PHOTO_BYTES\", 4)  # the 1x1 PNG exceeds this\n    r = client.post(f\"/gates/{dp}/ads/photos/upload\", files=[(\"files\", (\"big.png\", _PNG_1X1, \"image/png\"))])\n    assert r.status_code == 200\n    assert \"No photos added\" in r.text",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_photo_upload_dedups_duplicate_filename",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_photo_upload_dedups_duplicate_filename():\n    dp = \"7307\"\n    _seed_live_no_photos(dp)\n    client = _client()\n    _login_admin(client)\n    client.post(f\"/gates/{dp}/ads/photos/upload\", files=[\n        (\"files\", (\"front.png\", _PNG_1X1, \"image/png\")),\n        (\"files\", (\"front.png\", _PNG_1X1, \"image/png\")),\n    ])\n    pv = _public_view(dp)",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_photo_upload_response_swaps_gallery_and_photos_oob",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_photo_upload_response_swaps_gallery_and_photos_oob():\n    dp = \"7310\"\n    _seed_live_no_photos(dp)\n    client = _client()\n    _login_admin(client)\n    body = client.post(f\"/gates/{dp}/ads/photos/upload\", files=[(\"files\", (\"front.png\", _PNG_1X1, \"image/png\"))]).text\n    assert 'id=\"gallery\"' in body\n    assert 'id=\"photos\"' in body\n    assert 'hx-swap-oob=\"true\"' in body\n    assert f\"/gates/{dp}/ads/photos/front.png\" in body   # thumbnail url",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_advert_preview_img_points_at_serve_route",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_advert_preview_img_points_at_serve_route():\n    dp = \"7311\"\n    _seed_live_no_photos(dp)\n    client = _client()\n    _login_admin(client)\n    client.post(f\"/gates/{dp}/ads/photos/upload\", files=[(\"files\", (\"front.png\", _PNG_1X1, \"image/png\"))])\n    html = client.get(f\"/gates/{dp}/ads/artifact/demo_ad\").text\n    # resolves to /gates/{dp}/ads/photos/front.png in the sandboxed preview iframe\n    assert 'src=\"../photos/front.png\"' in html\n# --- smoke boot (real lifespan: worker start/stop) -----------------------",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
         "label": "test_app_boots_via_testclient",
         "kind": 2,
         "importPath": "tests.test_webapp",
@@ -6560,6 +6525,15 @@
         "documentation": {}
     },
     {
+        "label": "_PNG_1X1",
+        "kind": 5,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "_PNG_1X1 = (\n    b\"\\x89PNG\\r\\n\\x1a\\n\\x00\\x00\\x00\\rIHDR\\x00\\x00\\x00\\x01\\x00\\x00\\x00\\x01\"\n    b\"\\x08\\x06\\x00\\x00\\x00\\x1f\\x15\\xc4\\x89\\x00\\x00\\x00\\nIDATx\\x9cc\\x00\"\n    b\"\\x01\\x00\\x00\\x05\\x00\\x01\\r\\n-\\xb4\\x00\\x00\\x00\\x00IEND\\xaeB`\\x82\"\n)\ndef _seed_live_no_photos(dp: str) -> None:\n    \"\"\"Golden clone at ``live`` with its photos cleared, so uploads start clean.\"\"\"\n    _needs_golden()\n    record = PropertyRecord.model_validate_json(GOLDEN_RECORD.read_text(encoding=\"utf-8\"))\n    record.dp = dp",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
         "label": "artifacts_page",
         "kind": 2,
         "importPath": "webapp.routes.artifacts",
@@ -6600,7 +6574,7 @@
         "kind": 5,
         "importPath": "webapp.routes.artifacts",
         "description": "webapp.routes.artifacts",
-        "peekOfCode": "router = APIRouter()\n_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / \"templates\"\ntemplates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# Human labels + a coarse kind per format, for the gallery tiles.\nFORMAT_META: Dict[str, Dict[str, str]] = {\n    \"portal_listing\": {\"label\": \"Portal listing\", \"kind\": \"text\"},\n    \"facebook_post\": {\"label\": \"Facebook post\", \"kind\": \"text\"},\n    \"whatsapp_blast\": {\"label\": \"WhatsApp blast\", \"kind\": \"text\"},\n    \"email_blast\": {\"label\": \"Email blast\", \"kind\": \"text\"},\n    \"demo_ad\": {\"label\": \"Demo advert\", \"kind\": \"page\"},",
+        "peekOfCode": "router = APIRouter()\n_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / \"templates\"\ntemplates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# Human labels + a coarse kind per format, for the gallery tiles.\nFORMAT_META: Dict[str, Dict[str, str]] = {\n    \"portal_listing\": {\"label\": \"Portal listing\", \"kind\": \"text\"},\n    \"facebook_post\": {\"label\": \"Facebook post\", \"kind\": \"text\"},\n    \"email_blast\": {\"label\": \"Email blast\", \"kind\": \"text\"},\n    \"demo_ad\": {\"label\": \"Demo advert\", \"kind\": \"page\"},\n    \"info_pack\": {\"label\": \"Info pack\", \"kind\": \"page\"},",
         "detail": "webapp.routes.artifacts",
         "documentation": {}
     },
@@ -6609,7 +6583,7 @@
         "kind": 5,
         "importPath": "webapp.routes.artifacts",
         "description": "webapp.routes.artifacts",
-        "peekOfCode": "_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / \"templates\"\ntemplates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# Human labels + a coarse kind per format, for the gallery tiles.\nFORMAT_META: Dict[str, Dict[str, str]] = {\n    \"portal_listing\": {\"label\": \"Portal listing\", \"kind\": \"text\"},\n    \"facebook_post\": {\"label\": \"Facebook post\", \"kind\": \"text\"},\n    \"whatsapp_blast\": {\"label\": \"WhatsApp blast\", \"kind\": \"text\"},\n    \"email_blast\": {\"label\": \"Email blast\", \"kind\": \"text\"},\n    \"demo_ad\": {\"label\": \"Demo advert\", \"kind\": \"page\"},\n    \"info_pack\": {\"label\": \"Info pack\", \"kind\": \"page\"},",
+        "peekOfCode": "_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / \"templates\"\ntemplates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# Human labels + a coarse kind per format, for the gallery tiles.\nFORMAT_META: Dict[str, Dict[str, str]] = {\n    \"portal_listing\": {\"label\": \"Portal listing\", \"kind\": \"text\"},\n    \"facebook_post\": {\"label\": \"Facebook post\", \"kind\": \"text\"},\n    \"email_blast\": {\"label\": \"Email blast\", \"kind\": \"text\"},\n    \"demo_ad\": {\"label\": \"Demo advert\", \"kind\": \"page\"},\n    \"info_pack\": {\"label\": \"Info pack\", \"kind\": \"page\"},\n    \"webapp_icon\": {\"label\": \"Website tile\", \"kind\": \"image\"},",
         "detail": "webapp.routes.artifacts",
         "documentation": {}
     },
@@ -6618,7 +6592,7 @@
         "kind": 5,
         "importPath": "webapp.routes.artifacts",
         "description": "webapp.routes.artifacts",
-        "peekOfCode": "templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# Human labels + a coarse kind per format, for the gallery tiles.\nFORMAT_META: Dict[str, Dict[str, str]] = {\n    \"portal_listing\": {\"label\": \"Portal listing\", \"kind\": \"text\"},\n    \"facebook_post\": {\"label\": \"Facebook post\", \"kind\": \"text\"},\n    \"whatsapp_blast\": {\"label\": \"WhatsApp blast\", \"kind\": \"text\"},\n    \"email_blast\": {\"label\": \"Email blast\", \"kind\": \"text\"},\n    \"demo_ad\": {\"label\": \"Demo advert\", \"kind\": \"page\"},\n    \"info_pack\": {\"label\": \"Info pack\", \"kind\": \"page\"},\n    \"webapp_icon\": {\"label\": \"Website tile\", \"kind\": \"image\"},",
+        "peekOfCode": "templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# Human labels + a coarse kind per format, for the gallery tiles.\nFORMAT_META: Dict[str, Dict[str, str]] = {\n    \"portal_listing\": {\"label\": \"Portal listing\", \"kind\": \"text\"},\n    \"facebook_post\": {\"label\": \"Facebook post\", \"kind\": \"text\"},\n    \"email_blast\": {\"label\": \"Email blast\", \"kind\": \"text\"},\n    \"demo_ad\": {\"label\": \"Demo advert\", \"kind\": \"page\"},\n    \"info_pack\": {\"label\": \"Info pack\", \"kind\": \"page\"},\n    \"webapp_icon\": {\"label\": \"Website tile\", \"kind\": \"image\"},\n    \"saia_banner\": {\"label\": \"SAIA banner\", \"kind\": \"page\"},",
         "detail": "webapp.routes.artifacts",
         "documentation": {}
     },
@@ -6803,6 +6777,15 @@
         "documentation": {}
     },
     {
+        "label": "gate2_photo",
+        "kind": 2,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "def gate2_photo(dp: str, name: str, request: Request, user: dict = Depends(require_role(\"approver\"))):\n    \"\"\"Serve one property photo (editor thumbnails + advert-preview images).\"\"\"\n    db_path = _db(request)\n    path = _photos_dir(db_path, dp) / Path(name).name  # basename => no traversal\n    if not path.is_file():\n        raise HTTPException(status_code=404, detail=\"No such photo.\")\n    return FileResponse(str(path), media_type=_IMAGE_MIME.get(path.suffix.lower(), \"application/octet-stream\"))\n@router.post(\"/{dp}/ads/photos/upload\", response_class=HTMLResponse)\nasync def gate2_photo_upload(\n    dp: str, request: Request,",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
         "label": "action_gate2_approve",
         "kind": 2,
         "importPath": "webapp.routes.gates",
@@ -6880,6 +6863,42 @@
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
         "peekOfCode": "_TEXT_MIME_HINTS = (\"text/markdown\", \"text/plain\")\n# --- small helpers --------------------------------------------------------\ndef _db(request: Request) -> str:\n    override = getattr(getattr(request, \"app\", None), \"state\", None)\n    candidate = getattr(override, \"db_path\", None) if override is not None else None\n    return models.resolve_db_path(candidate)\ndef _output_root(db_path: str) -> str:\n    return models.get_setting(db_path, \"output_root\") or \".\"\ndef _store(db_path: str) -> RecordStore:\n    return RecordStore(db_path)",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_IMAGE_MIME",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "_IMAGE_MIME = {\n    \".jpg\": \"image/jpeg\", \".jpeg\": \"image/jpeg\", \".png\": \"image/png\",\n    \".webp\": \"image/webp\", \".gif\": \"image/gif\",\n}\n_CTYPE_EXT = {\"image/jpeg\": \".jpg\", \"image/png\": \".png\", \"image/webp\": \".webp\", \"image/gif\": \".gif\"}\n_MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image\n_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\ndef _photos_dir(db_path: str, dp: str) -> Path:\n    return Path(_output_root(db_path)) / f\"DP{dp}\" / \"photos\"\ndef _safe_photo_name(name: str) -> str:",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_CTYPE_EXT",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "_CTYPE_EXT = {\"image/jpeg\": \".jpg\", \"image/png\": \".png\", \"image/webp\": \".webp\", \"image/gif\": \".gif\"}\n_MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image\n_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\ndef _photos_dir(db_path: str, dp: str) -> Path:\n    return Path(_output_root(db_path)) / f\"DP{dp}\" / \"photos\"\ndef _safe_photo_name(name: str) -> str:\n    \"\"\"Basename only, restricted to a safe character set (no path traversal).\"\"\"\n    base = Path(name).name\n    keep = \"\".join(c if (c.isalnum() or c in \"._-\") else \"_\" for c in base).lstrip(\".\")\n    return keep or \"photo\"",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_MAX_PHOTO_BYTES",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "_MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image\n_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\ndef _photos_dir(db_path: str, dp: str) -> Path:\n    return Path(_output_root(db_path)) / f\"DP{dp}\" / \"photos\"\ndef _safe_photo_name(name: str) -> str:\n    \"\"\"Basename only, restricted to a safe character set (no path traversal).\"\"\"\n    base = Path(name).name\n    keep = \"\".join(c if (c.isalnum() or c in \"._-\") else \"_\" for c in base).lstrip(\".\")\n    return keep or \"photo\"\ndef _photo_list(record: PropertyRecord) -> List[str]:",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_MAX_PHOTOS_PER_UPLOAD",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\ndef _photos_dir(db_path: str, dp: str) -> Path:\n    return Path(_output_root(db_path)) / f\"DP{dp}\" / \"photos\"\ndef _safe_photo_name(name: str) -> str:\n    \"\"\"Basename only, restricted to a safe character set (no path traversal).\"\"\"\n    base = Path(name).name\n    keep = \"\".join(c if (c.isalnum() or c in \"._-\") else \"_\" for c in base).lstrip(\".\")\n    return keep or \"photo\"\ndef _photo_list(record: PropertyRecord) -> List[str]:\n    \"\"\"The record's full ordered photo list: hero first, then gallery (deduped).\"\"\"",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -7005,7 +7024,7 @@
         "kind": 5,
         "importPath": "webapp.routes.settings",
         "description": "webapp.routes.settings",
-        "peekOfCode": "router = APIRouter()\n_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / \"templates\"\ntemplates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# --- configuration surface -----------------------------------------------\n# Channels a property can be routed to. ``default_on`` mirrors the SPEC 5.6\n# routing baseline (every property → P24, own site, FB, WhatsApp, email) so a\n# fresh install already routes sensibly before anyone touches this screen.\nCHANNELS = [\n    (\"property24\", \"Property24\", True),\n    (\"own_website\", \"Own website\", True),",
+        "peekOfCode": "router = APIRouter()\n_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / \"templates\"\ntemplates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# --- configuration surface -----------------------------------------------\n# Channels a property can be routed to. ``default_on`` mirrors the SPEC 5.6\n# routing baseline (every property → P24, own site, FB, email) so a\n# fresh install already routes sensibly before anyone touches this screen.\nCHANNELS = [\n    (\"property24\", \"Property24\", True),\n    (\"own_website\", \"Own website\", True),",
         "detail": "webapp.routes.settings",
         "documentation": {}
     },
@@ -7014,7 +7033,7 @@
         "kind": 5,
         "importPath": "webapp.routes.settings",
         "description": "webapp.routes.settings",
-        "peekOfCode": "_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / \"templates\"\ntemplates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# --- configuration surface -----------------------------------------------\n# Channels a property can be routed to. ``default_on`` mirrors the SPEC 5.6\n# routing baseline (every property → P24, own site, FB, WhatsApp, email) so a\n# fresh install already routes sensibly before anyone touches this screen.\nCHANNELS = [\n    (\"property24\", \"Property24\", True),\n    (\"own_website\", \"Own website\", True),\n    (\"facebook\", \"Facebook\", True),",
+        "peekOfCode": "_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / \"templates\"\ntemplates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# --- configuration surface -----------------------------------------------\n# Channels a property can be routed to. ``default_on`` mirrors the SPEC 5.6\n# routing baseline (every property → P24, own site, FB, email) so a\n# fresh install already routes sensibly before anyone touches this screen.\nCHANNELS = [\n    (\"property24\", \"Property24\", True),\n    (\"own_website\", \"Own website\", True),\n    (\"facebook\", \"Facebook\", True),",
         "detail": "webapp.routes.settings",
         "documentation": {}
     },
@@ -7023,7 +7042,7 @@
         "kind": 5,
         "importPath": "webapp.routes.settings",
         "description": "webapp.routes.settings",
-        "peekOfCode": "templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# --- configuration surface -----------------------------------------------\n# Channels a property can be routed to. ``default_on`` mirrors the SPEC 5.6\n# routing baseline (every property → P24, own site, FB, WhatsApp, email) so a\n# fresh install already routes sensibly before anyone touches this screen.\nCHANNELS = [\n    (\"property24\", \"Property24\", True),\n    (\"own_website\", \"Own website\", True),\n    (\"facebook\", \"Facebook\", True),\n    (\"instagram\", \"Instagram\", True),",
+        "peekOfCode": "templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# --- configuration surface -----------------------------------------------\n# Channels a property can be routed to. ``default_on`` mirrors the SPEC 5.6\n# routing baseline (every property → P24, own site, FB, email) so a\n# fresh install already routes sensibly before anyone touches this screen.\nCHANNELS = [\n    (\"property24\", \"Property24\", True),\n    (\"own_website\", \"Own website\", True),\n    (\"facebook\", \"Facebook\", True),\n    (\"instagram\", \"Instagram\", True),",
         "detail": "webapp.routes.settings",
         "documentation": {}
     },
@@ -7032,7 +7051,7 @@
         "kind": 5,
         "importPath": "webapp.routes.settings",
         "description": "webapp.routes.settings",
-        "peekOfCode": "CHANNELS = [\n    (\"property24\", \"Property24\", True),\n    (\"own_website\", \"Own website\", True),\n    (\"facebook\", \"Facebook\", True),\n    (\"instagram\", \"Instagram\", True),\n    (\"linkedin\", \"LinkedIn\", False),\n    (\"tiktok\", \"TikTok\", False),\n    (\"whatsapp_broadcast\", \"WhatsApp broadcast\", True),\n    (\"email_list\", \"Email list\", True),\n    (\"jamesedition\", \"JamesEdition (from R10m)\", False),",
+        "peekOfCode": "CHANNELS = [\n    (\"property24\", \"Property24\", True),\n    (\"own_website\", \"Own website\", True),\n    (\"facebook\", \"Facebook\", True),\n    (\"instagram\", \"Instagram\", True),\n    (\"linkedin\", \"LinkedIn\", False),\n    (\"tiktok\", \"TikTok\", False),\n    (\"email_list\", \"Email list\", True),\n    (\"jamesedition\", \"JamesEdition (from R10m)\", False),\n]",
         "detail": "webapp.routes.settings",
         "documentation": {}
     },

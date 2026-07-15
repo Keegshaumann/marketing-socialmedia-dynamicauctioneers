@@ -465,3 +465,43 @@ def apply_edits(
     return EditChange(
         dp=dp, changes=applied, state=store.get_state(dp), artifacts=artifacts
     )
+
+
+def apply_photos(
+    dp: str,
+    store: RecordStore,
+    hero: Optional[str],
+    gallery: List[str],
+    user: str,
+    backend: Optional[str] = None,
+    output_root: str = ".",
+    client=None,
+) -> EditChange:
+    """Set the record's hero + gallery photo picks (canonical) and re-render.
+
+    Photos are written to the canonical ``marketing.hero_photo``/``gallery`` fields
+    (not ``human_overrides``) so both the html backend and Canva (which uploads
+    ``request.photos``) pick them up. Paths are stored relative to the DP folder
+    (``photos/x.png``). The change is logged on the audit trail and every artifact
+    re-rendered once. The ``live -> updated`` reopen a live change needs is owned
+    by the caller, as for ``apply_edits``.
+    """
+    record = _load_record(dp, store)
+    if record.marketing is None:
+        record.marketing = Marketing()
+    record.marketing.hero_photo = hero
+    record.marketing.gallery = list(gallery)
+    store.upsert(record)
+    total = (1 if hero else 0) + len(gallery)
+    store.record_signoff(
+        dp, gate="edit", user=user, note=f"photos: {total} (hero={hero or 'none'})"
+    )
+    artifacts = render_all(
+        dp, store, backend=backend, output_root=output_root, client=client
+    )
+    return EditChange(
+        dp=dp,
+        changes={"marketing.hero_photo": hero, "marketing.gallery": list(gallery)},
+        state=store.get_state(dp),
+        artifacts=artifacts,
+    )

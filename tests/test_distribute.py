@@ -30,7 +30,6 @@ STANDARD_CHANNELS = (
     "property24",
     "own_website",
     "facebook",
-    "whatsapp_broadcast",
     "email_list",
 )
 
@@ -175,8 +174,7 @@ def test_price_drop_burst_fires_on_a_drop_only():
     assert event["old_price"] == 2_500_000.0
     assert event["new_price"] == 2_000_000.0
     assert event["drop_amount"] == 500_000.0
-    assert "whatsapp_broadcast" in event["channels"]
-    assert "facebook" in event["channels"]
+    assert event["channels"] == ["facebook"]
 
 
 def test_price_rise_and_unchanged_do_not_burst():

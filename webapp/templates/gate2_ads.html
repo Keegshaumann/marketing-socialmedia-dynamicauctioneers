@@ -69,6 +69,13 @@
       </div>
 
       <div class="panel">
+        <div class="panel__head"><div class="panel__title">Photos</div></div>
+        <div class="panel__body">
+          {% include 'partials/_gate2_photos.html' %}
+        </div>
+      </div>
+
+      <div class="panel">
         <div class="panel__head"><div class="panel__title">Request changes</div></div>
         <div class="panel__body">
           <form hx-post="/gates/{{ dp }}/ads/changes" hx-target="#gallery" hx-swap="outerHTML" class="stack">

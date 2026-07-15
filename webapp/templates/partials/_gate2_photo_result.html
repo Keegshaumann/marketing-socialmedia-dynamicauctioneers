@@ -1,0 +1,5 @@
+{# Photo-action response: swap the rendered-adverts gallery (main target) and
+   refresh the photos panel out-of-band, since a photo change re-renders both. #}
+{% include 'partials/_gate2_gallery.html' %}
+{% set oob = true %}
+{% include 'partials/_gate2_photos.html' %}

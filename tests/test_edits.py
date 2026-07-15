@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import pytest
 
-from engine.render.service import _format_price, apply_edits
+from engine.render.service import _format_price, apply_edits, apply_photos
 from engine.schema import PropertyRecord, override_key_allowed
 from engine.store import RecordStore
 
@@ -239,3 +239,26 @@ def test_format_price_handles_decimals_and_phrases():
     assert _format_price(900000) == "R900 000"
     assert _format_price("R2 500 000") == "R2 500 000"
     assert _format_price("Offers invited") == "Offers invited"
+
+
+# --- photos ---------------------------------------------------------------
+
+def test_apply_photos_writes_canonical_hero_gallery_and_rerenders(live_store, tmp_path):
+    res = apply_photos(
+        "9100", live_store, "photos/front.png", ["photos/side.png", "photos/kitchen.png"],
+        user="nikki@da", output_root=str(tmp_path),
+    )
+    rec = live_store.get("9100")
+    # written to the canonical marketing fields (so Canva uploads them too), not overrides
+    assert rec.marketing.hero_photo == "photos/front.png"
+    assert rec.marketing.gallery == ["photos/side.png", "photos/kitchen.png"]
+    assert not (rec.human_overrides or {})
+    assert res.artifacts  # a single render happened
+
+
+def test_apply_photos_clears_when_empty(live_store, tmp_path):
+    apply_photos("9100", live_store, "photos/a.png", [], user="nikki@da", output_root=str(tmp_path))
+    apply_photos("9100", live_store, None, [], user="nikki@da", output_root=str(tmp_path))
+    rec = live_store.get("9100")
+    assert rec.marketing.hero_photo is None
+    assert rec.marketing.gallery == []

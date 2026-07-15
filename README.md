@@ -14,7 +14,6 @@ DP3060/
 └── ads/
     ├── portal-listing.md  Property24-ready copy
     ├── facebook-post.md   FB post + boost notes
-    ├── whatsapp-blast.md  Broadcast message ("reply 3060" hook feeds the buyer CRM)
     ├── email-blast.md     Subject A/B + body
     └── demo-ad.html       Branded one-pager (real DA letterhead, Montserrat, photos)
 ```
@@ -25,7 +24,7 @@ DP3060/
 2. **Extraction.** Both PDFs parsed into `record.json`. Lightstone wins on deeds/market/comps data; the Property Report wins on physical features and terms of sale. Photos pulled from the PDF (production: from the property's Media folder on OneDrive).
 3. **Verification.** Cross-check both sources plus live market research; discrepancies land in `verification-memo.md` with actions. A human signs off before anything publishes. (DP3060 proved the point: Lightstone claims 3 garages, the inspection found none; the flatlet only exists in the inspection.)
 4. **Rendering.** Every ad format generated from the record by template. POPIA redaction is structural: owner name/ID and occupant contact never leave the internal layer.
-5. **Distribution (channel rules).** All properties → Property24, own site, Facebook, WhatsApp, email. R10m+ → add JamesEdition. Private Property → excluded. A price/date change updates the record and re-renders/pushes all channels; a price drop also triggers a "reduced" re-engagement burst.
+5. **Distribution (channel rules).** All properties → Property24, own site, Facebook, email. R10m+ → add JamesEdition. Private Property → excluded. A price/date change updates the record and re-renders/pushes all channels; a price drop also triggers a "reduced" re-engagement burst.
 
 ## Roadmap
 

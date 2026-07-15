@@ -35,14 +35,14 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 from starlette.templating import Jinja2Templates
 
 from engine.distribute.ghl import DELETE_CAVEAT
 from engine.render import FORMATS
 from engine.render.html_backend import BRAND
-from engine.render.service import apply_edits, render_all
+from engine.render.service import apply_edits, apply_photos, render_all
 from engine.schema import PropertyRecord
 from engine.store import IllegalTransition, RecordStore
 from engine.verify import (
@@ -380,6 +380,7 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
             "terms": "\n".join(sale.get("terms") or []),
             "is_update": state in ("live", "updated"),
             "delete_caveat": DELETE_CAVEAT,
+            "photos": _photo_view(dp, record),
             "approval_email": email_html,
             "links": links,
         },
@@ -398,6 +399,185 @@ def gate2_artifact(dp: str, fmt: str, request: Request, user: dict = Depends(req
             if path.exists():
                 return FileResponse(str(path), media_type=art.get("mime") or "text/plain")
     raise HTTPException(status_code=404, detail="Artifact not rendered yet.")
+
+
+# --- gate 2: photo upload + management ------------------------------------
+# Photos are the property's marketing images. Managing them here (rather than
+# depending on an OneDrive/Graph watcher) means a listing with no photos in the
+# source PDF can still get a real gallery. Serving DP<dp>/photos/ also makes the
+# relative <img src="../photos/x.png"> in the html adverts resolve, so the
+# gate-2 previews stop showing broken images.
+
+_IMAGE_MIME = {
+    ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
+    ".webp": "image/webp", ".gif": "image/gif",
+}
+_CTYPE_EXT = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/gif": ".gif"}
+_MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image
+_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected
+
+
+def _photos_dir(db_path: str, dp: str) -> Path:
+    return Path(_output_root(db_path)) / f"DP{dp}" / "photos"
+
+
+def _safe_photo_name(name: str) -> str:
+    """Basename only, restricted to a safe character set (no path traversal)."""
+    base = Path(name).name
+    keep = "".join(c if (c.isalnum() or c in "._-") else "_" for c in base).lstrip(".")
+    return keep or "photo"
+
+
+def _photo_list(record: PropertyRecord) -> List[str]:
+    """The record's full ordered photo list: hero first, then gallery (deduped)."""
+    marketing = record.marketing
+    ordered: List[str] = []
+    if marketing is not None:
+        if marketing.hero_photo:
+            ordered.append(marketing.hero_photo)
+        ordered.extend(p for p in (marketing.gallery or []) if p)
+    seen: set = set()
+    uniq: List[str] = []
+    for path in ordered:
+        if path not in seen:
+            seen.add(path)
+            uniq.append(path)
+    return uniq
+
+
+def _photo_view(dp: str, record: PropertyRecord) -> List[Dict[str, Any]]:
+    """Panel view-model: one tile per photo (name, thumbnail url, is_hero)."""
+    tiles: List[Dict[str, Any]] = []
+    for i, path in enumerate(_photo_list(record)):
+        name = Path(path).name
+        tiles.append({"name": name, "url": f"/gates/{dp}/ads/photos/{name}", "is_hero": i == 0})
+    return tiles
+
+
+def _save_photos(db_path: str, dp: str, full: List[str], user: str) -> None:
+    """Persist an ordered photo list (hero = first) and re-render, once."""
+    hero = full[0] if full else None
+    gallery = full[1:] if len(full) > 1 else []
+    store = _store(db_path)
+    try:
+        apply_photos(dp, store, hero, gallery, user, output_root=_output_root(db_path))
+    finally:
+        store.close()
+
+
+def _photo_result(request: Request, db_path: str, dp: str, toast: Dict[str, Any]):
+    """Action response: swap the rendered-adverts gallery + the photos panel (OOB)."""
+    record = _load(db_path, dp)
+    return templates.TemplateResponse(
+        request,
+        "partials/_gate2_photo_result.html",
+        {"dp": dp, "tiles": _gallery(db_path, dp), "photos": _photo_view(dp, record), "toast": toast},
+    )
+
+
+@router.get("/{dp}/ads/photos/{name}")
+def gate2_photo(dp: str, name: str, request: Request, user: dict = Depends(require_role("approver"))):
+    """Serve one property photo (editor thumbnails + advert-preview images)."""
+    db_path = _db(request)
+    path = _photos_dir(db_path, dp) / Path(name).name  # basename => no traversal
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="No such photo.")
+    return FileResponse(str(path), media_type=_IMAGE_MIME.get(path.suffix.lower(), "application/octet-stream"))
+
+
+@router.post("/{dp}/ads/photos/upload", response_class=HTMLResponse)
+async def gate2_photo_upload(
+    dp: str, request: Request,
+    files: List[UploadFile] = File(default=[]),
+    user: dict = Depends(require_role("approver")),
+):
+    db_path = _db(request)
+    full = _photo_list(_load(db_path, dp))
+    photos_dir = _photos_dir(db_path, dp)
+    photos_dir.mkdir(parents=True, exist_ok=True)
+    added = rejected = 0
+    rejected += max(0, len(files) - _MAX_PHOTOS_PER_UPLOAD)  # cap files per request
+    for upload in files[:_MAX_PHOTOS_PER_UPLOAD]:
+        # Reject an oversized part before pulling it into memory (Starlette sets
+        # upload.size as the part spools); the len(raw) check below is the belt
+        # for clients that send no size header.
+        if upload.size is not None and upload.size > _MAX_PHOTO_BYTES:
+            rejected += 1
+            continue
+        raw = await upload.read()
+        if not raw:
+            continue
+        name = _safe_photo_name(upload.filename or "photo")
+        ext = Path(name).suffix.lower()
+        if ext not in _IMAGE_MIME:
+            derived = _CTYPE_EXT.get((upload.content_type or "").lower())
+            if derived is None:
+                rejected += 1
+                continue
+            name += derived
+        if len(raw) > _MAX_PHOTO_BYTES:
+            rejected += 1
+            continue
+        dest = photos_dir / name
+        stem, suffix, n = dest.stem, dest.suffix, 1
+        while dest.exists():
+            dest = photos_dir / f"{stem}_{n}{suffix}"
+            n += 1
+        dest.write_bytes(raw)
+        rel = f"photos/{dest.name}"
+        if rel not in full:
+            full.append(rel)
+            added += 1
+
+    if added:
+        _reopen_if_live(db_path, dp, user["email"])
+        try:
+            _save_photos(db_path, dp, full, user["email"])
+            text = f"{added} photo(s) uploaded and re-rendered."
+            if rejected:
+                text += f" {rejected} skipped (not an image or too large)."
+            toast = {"tone": "ok", "title": "Photos added", "text": text}
+        except Exception as exc:  # a render backend failure (e.g. Canva quota)
+            toast = {"tone": "block", "title": "Re-render failed",
+                     "text": f"Photos saved, but the adverts could not be re-rendered ({type(exc).__name__})."}
+    else:
+        toast = {"tone": "note", "title": "No photos added",
+                 "text": "Only image files (jpg, png, webp, gif) up to 12 MB are accepted."}
+    return _photo_result(request, db_path, dp, toast)
+
+
+@router.post("/{dp}/ads/photos/hero", response_class=HTMLResponse)
+async def gate2_photo_hero(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
+    db_path = _db(request)
+    form = await request.form()
+    name = Path(str(form.get("name", ""))).name
+    full = _photo_list(_load(db_path, dp))
+    chosen = next((p for p in full if Path(p).name == name), None)
+    if chosen and full and full[0] != chosen:
+        full = [chosen] + [p for p in full if p != chosen]
+        _reopen_if_live(db_path, dp, user["email"])
+        _save_photos(db_path, dp, full, user["email"])
+        toast = {"tone": "ok", "title": "Lead photo set", "text": "Adverts re-rendered with the new lead image."}
+    else:
+        toast = {"tone": "note", "title": "No change",
+                 "text": "That photo is already the lead, or was not found."}
+    return _photo_result(request, db_path, dp, toast)
+
+
+@router.post("/{dp}/ads/photos/delete", response_class=HTMLResponse)
+async def gate2_photo_delete(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
+    db_path = _db(request)
+    form = await request.form()
+    name = Path(str(form.get("name", ""))).name
+    current = _photo_list(_load(db_path, dp))
+    full = [p for p in current if Path(p).name != name]
+    if len(full) != len(current):
+        _reopen_if_live(db_path, dp, user["email"])
+        _save_photos(db_path, dp, full, user["email"])
+        toast = {"tone": "ok", "title": "Photo removed", "text": "Adverts re-rendered."}
+    else:
+        toast = {"tone": "note", "title": "No change", "text": "That photo was not found."}
+    return _photo_result(request, db_path, dp, toast)
 
 
 # Editable public fields: form field name -> dotted public-view path. Owner /

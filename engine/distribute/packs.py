@@ -1,7 +1,7 @@
 """Manual-channel packs, per-channel status log and price-drop bursts (M6, 5A).
 
-Distribution has two arms (SPEC M6). API channels (GoHighLevel Social Planner,
-WhatsApp via Peach, Property24 via the Prop Data feed) push automatically once
+Distribution has two arms (SPEC M6). API channels (GoHighLevel Social Planner
+and Property24 via the Prop Data feed) push automatically once
 credentials exist. Every other channel gets a **ready-to-post pack**: the
 rendered artifacts copied into one folder with a ``checklist.md`` a human works
 down. This module builds that pack, records what actually went out per DP per
@@ -48,7 +48,6 @@ DEFAULT_MANUAL_CHANNELS: List[str] = [
 _FORMAT_USE = {
     "portal_listing": "Property24 / JamesEdition listing copy",
     "facebook_post": "Facebook post copy",
-    "whatsapp_blast": "WhatsApp broadcast text",
     "email_blast": "Email campaign subject and body",
     "demo_ad": "Branded advert image (attach to every channel)",
     "info_pack": "Buyer info pack for the auction page",
@@ -178,7 +177,7 @@ def _render_checklist(
         f"# DP{dp} ready-to-post pack (version {version})\n\n"
         f"Generated: {_now()}\n\n"
         "This pack covers the channels without a confirmed automated path. The "
-        "API channels (GoHighLevel social, WhatsApp via Peach, Property24 via "
+        "API channels (GoHighLevel social and Property24 via "
         "the Prop Data feed) post automatically once their credentials are "
         "configured, so they are not on this list.\n\n"
         "## Manual channels to post\n\n"
@@ -280,7 +279,7 @@ def price_drop_burst(record_before, record_after) -> Optional[dict]:
     """Return a REDUCED re-engagement event when the price dropped, else ``None``.
 
     A price *decrease* is a marketing event, not silent maintenance (SPEC M6): it
-    queues a re-engagement blast on WhatsApp and Facebook labelled REDUCED. A
+    queues a re-engagement blast on Facebook labelled REDUCED. A
     price rise, an unchanged price, or a record with no comparable figure on
     either side (for example ``"Offers invited"``) returns ``None``.
 
@@ -313,6 +312,6 @@ def price_drop_burst(record_before, record_after) -> Optional[dict]:
         "new_display": new_display,
         "drop_amount": drop_amount,
         "drop_pct": drop_pct,
-        "channels": ["whatsapp_broadcast", "facebook"],
+        "channels": ["facebook"],
         "created": _now(),
     }

@@ -1,0 +1,43 @@
+{% import '_macros.html' as ui %}
+<div id="photos" class="stack"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <form hx-post="/gates/{{ dp }}/ads/photos/upload" hx-encoding="multipart/form-data"
+        hx-target="#gallery" hx-swap="outerHTML" class="stack">
+    <div class="field">
+      <label class="label" for="photo-files">Add photos</label>
+      <input class="input" type="file" id="photo-files" name="files" accept="image/*" multiple>
+      <div class="hint">JPG, PNG, WebP or GIF, up to 12 MB each. The lead photo is the main image on every advert.</div>
+    </div>
+    {{ ui.button('Upload and re-render', variant='primary', icon_name='photo', type='submit') }}
+  </form>
+
+  {% if photos %}
+  <div class="gallery-grid">
+    {% for p in photos %}
+    <div class="tile">
+      <div class="tile__body">
+        <img src="{{ p.url }}" alt="{{ p.name }}" loading="lazy"
+             style="width:100%;height:120px;object-fit:cover;display:block;background:#f2efe9">
+      </div>
+      <div class="tile__cap">
+        {% if p.is_hero %}
+          <span class="badge badge--ok"><span class="dot"></span>Lead</span>
+        {% else %}
+          <button class="btn btn--ghost btn--sm" hx-post="/gates/{{ dp }}/ads/photos/hero"
+                  hx-vals='{{ {"name": p.name} | tojson }}' hx-target="#gallery" hx-swap="outerHTML">
+            {{ ui.icon('check', 'icon--sm') }}<span>Lead</span></button>
+        {% endif %}
+        <button class="btn btn--ghost btn--sm" hx-post="/gates/{{ dp }}/ads/photos/delete"
+                hx-vals='{{ {"name": p.name} | tojson }}' hx-target="#gallery" hx-swap="outerHTML"
+                hx-confirm="Remove this photo from the adverts?">
+          {{ ui.icon('x', 'icon--sm') }}<span>Remove</span></button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty">
+    <div class="empty__title">No photos yet</div>
+    <div class="empty__text">Upload photos so the adverts aren't text-only.</div>
+  </div>
+  {% endif %}
+</div>
