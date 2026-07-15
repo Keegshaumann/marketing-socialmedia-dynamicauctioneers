@@ -610,6 +610,14 @@
         "documentation": {}
     },
     {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
         "label": "json",
         "kind": 6,
         "isExtraImport": true,
@@ -909,6 +917,14 @@
     },
     {
         "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Callable",
         "importPath": "typing",
         "description": "typing",
         "isExtraImport": true,
@@ -1823,6 +1839,14 @@
         "documentation": {}
     },
     {
+        "label": "PropertyRecord",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
         "label": "Owner",
         "importPath": "engine.schema",
         "description": "engine.schema",
@@ -2140,6 +2164,22 @@
         "documentation": {}
     },
     {
+        "label": "FORMATS",
+        "importPath": "engine.render.base",
+        "description": "engine.render.base",
+        "isExtraImport": true,
+        "detail": "engine.render.base",
+        "documentation": {}
+    },
+    {
+        "label": "Artifact",
+        "importPath": "engine.render.base",
+        "description": "engine.render.base",
+        "isExtraImport": true,
+        "detail": "engine.render.base",
+        "documentation": {}
+    },
+    {
         "label": "anthropic",
         "kind": 6,
         "isExtraImport": true,
@@ -2309,6 +2349,23 @@
         "documentation": {}
     },
     {
+        "label": "sys",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sys",
+        "description": "sys",
+        "detail": "sys",
+        "documentation": {}
+    },
+    {
+        "label": "DEFAULT_BACKEND",
+        "importPath": "engine.render",
+        "description": "engine.render",
+        "isExtraImport": true,
+        "detail": "engine.render",
+        "documentation": {}
+    },
+    {
         "label": "get_backend",
         "importPath": "engine.render",
         "description": "engine.render",
@@ -2318,6 +2375,14 @@
     },
     {
         "label": "get_backend",
+        "importPath": "engine.render",
+        "description": "engine.render",
+        "isExtraImport": true,
+        "detail": "engine.render",
+        "documentation": {}
+    },
+    {
+        "label": "canva_backend",
         "importPath": "engine.render",
         "description": "engine.render",
         "isExtraImport": true,
@@ -2437,6 +2502,14 @@
         "documentation": {}
     },
     {
+        "label": "RecordStore",
+        "importPath": "engine.store",
+        "description": "engine.store",
+        "isExtraImport": true,
+        "detail": "engine.store",
+        "documentation": {}
+    },
+    {
         "label": "IllegalTransition",
         "importPath": "engine.store",
         "description": "engine.store",
@@ -2491,15 +2564,6 @@
         "importPath": "argparse",
         "description": "argparse",
         "detail": "argparse",
-        "documentation": {}
-    },
-    {
-        "label": "sys",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "sys",
-        "description": "sys",
-        "detail": "sys",
         "documentation": {}
     },
     {
@@ -2703,6 +2767,14 @@
     },
     {
         "label": "apply_edits",
+        "importPath": "engine.render.service",
+        "description": "engine.render.service",
+        "isExtraImport": true,
+        "detail": "engine.render.service",
+        "documentation": {}
+    },
+    {
+        "label": "render_all",
         "importPath": "engine.render.service",
         "description": "engine.render.service",
         "isExtraImport": true,
@@ -3770,6 +3842,42 @@
         "documentation": {}
     },
     {
+        "label": "ROOT",
+        "kind": 5,
+        "importPath": ".demo-run.launch_mixed",
+        "description": ".demo-run.launch_mixed",
+        "peekOfCode": "ROOT = pathlib.Path(__file__).resolve().parent.parent\nfor line in (ROOT / \".env\").read_text().splitlines():\n    s = line.strip()\n    if s and not s.startswith(\"#\") and \"=\" in s:\n        key, val = s.split(\"=\", 1)\n        os.environ[key] = val.strip().strip('\"').strip(\"'\")\nos.environ.pop(\"ANTHROPIC_API_KEY\", None)          # keep copy offline/fast\nos.environ[\"ENGINE_RENDERER\"] = \"mixed\"            # per-format: canva + html\nos.environ[\"ENGINE_DB\"] = str(ROOT / \".demo-run\" / \"engine.db\")\nos.environ[\"APP_SECRET\"] = \"local-demo-secret\"",
+        "detail": ".demo-run.launch_mixed",
+        "documentation": {}
+    },
+    {
+        "label": "os.environ[\"ENGINE_RENDERER\"]",
+        "kind": 5,
+        "importPath": ".demo-run.launch_mixed",
+        "description": ".demo-run.launch_mixed",
+        "peekOfCode": "os.environ[\"ENGINE_RENDERER\"] = \"mixed\"            # per-format: canva + html\nos.environ[\"ENGINE_DB\"] = str(ROOT / \".demo-run\" / \"engine.db\")\nos.environ[\"APP_SECRET\"] = \"local-demo-secret\"\nos.execvp(\n    \"python3\",\n    [\"python3\", \"-m\", \"uvicorn\", \"webapp.main:app\",\n     \"--host\", \"127.0.0.1\", \"--port\", \"8010\", \"--log-level\", \"warning\"],\n)",
+        "detail": ".demo-run.launch_mixed",
+        "documentation": {}
+    },
+    {
+        "label": "os.environ[\"ENGINE_DB\"]",
+        "kind": 5,
+        "importPath": ".demo-run.launch_mixed",
+        "description": ".demo-run.launch_mixed",
+        "peekOfCode": "os.environ[\"ENGINE_DB\"] = str(ROOT / \".demo-run\" / \"engine.db\")\nos.environ[\"APP_SECRET\"] = \"local-demo-secret\"\nos.execvp(\n    \"python3\",\n    [\"python3\", \"-m\", \"uvicorn\", \"webapp.main:app\",\n     \"--host\", \"127.0.0.1\", \"--port\", \"8010\", \"--log-level\", \"warning\"],\n)",
+        "detail": ".demo-run.launch_mixed",
+        "documentation": {}
+    },
+    {
+        "label": "os.environ[\"APP_SECRET\"]",
+        "kind": 5,
+        "importPath": ".demo-run.launch_mixed",
+        "description": ".demo-run.launch_mixed",
+        "peekOfCode": "os.environ[\"APP_SECRET\"] = \"local-demo-secret\"\nos.execvp(\n    \"python3\",\n    [\"python3\", \"-m\", \"uvicorn\", \"webapp.main:app\",\n     \"--host\", \"127.0.0.1\", \"--port\", \"8010\", \"--log-level\", \"warning\"],\n)",
+        "detail": ".demo-run.launch_mixed",
+        "documentation": {}
+    },
+    {
         "label": "PlannerResult",
         "kind": 6,
         "importPath": "engine.distribute.ghl",
@@ -4224,7 +4332,7 @@
         "kind": 2,
         "importPath": "engine.render.service",
         "description": "engine.render.service",
-        "peekOfCode": "def render_all(\n    dp: str,\n    store: RecordStore,\n    backend: Optional[str] = None,\n    output_root: str = \".\",\n    client=None,\n) -> List[Artifact]:\n    \"\"\"Render every supported format for DP ``dp`` through the resolved backend.\n    Resolves the backend (arg -> ``ENGINE_RENDERER`` env -> default ``html``),\n    checks it is available (raising a clear ``RuntimeError`` with the reason if",
+        "peekOfCode": "def render_all(\n    dp: str,\n    store: RecordStore,\n    backend: Optional[str] = None,\n    output_root: str = \".\",\n    client=None,\n) -> List[Artifact]:\n    \"\"\"Render every supported format for DP ``dp``, one manifest per pass.\n    Resolves the backend (arg -> ``ENGINE_RENDERER`` env -> default ``html``);\n    ``\"mixed\"`` selects the best backend per format (premium where configured,",
         "detail": "engine.render.service",
         "documentation": {}
     },
@@ -4233,7 +4341,7 @@
         "kind": 2,
         "importPath": "engine.render.service",
         "description": "engine.render.service",
-        "peekOfCode": "def render_one(\n    dp: str,\n    store: RecordStore,\n    fmt: str,\n    backend: Optional[str] = None,\n    output_root: str = \".\",\n    client=None,\n) -> Artifact:\n    \"\"\"Render a single format for DP ``dp`` through the resolved backend.\"\"\"\n    if fmt not in FORMATS:",
+        "peekOfCode": "def render_one(\n    dp: str,\n    store: RecordStore,\n    fmt: str,\n    backend: Optional[str] = None,\n    output_root: str = \".\",\n    client=None,\n) -> Artifact:\n    \"\"\"Render a single format for DP ``dp`` through the resolved backend(s).\n    Honours ``\"mixed\"`` like ``render_all``: the format is rendered by the best",
         "detail": "engine.render.service",
         "documentation": {}
     },
@@ -4270,6 +4378,15 @@
         "importPath": "engine.render.service",
         "description": "engine.render.service",
         "peekOfCode": "_HEADLINE_PATH = \"marketing.headline\"\n@dataclass\nclass PriceChange:\n    \"\"\"The outcome of a ``set_price`` call: the diff plus the re-rendered set.\"\"\"\n    dp: str\n    old: Optional[str]\n    new: str\n    state: Optional[str]\n    artifacts: List[Artifact] = field(default_factory=list)\n@dataclass",
+        "detail": "engine.render.service",
+        "documentation": {}
+    },
+    {
+        "label": "_MIXED",
+        "kind": 5,
+        "importPath": "engine.render.service",
+        "description": "engine.render.service",
+        "peekOfCode": "_MIXED = \"mixed\"\ndef _effective_backend_name(backend: Optional[str]) -> str:\n    return (backend or os.getenv(\"ENGINE_RENDERER\") or DEFAULT_BACKEND).strip()\ndef _format_backends(backend: Optional[str]) -> Callable[[str], List]:\n    \"\"\"Return a resolver ``fmt -> [backend, ...]`` (in try order) for the pass.\n    An explicit backend name renders only the formats it supports through that\n    one backend (single-element list, or empty to skip) -- unchanged behaviour,\n    and a render failure propagates. ``\"mixed\"`` returns, per format, the\n    available premium backends that support it followed by the always-available\n    html fallback, so the loop uses e.g. Canva for the branded one-pager and",
         "detail": "engine.render.service",
         "documentation": {}
     },
@@ -5666,6 +5783,33 @@
         "description": "tests.test_intake",
         "peekOfCode": "def test_build_jobs_groups_distinct_dps(\n    lightstone_3060, property_report_3060, lightstone_3035_1\n):\n    \"\"\"Files for different DP numbers land in separate jobs, DP-ordered.\"\"\"\n    jobs = build_jobs([property_report_3060, lightstone_3035_1, lightstone_3060])\n    by_dp = {job.dp: job for job in jobs}\n    assert set(by_dp) == {\"3060\", \"3035.1\"}\n    assert by_dp[\"3060\"].is_complete is True\n    # 3035.1 has only its Lightstone doc here, so it waits and flags.\n    assert by_dp[\"3035.1\"].is_complete is False",
         "detail": "tests.test_intake",
+        "documentation": {}
+    },
+    {
+        "label": "test_mixed_uses_canva_for_demo_ad_and_html_for_the_rest",
+        "kind": 2,
+        "importPath": "tests.test_mixed",
+        "description": "tests.test_mixed",
+        "peekOfCode": "def test_mixed_uses_canva_for_demo_ad_and_html_for_the_rest(monkeypatch, tmp_path, golden_record_path):\n    supports, render = _fake_canva()\n    monkeypatch.setattr(cb.CanvaBackend, \"available\", lambda self: (True, \"ok\"))\n    monkeypatch.setattr(cb.CanvaBackend, \"supports\", supports)\n    monkeypatch.setattr(cb.CanvaBackend, \"render\", render)\n    store = _seed(\"9500\", golden_record_path)\n    try:\n        arts = render_all(\"9500\", store, backend=\"mixed\", output_root=str(tmp_path))\n    finally:\n        store.close()",
+        "detail": "tests.test_mixed",
+        "documentation": {}
+    },
+    {
+        "label": "test_mixed_falls_back_to_html_when_canva_errors",
+        "kind": 2,
+        "importPath": "tests.test_mixed",
+        "description": "tests.test_mixed",
+        "peekOfCode": "def test_mixed_falls_back_to_html_when_canva_errors(monkeypatch, tmp_path, golden_record_path):\n    supports, _ = _fake_canva()\n    monkeypatch.setattr(cb.CanvaBackend, \"available\", lambda self: (True, \"ok\"))\n    monkeypatch.setattr(cb.CanvaBackend, \"supports\", supports)\n    def _boom(self, request):\n        raise RuntimeError(\"quota_exceeded\")\n    monkeypatch.setattr(cb.CanvaBackend, \"render\", _boom)\n    store = _seed(\"9501\", golden_record_path)\n    try:\n        arts = render_all(\"9501\", store, backend=\"mixed\", output_root=str(tmp_path))",
+        "detail": "tests.test_mixed",
+        "documentation": {}
+    },
+    {
+        "label": "test_html_backend_unchanged_when_not_mixed",
+        "kind": 2,
+        "importPath": "tests.test_mixed",
+        "description": "tests.test_mixed",
+        "peekOfCode": "def test_html_backend_unchanged_when_not_mixed(monkeypatch, tmp_path, golden_record_path):\n    # An explicit backend still renders every format through that one backend.\n    store = _seed(\"9502\", golden_record_path)\n    try:\n        arts = render_all(\"9502\", store, backend=\"html\", output_root=str(tmp_path))\n    finally:\n        store.close()\n    assert {a.backend for a in arts} == {\"html\"}\n    assert len(arts) == len(FORMATS)",
+        "detail": "tests.test_mixed",
         "documentation": {}
     },
     {

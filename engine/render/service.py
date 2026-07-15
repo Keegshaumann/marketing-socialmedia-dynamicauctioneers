@@ -32,12 +32,14 @@ Design rules baked in here:
 from __future__ import annotations
 
 import json
+import os
 import re
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import Callable, List, Optional, Tuple, Union
 
-from engine.render import get_backend
+from engine.render import DEFAULT_BACKEND, get_backend
 from engine.render.base import FORMATS, Artifact, RenderRequest
 from engine.render.copy import generate_copy
 from engine.schema import Marketing, PropertyRecord, override_key_allowed
@@ -202,6 +204,84 @@ def _prepare(record: PropertyRecord, output_root: str, client=None) -> Tuple[dic
     return public, copy, photos
 
 
+# --- backend resolution (single backend, or per-format "mixed") -----------
+
+# Backends preferred over the html default, in order, when they are configured
+# and support a given format (the "mixed" render mode). html is the universal
+# fallback: it renders every format and is always available (D14 / D16 / D18).
+_PREMIUM_BACKENDS: Tuple[str, ...] = ("canva",)
+_MIXED = "mixed"
+
+
+def _effective_backend_name(backend: Optional[str]) -> str:
+    return (backend or os.getenv("ENGINE_RENDERER") or DEFAULT_BACKEND).strip()
+
+
+def _format_backends(backend: Optional[str]) -> Callable[[str], List]:
+    """Return a resolver ``fmt -> [backend, ...]`` (in try order) for the pass.
+
+    An explicit backend name renders only the formats it supports through that
+    one backend (single-element list, or empty to skip) -- unchanged behaviour,
+    and a render failure propagates. ``"mixed"`` returns, per format, the
+    available premium backends that support it followed by the always-available
+    html fallback, so the loop uses e.g. Canva for the branded one-pager and
+    html for the channel copies in a single pass, and can fall back to html if a
+    premium backend errors (e.g. Canva quota) rather than lose the whole set.
+    """
+    name = _effective_backend_name(backend)
+    if name != _MIXED:
+        be = get_backend(name)
+        ok, reason = be.available()
+        if not ok:
+            raise RuntimeError(f"Render backend {be.name!r} is unavailable: {reason}")
+        return lambda fmt: [be] if be.supports(fmt) else []
+
+    html = get_backend("html")
+    premium: List = []
+    for pname in _PREMIUM_BACKENDS:
+        try:
+            candidate = get_backend(pname)
+        except Exception:
+            continue
+        available, _reason = candidate.available()
+        if available:
+            premium.append(candidate)
+
+    def resolve(fmt: str) -> List:
+        chain = [be for be in premium if be.supports(fmt)]
+        if html.supports(fmt):
+            chain.append(html)
+        return chain
+
+    return resolve
+
+
+def _render_format(candidates: List, request: RenderRequest) -> Optional[Artifact]:
+    """Render one format through the first candidate backend that succeeds.
+
+    Returns ``None`` when no candidate supports the format (skip). In mixed mode
+    a premium backend that raises (e.g. Canva quota) falls back to the next
+    candidate; the last candidate's failure re-raises, so a single-backend pass
+    still surfaces its error unchanged.
+    """
+    if not candidates:
+        return None
+    last_exc: Optional[Exception] = None
+    for i, be in enumerate(candidates):
+        try:
+            return be.render(request)
+        except Exception as exc:
+            last_exc = exc
+            if i < len(candidates) - 1:
+                nxt = candidates[i + 1].name
+                print(
+                    f"[render] {be.name} failed on {request.fmt} for DP{request.dp} "
+                    f"({type(exc).__name__}); falling back to {nxt}.",
+                    file=sys.stderr,
+                )
+    raise last_exc  # type: ignore[misc]
+
+
 # --- public API ----------------------------------------------------------
 
 def render_all(
@@ -211,27 +291,19 @@ def render_all(
     output_root: str = ".",
     client=None,
 ) -> List[Artifact]:
-    """Render every supported format for DP ``dp`` through the resolved backend.
+    """Render every supported format for DP ``dp``, one manifest per pass.
 
-    Resolves the backend (arg -> ``ENGINE_RENDERER`` env -> default ``html``),
-    checks it is available (raising a clear ``RuntimeError`` with the reason if
-    not), loads the record, resolves copy once (human edits on
-    ``record.marketing`` overlaid on generated copy), renders each format the
-    backend supports, logs a manifest, and returns the artifacts.
+    Resolves the backend (arg -> ``ENGINE_RENDERER`` env -> default ``html``);
+    ``"mixed"`` selects the best backend per format (premium where configured,
+    html otherwise). Loads the record, resolves copy + photos once, renders each
+    format through its resolved backend(s), logs a manifest, returns the set.
     """
     record = _load_record(dp, store)
-
-    be = get_backend(backend)
-    ok, reason = be.available()
-    if not ok:
-        raise RuntimeError(f"Render backend {be.name!r} is unavailable: {reason}")
-
+    resolve = _format_backends(backend)
     public, copy, photos = _prepare(record, output_root, client=client)
 
     artifacts: List[Artifact] = []
     for fmt in FORMATS:
-        if not be.supports(fmt):
-            continue
         request = RenderRequest(
             dp=dp,
             fmt=fmt,
@@ -240,7 +312,9 @@ def render_all(
             copy=copy,
             output_root=str(output_root),
         )
-        artifacts.append(be.render(request))
+        artifact = _render_format(resolve(fmt), request)
+        if artifact is not None:
+            artifacts.append(artifact)
 
     _write_manifest(output_root, dp, artifacts)
     return artifacts
@@ -254,20 +328,20 @@ def render_one(
     output_root: str = ".",
     client=None,
 ) -> Artifact:
-    """Render a single format for DP ``dp`` through the resolved backend."""
+    """Render a single format for DP ``dp`` through the resolved backend(s).
+
+    Honours ``"mixed"`` like ``render_all``: the format is rendered by the best
+    available backend that supports it, falling back to html on a premium error.
+    """
     if fmt not in FORMATS:
         raise ValueError(
             f"Unknown format {fmt!r}. Known formats: {', '.join(FORMATS)}."
         )
 
     record = _load_record(dp, store)
-
-    be = get_backend(backend)
-    ok, reason = be.available()
-    if not ok:
-        raise RuntimeError(f"Render backend {be.name!r} is unavailable: {reason}")
-    if not be.supports(fmt):
-        raise ValueError(f"Backend {be.name!r} cannot render {fmt!r}.")
+    candidates = _format_backends(backend)(fmt)
+    if not candidates:
+        raise ValueError(f"No configured render backend can render {fmt!r}.")
 
     public, copy, photos = _prepare(record, output_root, client=client)
     request = RenderRequest(
@@ -278,7 +352,7 @@ def render_one(
         copy=copy,
         output_root=str(output_root),
     )
-    artifact = be.render(request)
+    artifact = _render_format(candidates, request)
     _write_manifest(output_root, dp, [artifact])
     return artifact
 
