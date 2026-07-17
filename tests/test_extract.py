@@ -1,35 +1,83 @@
-"""Extraction request-shape tests (M2), fully offline.
+"""Extraction request-shape and assembly tests (M2), fully offline.
 
 ``build_request`` is factored out precisely so the request handed to
 ``client.messages.parse`` can be asserted without an API key or a network call.
-These tests read the real DP3060 PDFs to confirm the base64 document blocks are
-well formed; they never invoke the model. Skipped when the sample PDFs are
-absent.
+Extraction is sectioned (one small structured-output call per source-derived
+section; the full record's grammar is too large for the API to compile), so the
+tests also pin the two guarantees that design leans on:
+
+- every section call shares the identical cached prefix (system brief + both
+  PDF blocks, cache breakpoint on the second PDF), and
+- ``extract_record`` assembles the sections into a ``PropertyRecord`` and
+  stamps the code-owned fields (dp, status, record_created, source file paths,
+  compliance) rather than asking the model for them.
+
+Tests that read the real DP3060 PDFs are skipped when those documents are
+absent; the assembly test builds tiny stand-in PDFs so it always runs.
 """
 
 from __future__ import annotations
 
 import base64
+import re
+from types import SimpleNamespace
+
+import pytest
 
 from engine import MODEL
-from engine.extract import build_request
-from engine.schema import PropertyRecord
+from engine.extract import SECTIONS, _extract_section, build_request, extract_record
+from engine.schema import (
+    FinancialsInternal,
+    Identity,
+    LightstoneSource,
+    Owner,
+    Physical,
+    SaleProcess,
+    Sources,
+    Valuation,
+)
+
+
+EXPECTED_SECTIONS = [
+    "sources",
+    "identity",
+    "physical",
+    "valuation",
+    "financials_internal",
+    "sale_process",
+]
+
+
+def test_sections_cover_exactly_the_source_derived_fields():
+    names = [name for name, _model, _focus in SECTIONS]
+    assert names == EXPECTED_SECTIONS
+    # Later-stage fields must never be asked of the extraction model.
+    for later in ("marketing", "verification", "compliance", "human_overrides"):
+        assert later not in names
 
 
 def test_build_request_top_level_shape(lightstone_3060, property_report_3060):
-    req = build_request(lightstone_3060, property_report_3060, "3060")
+    for name, model, _focus in SECTIONS:
+        req = build_request(lightstone_3060, property_report_3060, "3060", name)
 
-    assert req["model"] == MODEL == "claude-opus-4-8"
-    assert req["max_tokens"] == 16000
-    assert req["thinking"] == {"type": "adaptive"}
-    assert req["output_format"] is PropertyRecord
-    # messages.parse injects output_config from output_format; passing our own
-    # would collide, so it must be absent.
-    assert "output_config" not in req
+        assert req["model"] == MODEL == "claude-opus-4-8"
+        assert req["max_tokens"] == 16000
+        assert req["thinking"] == {"type": "adaptive"}
+        # One non-strict tool per call; its input_schema is this section's model.
+        assert len(req["tools"]) == 1
+        tool = req["tools"][0]
+        assert tool["name"] == "record_section"
+        assert tool["input_schema"]["title"] == model.__name__
+        assert "strict" not in tool  # non-strict: no grammar-complexity ceiling
+        # tool_choice must be auto while thinking is on (forced choice is
+        # disallowed with extended thinking).
+        assert req["tool_choice"] == {"type": "auto"}
+        # We validate the tool input ourselves; no strict-grammar knobs.
+        assert "output_format" not in req and "output_config" not in req
 
 
 def test_build_request_system_block_is_cacheable(lightstone_3060, property_report_3060):
-    req = build_request(lightstone_3060, property_report_3060, "3060")
+    req = build_request(lightstone_3060, property_report_3060, "3060", "identity")
 
     system = req["system"]
     assert isinstance(system, list) and len(system) == 1
@@ -42,7 +90,7 @@ def test_build_request_system_block_is_cacheable(lightstone_3060, property_repor
 def test_build_request_document_blocks_precede_text(
     lightstone_3060, property_report_3060
 ):
-    req = build_request(lightstone_3060, property_report_3060, "3060")
+    req = build_request(lightstone_3060, property_report_3060, "3060", "identity")
 
     messages = req["messages"]
     assert len(messages) == 1
@@ -62,17 +110,276 @@ def test_build_request_document_blocks_precede_text(
         decoded = base64.b64decode(source["data"])
         assert decoded[:4] == b"%PDF"
 
-    # The volatile text block comes last and names the DP.
+    # The cached prefix ends after the PDFs: the second document block carries
+    # the breakpoint, the first does not (one prefix, not two).
+    assert doc_b["cache_control"] == {"type": "ephemeral"}
+    assert "cache_control" not in doc_a
+
+    # The volatile text block comes last and names the DP and the section.
     assert text["type"] == "text"
     assert "3060" in text["text"]
+    assert "`identity`" in text["text"]
 
 
 def test_build_request_orders_lightstone_first(lightstone_3060, property_report_3060):
     """The Lightstone PDF is the first document block, the Property Report the second."""
-    req = build_request(lightstone_3060, property_report_3060, "3060")
+    req = build_request(lightstone_3060, property_report_3060, "3060", "identity")
     doc_a, doc_b, _ = req["messages"][0]["content"]
 
     lightstone_bytes = lightstone_3060.read_bytes()
     report_bytes = property_report_3060.read_bytes()
     assert base64.b64decode(doc_a["source"]["data"]) == lightstone_bytes
     assert base64.b64decode(doc_b["source"]["data"]) == report_bytes
+
+
+def test_section_requests_share_identical_cached_prefix(
+    lightstone_3060, property_report_3060
+):
+    """The caching contract: system + PDFs identical, only the text block varies."""
+    reqs = [
+        build_request(lightstone_3060, property_report_3060, "3060", name)
+        for name, _model, _focus in SECTIONS
+    ]
+    first = reqs[0]
+    for req in reqs[1:]:
+        assert req["system"] == first["system"]
+        assert req["messages"][0]["content"][:2] == first["messages"][0]["content"][:2]
+
+    # Every per-section text block is distinct (each names its own section).
+    texts = {req["messages"][0]["content"][2]["text"] for req in reqs}
+    assert len(texts) == len(reqs)
+
+
+# --- text mode (reads the real PDFs, no API) ------------------------------
+
+
+def test_text_mode_sends_text_blocks_not_pdf(lightstone_3060, property_report_3060):
+    req = build_request(
+        lightstone_3060, property_report_3060, "3060", "identity", mode="text"
+    )
+    doc_a, doc_b, text = req["messages"][0]["content"]
+    # Both source blocks are now text, labelled by document, carrying extracted
+    # content; no base64 PDF document blocks remain.
+    for block, label in ((doc_a, "LIGHTSTONE EVM REPORT"), (doc_b, "DYNAMIC PROPERTY REPORT")):
+        assert block["type"] == "text"
+        assert label in block["text"]
+        assert "[page 1]" in block["text"]
+    # The cache breakpoint still sits on the second source block.
+    assert doc_b["cache_control"] == {"type": "ephemeral"}
+    assert "cache_control" not in doc_a
+    assert text["type"] == "text" and "`identity`" in text["text"]
+
+
+def test_env_selects_text_mode(monkeypatch, lightstone_3060, property_report_3060):
+    monkeypatch.setenv("EXTRACT_PDF_MODE", "text")
+    req = build_request(lightstone_3060, property_report_3060, "3060", "physical")
+    assert req["messages"][0]["content"][0]["type"] == "text"
+    # Default (no env) stays native.
+    monkeypatch.delenv("EXTRACT_PDF_MODE", raising=False)
+    req2 = build_request(lightstone_3060, property_report_3060, "3060", "physical")
+    assert req2["messages"][0]["content"][0]["type"] == "document"
+
+
+# --- assembly (fake client; no sample docs, no key, no network) -----------
+
+
+class _FakeToolUse:
+    type = "tool_use"
+
+    def __init__(self, data: dict):
+        self.input = data
+
+
+class _FakeClient:
+    """Mocks ``messages.create``: emits a tool_use block per requested section.
+
+    Keyed by the tool ``input_schema`` title (the section model's name), the way
+    ``_extract_section`` finds the block and validates it with that model.
+    """
+
+    def __init__(self, outputs: dict):
+        self._by_name = {model.__name__: inst for model, inst in outputs.items()}
+        self.requests: list = []
+        self.messages = SimpleNamespace(create=self._create)
+
+    def _create(self, **kwargs):
+        self.requests.append(kwargs)
+        title = kwargs["tools"][0]["input_schema"]["title"]
+        inst = self._by_name[title]
+        return SimpleNamespace(
+            content=[_FakeToolUse(inst.model_dump())],
+            stop_reason="tool_use",
+        )
+
+
+def _fake_pdf(tmp_path, name: str):
+    path = tmp_path / name
+    path.write_bytes(b"%PDF-1.4 stand-in for the assembly test")
+    return path
+
+
+def test_extract_record_assembles_sections_and_stamps_code_owned_fields(tmp_path):
+    lightstone = _fake_pdf(tmp_path, "lightstone.pdf")
+    report = _fake_pdf(tmp_path, "report.pdf")
+
+    fake = _FakeClient(
+        {
+            # The model was told to leave file fields null; even if it fills
+            # them, the caller's real paths must win.
+            Sources: Sources(lightstone_evm=LightstoneSource(report_id="LSR-1", file="model-guess.pdf")),
+            Identity: Identity(suburb="Prestbury", title_type="sectional"),
+            Physical: Physical(bedrooms=3),
+            Valuation: Valuation(municipal_valuation=520000),
+            FinancialsInternal: FinancialsInternal(owner=Owner(name="ZZOWNER")),
+            SaleProcess: SaleProcess(method="offers_invited"),
+        }
+    )
+
+    rec = extract_record(lightstone, report, "3060", parent_dp=None, client=fake)
+
+    # One call per section, in the declared order (matched by tool schema).
+    assert [r["tools"][0]["input_schema"]["title"] for r in fake.requests] == [
+        m.__name__ for _n, m, _f in SECTIONS
+    ]
+
+    # Sections landed on the record.
+    assert rec.identity.suburb == "Prestbury"
+    assert rec.physical.bedrooms == 3
+    assert rec.valuation.municipal_valuation == 520000
+    assert rec.financials_internal.owner.name == "ZZOWNER"
+    assert rec.sale_process.method == "offers_invited"
+    assert rec.sources.lightstone_evm.report_id == "LSR-1"
+
+    # Code-owned stamps: never the model's to answer.
+    assert rec.dp == "3060"
+    assert rec.status == "extracted"
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", rec.record_created)
+    assert rec.compliance.owner_pii_redacted is True
+    assert rec.sources.lightstone_evm.file == str(lightstone)  # real path wins
+    assert rec.sources.property_report.file == str(report)
+
+    # Later-stage fields stay untouched for the pipeline to fill.
+    assert rec.marketing is None
+    assert rec.verification is None
+    assert rec.human_overrides is None
+
+    # POPIA: the owner PII the model placed internally survives assembly but
+    # never reaches the public projection.
+    pv = rec.public_view()
+    assert "financials_internal" not in pv
+
+
+def test_extract_record_survives_all_empty_sections(tmp_path):
+    """A property the model finds nothing for still assembles a valid record."""
+    lightstone = _fake_pdf(tmp_path, "l.pdf")
+    report = _fake_pdf(tmp_path, "r.pdf")
+    fake = _FakeClient(
+        {
+            Sources: Sources(),
+            Identity: Identity(),
+            Physical: Physical(),
+            Valuation: Valuation(),
+            FinancialsInternal: FinancialsInternal(),
+            SaleProcess: SaleProcess(),
+        }
+    )
+
+    rec = extract_record(lightstone, report, "3035.1", parent_dp="3035", client=fake)
+
+    assert rec.dp == "3035.1"
+    assert rec.parent_dp == "3035"
+    assert rec.status == "extracted"
+    # The file stamps exist even when the model returned an empty Sources.
+    assert rec.sources.lightstone_evm.file == str(lightstone)
+    assert rec.sources.property_report.file == str(report)
+
+
+def _all_empty_client():
+    return _FakeClient(
+        {
+            Sources: Sources(),
+            Identity: Identity(),
+            Physical: Physical(),
+            Valuation: Valuation(),
+            FinancialsInternal: FinancialsInternal(),
+            SaleProcess: SaleProcess(),
+        }
+    )
+
+
+def test_pace_seconds_waits_between_but_not_before_first_call(tmp_path, monkeypatch):
+    lightstone = _fake_pdf(tmp_path, "l.pdf")
+    report = _fake_pdf(tmp_path, "r.pdf")
+    sleeps: list = []
+    monkeypatch.setattr("engine.extract.time.sleep", lambda s: sleeps.append(s))
+
+    extract_record(lightstone, report, "3060", client=_all_empty_client(), pace_seconds=62)
+
+    # One wait between each pair of the six section calls: five waits, each 62s.
+    assert sleeps == [62] * (len(SECTIONS) - 1)
+
+
+def test_pace_seconds_zero_never_sleeps(tmp_path, monkeypatch):
+    lightstone = _fake_pdf(tmp_path, "l.pdf")
+    report = _fake_pdf(tmp_path, "r.pdf")
+    sleeps: list = []
+    monkeypatch.setattr("engine.extract.time.sleep", lambda s: sleeps.append(s))
+
+    extract_record(lightstone, report, "3060", client=_all_empty_client(), pace_seconds=0)
+
+    assert sleeps == []
+
+
+# --- section retry: tool call is forced (thinking off) if the model skips it ---
+
+
+def test_extract_section_forces_tool_on_retry(tmp_path):
+    lightstone = _fake_pdf(tmp_path, "l.pdf")
+    report = _fake_pdf(tmp_path, "r.pdf")
+    req = build_request(lightstone, report, "3060", "identity", mode="native")
+
+    class _SkipThenCall:
+        def __init__(self):
+            self.calls: list = []
+            self.messages = SimpleNamespace(create=self._create)
+
+        def _create(self, **kwargs):
+            self.calls.append(kwargs)
+            if len(self.calls) == 1:  # first attempt: model answers without the tool
+                return SimpleNamespace(
+                    content=[SimpleNamespace(type="text", text="no tool")],
+                    stop_reason="end_turn",
+                )
+            return SimpleNamespace(  # retry: a valid tool call
+                content=[_FakeToolUse({"suburb": "Prestbury"})], stop_reason="tool_use"
+            )
+
+    fake = _SkipThenCall()
+    out = _extract_section(fake, req, "identity", Identity)
+
+    assert out.suburb == "Prestbury"
+    assert len(fake.calls) == 2
+    # First attempt: thinking on, tool_choice auto.
+    assert fake.calls[0]["thinking"] == {"type": "adaptive"}
+    assert fake.calls[0]["tool_choice"] == {"type": "auto"}
+    # Retry: thinking dropped so the tool can be forced.
+    assert "thinking" not in fake.calls[1]
+    assert fake.calls[1]["tool_choice"] == {"type": "tool", "name": "record_section"}
+
+
+def test_extract_section_raises_when_tool_never_called(tmp_path):
+    lightstone = _fake_pdf(tmp_path, "l.pdf")
+    report = _fake_pdf(tmp_path, "r.pdf")
+    req = build_request(lightstone, report, "3060", "identity", mode="native")
+
+    class _NeverCall:
+        def __init__(self):
+            self.messages = SimpleNamespace(create=self._create)
+
+        def _create(self, **kwargs):
+            return SimpleNamespace(
+                content=[SimpleNamespace(type="text", text="x")], stop_reason="end_turn"
+            )
+
+    with pytest.raises(RuntimeError, match="identity"):
+        _extract_section(_NeverCall(), req, "identity", Identity)
