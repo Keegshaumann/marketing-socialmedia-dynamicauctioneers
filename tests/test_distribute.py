@@ -101,6 +101,27 @@ def test_channel_matrix_always_excludes_private_property():
         assert channel_matrix(rec)["private_property"] is False
 
 
+def test_channel_matrix_routes_the_three_connected_socials():
+    # Facebook, Instagram and LinkedIn all route (TikTok/Pinterest are out).
+    matrix = channel_matrix(_record())
+    assert matrix["facebook"] is True
+    assert matrix["instagram"] is True
+    assert matrix["linkedin"] is True
+
+
+def test_caption_strips_markdown_title_but_keeps_hashtags(tmp_path):
+    from engine.distribute.ghl import _caption_for, _strip_leading_heading
+
+    raw = "# Facebook Post DP3060\n\nPELHAM NORTH | OFFERS INVITED\n3 bed home.\n#Auction #Pmb"
+    stripped = _strip_leading_heading(raw)
+    assert stripped.startswith("PELHAM NORTH")   # title gone
+    assert "# Facebook Post" not in stripped
+    assert "#Auction" in stripped                # hashtags (no space) preserved
+
+    art = _artifact_file(tmp_path, "facebook_post", raw)
+    assert _caption_for([art], "3060").startswith("PELHAM NORTH")
+
+
 # --- ready-to-post manual pack -------------------------------------------
 
 def test_build_manual_pack_writes_folder_and_checklist(tmp_path):

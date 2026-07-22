@@ -46,7 +46,7 @@ CHANNELS = [
     ("own_website", "Own website", True),
     ("facebook", "Facebook", True),
     ("instagram", "Instagram", True),
-    ("linkedin", "LinkedIn", False),
+    ("linkedin", "LinkedIn", True),
     ("email_list", "Email list", True),
     ("jamesedition", "JamesEdition (from R10m)", False),
 ]

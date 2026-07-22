@@ -141,10 +141,14 @@ def channel_matrix(record: PropertyRecord) -> Dict[str, bool]:
     over_threshold = value is not None and value >= JAMESEDITION_THRESHOLD_ZAR
 
     return {
-        # Every property (SPEC 5.6 row 1).
+        # Every property (SPEC 5.6 row 1). The three connected GHL socials
+        # (Facebook, Instagram, LinkedIn) all route; TikTok/Pinterest are out
+        # (D24/D26), X is not connected.
         "property24": True,
         "own_website": True,
         "facebook": True,
+        "instagram": True,
+        "linkedin": True,
         "email_list": True,
         # >= R10m (SPEC 5.6 row 2).
         "jamesedition": over_threshold,

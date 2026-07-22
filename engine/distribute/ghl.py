@@ -32,6 +32,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
@@ -135,12 +136,31 @@ def _account_ids(channels: List[str], account_map: Dict[str, str]) -> List[str]:
     return ids
 
 
+# A Markdown ATX heading: 1-6 '#' then whitespace. A hashtag (#Property, no
+# space) is deliberately NOT matched, so tags in the copy are preserved.
+_MD_HEADING = re.compile(r"^#{1,6}\s")
+
+
+def _strip_leading_heading(text: str) -> str:
+    """Drop a leading Markdown title (and blank lines) from artifact copy.
+
+    The rendered ``facebook_post`` artifact starts with a ``# Facebook Post
+    DP<dp>`` title that must never appear in the posted caption. Only leading
+    heading/blank lines are removed; body content and hashtags are untouched.
+    """
+    lines = text.splitlines()
+    i = 0
+    while i < len(lines) and (not lines[i].strip() or _MD_HEADING.match(lines[i].lstrip())):
+        i += 1
+    return "\n".join(lines[i:]).strip()
+
+
 def _caption_for(artifacts: List[Any], dp: str) -> str:
     """Best-effort caption for the post, from the facebook_post copy if present.
 
-    Reads the copy artifact off disk when it exists; falls back to a safe generic
-    line keyed to the DP. Never raises: a missing or unreadable file just yields
-    the fallback.
+    Reads the copy artifact off disk when it exists, strips its Markdown title
+    so the caption is the body only; falls back to a safe generic line keyed to
+    the DP. Never raises: a missing or unreadable file just yields the fallback.
     """
     preferred = ("facebook_post", "email_blast")
     by_fmt = {_artifact_attr(a, "fmt"): a for a in artifacts}
@@ -153,7 +173,7 @@ def _caption_for(artifacts: List[Any], dp: str) -> str:
             continue
         try:
             with open(path, "r", encoding="utf-8") as handle:
-                text = handle.read().strip()
+                text = _strip_leading_heading(handle.read())
             if text:
                 return text
         except OSError:
