@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from engine.distribute.ghl import post_to_planner
+from engine.distribute.ghl import build_planner_request, post_to_planner
 from engine.distribute.packs import (
     build_manual_pack,
     list_status,
@@ -221,3 +221,79 @@ def test_post_to_planner_without_token_returns_pack_and_never_raises(
     # The reason names the missing token; no token is ever leaked into the shape.
     assert result.reason
     assert "token" in result.reason.lower()
+
+
+# --- userId + status wiring (GHL create-post requires a userId) -----------
+
+
+def test_build_request_includes_user_id_and_status_from_env(tmp_path, monkeypatch):
+    monkeypatch.setenv("GHL_USER_ID", "USER123")
+    monkeypatch.setenv("GHL_POST_STATUS", "draft")
+    channels = channel_matrix(_record())
+    req = build_planner_request("3060", [], channels)
+    assert req["json"]["userId"] == "USER123"
+    assert req["json"]["status"] == "draft"
+    assert req["meta"]["has_user_id"] is True
+    assert req["meta"]["status"] == "draft"
+
+
+def test_build_request_defaults_published_and_no_user_id(tmp_path):
+    # Hermetic env (no GHL_USER_ID / GHL_POST_STATUS): publish, and userId absent
+    # so a caller can tell it is unconfigured rather than sending a bad body.
+    req = build_planner_request("3060", [], channel_matrix(_record()))
+    assert req["json"]["status"] == "published"
+    assert "userId" not in req["json"]
+    assert req["meta"]["has_user_id"] is False
+
+
+def test_post_to_planner_packs_when_token_but_no_user_id(tmp_path, monkeypatch):
+    monkeypatch.delenv("GHL_USER_ID", raising=False)
+    artifacts = [_artifact_file(tmp_path, "facebook_post", "View this property.")]
+    channels = channel_matrix(_record())
+    result = post_to_planner("3060", artifacts, channels, token="TESTTOKEN")
+    assert result.mode == "ready_to_post_pack"
+    assert result.posted is False
+    assert "user id" in result.reason.lower()
+
+
+class _FakeHTTP:
+    """Captures the outgoing request instead of hitting the network."""
+
+    def __init__(self, status_code=201, payload=None):
+        self._status = status_code
+        self._payload = payload or {"_id": "post123", "status": "draft"}
+        self.calls: list = []
+
+    def request(self, method, url, headers=None, json=None, timeout=None):
+        self.calls.append({"method": method, "url": url, "json": json})
+        payload, status = self._payload, self._status
+
+        class _Resp:
+            status_code = status
+            text = ""
+
+            def json(self):
+                return payload
+
+        return _Resp()
+
+    def close(self):
+        pass
+
+
+def test_post_to_planner_posts_draft_via_injected_client(tmp_path):
+    artifacts = [_artifact_file(tmp_path, "facebook_post", "View this property.")]
+    channels = channel_matrix(_record())
+    http = _FakeHTTP()
+    result = post_to_planner(
+        "3060", artifacts, channels,
+        token="TESTTOKEN", user_id="USER123", status="draft", client=http,
+    )
+    assert result.mode == "posted" and result.posted is True
+    # Exactly one call went out, carrying the userId and the draft status.
+    assert len(http.calls) == 1
+    sent = http.calls[0]["json"]
+    assert sent["userId"] == "USER123"
+    assert sent["status"] == "draft"
+    # The token is attached to the live headers, never stored on result.request.
+    assert result.request["headers"]["Authorization"] == "Bearer <token>"

@@ -622,6 +622,17 @@ _PNG_1X1 = (
 )
 
 
+def _png_of(width: int, height: int) -> bytes:
+    """A real PNG of a given pixel size, for the low-res-warning tests."""
+    import io
+
+    from PIL import Image
+
+    buf = io.BytesIO()
+    Image.new("RGB", (width, height), (200, 180, 120)).save(buf, format="PNG")
+    return buf.getvalue()
+
+
 def _seed_live_no_photos(dp: str) -> None:
     """Golden clone at ``live`` with its photos cleared, so uploads start clean."""
     _needs_golden()
@@ -799,6 +810,47 @@ def test_advert_preview_img_points_at_serve_route():
     html = client.get(f"/gates/{dp}/ads/artifact/demo_ad").text
     # resolves to /gates/{dp}/ads/photos/front.png in the sandboxed preview iframe
     assert 'src="../photos/front.png"' in html
+
+
+def test_photo_low_res_warns_but_still_saves():
+    dp = "7320"
+    _seed_live_no_photos(dp)
+    client = _client()
+    _login_admin(client)
+    # A small photo (like the PDF thumbnails) is flagged but not blocked.
+    body = client.post(
+        f"/gates/{dp}/ads/photos/upload",
+        files=[("files", ("tiny.png", _png_of(276, 207), "image/png"))],
+    ).text
+    assert "Low-res" in body        # warned
+    assert "276x207" in body        # shows the actual size
+    # non-blocking: it was still saved and used as the lead
+    assert _public_view(dp)["marketing"]["hero_photo"] == "photos/tiny.png"
+
+
+def test_photo_full_res_not_flagged():
+    dp = "7321"
+    _seed_live_no_photos(dp)
+    client = _client()
+    _login_admin(client)
+    body = client.post(
+        f"/gates/{dp}/ads/photos/upload",
+        files=[("files", ("big.png", _png_of(1200, 1200), "image/png"))],
+    ).text
+    assert "Low-res" not in body    # 1200px shorter side clears the 1080 bar
+
+
+def test_image_dimensions_none_for_unreadable(tmp_path):
+    from webapp.routes.gates import _image_dimensions
+
+    good = tmp_path / "good.png"
+    good.write_bytes(_png_of(1200, 800))
+    assert _image_dimensions(good) == (1200, 800)
+
+    bad = tmp_path / "broken.png"
+    bad.write_bytes(b"not really a png")
+    assert _image_dimensions(bad) is None            # corrupt -> no false warning
+    assert _image_dimensions(tmp_path / "missing.png") is None  # absent -> no crash
 
 
 # --- smoke boot (real lifespan: worker start/stop) -----------------------

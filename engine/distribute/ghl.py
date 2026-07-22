@@ -1,6 +1,6 @@
 """GoHighLevel Social Planner posting scaffold (M6, D11).
 
-Decision D11 routes v1 social posting (Facebook, Instagram, LinkedIn, TikTok, X)
+Decision D11 routes v1 social posting (Facebook, Instagram, LinkedIn, X)
 through GoHighLevel's Social Planner API: one call posts to every connected page
 after gate 3. This module builds that call and fires it via ``httpx`` when a GHL
 Private Integration token is configured, and degrades to a "ready-to-post pack"
@@ -11,19 +11,20 @@ calls out, never hangs and never raises: it returns a pack result and logs the
 intent, leaving a human to complete the post. The token, location (sub-account)
 and per-channel social-account ids come from platform settings.
 
-# PLACEHOLDER(Q10/Q13, D11): needs a GHL Private Integration token + the Dynamic
-# Solutions sub-account (location id) + the connected social-account ids, plus a
-# hosting URL for rendered media (GHL Social Planner requires publicly reachable
-# media URLs). Live calls are therefore unverified against the real endpoint.
+# The token, location id, connected account ids and a planner userId (GHL_USER_ID)
+# are wired, and the endpoint is VERIFIED LIVE (D27): a draft post was created
+# against the real API. The one remaining gap is a public hosting URL for
+# rendered media (GHL Social Planner requires publicly reachable media URLs), so
+# live posts are text-only until media hosting lands (Q10/Q13).
 
 SPEC section 12 step 8 reality (encoded in the checklist and the delete caveat):
 GHL "delete" only cleans the Social Planner queue. It does not remove posts that
-are already live on the connected pages, and Instagram and TikTok expose no
-delete API at all. So a changed live post is handled by regenerate-and-repost (a
-"REDUCED" update) rather than a silent edit, and removing an already-live IG or
-TikTok post stays a manual moment. The approval gates are what prevent the need
-to recall; an optional later refinement is a 15 to 30 minute publish delay so a
-pre-live recall button can exist.
+are already live on the connected pages, and Instagram exposes no delete API at
+all. So a changed live post is handled by regenerate-and-repost (a "REDUCED"
+update) rather than a silent edit, and removing an already-live Instagram post
+stays a manual moment. The approval gates are what prevent the need to recall;
+an optional later refinement is a 15 to 30 minute publish delay so a pre-live
+recall button can exist.
 """
 
 from __future__ import annotations
@@ -53,7 +54,6 @@ GHL_SOCIAL_CHANNELS: tuple[str, ...] = (
     "facebook",
     "instagram",
     "linkedin",
-    "tiktok",
     "x",
 )
 
@@ -61,9 +61,9 @@ GHL_SOCIAL_CHANNELS: tuple[str, ...] = (
 # limitation is never a surprise.
 DELETE_CAVEAT = (
     "GHL delete only clears the Social Planner queue. It does not remove posts "
-    "already live on the connected pages, and Instagram and TikTok have no delete "
-    "API. Changed live posts are handled by regenerate-and-repost (a REDUCED "
-    "update); removing a live IG or TikTok post is a manual step."
+    "already live on the connected pages, and Instagram has no delete API. "
+    "Changed live posts are handled by regenerate-and-repost (a REDUCED update); "
+    "removing a live Instagram post is a manual step."
 )
 
 
@@ -162,11 +162,14 @@ def _caption_for(artifacts: List[Any], dp: str) -> str:
 
 
 def _media_entries(artifacts: List[Any]) -> tuple[List[Dict[str, str]], List[str]]:
-    """Build the Social Planner media list plus notes for non-postable artifacts.
+    """Build the Social Planner media list plus notes for non-image artifacts.
 
-    GHL needs publicly reachable image/video URLs. Local artifact paths are used
-    as the ``url`` here with a hosting PLACEHOLDER; HTML/SVG artifacts (the demo
-    ad, banners, boards) cannot be posted as-is and are noted for rasterising.
+    The pipeline auto-posts static images only (D24): video is out of scope and
+    is never sent to the API. GHL needs publicly reachable image URLs; local
+    artifact paths are used as the ``url`` here with a hosting PLACEHOLDER. Any
+    non-image artifact (the HTML/SVG demo ad, banners, boards, or anything else)
+    is not posted and is noted instead, so a human rasterises the graphics and
+    handles anything that is not a static image.
     """
     media: List[Dict[str, str]] = []
     notes: List[str] = []
@@ -178,12 +181,10 @@ def _media_entries(artifacts: List[Any]) -> tuple[List[Dict[str, str]], List[str
             continue
         if mime.startswith("image/"):
             media.append({"url": path, "type": "image"})
-        elif mime.startswith("video/"):
-            media.append({"url": path, "type": "video"})
         else:
             notes.append(
-                f"{fmt or path} ({mime or 'unknown type'}) needs rasterising to "
-                "an image before it can be posted"
+                f"{fmt or path} ({mime or 'unknown type'}) is not a static image "
+                "and is not auto-posted; convert graphics to an image first"
             )
     return media, notes
 
@@ -224,7 +225,8 @@ def build_planner_request(
     location_id: Optional[str] = None,
     account_map: Optional[Dict[str, str]] = None,
     schedule_date: Optional[str] = None,
-    status: str = "published",
+    status: Optional[str] = None,
+    user_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Build the GHL Social Planner create-post request shape, without any token.
 
@@ -232,10 +234,16 @@ def build_planner_request(
     ``json`` (the request body), plus ``meta`` for callers (resolved channels and
     any media notes). The token is deliberately absent here; it is attached only
     at call time in ``post_to_planner`` so this function stays pure and testable
-    offline. The endpoint follows GHL's social-media-posting API (see PLACEHOLDER
-    for the unverified live shape).
+    offline.
+
+    ``status`` defaults to ``GHL_POST_STATUS`` then ``published``; set it to
+    ``draft`` (env or arg) to stage posts without publishing. ``user_id`` is the
+    GHL planner user that owns the post - the create API rejects the call without
+    it (HTTP 422) - and defaults to ``GHL_USER_ID``.
     """
     location = location_id or os.getenv("GHL_LOCATION_ID") or "PLACEHOLDER_location_id"
+    user = user_id or os.getenv("GHL_USER_ID")
+    resolved_status = status or os.getenv("GHL_POST_STATUS") or "published"
     social = _social_channels(channels)
     resolved_map = _resolve_account_map(account_map)
     account_ids = _account_ids(social, resolved_map)
@@ -246,8 +254,10 @@ def build_planner_request(
         "summary": _caption_for(artifacts, dp),
         "media": media,
         "type": "post",
-        "status": status,
+        "status": resolved_status,
     }
+    if user:
+        body["userId"] = user
     if schedule_date:
         body["scheduleDate"] = schedule_date
 
@@ -270,6 +280,8 @@ def build_planner_request(
             "channels": social,
             "account_ids": account_ids,
             "media_notes": media_notes,
+            "status": resolved_status,
+            "has_user_id": bool(user),
         },
     }
 
@@ -286,6 +298,8 @@ def post_to_planner(
     location_id: Optional[str] = None,
     account_map: Optional[Dict[str, str]] = None,
     schedule_date: Optional[str] = None,
+    status: Optional[str] = None,
+    user_id: Optional[str] = None,
     client: Any = None,
     timeout: float = 30.0,
 ) -> PlannerResult:
@@ -306,6 +320,10 @@ def post_to_planner(
         location_id: GHL sub-account (location) id; falls back to ``GHL_LOCATION_ID``.
         account_map: channel -> social-account id; falls back to ``GHL_ACCOUNT_MAP``.
         schedule_date: optional ISO schedule time; omit to post immediately.
+        status: ``published`` (default) or ``draft``; falls back to ``GHL_POST_STATUS``.
+        user_id: GHL planner user id (required by the create API); falls back to
+            ``GHL_USER_ID``. Without it the call would 422, so a missing id parks
+            a pack instead of failing the send.
         client: an optional injected HTTP client (for testing the posting path).
         timeout: per-request timeout in seconds.
     """
@@ -317,6 +335,8 @@ def post_to_planner(
         location_id=location_id,
         account_map=account_map,
         schedule_date=schedule_date,
+        status=status,
+        user_id=user_id,
     )
     social: List[str] = request["meta"]["channels"]
     artifact_paths = [
@@ -355,6 +375,14 @@ def post_to_planner(
         return _pack(
             "ready_to_post_pack",
             "no Social Planner channels enabled in the routing matrix",
+        )
+
+    if not request["meta"]["has_user_id"]:
+        # The create API 422s without a userId; park a pack rather than fail the
+        # send, so a misconfigured install degrades like a missing token.
+        return _pack(
+            "ready_to_post_pack",
+            "no GHL planner user id configured (set GHL_USER_ID or pass user_id=...)",
         )
 
     # Token present: attempt the real call, but still degrade gracefully. The

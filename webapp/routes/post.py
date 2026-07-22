@@ -3,7 +3,7 @@
 After gate 3 (client approval) a property is distributed. This screen triggers
 that distribution and handles the one operational reality SPEC section 12 step 8
 calls out: a change to a live post is a regenerate-and-repost, and a live
-Instagram or TikTok post can only be removed by hand.
+Instagram post can only be removed by hand.
 
 Two actions:
 
@@ -41,7 +41,7 @@ _TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
 # The GHL Social Planner channels (D11); everything else is a manual/pack channel.
-_SOCIAL = {"facebook", "instagram", "linkedin", "tiktok", "x"}
+_SOCIAL = {"facebook", "instagram", "linkedin", "x"}
 
 # SPEC section 12 step 8 reality, surfaced verbatim so the delete limit is no
 # surprise. Single source of truth: import the leaf constant from ghl (gates.py
@@ -210,8 +210,8 @@ async def trigger_distribution(
     # channel_status) until the record is postable. A first listing needs client
     # approval (gate 3). A small-edit repost (state "updated") instead needs one
     # internal approval recorded since its last edit, and an explicit
-    # confirmation that the old IG/TikTok posts were deleted by hand (they have
-    # no delete API, SPEC 12 step 8).
+    # confirmation that the old Instagram posts were deleted by hand (no delete
+    # API, SPEC 12 step 8).
     _POSTABLE = {"client_approved", "assets_built", "live", "updated"}
     from engine.store import RecordStore as _RS
 
@@ -238,8 +238,8 @@ async def trigger_distribution(
         if not form.get("deleted_old_posts"):
             return _blocked(
                 request, db_path, dp, _current,
-                "Confirm you have manually deleted the old Instagram and TikTok "
-                "posts before reposting (they have no delete API).",
+                "Confirm you have manually deleted the old Instagram posts "
+                "before reposting (Instagram has no delete API).",
             )
 
     distribute = _load_distribute()

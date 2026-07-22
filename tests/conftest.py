@@ -23,6 +23,32 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 
+# --- hermetic environment (no live external calls in the suite) ----------
+
+# engine.extract / engine.cli call load_dotenv() at import, which pulls a
+# developer's real .env (Anthropic + GoHighLevel credentials) into os.environ
+# for the whole pytest session. Left in place, a distribution test that reaches
+# post_to_planner's real-call path would fire a LIVE social post. This autouse
+# fixture strips every external credential before each test, so the suite stays
+# offline and credential-free as documented; a test that needs one sets it
+# explicitly via monkeypatch.
+_EXTERNAL_CRED_VARS = (
+    "ANTHROPIC_API_KEY",
+    "GHL_API_TOKEN",
+    "GHL_LOCATION_ID",
+    "GHL_ACCOUNT_MAP",
+    "GHL_USER_ID",
+    "GHL_POST_STATUS",
+)
+
+
+@pytest.fixture(autouse=True)
+def _hermetic_env(monkeypatch):
+    for var in _EXTERNAL_CRED_VARS:
+        monkeypatch.delenv(var, raising=False)
+    yield
+
+
 # --- golden record (committed) -------------------------------------------
 
 GOLDEN_RECORD = REPO_ROOT / "DP3060" / "record.json"

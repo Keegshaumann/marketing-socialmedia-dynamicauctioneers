@@ -33,7 +33,7 @@ from __future__ import annotations
 import json
 from datetime import date
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
@@ -380,7 +380,7 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
             "terms": "\n".join(sale.get("terms") or []),
             "is_update": state in ("live", "updated"),
             "delete_caveat": DELETE_CAVEAT,
-            "photos": _photo_view(dp, record),
+            "photos": _photo_view(db_path, dp, record),
             "approval_email": email_html,
             "links": links,
         },
@@ -415,6 +415,28 @@ _IMAGE_MIME = {
 _CTYPE_EXT = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/gif": ".gif"}
 _MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image
 _MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected
+# A photo is flagged low-res (a non-blocking warning) when its shorter side is
+# under this. Social feeds render around 1080px wide, so smaller images upscale
+# and look soft. The photos extracted from a Property Report PDF are often tiny
+# thumbnails (DP3060: ~276x207), which is exactly what this warns about.
+_MIN_PHOTO_PX = 1080
+
+
+def _image_dimensions(path: Path) -> Optional[Tuple[int, int]]:
+    """Return (width, height) of an image file, or None if it cannot be read.
+
+    Uses Pillow's lazy header read (no full decode). Any failure (missing file,
+    unreadable/corrupt image) returns None so the caller simply shows no warning
+    rather than breaking the panel.
+    """
+    try:
+        from PIL import Image
+
+        with Image.open(path) as img:
+            width, height = img.size
+        return int(width), int(height)
+    except Exception:  # noqa: BLE001 - a bad/missing image just yields no warning
+        return None
 
 
 def _photos_dir(db_path: str, dp: str) -> Path:
@@ -445,12 +467,28 @@ def _photo_list(record: PropertyRecord) -> List[str]:
     return uniq
 
 
-def _photo_view(dp: str, record: PropertyRecord) -> List[Dict[str, Any]]:
-    """Panel view-model: one tile per photo (name, thumbnail url, is_hero)."""
+def _photo_view(db_path: str, dp: str, record: PropertyRecord) -> List[Dict[str, Any]]:
+    """Panel view-model: one tile per photo (name, url, is_hero, low-res warning).
+
+    Each tile carries the pixel size and a ``low_res`` flag (shorter side under
+    ``_MIN_PHOTO_PX``) so the panel can warn on a soft image without blocking it.
+    Dimensions that cannot be read leave ``low_res`` False (no false alarm).
+    """
+    photos_dir = _photos_dir(db_path, dp)
     tiles: List[Dict[str, Any]] = []
     for i, path in enumerate(_photo_list(record)):
         name = Path(path).name
-        tiles.append({"name": name, "url": f"/gates/{dp}/ads/photos/{name}", "is_hero": i == 0})
+        dims = _image_dimensions(photos_dir / name)
+        low_res = dims is not None and min(dims) < _MIN_PHOTO_PX
+        tiles.append(
+            {
+                "name": name,
+                "url": f"/gates/{dp}/ads/photos/{name}",
+                "is_hero": i == 0,
+                "dims": f"{dims[0]}x{dims[1]}" if dims else None,
+                "low_res": low_res,
+            }
+        )
     return tiles
 
 
@@ -471,7 +509,7 @@ def _photo_result(request: Request, db_path: str, dp: str, toast: Dict[str, Any]
     return templates.TemplateResponse(
         request,
         "partials/_gate2_photo_result.html",
-        {"dp": dp, "tiles": _gallery(db_path, dp), "photos": _photo_view(dp, record), "toast": toast},
+        {"dp": dp, "tiles": _gallery(db_path, dp), "photos": _photo_view(db_path, dp, record), "toast": toast},
     )
 
 
