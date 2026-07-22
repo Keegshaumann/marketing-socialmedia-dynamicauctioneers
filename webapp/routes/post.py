@@ -320,12 +320,39 @@ async def trigger_distribution(
         except Exception as exc:  # never let pack building break the flow
             notes.append(f"pack build skipped ({type(exc).__name__})")
 
+        # The post's images: the property's hero photo + first two gallery
+        # shots, resolved to on-disk paths (the engine uploads them to the GHL
+        # Media Library and posts the hosted URLs).
+        photo_paths: List[str] = []
+        try:
+            from engine.store import RecordStore as _RS2
+
+            _photo_store = _RS2(db_path)
+            try:
+                _rec = _photo_store.get(dp)
+            finally:
+                _photo_store.close()
+            marketing = getattr(_rec, "marketing", None)
+            picks = []
+            if marketing is not None:
+                if marketing.hero_photo:
+                    picks.append(marketing.hero_photo)
+                picks.extend((marketing.gallery or [])[:2])
+            base = Path(output_root) / f"DP{dp}"
+            photo_paths = [
+                str(p if p.is_absolute() else base / p)
+                for p in (Path(raw) for raw in picks if raw)
+            ]
+        except Exception:
+            photo_paths = []  # no photos is fine; the post goes out text-first
+
         # Attempt the social post (parks a ready-to-post pack when no token). The
         # engine applies the GHL_POST_STATUS draft guard rail on top of the choice.
         try:
             result = distribute.post_to_planner(
                 dp, artifacts, matrix, token=token,
                 status=requested_status, schedule_date=schedule_iso,
+                photo_paths=photo_paths,
             )
             posted_social = bool(getattr(result, "posted", False))
             meta = (getattr(result, "request", None) or {}).get("meta", {})

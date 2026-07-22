@@ -26,6 +26,7 @@ to ``verified`` when no flags are raised.
 
 from __future__ import annotations
 
+import json
 import os
 import sqlite3
 from datetime import datetime, timezone
@@ -242,14 +243,40 @@ class RecordStore:
 
     # --- reads -----------------------------------------------------------
 
+    # Fields removed from the schema after records were already stored with
+    # them. ``extra="forbid"`` would refuse to load such a record outright, so
+    # the loader strips these known-legacy dotted paths before validation - a
+    # record written before the change stays readable (and loses the dead field
+    # on its next save). D19 removed the broadcast channel.
+    _LEGACY_PATHS: tuple = (
+        ("marketing", "channel_routing", "whatsapp_broadcast"),
+    )
+
+    @classmethod
+    def _strip_legacy(cls, data: dict) -> dict:
+        for path in cls._LEGACY_PATHS:
+            node = data
+            for key in path[:-1]:
+                node = node.get(key) if isinstance(node, dict) else None
+                if node is None:
+                    break
+            if isinstance(node, dict):
+                node.pop(path[-1], None)
+        return data
+
     def get(self, dp: str) -> Optional[PropertyRecord]:
-        """Return the stored ``PropertyRecord`` for ``dp``, or ``None``."""
+        """Return the stored ``PropertyRecord`` for ``dp``, or ``None``.
+
+        Tolerates records stored under an older schema: known-removed fields
+        are stripped before validation (see ``_LEGACY_PATHS``).
+        """
         row = self.conn.execute(
             "SELECT record_json FROM records WHERE dp = ?", (dp,)
         ).fetchone()
         if row is None:
             return None
-        return PropertyRecord.model_validate_json(row["record_json"])
+        data = json.loads(row["record_json"])
+        return PropertyRecord.model_validate(self._strip_legacy(data))
 
     def get_state(self, dp: str) -> Optional[str]:
         """Return the current lifecycle state for ``dp``, or ``None``."""

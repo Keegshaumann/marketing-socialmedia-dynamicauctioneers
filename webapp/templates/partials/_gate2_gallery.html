@@ -5,8 +5,26 @@
       <div class="tile__body">
         {% if t.is_text %}
           <pre style="white-space:pre-wrap;max-height:240px;overflow:auto;margin:0;font-size:12px;line-height:1.5">{{ t.preview }}</pre>
+        {% elif t.is_image %}
+          {# The rendered design itself (e.g. the Canva-exported PNG): visible
+             right here, no Canva login needed. Click opens it full size. #}
+          <a href="{{ t.src }}" target="_blank" rel="noopener" title="Open {{ t.label }} full size">
+            <img src="{{ t.src }}" alt="{{ t.label }} render" loading="lazy"
+                 style="width:100%;height:240px;object-fit:contain;display:block;background:#fff">
+          </a>
+        {% elif t.is_pdf %}
+          <object data="{{ t.src }}" type="application/pdf"
+                  style="width:100%;height:240px;display:block;background:#fff">
+            <div class="empty" style="height:240px;display:flex;align-items:center;justify-content:center">
+              <div class="empty__text">PDF render - use Open to view it.</div>
+            </div>
+          </object>
         {% else %}
-          <iframe src="{{ t.src }}" title="{{ t.label }} preview" loading="lazy" sandbox=""
+          {# allow-same-origin (and nothing else: no scripts) so the preview's
+             auth-gated <img src="../photos/..."> requests carry the session
+             cookie; a fully opaque sandbox loads the ad but breaks its photos. #}
+          <iframe src="{{ t.src }}" title="{{ t.label }} preview" loading="lazy"
+                  sandbox="allow-same-origin"
                   style="width:100%;height:240px;border:0;background:#fff"></iframe>
         {% endif %}
       </div>

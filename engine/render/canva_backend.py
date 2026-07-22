@@ -40,6 +40,7 @@ import base64
 import json
 import os
 import re
+import sys
 import time
 import urllib.error
 import urllib.parse
@@ -494,10 +495,16 @@ class CanvaBackend(RenderBackend):
     # --- export + download ----------------------------------------------
 
     def _export_format(self, fmt: str) -> Tuple[str, str, str]:
-        """Return ``(canva_export_type, file_ext, mime)`` for a format."""
-        if fmt == "webapp_icon":
-            return ("png", "png", "image/png")
-        return ("pdf", "pdf", "application/pdf")
+        """Return ``(canva_export_type, file_ext, mime)`` for a format.
+
+        PNG is the default: it previews inline in the gate-2 gallery (no Canva
+        login needed to see the design) and is attachable as post media
+        (D24 static images). The info pack keeps PDF - it is a multi-page
+        print/email document, not a social image.
+        """
+        if fmt == "info_pack":
+            return ("pdf", "pdf", "application/pdf")
+        return ("png", "png", "image/png")
 
     def _export_design(
         self, access_token: str, design_id: str, fmt: str
@@ -517,6 +524,17 @@ class CanvaBackend(RenderBackend):
         urls = job.get("urls") or []
         if not urls:
             raise RuntimeError("Canva export produced no download URL.")
+        if len(urls) > 1:
+            # A PNG export of a multi-page design yields one URL per page; a
+            # PDF carries every page in one file. Our social/preview formats
+            # are single-page templates, so page 1 is the design - but if a
+            # template ever grows pages, say so instead of silently dropping
+            # them (map such a format to PDF in _export_format).
+            print(
+                f"warning: Canva export of {fmt} returned {len(urls)} pages; "
+                "using page 1 only",
+                file=sys.stderr,
+            )
         return urls[0], ext, mime
 
     def _download(self, url: str, request: RenderRequest, ext: str) -> Path:

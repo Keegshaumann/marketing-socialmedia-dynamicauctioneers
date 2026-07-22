@@ -278,16 +278,35 @@ def test_post_to_planner_packs_when_token_but_no_user_id(tmp_path, monkeypatch):
 
 
 class _FakeHTTP:
-    """Captures the outgoing request instead of hitting the network."""
+    """Captures the outgoing request instead of hitting the network.
 
-    def __init__(self, status_code=201, payload=None):
+    Dispatches on URL: the media upload endpoint returns a hosted URL, the
+    create-post endpoint returns a draft - so one fake serves the whole
+    upload-then-post flow.
+    """
+
+    def __init__(self, status_code=201, payload=None, media_status=200, media_fail=()):
         self._status = status_code
         self._payload = payload or {"_id": "post123", "status": "draft"}
+        self._media_status = media_status
+        self._media_fail = set(media_fail)  # filenames whose upload 500s
         self.calls: list = []
+        self.media_uploads: list = []
 
-    def request(self, method, url, headers=None, json=None, timeout=None):
-        self.calls.append({"method": method, "url": url, "json": json})
-        payload, status = self._payload, self._status
+    def request(self, method, url, headers=None, json=None, timeout=None, **kwargs):
+        if "/medias/upload-file" in url:
+            name = None
+            files = kwargs.get("files") or {}
+            if "file" in files:
+                name = files["file"][0]
+            self.media_uploads.append(name)
+            if name in self._media_fail:
+                status, payload = 500, {}
+            else:
+                status, payload = self._media_status, {"url": f"https://cdn.test/{name}"}
+        else:
+            self.calls.append({"method": method, "url": url, "json": json})
+            status, payload = self._status, self._payload
 
         class _Resp:
             status_code = status
@@ -368,3 +387,135 @@ def test_post_to_planner_posts_draft_via_injected_client(tmp_path):
     assert sent["status"] == "draft"
     # The token is attached to the live headers, never stored on result.request.
     assert result.request["headers"]["Authorization"] == "Bearer <token>"
+
+
+# --- media hosting (GHL Media Library -> public URLs on the post) ---------
+
+
+def _png_file(tmp_path, name: str) -> str:
+    path = tmp_path / name
+    path.write_bytes(
+        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+        b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00"
+        b"\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+    )
+    return str(path)
+
+
+def test_postable_images_orders_photos_first_and_excludes_vectors(tmp_path):
+    from engine.distribute.ghl import _postable_images
+    from engine.render.base import Artifact
+
+    hero = _png_file(tmp_path, "hero.png")
+    demo = _png_file(tmp_path, "demo_ad.png")
+    art_png = Artifact(dp="3060", fmt="demo_ad", backend="canva", path=demo, mime="image/png")
+    art_svg = Artifact(dp="3060", fmt="webapp_icon", backend="html",
+                       path=str(tmp_path / "icon.svg"), mime="image/svg+xml")
+    art_html = Artifact(dp="3060", fmt="saia_banner", backend="html",
+                        path=str(tmp_path / "banner.html"), mime="text/html")
+
+    images, notes = _postable_images([art_png, art_svg, art_html], [hero, str(tmp_path / "gone.png")])
+    assert images == [hero, demo]  # photo first, then the raster artifact
+    joined = " ".join(notes)
+    assert "vector" in joined            # SVG excluded with a note, never attached
+    assert "not found" in joined         # missing photo skipped with a note
+
+
+def test_postable_images_caps_at_four(tmp_path):
+    from engine.distribute.ghl import MAX_POST_IMAGES, _postable_images
+
+    photos = [_png_file(tmp_path, f"p{i}.png") for i in range(6)]
+    images, notes = _postable_images([], photos)
+    assert len(images) == MAX_POST_IMAGES
+    assert any("attaching the first" in n for n in notes)
+
+
+def test_upload_media_returns_hosted_url_and_none_on_failure(tmp_path):
+    from engine.distribute.ghl import upload_media
+
+    png = _png_file(tmp_path, "hero.png")
+    ok = _FakeHTTP()
+    assert upload_media(png, "TOKEN", client=ok) == "https://cdn.test/hero.png"
+    bad = _FakeHTTP(media_status=500)
+    assert upload_media(png, "TOKEN", client=bad) is None
+    # Non-image and missing files never upload.
+    assert upload_media(str(tmp_path / "x.svg"), "TOKEN", client=ok) is None
+
+
+def test_post_carries_hosted_urls_never_local_paths(tmp_path):
+    artifacts = [
+        _artifact_file(tmp_path, "facebook_post", "View this property."),
+    ]
+    hero = _png_file(tmp_path, "hero.png")
+    http = _FakeHTTP()
+    result = post_to_planner(
+        "3060", artifacts, channel_matrix(_record()),
+        token="TESTTOKEN", user_id="USER123", status="draft",
+        photo_paths=[hero], client=http,
+    )
+    assert result.posted is True
+    assert http.media_uploads == ["hero.png"]        # the photo was hosted first
+    sent = http.calls[-1]["json"]
+    assert sent["media"] == [{"url": "https://cdn.test/hero.png", "type": "image"}]
+    assert all("cdn.test" in m["url"] for m in sent["media"])  # no local paths
+
+
+def test_failed_upload_still_posts_text_first(tmp_path):
+    artifacts = [_artifact_file(tmp_path, "facebook_post", "View this property.")]
+    hero = _png_file(tmp_path, "hero.png")
+    http = _FakeHTTP(media_status=500)  # hosting down, posting up
+    result = post_to_planner(
+        "3060", artifacts, channel_matrix(_record()),
+        token="TESTTOKEN", user_id="USER123", status="draft",
+        photo_paths=[hero], client=http,
+    )
+    assert result.posted is True                      # the post still went out
+    assert http.calls[-1]["json"]["media"] == []      # just without the image
+    assert any("could not be hosted" in n for n in result.request["meta"]["media_notes"])
+
+
+def test_partial_upload_failure_note_survives_the_rebuild(tmp_path):
+    # One image hosts, one fails: the post goes out with the hosted image AND
+    # the returned request still records what was dropped (the rebuild used to
+    # discard the note, so the audit read as a clean fully-imaged post).
+    artifacts = [_artifact_file(tmp_path, "facebook_post", "View this property.")]
+    hero = _png_file(tmp_path, "hero.png")
+    garden = _png_file(tmp_path, "garden.png")
+    http = _FakeHTTP(media_fail={"garden.png"})
+    result = post_to_planner(
+        "3060", artifacts, channel_matrix(_record()),
+        token="TESTTOKEN", user_id="USER123", status="draft",
+        photo_paths=[hero, garden], client=http,
+    )
+    assert result.posted is True
+    sent = http.calls[-1]["json"]
+    assert sent["media"] == [{"url": "https://cdn.test/hero.png", "type": "image"}]
+    notes = result.request["meta"]["media_notes"]
+    assert any("garden.png could not be hosted" in n for n in notes)
+    # The draft guard input also survives the rebuild.
+    assert sent["status"] == "draft"
+
+
+def test_missing_raster_artifact_is_noted_not_silent(tmp_path):
+    from engine.distribute.ghl import _postable_images
+    from engine.render.base import Artifact
+
+    gone = Artifact(dp="3060", fmt="demo_ad", backend="canva",
+                    path=str(tmp_path / "gone.png"), mime="image/png")
+    images, notes = _postable_images([gone], [])
+    assert images == []
+    assert any("not found on disk" in n for n in notes)
+
+
+def test_checklist_lists_post_images_and_labels_reference_artifacts(tmp_path):
+    from engine.distribute.ghl import build_planner_checklist
+
+    art = _artifact_file(tmp_path, "facebook_post", "Copy here.")
+    hero = _png_file(tmp_path, "hero.png")
+    steps = build_planner_checklist(
+        "3060", ["facebook"], [art], "no token", postable_images=[hero],
+    )
+    joined = "\n".join(steps)
+    assert f"Attach image: {hero}" in joined
+    assert "Copy/reference [facebook_post] (not post media)" in joined
+    assert "Attach artifact" not in joined  # the old misleading instruction is gone

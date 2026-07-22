@@ -11,3 +11,7 @@ node_modules/
 
 # local demo scaffolding (webapp Canva demo)
 .demo-run/
+# Generated render output: manifests carry live Canva edit-capability URLs and
+# machine-absolute paths; artifacts are rebuilt from the record on demand.
+DP*/artifacts/
+DP*/packs/

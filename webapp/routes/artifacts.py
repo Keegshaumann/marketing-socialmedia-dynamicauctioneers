@@ -95,17 +95,29 @@ def _load_manifest(db_path: str, dp: str) -> List[Dict[str, Any]]:
 
 
 def _artifact_view(db_path: str, dp: str) -> List[Dict[str, Any]]:
-    """Shape the manifest entries for the gallery (label, kind, view url)."""
+    """Shape the manifest entries for the gallery (label, kind, view url).
+
+    ``kind`` prefers the artifact's actual mime over the static per-format
+    table: with mixed rendering the same format can be html one pass and a
+    Canva-exported PNG the next, and an image must tile as an image.
+    """
     out: List[Dict[str, Any]] = []
     for art in _load_manifest(db_path, dp):
         fmt = art.get("fmt", "artifact")
         meta = FORMAT_META.get(fmt, {"label": fmt.replace("_", " ").title(), "kind": "text"})
+        mime = art.get("mime", "") or ""
+        if mime.startswith("image/"):
+            kind = "image"
+        elif mime == "application/pdf":
+            kind = "page"
+        else:
+            kind = meta["kind"]
         out.append(
             {
                 "fmt": fmt,
                 "label": meta["label"],
-                "kind": meta["kind"],
-                "mime": art.get("mime", ""),
+                "kind": kind,
+                "mime": mime,
                 "version": art.get("version", 1),
                 "url": f"/artifacts/{dp}/file/{fmt}",
                 "edit_url": art.get("edit_url"),

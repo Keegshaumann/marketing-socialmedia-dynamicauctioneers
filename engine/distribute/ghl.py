@@ -34,6 +34,7 @@ import logging
 import os
 import re
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:  # pragma: no cover - typing only, avoids a hard import cycle
@@ -181,32 +182,152 @@ def _caption_for(artifacts: List[Any], dp: str) -> str:
     return f"Dynamic Auctioneers - DP{dp}. Contact us for the full property pack."
 
 
-def _media_entries(artifacts: List[Any]) -> tuple[List[Dict[str, str]], List[str]]:
-    """Build the Social Planner media list plus notes for non-image artifacts.
+# The raster image types the platforms accept as post media (D24: static images
+# only). SVG is deliberately excluded: it is a vector document the social
+# platforms reject, so the webapp icon and any other SVG artifact must never be
+# attached as post media.
+_POSTABLE_IMAGE_MIMES = {"image/png", "image/jpeg", "image/webp", "image/gif"}
+_IMAGE_EXT_MIMES = {
+    ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+    ".webp": "image/webp", ".gif": "image/gif",
+}
 
-    The pipeline auto-posts static images only (D24): video is out of scope and
-    is never sent to the API. GHL needs publicly reachable image URLs; local
-    artifact paths are used as the ``url`` here with a hosting PLACEHOLDER. Any
-    non-image artifact (the HTML/SVG demo ad, banners, boards, or anything else)
-    is not posted and is noted instead, so a human rasterises the graphics and
-    handles anything that is not a static image.
+# Most platforms cap carousel media well above this; four keeps the post tight
+# and the upload cost bounded.
+MAX_POST_IMAGES = 4
+
+
+def _postable_images(
+    artifacts: List[Any], photo_paths: Optional[List[str]] = None
+) -> tuple[List[str], List[str]]:
+    """Select the local raster-image files a post may carry, in display order.
+
+    Property photos (hero first) lead, then raster image artifacts (e.g. the
+    Canva-exported demo ad PNG). Non-raster artifacts (HTML, SVG, PDF) are
+    noted, never attached (D24). Missing files are skipped with a note rather
+    than breaking the post. Capped at ``MAX_POST_IMAGES``.
     """
-    media: List[Dict[str, str]] = []
+    ordered: List[str] = []
     notes: List[str] = []
+
+    for raw in photo_paths or []:
+        if not raw:
+            continue
+        path = Path(raw)
+        if path.suffix.lower() not in _IMAGE_EXT_MIMES:
+            notes.append(f"photo {path.name} is not a raster image; skipped")
+            continue
+        if not path.is_file():
+            notes.append(f"photo {path.name} not found on disk; skipped")
+            continue
+        if str(path) not in ordered:
+            ordered.append(str(path))
+
     for artifact in artifacts:
         mime = (_artifact_attr(artifact, "mime") or "") or ""
         path = _artifact_attr(artifact, "path")
         fmt = _artifact_attr(artifact, "fmt")
         if not path:
             continue
-        if mime.startswith("image/"):
-            media.append({"url": path, "type": "image"})
+        if mime in _POSTABLE_IMAGE_MIMES:
+            if not Path(path).is_file():
+                notes.append(f"{fmt} image {Path(path).name} not found on disk; skipped")
+            elif str(path) not in ordered:
+                ordered.append(str(path))
+        elif mime.startswith("image/"):  # SVG and friends: vector, not postable
+            notes.append(f"{fmt} ({mime}) is a vector image; not attached to posts")
         else:
             notes.append(
                 f"{fmt or path} ({mime or 'unknown type'}) is not a static image "
-                "and is not auto-posted; convert graphics to an image first"
+                "and is not auto-posted"
             )
-    return media, notes
+
+    if len(ordered) > MAX_POST_IMAGES:
+        notes.append(
+            f"{len(ordered)} images available; attaching the first {MAX_POST_IMAGES}"
+        )
+        ordered = ordered[:MAX_POST_IMAGES]
+    return ordered, notes
+
+
+# --- GHL Media Library hosting -------------------------------------------
+
+GHL_MEDIA_UPLOAD_URL = f"{GHL_API_BASE}/medias/upload-file"
+
+
+def upload_media(
+    path: str | Path,
+    token: str,
+    *,
+    client: Any = None,
+    timeout: float = 60.0,
+) -> Optional[str]:
+    """Upload a local image into the GHL Media Library; return its public URL.
+
+    The Social Planner only accepts publicly reachable media URLs, so each
+    post image is first uploaded here (scope ``medias.write``). Returns the
+    hosted URL, or ``None`` on any failure - the caller then posts without the
+    image rather than failing the whole send. Never raises.
+    """
+    file_path = Path(path)
+    mime = _IMAGE_EXT_MIMES.get(file_path.suffix.lower())
+    if mime is None or not file_path.is_file():
+        return None
+    try:
+        import httpx
+
+        owns_client = client is None
+        http = client or httpx.Client(timeout=timeout)
+        try:
+            with open(file_path, "rb") as handle:
+                resp = http.request(
+                    "POST",
+                    GHL_MEDIA_UPLOAD_URL,
+                    headers={
+                        "Authorization": f"Bearer {token}",
+                        "Version": GHL_API_VERSION,
+                        "Accept": "application/json",
+                    },
+                    files={"file": (file_path.name, handle, mime)},
+                    data={"name": file_path.name},
+                    timeout=timeout,
+                )
+        finally:
+            if owns_client:
+                http.close()
+        if resp.status_code >= 400:
+            logger.warning(
+                "GHL media upload failed for %s: HTTP %s %s",
+                file_path.name, resp.status_code, resp.text[:200],
+            )
+            return None
+        payload = resp.json()
+        url = _dig_first(payload, ("url", "fileUrl", "link"))
+        if not url:
+            logger.warning("GHL media upload returned no URL for %s", file_path.name)
+        return url
+    except Exception as exc:  # noqa: BLE001 - degrade to a text-only post
+        logger.warning("GHL media upload error for %s: %s", file_path.name, exc)
+        return None
+
+
+def _dig_first(node: Any, keys: tuple[str, ...]) -> Optional[str]:
+    """Depth-first search of a JSON payload for the first non-empty key hit."""
+    if isinstance(node, dict):
+        for key in keys:
+            value = node.get(key)
+            if isinstance(value, str) and value:
+                return value
+        for value in node.values():
+            found = _dig_first(value, keys)
+            if found:
+                return found
+    elif isinstance(node, list):
+        for value in node:
+            found = _dig_first(value, keys)
+            if found:
+                return found
+    return None
 
 
 def build_planner_checklist(
@@ -214,8 +335,14 @@ def build_planner_checklist(
     channels: List[str],
     artifacts: List[Any],
     reason: str,
+    postable_images: Optional[List[str]] = None,
 ) -> List[str]:
-    """Manual steps for a human when the automated post cannot run."""
+    """Manual steps for a human when the automated post cannot run.
+
+    The attach lines mirror what the automated post would carry (D24): the
+    postable raster images. Non-image artifacts are listed as copy/reference
+    material, never as social attachments.
+    """
     steps = [
         f"Reason automated posting did not run: {reason}",
         f"Open the GHL Social Planner in the Dynamic Solutions sub-account for DP{dp}.",
@@ -224,11 +351,14 @@ def build_planner_checklist(
         steps.append("Post to: " + ", ".join(channels) + ".")
     else:
         steps.append("No social channels are enabled for this property.")
+    for image in postable_images or []:
+        steps.append(f"Attach image: {image}")
     for artifact in artifacts:
         fmt = _artifact_attr(artifact, "fmt")
         path = _artifact_attr(artifact, "path")
-        if path:
-            steps.append(f"Attach artifact [{fmt}]: {path}")
+        mime = (_artifact_attr(artifact, "mime") or "") or ""
+        if path and mime not in _POSTABLE_IMAGE_MIMES:
+            steps.append(f"Copy/reference [{fmt}] (not post media): {path}")
     steps.append("Use the generated copy as the caption; keep the pricing framing.")
     steps.append("If this is a change to a live post: " + DELETE_CAVEAT)
     return steps
@@ -247,6 +377,8 @@ def build_planner_request(
     schedule_date: Optional[str] = None,
     status: Optional[str] = None,
     user_id: Optional[str] = None,
+    photo_paths: Optional[List[str]] = None,
+    media_urls: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """Build the GHL Social Planner create-post request shape, without any token.
 
@@ -255,6 +387,12 @@ def build_planner_request(
     any media notes). The token is deliberately absent here; it is attached only
     at call time in ``post_to_planner`` so this function stays pure and testable
     offline.
+
+    Media: ``media_urls`` (already-hosted public URLs, from ``upload_media``)
+    populate the post's media list. Without them the body carries an empty
+    ``media`` array - GHL requires the key, and local paths are never sent -
+    while ``meta.postable_images`` lists the local raster files a caller should
+    upload (property photos first, then image artifacts; D24 static-only).
 
     Status precedence (``GHL_POST_STATUS`` is a **guard rail**, not just a
     default): the env value, when set, OVERRIDES the per-post ``status`` so a
@@ -288,7 +426,8 @@ def build_planner_request(
     social = _social_channels(channels)
     resolved_map = _resolve_account_map(account_map)
     account_ids = _account_ids(social, resolved_map)
-    media, media_notes = _media_entries(artifacts)
+    postable, media_notes = _postable_images(artifacts, photo_paths)
+    media = [{"url": url, "type": "image"} for url in (media_urls or [])]
 
     body: Dict[str, Any] = {
         "accountIds": account_ids,
@@ -321,6 +460,8 @@ def build_planner_request(
             "channels": social,
             "account_ids": account_ids,
             "media_notes": media_notes,
+            "postable_images": postable,
+            "media_count": len(media),
             "status": resolved_status,
             "requested_status": requested_status,
             "schedule_date": schedule_date,
@@ -344,6 +485,7 @@ def post_to_planner(
     schedule_date: Optional[str] = None,
     status: Optional[str] = None,
     user_id: Optional[str] = None,
+    photo_paths: Optional[List[str]] = None,
     client: Any = None,
     timeout: float = 30.0,
 ) -> PlannerResult:
@@ -354,6 +496,12 @@ def post_to_planner(
     ``PlannerResult`` in ``ready_to_post_pack`` mode: the built request shape, the
     artifact paths and a manual checklist, with the intent logged. This function
     never raises and never hangs (calls carry an explicit timeout).
+
+    Media: the post's raster images (property photos first, then image
+    artifacts such as the Canva demo-ad PNG) are uploaded to the GHL Media
+    Library first (``upload_media``) so the Social Planner receives public
+    URLs. A failed upload drops that image with a note; the post still goes
+    out (text-first, never blocked on media).
 
     Args:
         dp: property DP number.
@@ -368,6 +516,7 @@ def post_to_planner(
         user_id: GHL planner user id (required by the create API); falls back to
             ``GHL_USER_ID``. Without it the call would 422, so a missing id parks
             a pack instead of failing the send.
+        photo_paths: local property-photo paths (hero first) to host + attach.
         client: an optional injected HTTP client (for testing the posting path).
         timeout: per-request timeout in seconds.
     """
@@ -381,6 +530,7 @@ def post_to_planner(
         schedule_date=schedule_date,
         status=status,
         user_id=user_id,
+        photo_paths=photo_paths,
     )
     social: List[str] = request["meta"]["channels"]
     artifact_paths = [
@@ -403,7 +553,10 @@ def post_to_planner(
             response=response,
             reason=reason,
             artifacts=artifact_paths,
-            checklist=build_planner_checklist(dp, social, artifacts, reason),
+            checklist=build_planner_checklist(
+                dp, social, artifacts, reason,
+                postable_images=request["meta"]["postable_images"],
+            ),
         )
 
     # Scaffold path: no token, so never call out. This is the path this
@@ -428,6 +581,39 @@ def post_to_planner(
             "ready_to_post_pack",
             "no GHL planner user id configured (set GHL_USER_ID or pass user_id=...)",
         )
+
+    # Host the post images: upload each postable local file to the GHL Media
+    # Library and rebuild the request with the returned public URLs. A failed
+    # upload is noted and skipped - the post still goes out. The failure notes
+    # are re-applied to the rebuilt request, so a partially-imaged post is
+    # never reported as clean (the audit trail must show what was dropped).
+    media_urls: List[str] = []
+    upload_failure_notes: List[str] = []
+    for local in request["meta"]["postable_images"]:
+        hosted = upload_media(local, token, client=client, timeout=timeout)
+        if hosted:
+            media_urls.append(hosted)
+        else:
+            upload_failure_notes.append(
+                f"image {Path(local).name} could not be hosted; posted without it"
+            )
+    request["meta"]["media_notes"].extend(upload_failure_notes)
+    if media_urls:
+        request = build_planner_request(
+            dp,
+            artifacts,
+            channels,
+            location_id=location_id,
+            account_map=account_map,
+            schedule_date=schedule_date,
+            status=status,
+            user_id=user_id,
+            photo_paths=photo_paths,
+            media_urls=media_urls,
+        )
+        # The rebuild recomputes media_notes from the file list alone; carry
+        # the upload outcomes forward so they survive on the returned request.
+        request["meta"]["media_notes"].extend(upload_failure_notes)
 
     # Token present: attempt the real call, but still degrade gracefully. The
     # token is only attached here, never stored on the returned request.

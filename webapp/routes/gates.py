@@ -191,6 +191,11 @@ def _gallery(db_path: str, dp: str) -> List[Dict[str, Any]]:
                 "label": (fmt or "").replace("_", " ").title(),
                 "mime": mime,
                 "is_text": is_text,
+                # Raster/vector images render inline as <img>; PDFs embed in a
+                # viewer. Both mean the design is visible right here, without
+                # opening Canva or downloading anything.
+                "is_image": mime.startswith("image/"),
+                "is_pdf": mime == "application/pdf",
                 "preview": preview,
                 "src": f"/gates/{dp}/ads/artifact/{fmt}",
                 "version": art.get("version", 1),

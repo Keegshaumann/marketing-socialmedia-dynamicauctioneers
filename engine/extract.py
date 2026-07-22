@@ -52,6 +52,7 @@ from __future__ import annotations
 
 import base64
 import os
+import re
 import time
 from datetime import date
 from pathlib import Path
@@ -459,7 +460,7 @@ def extract_record(
     sources.property_report.file = str(property_report_pdf)
     parts["sources"] = sources
 
-    return PropertyRecord(
+    record = PropertyRecord(
         dp=dp,
         parent_dp=parent_dp,
         status="extracted",
@@ -469,3 +470,64 @@ def extract_record(
         compliance=Compliance(owner_pii_redacted=True),
         **parts,
     )
+    return normalize_record(record)
+
+
+# --- code-side normalization (D23 follow-up) ------------------------------
+#
+# The model reads faithfully, so it returns values the way the source prints
+# them ("2026/07/03", "Sectional Title", "RESIDENTIAL"). Canonical form is a
+# deterministic code job, not a model job: dates become ISO, title_type an
+# enum, zoning title case. Values that do not match a known shape pass through
+# untouched - normalization must never invent or drop a fact.
+
+_SLASH_DATE = re.compile(r"^(\d{4})/(\d{2})/(\d{2})$")
+
+
+def _normalize_date(value: Optional[str]) -> Optional[str]:
+    """``2026/07/03`` -> ``2026-07-03``; anything else passes through."""
+    if isinstance(value, str):
+        match = _SLASH_DATE.match(value.strip())
+        if match:
+            return "-".join(match.groups())
+    return value
+
+
+def _normalize_title_type(value: Optional[str]) -> Optional[str]:
+    """Map the sources' phrasings onto the schema's enum, else pass through."""
+    if isinstance(value, str):
+        lowered = value.strip().lower()
+        if "sectional" in lowered:
+            return "sectional"
+        if "freehold" in lowered or "full title" in lowered:
+            return "freehold"
+    return value
+
+
+def normalize_record(record: PropertyRecord) -> PropertyRecord:
+    """Canonicalize source-formatted values on an extracted record, in place."""
+    sources = record.sources
+    if sources is not None:
+        if sources.lightstone_evm is not None:
+            sources.lightstone_evm.report_date = _normalize_date(sources.lightstone_evm.report_date)
+        if sources.property_report is not None:
+            sources.property_report.figures_as_at = _normalize_date(sources.property_report.figures_as_at)
+
+    if record.identity is not None:
+        record.identity.title_type = _normalize_title_type(record.identity.title_type)
+
+    physical = record.physical
+    if physical is not None and isinstance(physical.zoning, str) and physical.zoning.isupper():
+        physical.zoning = physical.zoning.title()
+
+    valuation = record.valuation
+    if valuation is not None and valuation.same_scheme_sale is not None:
+        valuation.same_scheme_sale.sale_date = _normalize_date(valuation.same_scheme_sale.sale_date)
+
+    fin = record.financials_internal
+    if fin is not None:
+        fin.as_at = _normalize_date(fin.as_at)
+        if fin.last_sale is not None:
+            fin.last_sale.date = _normalize_date(fin.last_sale.date)
+
+    return record

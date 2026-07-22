@@ -367,6 +367,51 @@ def test_extract_section_forces_tool_on_retry(tmp_path):
     assert fake.calls[1]["tool_choice"] == {"type": "tool", "name": "record_section"}
 
 
+def test_normalize_record_canonicalizes_source_formats():
+    from engine.extract import normalize_record
+    from engine.schema import (
+        LastSale,
+        PropertyRecord as PR,
+        SameSchemeSale,
+    )
+
+    rec = PR(
+        dp="3060",
+        sources={"lightstone_evm": {"report_date": "2026/07/03"},
+                 "property_report": {"figures_as_at": "2026/07/06"}},
+        identity={"title_type": "Sectional Title"},
+        physical={"zoning": "RESIDENTIAL"},
+        valuation={"same_scheme_sale": {"sale_date": "2025/07/04"}},
+        financials_internal={"as_at": "2026/07/06", "last_sale": {"date": "2021/04/12"}},
+    )
+    out = normalize_record(rec)
+    assert out.sources.lightstone_evm.report_date == "2026-07-03"
+    assert out.sources.property_report.figures_as_at == "2026-07-06"
+    assert out.identity.title_type == "sectional"
+    assert out.physical.zoning == "Residential"
+    assert out.valuation.same_scheme_sale.sale_date == "2025-07-04"
+    assert out.financials_internal.as_at == "2026-07-06"
+    assert out.financials_internal.last_sale.date == "2021-04-12"
+
+
+def test_normalize_record_passes_unknown_shapes_through():
+    from engine.extract import normalize_record
+    from engine.schema import PropertyRecord as PR
+
+    rec = PR(
+        dp="3061",
+        sources={"lightstone_evm": {"report_date": "3 July 2026"}},  # not YYYY/MM/DD
+        identity={"title_type": "Full Title Freehold"},
+        physical={"zoning": "Mixed Use"},  # already mixed case: untouched
+    )
+    out = normalize_record(rec)
+    assert out.sources.lightstone_evm.report_date == "3 July 2026"  # never invented
+    assert out.identity.title_type == "freehold"
+    assert out.physical.zoning == "Mixed Use"
+    # A record with everything None normalizes without error.
+    assert normalize_record(PR(dp="3062")).identity is None
+
+
 def test_extract_section_raises_when_tool_never_called(tmp_path):
     lightstone = _fake_pdf(tmp_path, "l.pdf")
     report = _fake_pdf(tmp_path, "r.pdf")
