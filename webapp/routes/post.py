@@ -25,6 +25,7 @@ POPIA: the only property facts rendered here come from ``record.public_view()``.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -48,6 +49,46 @@ _SOCIAL = {"facebook", "instagram", "linkedin", "x"}
 # already imports it at top level, so it is always available) instead of keeping
 # a copy here that can drift.
 from engine.distribute.ghl import DELETE_CAVEAT as _DELETE_CAVEAT
+
+
+def _draft_lock() -> bool:
+    """True when the ``GHL_POST_STATUS=draft`` guard rail is active.
+
+    While it is on, the engine forces every post to a draft regardless of the
+    per-post choice, so nothing publishes by accident. Surfaced to the UI so the
+    operator knows their Post-now / Schedule choice will still be staged.
+    """
+    return (os.getenv("GHL_POST_STATUS") or "").strip().lower() == "draft"
+
+
+# Dynamic Auctioneers operate in South African Standard Time (UTC+2, no DST). A
+# datetime-local field is a zone-less local wall-clock, and GHL reads an
+# offset-less scheduleDate as UTC, so we stamp this offset to schedule at the
+# hour the operator actually picked.
+_SAST_OFFSET = "+02:00"
+
+
+def _posting_choice(form) -> "tuple[Optional[str], Optional[str]]":
+    """Map the post-mode form to a (status, schedule_date) request.
+
+    ``now`` -> publish immediately; ``schedule`` -> ``scheduled`` at the given
+    local datetime (stamped with the SAST offset so GHL schedules at the right
+    hour); anything else (incl. the default) -> ``draft``. The engine still
+    applies the ``GHL_POST_STATUS`` guard rail on top of this.
+    """
+    mode = (form.get("post_mode") or "draft").strip().lower()
+    if mode == "now":
+        return "published", None
+    if mode == "schedule":
+        when = (form.get("schedule_at") or "").strip()
+        if not when:
+            return "scheduled", None  # the route blocks on a missing time
+        if len(when) == 16:  # "YYYY-MM-DDTHH:MM" -> add seconds
+            when = f"{when}:00"
+        if len(when) == 19:  # zone-less local wall-clock -> stamp SAST
+            when = f"{when}{_SAST_OFFSET}"
+        return "scheduled", when
+    return "draft", None
 
 
 # --- distribute package (guarded; Phase 5 may still be a scaffold) ---------
@@ -170,6 +211,7 @@ def post_page(
             has_artifacts=bool(_load_manifest(db_path, dp)),
             distribute_available=distribute is not None,
             delete_caveat=_DELETE_CAVEAT,
+            draft_lock=_draft_lock(),
             board=_status_board(db_path, dp),
         ),
     )
@@ -242,6 +284,16 @@ async def trigger_distribution(
                 "before reposting (Instagram has no delete API).",
             )
 
+    # Post-mode choice: draft (default) / schedule / post now. Scheduling needs
+    # an actual datetime, else the engine would fall back to posting immediately.
+    requested_status, schedule_iso = _posting_choice(form)
+    if requested_status == "scheduled" and not schedule_iso:
+        return _blocked(
+            request, db_path, dp, _current,
+            "Pick a date and time to schedule the post.",
+            title="Pick a time",
+        )
+
     distribute = _load_distribute()
     output_root = _output_root(db_path)
     version = _pack_version(db_path, dp)
@@ -250,8 +302,14 @@ async def trigger_distribution(
     enabled = _enabled_channels(db_path)
     channels = [c for c in enabled if matrix.get(c)]
 
-    token = models.get_setting(db_path, "ghl_token")
+    # The engine posts with the Settings token OR the env GHL_API_TOKEN (the app
+    # loads .env), so resolve the same way here - otherwise the summary could
+    # claim "no token, nothing posted" while a live post actually fired.
+    token = models.get_setting(db_path, "ghl_token") or os.getenv("GHL_API_TOKEN")
     posted_social = False
+    effective_status: Optional[str] = None
+    status_overridden = False
+    scheduled_for: Optional[str] = None
     pack_path: Optional[str] = None
     notes: List[str] = []
 
@@ -262,10 +320,18 @@ async def trigger_distribution(
         except Exception as exc:  # never let pack building break the flow
             notes.append(f"pack build skipped ({type(exc).__name__})")
 
-        # Attempt the social post (parks a ready-to-post pack when no token).
+        # Attempt the social post (parks a ready-to-post pack when no token). The
+        # engine applies the GHL_POST_STATUS draft guard rail on top of the choice.
         try:
-            result = distribute.post_to_planner(dp, artifacts, matrix, token=token)
+            result = distribute.post_to_planner(
+                dp, artifacts, matrix, token=token,
+                status=requested_status, schedule_date=schedule_iso,
+            )
             posted_social = bool(getattr(result, "posted", False))
+            meta = (getattr(result, "request", None) or {}).get("meta", {})
+            effective_status = meta.get("status")
+            status_overridden = bool(meta.get("status_overridden"))
+            scheduled_for = meta.get("schedule_date")
         except Exception as exc:
             notes.append(f"social post skipped ({type(exc).__name__})")
     else:
@@ -292,15 +358,32 @@ async def trigger_distribution(
         pass
 
     live = state == "live"
-    if token:
+    # Drive the summary off what actually happened (posted_social), not token
+    # presence: a configured token can still fail or park a pack, and reporting
+    # success then would be a lie about DA's live pages.
+    if posted_social:
+        verb = {
+            "draft": "saved as a draft in GoHighLevel",
+            "scheduled": (
+                f"scheduled in GoHighLevel for {scheduled_for}"
+                if scheduled_for else "scheduled in GoHighLevel"
+            ),
+            "published": "posted live to the social channels",
+        }.get(effective_status or "", "sent to GoHighLevel")
         summary = (
-            "Distribution triggered. Social channels posted via GoHighLevel; "
-            "manual channels are in the ready-to-post pack."
+            f"Distribution triggered. Social channels {verb}; manual channels are "
+            "in the ready-to-post pack."
         )
+        if status_overridden:
+            summary += (
+                " Note: the draft safeguard (GHL_POST_STATUS=draft) is on, so your "
+                "choice was saved as a draft. Remove it from .env to schedule or publish."
+            )
     else:
         summary = (
-            "Distribution prepared. No GHL token configured, so every channel is "
-            "logged as ready-to-post pending live posting (Phase 5 placeholder)."
+            "Distribution prepared. The social post did not run (no GHL token or "
+            "planner user id, or the call did not succeed), so every channel is "
+            "logged as ready-to-post. Manual channels are in the pack."
         )
 
     return templates.TemplateResponse(

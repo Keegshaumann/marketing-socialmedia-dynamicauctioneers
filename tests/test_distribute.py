@@ -281,6 +281,56 @@ class _FakeHTTP:
         pass
 
 
+def test_env_lock_forces_draft_over_requested_status(monkeypatch):
+    # GHL_POST_STATUS is a guard rail: it overrides even an explicit "post now".
+    monkeypatch.setenv("GHL_POST_STATUS", "draft")
+    req = build_planner_request(
+        "3060", [], channel_matrix(_record()),
+        status="published", schedule_date="2026-07-24T17:00:00",
+    )
+    assert req["json"]["status"] == "draft"
+    assert "scheduleDate" not in req["json"]  # a draft is never scheduled
+    assert req["meta"]["status_overridden"] is True
+    assert req["meta"]["requested_status"] == "published"
+
+
+def test_env_lock_is_case_insensitive_and_trimmed(monkeypatch):
+    # A non-canonical value ("Draft" with whitespace, as a human might type in
+    # .env) must still enforce the guard rail exactly as the UI reports it.
+    monkeypatch.setenv("GHL_POST_STATUS", "  Draft ")
+    req = build_planner_request(
+        "3060", [], channel_matrix(_record()),
+        status="published", schedule_date="2026-07-24T17:00:00",
+    )
+    assert req["json"]["status"] == "draft"        # normalized, lock enforced
+    assert "scheduleDate" not in req["json"]        # a draft is never scheduled
+    assert req["meta"]["status_overridden"] is True
+
+
+def test_schedule_sets_scheduled_status_and_date():
+    req = build_planner_request(
+        "3060", [], channel_matrix(_record()),
+        status="scheduled", schedule_date="2026-07-24T17:00:00",
+    )
+    assert req["json"]["status"] == "scheduled"
+    assert req["json"]["scheduleDate"] == "2026-07-24T17:00:00"
+    assert req["meta"]["status_overridden"] is False
+
+
+def test_scheduled_without_a_date_falls_back_to_publish():
+    req = build_planner_request(
+        "3060", [], channel_matrix(_record()), status="scheduled", schedule_date=None
+    )
+    assert req["json"]["status"] == "published"
+    assert "scheduleDate" not in req["json"]
+
+
+def test_post_now_publishes_when_no_lock():
+    req = build_planner_request("3060", [], channel_matrix(_record()), status="published")
+    assert req["json"]["status"] == "published"
+    assert req["meta"]["status_overridden"] is False
+
+
 def test_post_to_planner_posts_draft_via_injected_client(tmp_path):
     artifacts = [_artifact_file(tmp_path, "facebook_post", "View this property.")]
     channels = channel_matrix(_record())

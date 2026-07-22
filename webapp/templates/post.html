@@ -55,6 +55,30 @@
         </table>
       </div>
 
+      {# ---- When to post ------------------------------------------------ #}
+      {% if draft_lock %}
+      <div class="banner banner--note mt-2">
+        {{ ui.icon('shield') }}
+        <div class="banner__body">
+          <div class="banner__title">Draft-only safeguard is on</div>
+          <div>GHL_POST_STATUS=draft is set, so posts are saved as drafts in GoHighLevel no matter which option you pick below. Remove it from .env to schedule or publish for real.</div>
+        </div>
+      </div>
+      {% endif %}
+      <fieldset id="post-mode" class="field mt-2" style="border:1px solid var(--line);border-radius:8px;padding:12px">
+        <legend class="label">When to post</legend>
+        <label class="row" style="gap:.5rem;align-items:center">
+          <input type="radio" name="post_mode" value="draft" checked><span>Save as draft</span>
+        </label>
+        <label class="row mt-1" style="gap:.5rem;align-items:center;flex-wrap:wrap">
+          <input type="radio" name="post_mode" value="schedule"><span>Schedule for</span>
+          <input class="input" type="datetime-local" name="schedule_at" style="max-width:16rem">
+        </label>
+        <label class="row mt-1" style="gap:.5rem;align-items:center">
+          <input type="radio" name="post_mode" value="now"><span>Post now</span>
+        </label>
+      </fieldset>
+
       {% if state == 'updated' %}
       <div class="banner banner--note mt-2">
         {{ ui.icon('note') }}
@@ -70,14 +94,14 @@
         </label>
         <div class="spacer"></div>
         {{ ui.button('Repost to channels', variant='gold', icon_name='send',
-           attrs='hx-post="/post/' ~ dp ~ '/distribute" hx-include="#deleted_old_posts" hx-target="#post-result" hx-swap="innerHTML" data-gold-sweep') }}
+           attrs='hx-post="/post/' ~ dp ~ '/distribute" hx-include="#post-mode, #deleted_old_posts" hx-target="#post-result" hx-swap="innerHTML" data-gold-sweep') }}
       </div>
       {% else %}
       <div class="actionbar mt-2">
-        <div class="actionbar__note">Posts after gate 3. Live posting is a placeholder pending the GHL token.</div>
+        <div class="actionbar__note">Posts after gate 3. Choose draft, schedule, or post now above.</div>
         <div class="spacer"></div>
         {{ ui.button('Trigger distribution', variant='gold', icon_name='send',
-           attrs='hx-post="/post/' ~ dp ~ '/distribute" hx-target="#post-result" hx-swap="innerHTML" data-gold-sweep') }}
+           attrs='hx-post="/post/' ~ dp ~ '/distribute" hx-include="#post-mode" hx-target="#post-result" hx-swap="innerHTML" data-gold-sweep') }}
       </div>
       {% endif %}
     </div>

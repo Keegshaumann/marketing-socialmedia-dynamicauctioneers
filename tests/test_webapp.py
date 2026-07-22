@@ -455,6 +455,75 @@ def test_repost_requires_internal_approval_then_delete_ack():
     assert _state(dp) == "live"
 
 
+def test_hermetic_env_strips_ghl_creds_despite_webapp_dotenv():
+    # webapp.main calls load_dotenv() at import; the autouse hermetic fixture MUST
+    # still guarantee no live GHL/Anthropic credentials are visible during a test,
+    # so a distribution test can never fire a live post to DA's real pages.
+    import os
+
+    import webapp.main  # noqa: F401 - ensures the module + its load_dotenv ran
+
+    for var in (
+        "GHL_API_TOKEN", "GHL_USER_ID", "GHL_LOCATION_ID",
+        "GHL_ACCOUNT_MAP", "GHL_POST_STATUS", "ANTHROPIC_API_KEY",
+    ):
+        assert os.getenv(var) in (None, ""), f"{var} leaked into a test"
+
+
+def test_post_screen_shows_when_to_post_selector():
+    dp = "7330"
+    _seed_golden_live(dp)
+    client = _client()
+    _login_admin(client)
+    body = client.get(f"/post/{dp}").text
+    assert 'name="post_mode"' in body
+    assert 'value="schedule"' in body
+    assert 'type="datetime-local"' in body
+
+
+def test_post_screen_shows_draft_lock_banner(monkeypatch):
+    monkeypatch.setenv("GHL_POST_STATUS", "draft")
+    dp = "7331"
+    _seed_golden_live(dp)
+    client = _client()
+    _login_admin(client)
+    body = client.get(f"/post/{dp}").text
+    assert "Draft-only safeguard is on" in body
+
+
+def test_distribute_schedule_without_time_is_blocked():
+    dp = "7332"
+    _seed_golden_live(dp)  # 'live' is a postable state
+    client = _client()
+    _login_admin(client)
+    r = client.post(f"/post/{dp}/distribute", data={"post_mode": "schedule"})
+    assert r.status_code == 409
+    assert "date and time" in r.text.lower()
+
+
+def test_posting_choice_stamps_sast_timezone():
+    from webapp.routes.post import _posting_choice
+
+    status, when = _posting_choice({"post_mode": "schedule", "schedule_at": "2026-07-24T17:00"})
+    assert status == "scheduled"
+    assert when == "2026-07-24T17:00:00+02:00"  # SAST, not read as UTC by GHL
+    assert _posting_choice({"post_mode": "now"}) == ("published", None)
+    assert _posting_choice({"post_mode": "draft"}) == ("draft", None)
+    assert _posting_choice({}) == ("draft", None)  # default is draft
+
+
+def test_distribute_without_token_does_not_claim_a_live_post():
+    # No token (hermetic env + empty Settings) -> the post did not run; the
+    # summary must say so, never "posted live".
+    dp = "7333"
+    _seed_golden_live(dp)
+    client = _client()
+    _login_admin(client)
+    body = client.post(f"/post/{dp}/distribute", data={"post_mode": "now"}).text
+    assert "did not run" in body.lower()
+    assert "posted live" not in body.lower()
+
+
 def test_editor_never_exposes_or_writes_popia_fields():
     dp = "7103"
     _seed_golden_live(dp)

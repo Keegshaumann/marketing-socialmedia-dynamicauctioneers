@@ -27,12 +27,19 @@ import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
 from webapp import auth, jobs, models
+
+# Load .env at import so the app's process sees the same GHL config the engine
+# uses (GHL_USER_ID, GHL_LOCATION_ID, GHL_ACCOUNT_MAP and the GHL_POST_STATUS
+# draft guard rail). This runs once at import; the test suite's autouse
+# ``_hermetic_env`` fixture strips these per-test, so tests stay offline.
+load_dotenv()
 
 logger = logging.getLogger("webapp")
 

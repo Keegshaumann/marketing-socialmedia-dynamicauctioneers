@@ -236,14 +236,35 @@ def build_planner_request(
     at call time in ``post_to_planner`` so this function stays pure and testable
     offline.
 
-    ``status`` defaults to ``GHL_POST_STATUS`` then ``published``; set it to
-    ``draft`` (env or arg) to stage posts without publishing. ``user_id`` is the
+    Status precedence (``GHL_POST_STATUS`` is a **guard rail**, not just a
+    default): the env value, when set, OVERRIDES the per-post ``status`` so a
+    ``draft`` lock keeps anything from publishing by accident. With no env lock,
+    the per-post ``status`` wins - ``draft``, ``scheduled`` (with a
+    ``schedule_date``), or ``published`` (post now). A draft is never scheduled;
+    a ``scheduled`` with no date falls back to posting now. ``user_id`` is the
     GHL planner user that owns the post - the create API rejects the call without
     it (HTTP 422) - and defaults to ``GHL_USER_ID``.
     """
     location = location_id or os.getenv("GHL_LOCATION_ID") or "PLACEHOLDER_location_id"
     user = user_id or os.getenv("GHL_USER_ID")
-    resolved_status = status or os.getenv("GHL_POST_STATUS") or "published"
+
+    # Normalize both the env guard rail and the requested status (trim +
+    # lowercase) so a non-canonical value like "Draft" or a shell-exported
+    # " draft " enforces the lock exactly as the UI's _draft_lock reports it.
+    # GHL's status enum is lowercase, so enforcement must be too.
+    env_override = (os.getenv("GHL_POST_STATUS") or "").strip().lower() or None
+    requested_status = (status or "").strip().lower() or None
+    resolved_status = (
+        env_override or requested_status or ("scheduled" if schedule_date else "published")
+    )
+    if resolved_status == "draft":
+        schedule_date = None  # a draft is never scheduled
+    elif resolved_status == "scheduled" and not schedule_date:
+        resolved_status = "published"  # "scheduled" needs a date; none -> post now
+    status_overridden = bool(
+        env_override and requested_status and env_override != requested_status
+    )
+
     social = _social_channels(channels)
     resolved_map = _resolve_account_map(account_map)
     account_ids = _account_ids(social, resolved_map)
@@ -281,6 +302,9 @@ def build_planner_request(
             "account_ids": account_ids,
             "media_notes": media_notes,
             "status": resolved_status,
+            "requested_status": requested_status,
+            "schedule_date": schedule_date,
+            "status_overridden": status_overridden,
             "has_user_id": bool(user),
         },
     }
