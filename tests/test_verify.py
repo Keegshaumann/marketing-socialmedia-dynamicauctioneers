@@ -71,6 +71,42 @@ def test_deterministic_checks_are_pure_no_key_needed(golden_record):
     assert all(isinstance(f, Flag) for f in flags)
 
 
+def test_recorded_physical_conflicts_each_raise_a_block_flag(golden_record):
+    # D32 (seen live on Erf 2035): the EVM and the inspection disagreed on the
+    # bedroom count and the building size; each recorded disagreement must gate
+    # sign-off exactly like the garage conflict does.
+    rec = golden_record.model_copy(deep=True)
+    rec.physical.conflicts = [
+        "Bedrooms: EVM comparable line says 2, inspection says 4.",
+        "Building size: EVM estimates 106 m2 under roof, inspection measures 310 m2.",
+    ]
+    flags = deterministic_checks(rec)
+    conflicts = [f for f in flags if f.code == "PHYSICAL_CONFLICT"]
+    assert len(conflicts) == 2
+    assert all(f.severity == "block" for f in conflicts)
+    assert "EVM comparable line says 2" in conflicts[0].evidence
+
+
+def test_professional_valuation_outside_evm_range_raises_note(golden_record):
+    from engine.schema import ProfessionalValuation
+
+    rec = golden_record.model_copy(deep=True)
+    rec.valuation.evm_range = [2060000.0, 2910000.0]
+    rec.valuation.professional = ProfessionalValuation(
+        market_value=3400000, forced_sale_value=2380000
+    )
+    flags = deterministic_checks(rec)
+    div = [f for f in flags if f.code == "VALUATION_DIVERGENCE"]
+    assert len(div) == 1
+    assert div[0].severity == "note"
+
+    # Inside the range: no flag.
+    rec.valuation.professional.market_value = 2500000
+    assert not [
+        f for f in deterministic_checks(rec) if f.code == "VALUATION_DIVERGENCE"
+    ]
+
+
 # --- memo ----------------------------------------------------------------
 
 def test_memo_distinguishes_block_from_note(golden_record):

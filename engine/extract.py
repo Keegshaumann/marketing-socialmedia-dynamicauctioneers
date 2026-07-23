@@ -85,10 +85,20 @@ load_dotenv()
 
 MAX_TOKENS = 16000
 
-# The single extraction tool's name. Each section call exposes one tool whose
-# input_schema IS the section's Pydantic schema; the model's tool call carries
-# the extracted fields, which we then validate with the same model.
-TOOL_NAME = "record_section"
+# Per-section extraction tool names: ``record_<section>``. Every section call
+# exposes the SAME full list of section tools (one per section, input_schema IS
+# that section's Pydantic schema) and the prompt directs which one to call; the
+# model's tool call carries the extracted fields, which we then validate with
+# the same model. The list must be identical across the six calls because tool
+# definitions serialize into the prompt prefix AHEAD of the system and message
+# blocks: a per-call tool difference invalidates the prompt cache from position
+# zero, so the two source PDFs re-tokenize on every call (seen live on the
+# Erf 2035 run: six ~57k cache writes, zero reads, ~3x the intended cost).
+TOOL_PREFIX = "record_"
+
+
+def _tool_name(section: str) -> str:
+    return TOOL_PREFIX + section
 
 # How the two source PDFs are sent to Claude:
 # - "native" (default, per SPEC tech conventions): base64 PDF document blocks,
@@ -189,7 +199,10 @@ SECTIONS: Tuple[Tuple[str, Type[_Base], str], ...] = (
         "the physical reality per the inspection: unit and mother-erf sizes, "
         "zoning, bedrooms, bathrooms, separate toilet, garages (record "
         "garages_conflict when the sources disagree), the flatlet, and the "
-        "main-unit and complex feature lists.",
+        "main-unit and complex feature lists. When the two sources disagree "
+        "on any OTHER physical fact (bedroom count, sizes, and so on), keep "
+        "the inspection's value in the field but add one line per "
+        "disagreement to conflicts; never resolve a disagreement silently.",
     ),
     (
         "valuation",
@@ -197,7 +210,10 @@ SECTIONS: Tuple[Tuple[str, Type[_Base], str], ...] = (
         "the valuation data per the Lightstone EVM: the EVM range as "
         "[low, high], suburb bands, municipal valuation and its year, "
         "estimated monthly rates, the comparables average sales price, and "
-        "the same-scheme sale if one is reported.",
+        "the same-scheme sale if one is reported. When a registered valuer's "
+        "valuation report is among the sources, also fill professional: its "
+        "market value, forced sale value, valuation date and the valuer's "
+        "name.",
     ),
     (
         "financials_internal",
@@ -271,7 +287,7 @@ def _source_block(path: str | Path, mode: str, label: str) -> dict:
 
 
 def _section_tool(section: str, model: Type[_Base]) -> dict:
-    """A single non-strict tool whose ``input_schema`` is the section's schema.
+    """One non-strict tool whose ``input_schema`` is the section's schema.
 
     Non-strict (no ``strict: True``): the model fills the schema and we validate
     the tool input with the same Pydantic model afterwards. This deliberately
@@ -280,7 +296,7 @@ def _section_tool(section: str, model: Type[_Base]) -> dict:
     "too complex" (seen live on the physical/valuation/financials sections).
     """
     return {
-        "name": TOOL_NAME,
+        "name": _tool_name(section),
         "description": (
             f"Return the `{section}` section of the property record as its "
             "structured fields. Populate only what the source documents "
@@ -288,6 +304,22 @@ def _section_tool(section: str, model: Type[_Base]) -> dict:
         ),
         "input_schema": model.model_json_schema(),
     }
+
+
+_ALL_TOOLS: Optional[list] = None
+
+
+def _all_section_tools() -> list:
+    """The full section-tool list, identical for every call (see TOOL_PREFIX).
+
+    Built once and reused so the serialized prefix is byte-stable across the
+    six section calls of a property AND across properties in one process,
+    keeping the prompt cache warm.
+    """
+    global _ALL_TOOLS
+    if _ALL_TOOLS is None:
+        _ALL_TOOLS = [_section_tool(name, model) for name, model, _ in SECTIONS]
+    return _ALL_TOOLS
 
 
 def build_request(
@@ -317,10 +349,11 @@ def build_request(
         "type": "text",
         "text": (
             "For DP " + str(dp) + ", extract ONLY the `" + section + "` section "
-            "of the property record: " + focus + " The two documents above are "
-            "the Lightstone EVM report (first) and the Dynamic Property Report "
-            "(second). Merge them per the system rules and leave any fact the "
-            "documents do not contain as null."
+            "of the property record by calling the `" + _tool_name(section) + "` "
+            "tool (ignore the other section tools on this call): " + focus + " "
+            "The two documents above are the Lightstone EVM report (first) and "
+            "the Dynamic Property Report (second). Merge them per the system "
+            "rules and leave any fact the documents do not contain as null."
         ),
     }
     lightstone_block = _source_block(lightstone_pdf, mode, "LIGHTSTONE EVM REPORT")
@@ -354,11 +387,15 @@ def build_request(
                 ],
             }
         ],
-        # tool_choice stays "auto" because it must be auto (not forced) while
-        # extended thinking is on; a single tool plus the directive above makes
-        # the call reliable. extract_record forces the tool on its retry (with
-        # thinking dropped) if the model ever answers without calling it.
-        "tools": [_section_tool(section, model)],
+        # The FULL section-tool list, identical on every call: tools serialize
+        # ahead of system/messages in the cached prefix, so a per-call tool
+        # difference would invalidate the cache from position zero and the PDFs
+        # would re-tokenize six times per property. tool_choice stays "auto"
+        # because it must be auto (not forced) while extended thinking is on;
+        # the directive above names the section's tool. extract_record forces
+        # that tool on its retry (with thinking dropped) if the model ever
+        # answers without calling it.
+        "tools": _all_section_tools(),
         "tool_choice": {"type": "auto"},
     }
 
@@ -381,9 +418,19 @@ def _extract_section(client, request: dict, section: str, model: Type[_Base]):
             # Forced tool_choice is only allowed with thinking off; dropping it
             # is an acceptable trade on the rare retry to guarantee the call.
             req.pop("thinking", None)
-            req["tool_choice"] = {"type": "tool", "name": TOOL_NAME}
+            req["tool_choice"] = {"type": "tool", "name": _tool_name(section)}
         response = client.messages.create(**req)
-        block = next((b for b in response.content if b.type == "tool_use"), None)
+        # All section tools are exposed on every call (cache-stability, see
+        # TOOL_PREFIX); only a call to THIS section's tool counts. A call to a
+        # different section's tool is treated as no call and retried forced.
+        block = next(
+            (
+                b
+                for b in response.content
+                if b.type == "tool_use" and b.name == _tool_name(section)
+            ),
+            None,
+        )
         if block is None:
             last_exc = RuntimeError(
                 f"model returned no {section} tool call (stop_reason="
@@ -523,6 +570,8 @@ def normalize_record(record: PropertyRecord) -> PropertyRecord:
     valuation = record.valuation
     if valuation is not None and valuation.same_scheme_sale is not None:
         valuation.same_scheme_sale.sale_date = _normalize_date(valuation.same_scheme_sale.sale_date)
+    if valuation is not None and valuation.professional is not None:
+        valuation.professional.valuation_date = _normalize_date(valuation.professional.valuation_date)
 
     fin = record.financials_internal
     if fin is not None:

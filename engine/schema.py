@@ -87,6 +87,13 @@ class Physical(_Base):
     separate_toilet: Optional[bool] = None
     garages: Optional[int] = None
     garages_conflict: Optional[str] = None  # set when sources disagree
+    # One line per cross-source disagreement on any OTHER physical fact (bed
+    # count, sizes...). The inspection's value stands in the field itself per
+    # the merge rule, but the disagreement must be recorded, never silently
+    # picked (seen live on Erf 2035: EVM said 2 bedrooms / 106 m2, inspection
+    # said 4 / 310 m2, and only the garage half of that line was noted). Each
+    # entry raises a blocking PHYSICAL_CONFLICT verification flag (D32).
+    conflicts: Optional[List[str]] = None
     flatlet: Optional[Flatlet] = None
     features_main: Optional[List[str]] = None
     features_complex: Optional[List[str]] = None
@@ -110,6 +117,22 @@ class SameSchemeSale(_Base):
     rand_per_m2: Optional[float] = None
 
 
+class ProfessionalValuation(_Base):
+    """A registered valuer's figures, when a valuation report is a source.
+
+    Sale-strategy data, not ad material: ``public_view()`` strips this whole
+    block (a published "forced sale value" would undercut the sale), so no
+    renderer or copy model ever sees it. It reaches the verification memo and
+    the internal gate screens only (D32).
+    """
+
+    market_value: Optional[float] = None
+    forced_sale_value: Optional[float] = None
+    valuation_date: Optional[str] = None
+    valuer: Optional[str] = None
+    note: Optional[str] = None
+
+
 class Valuation(_Base):
     evm_range: Optional[List[float]] = None  # [low, high]
     suburb_bands: Optional[SuburbBands] = None
@@ -118,6 +141,7 @@ class Valuation(_Base):
     estimated_monthly_rates: Optional[float] = None
     comparables_avg_sales_price: Optional[float] = None
     same_scheme_sale: Optional[SameSchemeSale] = None
+    professional: Optional[ProfessionalValuation] = None
 
 
 # --- financials_internal (POPIA internal layer — never rendered) ---------
@@ -242,6 +266,19 @@ def _strip_pii(data: dict) -> None:
             viewing.pop("contact_internal_only", None)
 
 
+def _strip_internal_strategy(data: dict) -> None:
+    """Remove sale-strategy figures from a projection dict, in place.
+
+    Not POPIA, but commercially sensitive: the copy model writes ads from the
+    public view, and a professional valuation's market or forced-sale value in
+    an ad would anchor buyers or undercut the sale. The whole block stays
+    internal (memo and gate screens) until a logged decision opens it (D32).
+    """
+    valuation = data.get("valuation")
+    if isinstance(valuation, dict):
+        valuation.pop("professional", None)
+
+
 def _apply_overrides(data: dict, overrides: dict) -> None:
     """Apply a dotted-path override map onto the already-stripped ``data`` dict.
 
@@ -289,7 +326,10 @@ class PropertyRecord(_Base):
         Physically removes the POPIA internal layer: the entire
         ``financials_internal`` group and the occupant's private cell in
         ``sale_process.viewing.contact_internal_only``. A renderer handed this
-        dict cannot leak PII because the PII is not present in it.
+        dict cannot leak PII because the PII is not present in it. The
+        professional valuation block (``valuation.professional``) is removed
+        for the same structural reason: sale-strategy figures must never reach
+        a renderer or the copy model (D32).
 
         Human edits stored in ``human_overrides`` are applied last, after the
         PII strip, and cannot recreate a stripped POPIA path (see
@@ -297,9 +337,12 @@ class PropertyRecord(_Base):
         """
         data = self.model_dump(mode="json")
         _strip_pii(data)
+        _strip_internal_strategy(data)
         overrides = data.pop("human_overrides", None) or {}
         _apply_overrides(data, overrides)
         # Defence in depth: overrides are applied last and are guarded on write,
-        # but strip again so no override shape can leave a POPIA field behind.
+        # but strip again so no override shape can leave a POPIA or strategy
+        # field behind.
         _strip_pii(data)
+        _strip_internal_strategy(data)
         return data

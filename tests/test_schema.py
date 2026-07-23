@@ -83,3 +83,35 @@ def test_public_view_never_leaks_pii_poison_marker():
         "contact_internal_only"
         not in json.loads(public_json)["sale_process"]["viewing"]
     )
+
+
+def test_public_view_strips_professional_valuation():
+    """Sale-strategy figures never reach a renderer or the copy model (D32).
+
+    The valuer's market and forced-sale values would anchor buyers or undercut
+    the sale if they appeared in an ad, so the whole ``valuation.professional``
+    block is structurally absent from the public projection while the rest of
+    the valuation section survives.
+    """
+    from engine.schema import ProfessionalValuation, Valuation
+
+    record = PropertyRecord(
+        dp="2035",
+        valuation=Valuation(
+            municipal_valuation=2310000,
+            professional=ProfessionalValuation(
+                market_value=3400000,
+                forced_sale_value=2380000,
+                valuation_date="2026-06-22",
+                valuer=POISON,
+            ),
+        ),
+    )
+
+    assert POISON in record.model_dump_json()
+
+    public = record.public_view()
+    assert "professional" not in public["valuation"]
+    assert POISON not in json.dumps(public)
+    # The rest of the valuation section is untouched.
+    assert public["valuation"]["municipal_valuation"] == 2310000

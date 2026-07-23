@@ -6,8 +6,9 @@ Extraction is sectioned (one small structured-output call per source-derived
 section; the full record's grammar is too large for the API to compile), so the
 tests also pin the two guarantees that design leans on:
 
-- every section call shares the identical cached prefix (system brief + both
-  PDF blocks, cache breakpoint on the second PDF), and
+- every section call shares the identical cached prefix (full tool list, which
+  serializes ahead of everything else, then system brief + both PDF blocks,
+  cache breakpoint on the second PDF), and
 - ``extract_record`` assembles the sections into a ``PropertyRecord`` and
   stamps the code-owned fields (dp, status, record_created, source file paths,
   compliance) rather than asking the model for them.
@@ -63,12 +64,17 @@ def test_build_request_top_level_shape(lightstone_3060, property_report_3060):
         assert req["model"] == MODEL == "claude-opus-4-8"
         assert req["max_tokens"] == 16000
         assert req["thinking"] == {"type": "adaptive"}
-        # One non-strict tool per call; its input_schema is this section's model.
-        assert len(req["tools"]) == 1
-        tool = req["tools"][0]
-        assert tool["name"] == "record_section"
+        # The FULL tool list rides on every call (tools serialize ahead of the
+        # system block in the cached prefix, so a per-call difference would
+        # break caching); the directive text names this section's tool.
+        assert [t["name"] for t in req["tools"]] == [
+            "record_" + n for n, _m, _f in SECTIONS
+        ]
+        tool = next(t for t in req["tools"] if t["name"] == "record_" + name)
         assert tool["input_schema"]["title"] == model.__name__
-        assert "strict" not in tool  # non-strict: no grammar-complexity ceiling
+        # non-strict: no grammar-complexity ceiling
+        assert all("strict" not in t for t in req["tools"])
+        assert f"`record_{name}`" in req["messages"][0]["content"][-1]["text"]
         # tool_choice must be auto while thinking is on (forced choice is
         # disallowed with extended thinking).
         assert req["tool_choice"] == {"type": "auto"}
@@ -142,6 +148,9 @@ def test_section_requests_share_identical_cached_prefix(
     ]
     first = reqs[0]
     for req in reqs[1:]:
+        # Tools are part of the cached prefix (they serialize ahead of system
+        # and messages), so the list must be byte-identical across sections.
+        assert req["tools"] == first["tools"]
         assert req["system"] == first["system"]
         assert req["messages"][0]["content"][:2] == first["messages"][0]["content"][:2]
 
@@ -186,15 +195,30 @@ def test_env_selects_text_mode(monkeypatch, lightstone_3060, property_report_306
 class _FakeToolUse:
     type = "tool_use"
 
-    def __init__(self, data: dict):
+    def __init__(self, name: str, data: dict):
+        self.name = name
         self.input = data
 
 
-class _FakeClient:
-    """Mocks ``messages.create``: emits a tool_use block per requested section.
+_SECTION_MODELS = {name: model for name, model, _focus in SECTIONS}
 
-    Keyed by the tool ``input_schema`` title (the section model's name), the way
-    ``_extract_section`` finds the block and validates it with that model.
+
+def _requested_section(kwargs: dict) -> str:
+    """The section a request asks for, per the trailing directive text block.
+
+    Every call now carries the identical full tool list (the cache contract),
+    so the directive text is what distinguishes one section call from another.
+    """
+    directive = kwargs["messages"][0]["content"][-1]["text"]
+    return re.search(r"calling the `record_(\w+)` tool", directive).group(1)
+
+
+class _FakeClient:
+    """Mocks ``messages.create``: emits the requested section's tool_use block.
+
+    The requested section is read from the directive text block, and the reply
+    block is named ``record_<section>``, the way ``_extract_section`` matches
+    it before validating with that section's model.
     """
 
     def __init__(self, outputs: dict):
@@ -204,10 +228,10 @@ class _FakeClient:
 
     def _create(self, **kwargs):
         self.requests.append(kwargs)
-        title = kwargs["tools"][0]["input_schema"]["title"]
-        inst = self._by_name[title]
+        section = _requested_section(kwargs)
+        inst = self._by_name[_SECTION_MODELS[section].__name__]
         return SimpleNamespace(
-            content=[_FakeToolUse(inst.model_dump())],
+            content=[_FakeToolUse("record_" + section, inst.model_dump())],
             stop_reason="tool_use",
         )
 
@@ -237,9 +261,10 @@ def test_extract_record_assembles_sections_and_stamps_code_owned_fields(tmp_path
 
     rec = extract_record(lightstone, report, "3060", parent_dp=None, client=fake)
 
-    # One call per section, in the declared order (matched by tool schema).
-    assert [r["tools"][0]["input_schema"]["title"] for r in fake.requests] == [
-        m.__name__ for _n, m, _f in SECTIONS
+    # One call per section, in the declared order (per the directive text; the
+    # tool list itself is identical on every call by design).
+    assert [_requested_section(r) for r in fake.requests] == [
+        n for n, _m, _f in SECTIONS
     ]
 
     # Sections landed on the record.
@@ -351,7 +376,8 @@ def test_extract_section_forces_tool_on_retry(tmp_path):
                     stop_reason="end_turn",
                 )
             return SimpleNamespace(  # retry: a valid tool call
-                content=[_FakeToolUse({"suburb": "Prestbury"})], stop_reason="tool_use"
+                content=[_FakeToolUse("record_identity", {"suburb": "Prestbury"})],
+                stop_reason="tool_use",
             )
 
     fake = _SkipThenCall()
@@ -362,9 +388,45 @@ def test_extract_section_forces_tool_on_retry(tmp_path):
     # First attempt: thinking on, tool_choice auto.
     assert fake.calls[0]["thinking"] == {"type": "adaptive"}
     assert fake.calls[0]["tool_choice"] == {"type": "auto"}
-    # Retry: thinking dropped so the tool can be forced.
+    # Retry: thinking dropped so this section's tool can be forced.
     assert "thinking" not in fake.calls[1]
-    assert fake.calls[1]["tool_choice"] == {"type": "tool", "name": "record_section"}
+    assert fake.calls[1]["tool_choice"] == {"type": "tool", "name": "record_identity"}
+
+
+def test_extract_section_rejects_wrong_section_tool_and_retries_forced(tmp_path):
+    """A call to a DIFFERENT section's tool counts as no call and is retried.
+
+    All six section tools ride on every request (the cache contract), so the
+    model could in principle answer with the wrong one; the forced retry names
+    the right tool.
+    """
+    lightstone = _fake_pdf(tmp_path, "l.pdf")
+    report = _fake_pdf(tmp_path, "r.pdf")
+    req = build_request(lightstone, report, "3060", "identity", mode="native")
+
+    class _WrongThenRight:
+        def __init__(self):
+            self.calls: list = []
+            self.messages = SimpleNamespace(create=self._create)
+
+        def _create(self, **kwargs):
+            self.calls.append(kwargs)
+            if len(self.calls) == 1:  # first attempt: the wrong section's tool
+                return SimpleNamespace(
+                    content=[_FakeToolUse("record_physical", {"bedrooms": 3})],
+                    stop_reason="tool_use",
+                )
+            return SimpleNamespace(
+                content=[_FakeToolUse("record_identity", {"suburb": "Prestbury"})],
+                stop_reason="tool_use",
+            )
+
+    fake = _WrongThenRight()
+    out = _extract_section(fake, req, "identity", Identity)
+
+    assert out.suburb == "Prestbury"
+    assert len(fake.calls) == 2
+    assert fake.calls[1]["tool_choice"] == {"type": "tool", "name": "record_identity"}
 
 
 def test_normalize_record_canonicalizes_source_formats():
@@ -381,7 +443,8 @@ def test_normalize_record_canonicalizes_source_formats():
                  "property_report": {"figures_as_at": "2026/07/06"}},
         identity={"title_type": "Sectional Title"},
         physical={"zoning": "RESIDENTIAL"},
-        valuation={"same_scheme_sale": {"sale_date": "2025/07/04"}},
+        valuation={"same_scheme_sale": {"sale_date": "2025/07/04"},
+                   "professional": {"valuation_date": "2026/06/22"}},
         financials_internal={"as_at": "2026/07/06", "last_sale": {"date": "2021/04/12"}},
     )
     out = normalize_record(rec)
@@ -390,6 +453,7 @@ def test_normalize_record_canonicalizes_source_formats():
     assert out.identity.title_type == "sectional"
     assert out.physical.zoning == "Residential"
     assert out.valuation.same_scheme_sale.sale_date == "2025-07-04"
+    assert out.valuation.professional.valuation_date == "2026-06-22"
     assert out.financials_internal.as_at == "2026-07-06"
     assert out.financials_internal.last_sale.date == "2021-04-12"
 

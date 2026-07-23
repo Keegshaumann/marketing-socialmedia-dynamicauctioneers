@@ -113,6 +113,26 @@ def deterministic_checks(record: PropertyRecord) -> List[Flag]:
             )
         )
 
+    # 1b. Any other recorded cross-source physical conflict -- BLOCK, same
+    #     rationale as the garage conflict: the inspection's value stands in
+    #     the record per the merge rule, but a disputed fact must be confirmed
+    #     by a human before it reaches an ad (D32).
+    for conflict in (physical.conflicts or []) if physical is not None else []:
+        flags.append(
+            Flag(
+                severity="block",
+                code="PHYSICAL_CONFLICT",
+                title="Physical fact -- sources disagree, confirm before advertising",
+                evidence=conflict,
+                action=(
+                    "Confirm the disputed fact with the agent or a re-inspection. "
+                    "The inspection's value stands in the record, but do not "
+                    "advertise it until this is resolved or overridden with a "
+                    "reason."
+                ),
+            )
+        )
+
     # 2. Flatlet found only on inspection -- NOTE. Present in the record and the
     #    note says the desktop (Lightstone) data did not show it.
     flatlet = physical.flatlet if physical is not None else None
@@ -144,6 +164,38 @@ def deterministic_checks(record: PropertyRecord) -> List[Flag]:
                 title="Municipality spelling differs between sources",
                 evidence=identity.municipality_note,
                 action="Use the official Lightstone/deeds spelling in every artifact.",
+            )
+        )
+
+    # 3b. Professional valuation outside the Lightstone EVM range -- NOTE. The
+    #     valuer's figure is internal sale-strategy data (never rendered, see
+    #     schema D32), but a divergence from the desktop model belongs in the
+    #     pricing conversation before drafting.
+    professional = valuation.professional if valuation is not None else None
+    evm_range = valuation.evm_range if valuation is not None else None
+    if (
+        professional is not None
+        and professional.market_value is not None
+        and evm_range
+        and len(evm_range) == 2
+        and evm_range[0] is not None
+        and evm_range[1] is not None
+        and not (evm_range[0] <= professional.market_value <= evm_range[1])
+    ):
+        flags.append(
+            Flag(
+                severity="note",
+                code="VALUATION_DIVERGENCE",
+                title="Professional valuation falls outside the Lightstone EVM range",
+                evidence=(
+                    f"Valuer's market value {_rand(professional.market_value)} vs "
+                    f"EVM range {_rand(evm_range[0])} to {_rand(evm_range[1])}."
+                ),
+                action=(
+                    "Weigh the valuer's inspection-based figure against the "
+                    "desktop EVM in the pricing conversation. Internal only; "
+                    "neither figure is ad copy."
+                ),
             )
         )
 
