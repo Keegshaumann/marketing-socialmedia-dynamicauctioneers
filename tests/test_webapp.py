@@ -929,3 +929,106 @@ def test_app_boots_via_testclient():
     with TestClient(app) as client:
         resp = client.get("/login")
         assert resp.status_code == 200
+
+
+def _enable_canva_picker(monkeypatch, sets_json: str) -> None:
+    """Make the design picker (D33) live: named sets + a usable Canva backend.
+
+    The picker only shows when the active renderer routes through Canva and the
+    backend reports available, so the tests fake availability and the render
+    itself (no credentials, no network) the same way test_mixed does.
+    """
+    import pathlib
+
+    from engine.render import canva_backend as cb
+    from engine.render.base import Artifact as RenderArtifact
+
+    monkeypatch.setenv("CANVA_TEMPLATE_MAP", sets_json)
+    monkeypatch.setenv("ENGINE_RENDERER", "mixed")
+    monkeypatch.setattr(cb.CanvaBackend, "available", lambda self: (True, "ok"))
+
+    def _fake_render(self, request):
+        out = pathlib.Path(request.output_root) / f"DP{request.dp}" / "artifacts"
+        out.mkdir(parents=True, exist_ok=True)
+        path = out / f"{request.fmt}.pdf"
+        path.write_bytes(b"%PDF-1.4 canva")
+        return RenderArtifact(
+            dp=request.dp, fmt=request.fmt, backend="canva", path=str(path),
+            mime="application/pdf",
+        )
+
+    monkeypatch.setattr(cb.CanvaBackend, "render", _fake_render)
+
+
+_TWO_SETS = '{"Classic gold": {"demo_ad": "TPL_A"}, "Modern dark": {"demo_ad": "TPL_B"}}'
+
+
+def test_gate2_template_picker_lists_sets_and_saves_the_pick(monkeypatch):
+    """The design picker (D33) lists the sets, saves a pick, and can clear it."""
+    _enable_canva_picker(monkeypatch, _TWO_SETS)
+    dp = "7104"
+    _seed_golden_live(dp)
+    client = _client()
+    _login_admin(client)
+
+    page = client.get(f"/gates/{dp}/ads")
+    assert page.status_code == 200, page.text
+    assert 'name="template_set"' in page.text
+    assert "Follow the default (Classic gold)" in page.text
+    assert "Modern dark" in page.text
+
+    # An untouched form (the select submits the current blank pick) is not an
+    # edit: no pick is pinned, no re-render, no audit row.
+    resp = client.post(f"/gates/{dp}/ads/copy", data={"template_set": ""})
+    assert resp.status_code == 200, resp.text
+    assert "No changes" in resp.text
+    assert _public_view(dp)["marketing"].get("template_set") is None
+
+    # A real pick saves.
+    resp = client.post(f"/gates/{dp}/ads/copy", data={"template_set": "Modern dark"})
+    assert resp.status_code == 200, resp.text
+    assert _public_view(dp)["marketing"]["template_set"] == "Modern dark"
+
+    # Re-submitting the same pick is not an edit.
+    resp = client.post(f"/gates/{dp}/ads/copy", data={"template_set": "Modern dark"})
+    assert "No changes" in resp.text
+
+    # A crafted set name the picker does not offer is ignored.
+    client.post(f"/gates/{dp}/ads/copy", data={"template_set": "Evil set"})
+    assert _public_view(dp)["marketing"]["template_set"] == "Modern dark"
+
+    # Blank ("Follow the default") clears the pick back to None.
+    resp = client.post(f"/gates/{dp}/ads/copy", data={"template_set": ""})
+    assert resp.status_code == 200, resp.text
+    assert _public_view(dp)["marketing"].get("template_set") is None
+
+
+def test_gate2_template_picker_hidden_with_a_single_set(monkeypatch):
+    """One configured set means no choice to make: the picker stays hidden."""
+    _enable_canva_picker(monkeypatch, '{"demo_ad": "TPL_A"}')
+    dp = "7105"
+    _seed_golden_live(dp)
+    client = _client()
+    _login_admin(client)
+    page = client.get(f"/gates/{dp}/ads")
+    assert page.status_code == 200, page.text
+    assert 'name="template_set"' not in page.text
+
+
+def test_gate2_template_picker_hidden_when_renderer_is_html(monkeypatch):
+    """Two sets configured but the renderer never touches Canva: a pick would
+    be a silent no-op, so the picker must not show and a crafted POST must not
+    land on the record."""
+    monkeypatch.setenv("CANVA_TEMPLATE_MAP", _TWO_SETS)
+    monkeypatch.delenv("ENGINE_RENDERER", raising=False)  # default: html
+    dp = "7106"
+    _seed_golden_live(dp)
+    client = _client()
+    _login_admin(client)
+
+    page = client.get(f"/gates/{dp}/ads")
+    assert page.status_code == 200, page.text
+    assert 'name="template_set"' not in page.text
+
+    client.post(f"/gates/{dp}/ads/copy", data={"template_set": "Modern dark"})
+    assert _public_view(dp)["marketing"].get("template_set") is None

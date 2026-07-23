@@ -31,6 +31,7 @@ Design rules baked in here:
 from __future__ import annotations
 
 import json
+import os
 from datetime import date
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -40,8 +41,9 @@ from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Resp
 from starlette.templating import Jinja2Templates
 
 from engine.distribute.ghl import DELETE_CAVEAT
-from engine.render import FORMATS
+from engine.render import DEFAULT_BACKEND, FORMATS, get_backend
 from engine.render.html_backend import BRAND
+from engine.render.canva_backend import template_set_names
 from engine.render.service import apply_edits, apply_photos, render_all
 from engine.schema import PropertyRecord
 from engine.store import IllegalTransition, RecordStore
@@ -383,6 +385,11 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
             "suburb": identity.get("suburb") or "",
             "method": sale.get("method") or "",
             "terms": "\n".join(sale.get("terms") or []),
+            # Design picker (D33): hidden unless more than one set is
+            # configured AND the active renderer routes through Canva; the
+            # first configured set is the default a blank pick follows.
+            "template_sets": _design_sets(),
+            "template_set": marketing_pv.get("template_set") or "",
             "is_update": state in ("live", "updated"),
             "delete_caveat": DELETE_CAVEAT,
             "photos": _photo_view(db_path, dp, record),
@@ -635,11 +642,38 @@ _EDIT_TEXT_FIELDS = {
 _SALE_METHODS = ("offers_invited", "auction")
 
 
-def _collect_edit_fields(form) -> dict:
+def _design_sets() -> list:
+    """The template-set names the gate-2 design picker offers (D33).
+
+    Empty (picker hidden) unless a choice is real: more than one set is
+    configured AND the active renderer actually routes formats through Canva
+    (``ENGINE_RENDERER`` is ``canva`` or ``mixed`` and the backend is
+    available). Otherwise a pick would be a silent no-op -- the html backend
+    ignores ``template_set`` -- while the UI promises a re-rendered design.
+    """
+    renderer = (os.getenv("ENGINE_RENDERER") or DEFAULT_BACKEND).strip()
+    if renderer not in ("canva", "mixed"):
+        return []
+    try:
+        ok, _reason = get_backend("canva").available()
+    except Exception:
+        return []
+    if not ok:
+        return []
+    names = template_set_names()
+    return names if len(names) > 1 else []
+
+
+def _collect_edit_fields(form, current_template_set: "str | None" = None) -> dict:
     """Build the public-view edit map from a submitted form (non-empty only).
 
     A blank text input is skipped so it never wipes an existing value. ``terms``
-    is a textarea, one term per line, stored as a list.
+    is a textarea, one term per line, stored as a list. The design pick is
+    included only when it actually CHANGES the record: a select always submits
+    a value, and without the change guard every save would silently pin the
+    default set's name onto a record that never chose one (a false audit row,
+    and the record would stop following a future default change). A submitted
+    blank ("follow the default") clears an existing pick back to None.
     """
     fields: dict = {}
     for name, path in _EDIT_TEXT_FIELDS.items():
@@ -649,6 +683,14 @@ def _collect_edit_fields(form) -> dict:
     method = str(form.get("method", "")).strip()
     if method in _SALE_METHODS:
         fields["sale_process.method"] = method
+    # The design pick (D33). Only names the picker actually offers are
+    # accepted, so a crafted value cannot land on the record.
+    if "template_set" in form:
+        posted = str(form.get("template_set", "")).strip()
+        current = (current_template_set or "").strip()
+        offered = _design_sets()
+        if posted != current and offered and (not posted or posted in offered):
+            fields["marketing.template_set"] = posted
     terms_raw = str(form.get("terms", "")).strip()
     if terms_raw:
         fields["sale_process.terms"] = [
@@ -692,7 +734,9 @@ def _reopen_if_live(db_path: str, dp: str, user: str) -> None:
 async def gate2_copy(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
     db_path = _db(request)
     form = await request.form()
-    fields = _collect_edit_fields(form)
+    record = _load(db_path, dp)
+    current_pick = record.marketing.template_set if record.marketing else None
+    fields = _collect_edit_fields(form, current_template_set=current_pick)
     if fields:
         # Only a real edit reopens a live listing into the update cycle.
         _reopen_if_live(db_path, dp, user["email"])

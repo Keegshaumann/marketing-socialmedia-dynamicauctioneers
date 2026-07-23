@@ -28,7 +28,7 @@ def test_render_sets_design_id_and_edit_url(monkeypatch, tmp_path, golden_record
     rec = PropertyRecord.model_validate_json(golden_record_path.read_text(encoding="utf-8"))
     b = CanvaBackend()
     monkeypatch.setattr(b, "available", lambda: (True, "ok"))
-    monkeypatch.setattr(b, "_load_template_map", lambda: {"demo_ad": "TPL1"})
+    monkeypatch.setattr(b, "_load_template_sets", lambda: {"Default": {"demo_ad": "TPL1"}})
     monkeypatch.setattr(b, "_access_token", lambda: "tok")
     monkeypatch.setattr(b, "_get_dataset", lambda t, tpl: {"headline": "text", "photo1": "image"})
     monkeypatch.setattr(

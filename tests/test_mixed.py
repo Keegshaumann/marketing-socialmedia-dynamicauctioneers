@@ -94,3 +94,57 @@ def test_html_backend_unchanged_when_not_mixed(monkeypatch, tmp_path, golden_rec
         store.close()
     assert {a.backend for a in arts} == {"html"}
     assert len(arts) == len(FORMATS)
+
+
+def test_record_template_set_reaches_the_backend(monkeypatch, tmp_path, golden_record_path):
+    """The marketing team's design pick (D33) rides every RenderRequest."""
+    seen: list = []
+    supports, render = _fake_canva()
+
+    def capture(self, request):
+        seen.append(request.template_set)
+        return render(self, request)
+
+    monkeypatch.setattr(cb.CanvaBackend, "available", lambda self: (True, "ok"))
+    monkeypatch.setattr(cb.CanvaBackend, "supports", supports)
+    monkeypatch.setattr(cb.CanvaBackend, "render", capture)
+
+    store = _seed("9503", golden_record_path)
+    try:
+        rec = store.get("9503")
+        rec.marketing.template_set = "Modern dark"
+        store.upsert(rec)
+        render_all("9503", store, backend="mixed", output_root=str(tmp_path))
+    finally:
+        store.close()
+    assert seen == ["Modern dark"]
+
+
+def test_apply_edits_stores_the_template_pick(tmp_path, golden_record_path):
+    from engine.render.service import apply_edits
+
+    store = _seed("9504", golden_record_path)
+    try:
+        change = apply_edits(
+            "9504",
+            store,
+            {"marketing.template_set": "Modern dark"},
+            user="nikki@dynamicauctioneers.co.za",
+            backend="html",
+            output_root=str(tmp_path),
+        )
+        assert change.changes == {"marketing.template_set": "Modern dark"}
+        assert store.get("9504").marketing.template_set == "Modern dark"
+
+        # A blank pick clears back to the default set.
+        apply_edits(
+            "9504",
+            store,
+            {"marketing.template_set": ""},
+            user="nikki@dynamicauctioneers.co.za",
+            backend="html",
+            output_root=str(tmp_path),
+        )
+        assert store.get("9504").marketing.template_set is None
+    finally:
+        store.close()

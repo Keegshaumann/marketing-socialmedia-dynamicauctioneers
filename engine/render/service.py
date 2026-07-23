@@ -45,12 +45,15 @@ from engine.render.copy import generate_copy
 from engine.schema import Marketing, PropertyRecord, override_key_allowed
 from engine.store import RecordStore
 
-# The two fields that keep dedicated homes on ``record.marketing`` (the copy
+# The fields that keep dedicated homes on ``record.marketing`` (the copy
 # channel) rather than riding the ``human_overrides`` facts channel: price
-# carries its own audit/format handling and headline has a copy overlay the LLM
-# would otherwise regenerate. Everything else is a ``human_overrides`` key.
+# carries its own audit/format handling, headline has a copy overlay the LLM
+# would otherwise regenerate, and the template-set pick (D33) is a marketing
+# decision, not a sourced fact. Everything else is a ``human_overrides`` key.
 _PRICE_PATH = "marketing.price_display"
 _HEADLINE_PATH = "marketing.headline"
+_TEMPLATE_SET_PATH = "marketing.template_set"
+_MARKETING_PATHS = (_PRICE_PATH, _HEADLINE_PATH, _TEMPLATE_SET_PATH)
 
 
 @dataclass
@@ -204,6 +207,17 @@ def _prepare(record: PropertyRecord, output_root: str, client=None) -> Tuple[dic
     return public, copy, photos
 
 
+def _resolve_template_set(record: PropertyRecord) -> Optional[str]:
+    """The record's design/template-set pick (D33), or ``None`` for the default.
+
+    Set by the marketing team on gate 2 and stored on ``marketing.template_set``.
+    Backends resolve ``None`` (and any stale name) to their default set; the
+    html backend ignores it entirely.
+    """
+    marketing = record.marketing
+    return marketing.template_set if marketing is not None else None
+
+
 # --- backend resolution (single backend, or per-format "mixed") -----------
 
 # Backends preferred over the html default, in order, when they are configured
@@ -301,6 +315,7 @@ def render_all(
     record = _load_record(dp, store)
     resolve = _format_backends(backend)
     public, copy, photos = _prepare(record, output_root, client=client)
+    template_set = _resolve_template_set(record)
 
     artifacts: List[Artifact] = []
     for fmt in FORMATS:
@@ -311,6 +326,7 @@ def render_all(
             photos=photos,
             copy=copy,
             output_root=str(output_root),
+            template_set=template_set,
         )
         artifact = _render_format(resolve(fmt), request)
         if artifact is not None:
@@ -351,6 +367,7 @@ def render_one(
         photos=photos,
         copy=copy,
         output_root=str(output_root),
+        template_set=_resolve_template_set(record),
     )
     artifact = _render_format(candidates, request)
     _write_manifest(output_root, dp, [artifact])
@@ -417,7 +434,8 @@ def apply_edits(
     ``changes`` maps a dotted public-view path (e.g. ``identity.street_address``,
     ``sale_process.method``) to its new value. Routing keeps one home per field:
     ``marketing.price_display`` is formatted and written to its own field (the
-    single price path), ``marketing.headline`` rides the copy overlay, and every
+    single price path), ``marketing.headline`` rides the copy overlay,
+    ``marketing.template_set`` records the design pick (D33), and every
     other public fact is written to ``human_overrides`` so the sourced value stays
     pristine and survives a re-extraction (SPEC hard rule 3). A POPIA-protected
     path is refused. Each field is logged to the audit trail (old -> new); the
@@ -429,7 +447,7 @@ def apply_edits(
     # Validate every field up front, so a POPIA-protected key raises before any
     # field is mutated or any audit row written (no partial edit / stray audit).
     for path in changes:
-        if path not in (_PRICE_PATH, _HEADLINE_PATH) and not override_key_allowed(path):
+        if path not in _MARKETING_PATHS and not override_key_allowed(path):
             raise ValueError(f"Field {path!r} cannot be edited: it is POPIA-protected.")
 
     applied: dict = {}
@@ -447,6 +465,14 @@ def apply_edits(
                 record.marketing = Marketing()
             record.marketing.headline = new_value
             gate = "edit"
+        elif path == _TEMPLATE_SET_PATH:
+            # The design pick (D33): a canonical marketing field, like photos.
+            # Blank clears the pick back to the backend's default set.
+            new_value = str(value).strip() or None
+            if record.marketing is None:
+                record.marketing = Marketing()
+            record.marketing.template_set = new_value
+            gate = "edit"
         else:
             new_value = value
             if record.human_overrides is None:
@@ -459,9 +485,16 @@ def apply_edits(
         )
 
     store.upsert(record)
-    artifacts = render_all(
-        dp, store, backend=backend, output_root=output_root, client=client
-    )
+    try:
+        artifacts = render_all(
+            dp, store, backend=backend, output_root=output_root, client=client
+        )
+    except ValueError as exc:
+        # By this point the edit IS saved; a render-time ValueError (e.g. no
+        # brand template mapped) must not surface as this function's
+        # "refused before anything was saved" ValueError contract, which the
+        # webapp reports as "Edit refused".
+        raise RuntimeError(f"edit saved, but the re-render failed: {exc}") from exc
     return EditChange(
         dp=dp, changes=applied, state=store.get_state(dp), artifacts=artifacts
     )

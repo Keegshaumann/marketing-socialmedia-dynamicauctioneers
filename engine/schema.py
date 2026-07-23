@@ -208,6 +208,9 @@ class Marketing(_Base):
     channel_routing: Optional[ChannelRouting] = None
     hero_photo: Optional[str] = None
     gallery: Optional[List[str]] = None
+    # The named design/template set the render backends use (the marketing
+    # team's pick on gate 2, D33). None = the default (first-configured) set.
+    template_set: Optional[str] = None
 
 
 # --- compliance / verification -------------------------------------------

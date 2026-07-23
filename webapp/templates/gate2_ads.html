@@ -58,6 +58,18 @@
                 <option value="auction" {% if method == 'auction' %}selected{% endif %}>Auction</option>
               </select>
             </div>
+            {% if template_sets|length > 1 %}
+            <div class="field">
+              <label class="label" for="template_set">Design template</label>
+              <select class="input" id="template_set" name="template_set">
+                <option value="" {% if not template_set %}selected{% endif %}>Follow the default ({{ template_sets[0] }})</option>
+                {% for name in template_sets %}
+                <option value="{{ name }}" {% if template_set == name %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+              </select>
+              <div class="hint">Which Canva design the branded artifacts are built from. Save re-renders with the chosen design; "Follow the default" tracks the first configured set.</div>
+            </div>
+            {% endif %}
             <div class="field">
               <label class="label" for="terms">Terms and dates (one per line)</label>
               <textarea class="textarea" id="terms" name="terms" rows="3">{{ terms }}</textarea>

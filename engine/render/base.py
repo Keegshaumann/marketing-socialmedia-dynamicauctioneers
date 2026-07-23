@@ -46,6 +46,10 @@ class RenderRequest:
     photos: List[str] = field(default_factory=list)
     copy: Optional[dict] = None
     output_root: str = "."
+    # The named design/template set to render with (the marketing team's pick,
+    # stored on ``marketing.template_set``). None or an unknown name means the
+    # backend's default set; backends without template sets (html) ignore it.
+    template_set: Optional[str] = None
 
 
 @dataclass

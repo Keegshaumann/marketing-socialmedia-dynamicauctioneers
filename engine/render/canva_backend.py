@@ -49,7 +49,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from engine.render.base import Artifact, RenderBackend, RenderRequest
+from engine.render.base import FORMATS, Artifact, RenderBackend, RenderRequest
 
 _API_BASE = "https://api.canva.com/rest/v1"
 _TOKEN_URL = f"{_API_BASE}/oauth/token"
@@ -68,6 +68,10 @@ _REQUIRED_ENV: Tuple[str, ...] = (
 
 _HTTP_TIMEOUT_S = 30.0
 _POLL_INTERVAL_S = 2.0
+
+# The set name a legacy flat CANVA_TEMPLATE_MAP is filed under, and the label
+# shown for it in the gate-2 template picker.
+DEFAULT_TEMPLATE_SET = "Default"
 _POLL_TIMEOUT_S = 120.0
 
 # Canva job statuses that mean "keep waiting" versus terminal outcomes.
@@ -213,20 +217,41 @@ class CanvaBackend(RenderBackend):
                 "Canva backend unconfigured: set " + ", ".join(missing) + ".",
             )
         try:
-            template_map = self._load_template_map()
+            template_sets = self._load_template_sets()
         except Exception as exc:  # unreadable/invalid map is a config problem, not a crash
             return (False, f"Canva backend CANVA_TEMPLATE_MAP unreadable: {exc}")
-        if not template_map:
+        if not template_sets:
             return (
                 False,
                 "Canva backend CANVA_TEMPLATE_MAP is empty; no brand templates mapped.",
             )
+        # The default (first) set defines the renderable formats (D33); an
+        # empty default set would make supports() False for everything while
+        # this backend claims to be available -- refuse loudly instead.
+        if not next(iter(template_sets.values())):
+            return (
+                False,
+                "Canva backend CANVA_TEMPLATE_MAP default (first) template set "
+                "maps no formats.",
+            )
         return (True, "ok")
 
     def supports(self, fmt: str) -> bool:
-        """Whether a brand template is mapped for ``fmt``. Never raises."""
+        """Whether the DEFAULT template set maps ``fmt``. Never raises.
+
+        The default (first-configured) set defines which formats render through
+        Canva; later sets only restyle those formats (overlay semantics, D33).
+        Answering for the default set keeps the invariant the service relies
+        on: ``supports(fmt)`` implies ``render`` can resolve a template for any
+        record, whatever its ``template_set`` pick -- a union answer would make
+        a format mapped only in a non-default set crash a canva-only render
+        pass for records on the default set.
+        """
         try:
-            return fmt in self._load_template_map()
+            sets = self._load_template_sets()
+            if not sets:
+                return False
+            return fmt in next(iter(sets.values()))
         except Exception:
             return False
 
@@ -243,8 +268,7 @@ class CanvaBackend(RenderBackend):
         if not ok:
             raise RuntimeError(reason)
 
-        template_map = self._load_template_map()
-        brand_template_id = template_map.get(request.fmt)
+        brand_template_id = self._resolve_template(request.fmt, request.template_set)
         if brand_template_id is None:
             raise ValueError(
                 f"Canva backend has no brand template mapped for format {request.fmt!r}."
@@ -280,11 +304,20 @@ class CanvaBackend(RenderBackend):
 
     # --- config ----------------------------------------------------------
 
-    def _load_template_map(self) -> Dict[str, str]:
-        """Load the ``fmt -> brand_template_id`` map.
+    def _load_template_sets(self) -> "Dict[str, Dict[str, str]]":
+        """Load the named template sets: ``set name -> {fmt: brand_template_id}``.
 
         ``CANVA_TEMPLATE_MAP`` may be a path to a JSON file or an inline JSON
-        object. Returns ``{}`` when the var is unset.
+        object, in either of two shapes:
+
+        - legacy flat ``{"demo_ad": "<id>", ...}`` -- one set named "Default";
+        - named sets ``{"Classic gold": {"demo_ad": "<id>"}, ...}`` -- kept
+          as-is. JSON object order is preserved, and the FIRST set is the
+          default: it is used when a record names no set (or a stale one), and
+          later sets act as overlays on it (a set that maps only ``demo_ad``
+          restyles the demo ad and inherits everything else from the default).
+
+        Mixing the two shapes is a config error. Returns ``{}`` when unset.
         """
         raw = os.getenv("CANVA_TEMPLATE_MAP", "")
         if not raw:
@@ -294,9 +327,52 @@ class CanvaBackend(RenderBackend):
         data = json.loads(text)
         if not isinstance(data, dict):
             raise ValueError(
-                "CANVA_TEMPLATE_MAP must be a JSON object of fmt -> brand_template_id."
+                "CANVA_TEMPLATE_MAP must be a JSON object: either "
+                "fmt -> brand_template_id, or set name -> {fmt: brand_template_id}."
             )
-        return {str(key): str(value) for key, value in data.items()}
+        if not data:
+            return {}
+        values = list(data.values())
+        if all(isinstance(v, dict) for v in values):
+            # A malformed flat map ({"demo_ad": {...}}) would pass the
+            # all-dicts sniff and silently become a named set called
+            # "demo_ad", turning a loud config error into Canva quietly
+            # rendering nothing -- refuse set names that are format names.
+            colliding = [name for name in data if name in FORMATS]
+            if colliding:
+                raise ValueError(
+                    "CANVA_TEMPLATE_MAP set name(s) "
+                    + ", ".join(repr(n) for n in colliding)
+                    + " collide with format names; in a flat map each format "
+                    "maps to a brand template id string, not an object."
+                )
+            return {
+                str(name): {str(fmt): str(tid) for fmt, tid in mapping.items()}
+                for name, mapping in data.items()
+            }
+        if any(isinstance(v, dict) for v in values):
+            raise ValueError(
+                "CANVA_TEMPLATE_MAP mixes flat fmt -> id entries with named "
+                "template sets; use one shape or the other."
+            )
+        return {DEFAULT_TEMPLATE_SET: {str(k): str(v) for k, v in data.items()}}
+
+    def _resolve_template(self, fmt: str, template_set: Optional[str]) -> Optional[str]:
+        """The brand template id for ``fmt`` under ``template_set``.
+
+        Resolution order: the named set (when it exists and maps ``fmt``), then
+        the default (first-configured) set. A stale or unknown set name on a
+        record therefore degrades to the default design rather than failing the
+        render. Returns ``None`` when no set maps the format at all.
+        """
+        sets = self._load_template_sets()
+        if not sets:
+            return None
+        chosen = sets.get(template_set) if template_set else None
+        if chosen is not None and fmt in chosen:
+            return chosen[fmt]
+        default = next(iter(sets.values()))
+        return default.get(fmt)
 
     # --- OAuth with refresh-token rotation -------------------------------
 
@@ -602,3 +678,16 @@ class CanvaBackend(RenderBackend):
         if not raw:
             return {}
         return json.loads(raw)
+
+
+def template_set_names() -> List[str]:
+    """The configured template set names, in declared (default-first) order.
+
+    The gate-2 template picker lists these. Never raises: an unset or
+    unreadable ``CANVA_TEMPLATE_MAP`` returns ``[]`` (the picker hides), so the
+    webapp needs no Canva-specific error handling.
+    """
+    try:
+        return list(CanvaBackend()._load_template_sets().keys())
+    except Exception:
+        return []
