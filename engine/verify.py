@@ -452,13 +452,15 @@ def research_market(record: PropertyRecord, client=None) -> Optional[dict]:
     except Exception:
         return None
 
-    summary_parts: List[str] = []
+    blocks = list(getattr(response, "content", []) or [])
+
     sources: List[str] = []
-    for block in getattr(response, "content", []) or []:
+    last_non_text = -1
+    for index, block in enumerate(blocks):
         btype = getattr(block, "type", None)
-        if btype == "text":
-            summary_parts.append(getattr(block, "text", ""))
-        elif btype == "web_search_tool_result":
+        if btype != "text":
+            last_non_text = index
+        if btype == "web_search_tool_result":
             content = getattr(block, "content", None)
             if isinstance(content, list):
                 for item in content:
@@ -466,6 +468,16 @@ def research_market(record: PropertyRecord, client=None) -> Optional[dict]:
                     title = getattr(item, "title", None)
                     if url:
                         sources.append(f"{title or url}: {url}")
+
+    # A tool-using turn interleaves narration ("Let me search...") between the
+    # searches; only the text AFTER the final tool block is the findings. The
+    # memo is a sign-off document, so it carries the findings, not the workings.
+    # A turn with no tool blocks (last_non_text == -1) keeps all its text.
+    summary_parts = [
+        getattr(block, "text", "")
+        for block in blocks[last_non_text + 1:]
+        if getattr(block, "type", None) == "text"
+    ]
 
     summary = "\n\n".join(p for p in summary_parts if p).strip()
     if not summary and not sources:

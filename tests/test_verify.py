@@ -126,6 +126,49 @@ def test_research_market_returns_none_without_key(golden_record, monkeypatch):
     assert research_market(golden_record, client=None) is None
 
 
+def test_research_market_keeps_findings_drops_narration(golden_record):
+    # A live tool-using turn interleaves narration between searches; the memo
+    # must carry only the final findings (text after the last tool block) while
+    # sources still come from every search-result block.
+    from types import SimpleNamespace as NS
+
+    class _Client:
+        class messages:  # noqa: N801 - mimics the SDK surface
+            @staticmethod
+            def create(**kwargs):
+                return NS(content=[
+                    NS(type="text", text="I'll research this listing for you."),
+                    NS(type="server_tool_use", name="web_search"),
+                    NS(type="web_search_tool_result", content=[
+                        NS(url="https://p24.example/1", title="Listing A"),
+                    ]),
+                    NS(type="text", text="Let me refine the search."),
+                    NS(type="server_tool_use", name="web_search"),
+                    NS(type="web_search_tool_result", content=[
+                        NS(url="https://pp.example/2", title="Listing B"),
+                    ]),
+                    NS(type="text", text="Findings: address confirmed; range looks sane."),
+                ])
+
+    out = research_market(golden_record, client=_Client())
+    assert out["summary"] == "Findings: address confirmed; range looks sane."
+    assert "I'll research" not in out["summary"]      # narration dropped
+    assert len(out["sources"]) == 2                    # sources from every search
+
+
+def test_research_market_no_tools_keeps_all_text(golden_record):
+    from types import SimpleNamespace as NS
+
+    class _Client:
+        class messages:  # noqa: N801
+            @staticmethod
+            def create(**kwargs):
+                return NS(content=[NS(type="text", text="No search was needed; area is known.")])
+
+    out = research_market(golden_record, client=_Client())
+    assert out["summary"] == "No search was needed; area is known."
+
+
 # --- sign-off gate -------------------------------------------------------
 
 def test_sign_off_refused_then_allowed_with_override(golden_record, tmp_path, monkeypatch):
