@@ -651,10 +651,19 @@ img { max-width: 100%; }
   background: var(--surface);
   border: 1px solid var(--hairline);
   border-radius: 12px;
+  /* centre the content both ways and fill the space below the header, so the
+     empty state reads as a deliberate centred column, not a box near the top */
+  min-height: 56vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 .empty .icon { color: var(--accent); filter: drop-shadow(0 0 14px rgba(var(--accent-rgb), .55)); }
 .empty__title { font-size: 17px; font-weight: 800; color: var(--text-strong); margin: 14px 0 6px; }
-.empty__text { font-size: 13.5px; color: var(--muted); margin-bottom: 18px; }
+/* a tight centred column, so the description does not sprawl wider than the
+   icon / title / button above and below it */
+.empty__text { font-size: 13.5px; color: var(--muted); margin: 0 auto 18px; max-width: 44ch; }
 .empty__cta { display: inline-flex; }
 
 /* ---- Banners (job failures, notices) ----------------------------------- */
