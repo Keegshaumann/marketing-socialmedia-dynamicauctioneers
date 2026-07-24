@@ -7401,6 +7401,42 @@
         "documentation": {}
     },
     {
+        "label": "test_marketing_can_reach_the_gates",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_marketing_can_reach_the_gates():\n    \"\"\"The marketing role can now open the gate screens (verify/approve).\"\"\"\n    dp = \"7201\"\n    _seed_golden_live(dp)\n    client = _client()\n    _login_marketing(client)\n    assert client.get(f\"/gates/{dp}/ads\").status_code == 200\ndef test_marketing_cannot_reach_settings():\n    \"\"\"Connection strings are off-limits to operational staff (view + save).\"\"\"\n    client = _client()",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_marketing_cannot_reach_settings",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_marketing_cannot_reach_settings():\n    \"\"\"Connection strings are off-limits to operational staff (view + save).\"\"\"\n    client = _client()\n    _login_marketing(client)\n    assert client.get(\"/settings\").status_code == 403\n    assert client.post(\"/settings/credentials\", data={\"ghl_token\": \"x\"}).status_code == 403\n    assert client.post(\"/settings/channels\", data={}).status_code == 403\n    assert client.post(\"/settings/approvers\", data={\"approver_emails\": \"a@b.co\"}).status_code == 403\ndef test_admin_can_reach_settings():\n    client = _client()",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_admin_can_reach_settings",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_admin_can_reach_settings():\n    client = _client()\n    _login_admin(client)\n    assert client.get(\"/settings\").status_code == 200\ndef test_settings_link_hidden_for_marketing_shown_for_admin():\n    m = _client(); _login_marketing(m)\n    assert 'href=\"/settings\"' not in m.get(\"/board\").text\n    a = _client(); _login_admin(a)\n    assert 'href=\"/settings\"' in a.get(\"/board\").text",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_settings_link_hidden_for_marketing_shown_for_admin",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_settings_link_hidden_for_marketing_shown_for_admin():\n    m = _client(); _login_marketing(m)\n    assert 'href=\"/settings\"' not in m.get(\"/board\").text\n    a = _client(); _login_admin(a)\n    assert 'href=\"/settings\"' in a.get(\"/board\").text",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
         "label": "_TMP",
         "kind": 5,
         "importPath": "tests.test_webapp",
@@ -7441,7 +7477,7 @@
         "kind": 5,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "GOLDEN_RECORD = REPO_ROOT / \"DP3060\" / \"record.json\"\n# Poison markers: distinctive strings placed only in the POPIA internal layer.\n# None may surface in any public artifact, screen, or the board.\nPOISON_OWNER = \"ZZOWNERPOISON_DoNotPublish\"\nPOISON_ID = \"ZZID_9999999999\"\nPOISON_CELL = \"ZZCELL_0820001111\"\nPOISON_MARKERS = (POISON_OWNER, POISON_ID, POISON_CELL)\nAPPROVER_EMAIL = \"approver@dynamicauctioneers.co.za\"\nAPPROVER_PW = \"approver-pass-123\"\n# --- one-time platform setup ---------------------------------------------",
+        "peekOfCode": "GOLDEN_RECORD = REPO_ROOT / \"DP3060\" / \"record.json\"\n# Poison markers: distinctive strings placed only in the POPIA internal layer.\n# None may surface in any public artifact, screen, or the board.\nPOISON_OWNER = \"ZZOWNERPOISON_DoNotPublish\"\nPOISON_ID = \"ZZID_9999999999\"\nPOISON_CELL = \"ZZCELL_0820001111\"\nPOISON_MARKERS = (POISON_OWNER, POISON_ID, POISON_CELL)\nAPPROVER_EMAIL = \"approver@dynamicauctioneers.co.za\"\nAPPROVER_PW = \"approver-pass-123\"\nMARKETING_EMAIL = \"marketing@dynamicauctioneers.co.za\"",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -7450,7 +7486,7 @@
         "kind": 5,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "POISON_OWNER = \"ZZOWNERPOISON_DoNotPublish\"\nPOISON_ID = \"ZZID_9999999999\"\nPOISON_CELL = \"ZZCELL_0820001111\"\nPOISON_MARKERS = (POISON_OWNER, POISON_ID, POISON_CELL)\nAPPROVER_EMAIL = \"approver@dynamicauctioneers.co.za\"\nAPPROVER_PW = \"approver-pass-123\"\n# --- one-time platform setup ---------------------------------------------\n# Seed the bootstrap admin (captures its printed temp password) and a second,\n# approver-role account. init_db is idempotent; the app already ran it at import.\nDB_PATH = models.init_db()",
+        "peekOfCode": "POISON_OWNER = \"ZZOWNERPOISON_DoNotPublish\"\nPOISON_ID = \"ZZID_9999999999\"\nPOISON_CELL = \"ZZCELL_0820001111\"\nPOISON_MARKERS = (POISON_OWNER, POISON_ID, POISON_CELL)\nAPPROVER_EMAIL = \"approver@dynamicauctioneers.co.za\"\nAPPROVER_PW = \"approver-pass-123\"\nMARKETING_EMAIL = \"marketing@dynamicauctioneers.co.za\"\nMARKETING_PW = \"marketing-pass-123\"\n# --- one-time platform setup ---------------------------------------------\n# Seed the bootstrap admin (captures its printed temp password) plus an",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -7459,7 +7495,7 @@
         "kind": 5,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "POISON_ID = \"ZZID_9999999999\"\nPOISON_CELL = \"ZZCELL_0820001111\"\nPOISON_MARKERS = (POISON_OWNER, POISON_ID, POISON_CELL)\nAPPROVER_EMAIL = \"approver@dynamicauctioneers.co.za\"\nAPPROVER_PW = \"approver-pass-123\"\n# --- one-time platform setup ---------------------------------------------\n# Seed the bootstrap admin (captures its printed temp password) and a second,\n# approver-role account. init_db is idempotent; the app already ran it at import.\nDB_PATH = models.init_db()\nADMIN_PW = auth.seed_admin(DB_PATH)  # temp password on first run, else None",
+        "peekOfCode": "POISON_ID = \"ZZID_9999999999\"\nPOISON_CELL = \"ZZCELL_0820001111\"\nPOISON_MARKERS = (POISON_OWNER, POISON_ID, POISON_CELL)\nAPPROVER_EMAIL = \"approver@dynamicauctioneers.co.za\"\nAPPROVER_PW = \"approver-pass-123\"\nMARKETING_EMAIL = \"marketing@dynamicauctioneers.co.za\"\nMARKETING_PW = \"marketing-pass-123\"\n# --- one-time platform setup ---------------------------------------------\n# Seed the bootstrap admin (captures its printed temp password) plus an\n# approver-role and a marketing-role account. init_db is idempotent; the app",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -7468,7 +7504,7 @@
         "kind": 5,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "POISON_CELL = \"ZZCELL_0820001111\"\nPOISON_MARKERS = (POISON_OWNER, POISON_ID, POISON_CELL)\nAPPROVER_EMAIL = \"approver@dynamicauctioneers.co.za\"\nAPPROVER_PW = \"approver-pass-123\"\n# --- one-time platform setup ---------------------------------------------\n# Seed the bootstrap admin (captures its printed temp password) and a second,\n# approver-role account. init_db is idempotent; the app already ran it at import.\nDB_PATH = models.init_db()\nADMIN_PW = auth.seed_admin(DB_PATH)  # temp password on first run, else None\nmodels.set_setting(DB_PATH, \"output_root\", str(_TMP))  # contain all writes",
+        "peekOfCode": "POISON_CELL = \"ZZCELL_0820001111\"\nPOISON_MARKERS = (POISON_OWNER, POISON_ID, POISON_CELL)\nAPPROVER_EMAIL = \"approver@dynamicauctioneers.co.za\"\nAPPROVER_PW = \"approver-pass-123\"\nMARKETING_EMAIL = \"marketing@dynamicauctioneers.co.za\"\nMARKETING_PW = \"marketing-pass-123\"\n# --- one-time platform setup ---------------------------------------------\n# Seed the bootstrap admin (captures its printed temp password) plus an\n# approver-role and a marketing-role account. init_db is idempotent; the app\n# already ran it at import.",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -7477,7 +7513,7 @@
         "kind": 5,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "POISON_MARKERS = (POISON_OWNER, POISON_ID, POISON_CELL)\nAPPROVER_EMAIL = \"approver@dynamicauctioneers.co.za\"\nAPPROVER_PW = \"approver-pass-123\"\n# --- one-time platform setup ---------------------------------------------\n# Seed the bootstrap admin (captures its printed temp password) and a second,\n# approver-role account. init_db is idempotent; the app already ran it at import.\nDB_PATH = models.init_db()\nADMIN_PW = auth.seed_admin(DB_PATH)  # temp password on first run, else None\nmodels.set_setting(DB_PATH, \"output_root\", str(_TMP))  # contain all writes\nif models.get_user(DB_PATH, APPROVER_EMAIL) is None:",
+        "peekOfCode": "POISON_MARKERS = (POISON_OWNER, POISON_ID, POISON_CELL)\nAPPROVER_EMAIL = \"approver@dynamicauctioneers.co.za\"\nAPPROVER_PW = \"approver-pass-123\"\nMARKETING_EMAIL = \"marketing@dynamicauctioneers.co.za\"\nMARKETING_PW = \"marketing-pass-123\"\n# --- one-time platform setup ---------------------------------------------\n# Seed the bootstrap admin (captures its printed temp password) plus an\n# approver-role and a marketing-role account. init_db is idempotent; the app\n# already ran it at import.\nDB_PATH = models.init_db()",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -7486,7 +7522,7 @@
         "kind": 5,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "APPROVER_EMAIL = \"approver@dynamicauctioneers.co.za\"\nAPPROVER_PW = \"approver-pass-123\"\n# --- one-time platform setup ---------------------------------------------\n# Seed the bootstrap admin (captures its printed temp password) and a second,\n# approver-role account. init_db is idempotent; the app already ran it at import.\nDB_PATH = models.init_db()\nADMIN_PW = auth.seed_admin(DB_PATH)  # temp password on first run, else None\nmodels.set_setting(DB_PATH, \"output_root\", str(_TMP))  # contain all writes\nif models.get_user(DB_PATH, APPROVER_EMAIL) is None:\n    models.create_user(",
+        "peekOfCode": "APPROVER_EMAIL = \"approver@dynamicauctioneers.co.za\"\nAPPROVER_PW = \"approver-pass-123\"\nMARKETING_EMAIL = \"marketing@dynamicauctioneers.co.za\"\nMARKETING_PW = \"marketing-pass-123\"\n# --- one-time platform setup ---------------------------------------------\n# Seed the bootstrap admin (captures its printed temp password) plus an\n# approver-role and a marketing-role account. init_db is idempotent; the app\n# already ran it at import.\nDB_PATH = models.init_db()\nADMIN_PW = auth.seed_admin(DB_PATH)  # temp password on first run, else None",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -7495,7 +7531,25 @@
         "kind": 5,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "APPROVER_PW = \"approver-pass-123\"\n# --- one-time platform setup ---------------------------------------------\n# Seed the bootstrap admin (captures its printed temp password) and a second,\n# approver-role account. init_db is idempotent; the app already ran it at import.\nDB_PATH = models.init_db()\nADMIN_PW = auth.seed_admin(DB_PATH)  # temp password on first run, else None\nmodels.set_setting(DB_PATH, \"output_root\", str(_TMP))  # contain all writes\nif models.get_user(DB_PATH, APPROVER_EMAIL) is None:\n    models.create_user(\n        DB_PATH,",
+        "peekOfCode": "APPROVER_PW = \"approver-pass-123\"\nMARKETING_EMAIL = \"marketing@dynamicauctioneers.co.za\"\nMARKETING_PW = \"marketing-pass-123\"\n# --- one-time platform setup ---------------------------------------------\n# Seed the bootstrap admin (captures its printed temp password) plus an\n# approver-role and a marketing-role account. init_db is idempotent; the app\n# already ran it at import.\nDB_PATH = models.init_db()\nADMIN_PW = auth.seed_admin(DB_PATH)  # temp password on first run, else None\nmodels.set_setting(DB_PATH, \"output_root\", str(_TMP))  # contain all writes",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "MARKETING_EMAIL",
+        "kind": 5,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "MARKETING_EMAIL = \"marketing@dynamicauctioneers.co.za\"\nMARKETING_PW = \"marketing-pass-123\"\n# --- one-time platform setup ---------------------------------------------\n# Seed the bootstrap admin (captures its printed temp password) plus an\n# approver-role and a marketing-role account. init_db is idempotent; the app\n# already ran it at import.\nDB_PATH = models.init_db()\nADMIN_PW = auth.seed_admin(DB_PATH)  # temp password on first run, else None\nmodels.set_setting(DB_PATH, \"output_root\", str(_TMP))  # contain all writes\nfor _email, _pw, _role in (",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "MARKETING_PW",
+        "kind": 5,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "MARKETING_PW = \"marketing-pass-123\"\n# --- one-time platform setup ---------------------------------------------\n# Seed the bootstrap admin (captures its printed temp password) plus an\n# approver-role and a marketing-role account. init_db is idempotent; the app\n# already ran it at import.\nDB_PATH = models.init_db()\nADMIN_PW = auth.seed_admin(DB_PATH)  # temp password on first run, else None\nmodels.set_setting(DB_PATH, \"output_root\", str(_TMP))  # contain all writes\nfor _email, _pw, _role in (\n    (APPROVER_EMAIL, APPROVER_PW, \"approver\"),",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -7504,7 +7558,7 @@
         "kind": 5,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "DB_PATH = models.init_db()\nADMIN_PW = auth.seed_admin(DB_PATH)  # temp password on first run, else None\nmodels.set_setting(DB_PATH, \"output_root\", str(_TMP))  # contain all writes\nif models.get_user(DB_PATH, APPROVER_EMAIL) is None:\n    models.create_user(\n        DB_PATH,\n        email=APPROVER_EMAIL,\n        pw_hash=auth.hash_password(APPROVER_PW),\n        role=\"approver\",\n    )",
+        "peekOfCode": "DB_PATH = models.init_db()\nADMIN_PW = auth.seed_admin(DB_PATH)  # temp password on first run, else None\nmodels.set_setting(DB_PATH, \"output_root\", str(_TMP))  # contain all writes\nfor _email, _pw, _role in (\n    (APPROVER_EMAIL, APPROVER_PW, \"approver\"),\n    (MARKETING_EMAIL, MARKETING_PW, \"marketing\"),\n):\n    if models.get_user(DB_PATH, _email) is None:\n        models.create_user(\n            DB_PATH, email=_email, pw_hash=auth.hash_password(_pw), role=_role",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -7513,7 +7567,7 @@
         "kind": 5,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "ADMIN_PW = auth.seed_admin(DB_PATH)  # temp password on first run, else None\nmodels.set_setting(DB_PATH, \"output_root\", str(_TMP))  # contain all writes\nif models.get_user(DB_PATH, APPROVER_EMAIL) is None:\n    models.create_user(\n        DB_PATH,\n        email=APPROVER_EMAIL,\n        pw_hash=auth.hash_password(APPROVER_PW),\n        role=\"approver\",\n    )\n# --- helpers --------------------------------------------------------------",
+        "peekOfCode": "ADMIN_PW = auth.seed_admin(DB_PATH)  # temp password on first run, else None\nmodels.set_setting(DB_PATH, \"output_root\", str(_TMP))  # contain all writes\nfor _email, _pw, _role in (\n    (APPROVER_EMAIL, APPROVER_PW, \"approver\"),\n    (MARKETING_EMAIL, MARKETING_PW, \"marketing\"),\n):\n    if models.get_user(DB_PATH, _email) is None:\n        models.create_user(\n            DB_PATH, email=_email, pw_hash=auth.hash_password(_pw), role=_role\n        )",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -7756,7 +7810,7 @@
         "kind": 2,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "def gate1_page(dp: str, request: Request, user: dict = Depends(require_role(\"approver\"))):\n    db_path = _db(request)\n    record = _load(db_path, dp)\n    view = _memo_view(record)\n    return templates.TemplateResponse(\n        request,\n        \"gate1_verify.html\",\n        {\n            \"user\": user,\n            \"dp\": dp,",
+        "peekOfCode": "def gate1_page(dp: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    db_path = _db(request)\n    record = _load(db_path, dp)\n    view = _memo_view(record)\n    return templates.TemplateResponse(\n        request,\n        \"gate1_verify.html\",\n        {\n            \"user\": user,\n            \"dp\": dp,",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -7765,7 +7819,7 @@
         "kind": 2,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "def gate2_page(dp: str, request: Request, user: dict = Depends(require_role(\"approver\"))):\n    db_path = _db(request)\n    record = _load(db_path, dp)\n    tiles = _gallery(db_path, dp)\n    links = _approval_links(request, db_path, dp, user[\"email\"])\n    email_html = templates.get_template(\"emails/gate2_internal.html\").render(\n        **_email_view(record), links=links\n    )\n    state = _state(db_path, dp)\n    # Prefill from public_view so any existing human override shows (not the",
+        "peekOfCode": "def gate2_page(dp: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    db_path = _db(request)\n    record = _load(db_path, dp)\n    tiles = _gallery(db_path, dp)\n    links = _approval_links(request, db_path, dp, user[\"email\"])\n    email_html = templates.get_template(\"emails/gate2_internal.html\").render(\n        **_email_view(record), links=links\n    )\n    state = _state(db_path, dp)\n    # Prefill from public_view so any existing human override shows (not the",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -7774,7 +7828,7 @@
         "kind": 2,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "def gate2_artifact(dp: str, fmt: str, request: Request, user: dict = Depends(require_role(\"approver\"))):\n    \"\"\"Serve one rendered artifact file (PII-free: rendered from public_view).\"\"\"\n    if fmt not in FORMATS:\n        raise HTTPException(status_code=404, detail=\"Unknown format.\")\n    db_path = _db(request)\n    for art in _manifest(db_path, dp):\n        if art.get(\"fmt\") == fmt and art.get(\"path\"):\n            path = Path(art[\"path\"])\n            if path.exists():\n                return FileResponse(str(path), media_type=art.get(\"mime\") or \"text/plain\")",
+        "peekOfCode": "def gate2_artifact(dp: str, fmt: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"Serve one rendered artifact file (PII-free: rendered from public_view).\"\"\"\n    if fmt not in FORMATS:\n        raise HTTPException(status_code=404, detail=\"Unknown format.\")\n    db_path = _db(request)\n    for art in _manifest(db_path, dp):\n        if art.get(\"fmt\") == fmt and art.get(\"path\"):\n            path = Path(art[\"path\"])\n            if path.exists():\n                return FileResponse(str(path), media_type=art.get(\"mime\") or \"text/plain\")",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -7783,7 +7837,7 @@
         "kind": 2,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "def gate2_photo(dp: str, name: str, request: Request, user: dict = Depends(require_role(\"approver\"))):\n    \"\"\"Serve one property photo (editor thumbnails + advert-preview images).\"\"\"\n    db_path = _db(request)\n    path = _photos_dir(db_path, dp) / Path(name).name  # basename => no traversal\n    if not path.is_file():\n        raise HTTPException(status_code=404, detail=\"No such photo.\")\n    return FileResponse(str(path), media_type=_IMAGE_MIME.get(path.suffix.lower(), \"application/octet-stream\"))\n@router.post(\"/{dp}/ads/photos/upload\", response_class=HTMLResponse)\nasync def gate2_photo_upload(\n    dp: str, request: Request,",
+        "peekOfCode": "def gate2_photo(dp: str, name: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"Serve one property photo (editor thumbnails + advert-preview images).\"\"\"\n    db_path = _db(request)\n    path = _photos_dir(db_path, dp) / Path(name).name  # basename => no traversal\n    if not path.is_file():\n        raise HTTPException(status_code=404, detail=\"No such photo.\")\n    return FileResponse(str(path), media_type=_IMAGE_MIME.get(path.suffix.lower(), \"application/octet-stream\"))\n@router.post(\"/{dp}/ads/photos/upload\", response_class=HTMLResponse)\nasync def gate2_photo_upload(\n    dp: str, request: Request,",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -7801,7 +7855,7 @@
         "kind": 2,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "def action_gate2_changes(db_path: str, dp: str, approver: str, note: str) -> str:\n    \"\"\"Request changes via the email path: log the note and re-render.\"\"\"\n    _signoff(db_path, dp, gate=\"2\", user=approver, note=f\"changes requested: {note}\")\n    _render(db_path, dp)\n    return _state(db_path, dp)\n@router.post(\"/{dp}/ads/approve\")\ndef gate2_approve(dp: str, request: Request, user: dict = Depends(require_role(\"approver\"))):\n    db_path = _db(request)\n    state = action_gate2_approve(db_path, dp, user[\"email\"])\n    if state == \"updated\":",
+        "peekOfCode": "def action_gate2_changes(db_path: str, dp: str, approver: str, note: str) -> str:\n    \"\"\"Request changes via the email path: log the note and re-render.\"\"\"\n    _signoff(db_path, dp, gate=\"2\", user=approver, note=f\"changes requested: {note}\")\n    _render(db_path, dp)\n    return _state(db_path, dp)\n@router.post(\"/{dp}/ads/approve\")\ndef gate2_approve(dp: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    db_path = _db(request)\n    state = action_gate2_approve(db_path, dp, user[\"email\"])\n    if state == \"updated\":",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -7810,7 +7864,7 @@
         "kind": 2,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "def gate2_approve(dp: str, request: Request, user: dict = Depends(require_role(\"approver\"))):\n    db_path = _db(request)\n    state = action_gate2_approve(db_path, dp, user[\"email\"])\n    if state == \"updated\":\n        target = f\"/post/{dp}\"          # small-edit repost: straight to distribution\n    elif state == \"approved\":\n        target = f\"/gates/{dp}/client\"  # first-time: on to gate 3 (client approval)\n    else:\n        target = f\"/gates/{dp}/ads\"     # nothing moved (e.g. still live): back to editor\n    if request.headers.get(\"HX-Request\"):",
+        "peekOfCode": "def gate2_approve(dp: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    db_path = _db(request)\n    state = action_gate2_approve(db_path, dp, user[\"email\"])\n    if state == \"updated\":\n        target = f\"/post/{dp}\"          # small-edit repost: straight to distribution\n    elif state == \"approved\":\n        target = f\"/gates/{dp}/client\"  # first-time: on to gate 3 (client approval)\n    else:\n        target = f\"/gates/{dp}/ads\"     # nothing moved (e.g. still live): back to editor\n    if request.headers.get(\"HX-Request\"):",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -7819,7 +7873,7 @@
         "kind": 2,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "def gate3_page(dp: str, request: Request, user: dict = Depends(require_role(\"approver\"))):\n    db_path = _db(request)\n    record = _load(db_path, dp)\n    client_email = templates.get_template(\"emails/client_draft.html\").render(**_email_view(record))\n    return templates.TemplateResponse(\n        request,\n        \"gate3_client.html\",\n        {\n            \"user\": user,\n            \"dp\": dp,",
+        "peekOfCode": "def gate3_page(dp: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    db_path = _db(request)\n    record = _load(db_path, dp)\n    client_email = templates.get_template(\"emails/client_draft.html\").render(**_email_view(record))\n    return templates.TemplateResponse(\n        request,\n        \"gate3_client.html\",\n        {\n            \"user\": user,\n            \"dp\": dp,",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -8035,7 +8089,7 @@
         "kind": 2,
         "importPath": "webapp.routes.settings",
         "description": "webapp.routes.settings",
-        "peekOfCode": "def settings_page(\n    request: Request,\n    user: dict = Depends(auth.require_login),\n):\n    \"\"\"Render the settings screen with the current stored values.\"\"\"\n    db_path = auth.db_path_for(request)\n    settings = models.all_settings(db_path)\n    return templates.TemplateResponse(\n        request,\n        \"settings.html\",",
+        "peekOfCode": "def settings_page(\n    request: Request,\n    user: dict = Depends(auth.require_role(\"admin\")),\n):\n    \"\"\"Render the settings screen with the current stored values.\"\"\"\n    db_path = auth.db_path_for(request)\n    settings = models.all_settings(db_path)\n    return templates.TemplateResponse(\n        request,\n        \"settings.html\",",
         "detail": "webapp.routes.settings",
         "documentation": {}
     },
