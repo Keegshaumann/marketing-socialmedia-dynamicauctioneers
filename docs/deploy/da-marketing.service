@@ -1,0 +1,20 @@
+[Unit]
+Description=Dynamic Auctioneers Marketing Platform
+After=network.target
+
+[Service]
+Type=simple
+User=dauction
+Group=dauction
+WorkingDirectory=/opt/da-marketing
+# SINGLE process on purpose: the SQLite job worker must not be duplicated,
+# so do NOT add --workers. --proxy-headers makes uvicorn honour the scheme
+# and host from nginx (correct https:// URLs in approval emails).
+ExecStart=/opt/da-marketing/venv/bin/uvicorn webapp.main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips=127.0.0.1
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
