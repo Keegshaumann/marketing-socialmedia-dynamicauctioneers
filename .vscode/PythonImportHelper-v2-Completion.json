@@ -395,19 +395,12 @@
         "documentation": {}
     },
     {
-        "label": "dataclass",
-        "importPath": "dataclasses",
-        "description": "dataclasses",
+        "label": "re",
+        "kind": 6,
         "isExtraImport": true,
-        "detail": "dataclasses",
-        "documentation": {}
-    },
-    {
-        "label": "field",
-        "importPath": "dataclasses",
-        "description": "dataclasses",
-        "isExtraImport": true,
-        "detail": "dataclasses",
+        "importPath": "re",
+        "description": "re",
+        "detail": "re",
         "documentation": {}
     },
     {
@@ -472,6 +465,255 @@
         "description": "dataclasses",
         "isExtraImport": true,
         "detail": "dataclasses",
+        "documentation": {}
+    },
+    {
+        "label": "dataclass",
+        "importPath": "dataclasses",
+        "description": "dataclasses",
+        "isExtraImport": true,
+        "detail": "dataclasses",
+        "documentation": {}
+    },
+    {
+        "label": "field",
+        "importPath": "dataclasses",
+        "description": "dataclasses",
+        "isExtraImport": true,
+        "detail": "dataclasses",
+        "documentation": {}
+    },
+    {
+        "label": "pathlib",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "PurePosixPath",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
         "documentation": {}
     },
     {
@@ -755,6 +997,22 @@
         "documentation": {}
     },
     {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Type",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
         "label": "List",
         "importPath": "typing",
         "description": "typing",
@@ -995,6 +1253,14 @@
         "documentation": {}
     },
     {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
         "label": "Any",
         "importPath": "typing",
         "description": "typing",
@@ -1203,15 +1469,6 @@
         "documentation": {}
     },
     {
-        "label": "re",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "re",
-        "description": "re",
-        "detail": "re",
-        "documentation": {}
-    },
-    {
         "label": "shutil",
         "kind": 6,
         "isExtraImport": true,
@@ -1271,6 +1528,14 @@
     },
     {
         "label": "timezone",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "date",
         "importPath": "datetime",
         "description": "datetime",
         "isExtraImport": true,
@@ -1347,231 +1612,6 @@
         "description": "datetime",
         "isExtraImport": true,
         "detail": "datetime",
-        "documentation": {}
-    },
-    {
-        "label": "pathlib",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "PurePosixPath",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
-        "documentation": {}
-    },
-    {
-        "label": "Path",
-        "importPath": "pathlib",
-        "description": "pathlib",
-        "isExtraImport": true,
-        "detail": "pathlib",
         "documentation": {}
     },
     {
@@ -1663,7 +1703,87 @@
         "documentation": {}
     },
     {
+        "label": "Compliance",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "FinancialsInternal",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "Identity",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "LightstoneSource",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "Physical",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
         "label": "PropertyRecord",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "PropertyReportSource",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "SaleProcess",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "Sources",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "Valuation",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "_Base",
         "importPath": "engine.schema",
         "description": "engine.schema",
         "isExtraImport": true,
@@ -1791,7 +1911,63 @@
         "documentation": {}
     },
     {
-        "label": "PropertyRecord",
+        "label": "FinancialsInternal",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "Identity",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "LightstoneSource",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "Owner",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "Physical",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "SaleProcess",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "Sources",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "Valuation",
         "importPath": "engine.schema",
         "description": "engine.schema",
         "isExtraImport": true,
@@ -1976,6 +2152,15 @@
         "documentation": {}
     },
     {
+        "label": "sys",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sys",
+        "description": "sys",
+        "detail": "sys",
+        "documentation": {}
+    },
+    {
         "label": "time",
         "kind": 6,
         "isExtraImport": true,
@@ -2009,6 +2194,14 @@
         "importPath": "urllib.request",
         "description": "urllib.request",
         "detail": "urllib.request",
+        "documentation": {}
+    },
+    {
+        "label": "FORMATS",
+        "importPath": "engine.render.base",
+        "description": "engine.render.base",
+        "isExtraImport": true,
+        "detail": "engine.render.base",
         "documentation": {}
     },
     {
@@ -2173,6 +2366,30 @@
         "documentation": {}
     },
     {
+        "label": "load_dotenv",
+        "importPath": "dotenv",
+        "description": "dotenv",
+        "isExtraImport": true,
+        "detail": "dotenv",
+        "documentation": {}
+    },
+    {
+        "label": "BaseModel",
+        "importPath": "pydantic",
+        "description": "pydantic",
+        "isExtraImport": true,
+        "detail": "pydantic",
+        "documentation": {}
+    },
+    {
+        "label": "ConfigDict",
+        "importPath": "pydantic",
+        "description": "pydantic",
+        "isExtraImport": true,
+        "detail": "pydantic",
+        "documentation": {}
+    },
+    {
         "label": "BaseModel",
         "importPath": "pydantic",
         "description": "pydantic",
@@ -2189,15 +2406,7 @@
         "documentation": {}
     },
     {
-        "label": "BaseModel",
-        "importPath": "pydantic",
-        "description": "pydantic",
-        "isExtraImport": true,
-        "detail": "pydantic",
-        "documentation": {}
-    },
-    {
-        "label": "ConfigDict",
+        "label": "ValidationError",
         "importPath": "pydantic",
         "description": "pydantic",
         "isExtraImport": true,
@@ -2309,15 +2518,6 @@
         "documentation": {}
     },
     {
-        "label": "sys",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "sys",
-        "description": "sys",
-        "detail": "sys",
-        "documentation": {}
-    },
-    {
         "label": "DEFAULT_BACKEND",
         "importPath": "engine.render",
         "description": "engine.render",
@@ -2366,7 +2566,23 @@
         "documentation": {}
     },
     {
+        "label": "DEFAULT_BACKEND",
+        "importPath": "engine.render",
+        "description": "engine.render",
+        "isExtraImport": true,
+        "detail": "engine.render",
+        "documentation": {}
+    },
+    {
         "label": "FORMATS",
+        "importPath": "engine.render",
+        "description": "engine.render",
+        "isExtraImport": true,
+        "detail": "engine.render",
+        "documentation": {}
+    },
+    {
+        "label": "get_backend",
         "importPath": "engine.render",
         "description": "engine.render",
         "isExtraImport": true,
@@ -2686,6 +2902,14 @@
         "documentation": {}
     },
     {
+        "label": "template_set_names",
+        "importPath": "engine.render.canva_backend",
+        "description": "engine.render.canva_backend",
+        "isExtraImport": true,
+        "detail": "engine.render.canva_backend",
+        "documentation": {}
+    },
+    {
         "label": "broadcast_text",
         "importPath": "engine.crm",
         "description": "engine.crm",
@@ -2798,6 +3022,14 @@
         "documentation": {}
     },
     {
+        "label": "build_planner_request",
+        "importPath": "engine.distribute.ghl",
+        "description": "engine.distribute.ghl",
+        "isExtraImport": true,
+        "detail": "engine.distribute.ghl",
+        "documentation": {}
+    },
+    {
         "label": "post_to_planner",
         "importPath": "engine.distribute.ghl",
         "description": "engine.distribute.ghl",
@@ -2862,7 +3094,39 @@
         "documentation": {}
     },
     {
+        "label": "SimpleNamespace",
+        "importPath": "types",
+        "description": "types",
+        "isExtraImport": true,
+        "detail": "types",
+        "documentation": {}
+    },
+    {
+        "label": "SECTIONS",
+        "importPath": "engine.extract",
+        "description": "engine.extract",
+        "isExtraImport": true,
+        "detail": "engine.extract",
+        "documentation": {}
+    },
+    {
+        "label": "_extract_section",
+        "importPath": "engine.extract",
+        "description": "engine.extract",
+        "isExtraImport": true,
+        "detail": "engine.extract",
+        "documentation": {}
+    },
+    {
         "label": "build_request",
+        "importPath": "engine.extract",
+        "description": "engine.extract",
+        "isExtraImport": true,
+        "detail": "engine.extract",
+        "documentation": {}
+    },
+    {
+        "label": "extract_record",
         "importPath": "engine.extract",
         "description": "engine.extract",
         "isExtraImport": true,
@@ -3780,11 +4044,20 @@
         "documentation": {}
     },
     {
+        "label": "upload_media",
+        "kind": 2,
+        "importPath": "engine.distribute.ghl",
+        "description": "engine.distribute.ghl",
+        "peekOfCode": "def upload_media(\n    path: str | Path,\n    token: str,\n    *,\n    client: Any = None,\n    timeout: float = 60.0,\n) -> Optional[str]:\n    \"\"\"Upload a local image into the GHL Media Library; return its public URL.\n    The Social Planner only accepts publicly reachable media URLs, so each\n    post image is first uploaded here (scope ``medias.write``). Returns the",
+        "detail": "engine.distribute.ghl",
+        "documentation": {}
+    },
+    {
         "label": "build_planner_checklist",
         "kind": 2,
         "importPath": "engine.distribute.ghl",
         "description": "engine.distribute.ghl",
-        "peekOfCode": "def build_planner_checklist(\n    dp: str,\n    channels: List[str],\n    artifacts: List[Any],\n    reason: str,\n) -> List[str]:\n    \"\"\"Manual steps for a human when the automated post cannot run.\"\"\"\n    steps = [\n        f\"Reason automated posting did not run: {reason}\",\n        f\"Open the GHL Social Planner in the Dynamic Solutions sub-account for DP{dp}.\",",
+        "peekOfCode": "def build_planner_checklist(\n    dp: str,\n    channels: List[str],\n    artifacts: List[Any],\n    reason: str,\n    postable_images: Optional[List[str]] = None,\n) -> List[str]:\n    \"\"\"Manual steps for a human when the automated post cannot run.\n    The attach lines mirror what the automated post would carry (D24): the\n    postable raster images. Non-image artifacts are listed as copy/reference",
         "detail": "engine.distribute.ghl",
         "documentation": {}
     },
@@ -3793,7 +4066,7 @@
         "kind": 2,
         "importPath": "engine.distribute.ghl",
         "description": "engine.distribute.ghl",
-        "peekOfCode": "def build_planner_request(\n    dp: str,\n    artifacts: List[Any],\n    channels: Optional[Dict[str, bool]],\n    *,\n    location_id: Optional[str] = None,\n    account_map: Optional[Dict[str, str]] = None,\n    schedule_date: Optional[str] = None,\n    status: str = \"published\",\n) -> Dict[str, Any]:",
+        "peekOfCode": "def build_planner_request(\n    dp: str,\n    artifacts: List[Any],\n    channels: Optional[Dict[str, bool]],\n    *,\n    location_id: Optional[str] = None,\n    account_map: Optional[Dict[str, str]] = None,\n    schedule_date: Optional[str] = None,\n    status: Optional[str] = None,\n    user_id: Optional[str] = None,",
         "detail": "engine.distribute.ghl",
         "documentation": {}
     },
@@ -3802,7 +4075,7 @@
         "kind": 2,
         "importPath": "engine.distribute.ghl",
         "description": "engine.distribute.ghl",
-        "peekOfCode": "def post_to_planner(\n    dp: str,\n    artifacts: List[Any],\n    channels: Optional[Dict[str, bool]],\n    token: Optional[str] = None,\n    *,\n    location_id: Optional[str] = None,\n    account_map: Optional[Dict[str, str]] = None,\n    schedule_date: Optional[str] = None,\n    client: Any = None,",
+        "peekOfCode": "def post_to_planner(\n    dp: str,\n    artifacts: List[Any],\n    channels: Optional[Dict[str, bool]],\n    token: Optional[str] = None,\n    *,\n    location_id: Optional[str] = None,\n    account_map: Optional[Dict[str, str]] = None,\n    schedule_date: Optional[str] = None,\n    status: Optional[str] = None,",
         "detail": "engine.distribute.ghl",
         "documentation": {}
     },
@@ -3820,7 +4093,7 @@
         "kind": 5,
         "importPath": "engine.distribute.ghl",
         "description": "engine.distribute.ghl",
-        "peekOfCode": "GHL_API_BASE = \"https://services.leadconnectorhq.com\"\nGHL_API_VERSION = \"2021-07-28\"\n# The channels the Social Planner API handles (D11). Anything else in a routing\n# matrix (Property24, own website, email, JamesEdition) is posted by a\n# different mechanism and is ignored here.\nGHL_SOCIAL_CHANNELS: tuple[str, ...] = (\n    \"facebook\",\n    \"instagram\",\n    \"linkedin\",\n    \"tiktok\",",
+        "peekOfCode": "GHL_API_BASE = \"https://services.leadconnectorhq.com\"\nGHL_API_VERSION = \"2021-07-28\"\n# The channels the Social Planner API handles (D11). Anything else in a routing\n# matrix (Property24, own website, email, JamesEdition) is posted by a\n# different mechanism and is ignored here.\nGHL_SOCIAL_CHANNELS: tuple[str, ...] = (\n    \"facebook\",\n    \"instagram\",\n    \"linkedin\",\n    \"x\",",
         "detail": "engine.distribute.ghl",
         "documentation": {}
     },
@@ -3829,7 +4102,7 @@
         "kind": 5,
         "importPath": "engine.distribute.ghl",
         "description": "engine.distribute.ghl",
-        "peekOfCode": "GHL_API_VERSION = \"2021-07-28\"\n# The channels the Social Planner API handles (D11). Anything else in a routing\n# matrix (Property24, own website, email, JamesEdition) is posted by a\n# different mechanism and is ignored here.\nGHL_SOCIAL_CHANNELS: tuple[str, ...] = (\n    \"facebook\",\n    \"instagram\",\n    \"linkedin\",\n    \"tiktok\",\n    \"x\",",
+        "peekOfCode": "GHL_API_VERSION = \"2021-07-28\"\n# The channels the Social Planner API handles (D11). Anything else in a routing\n# matrix (Property24, own website, email, JamesEdition) is posted by a\n# different mechanism and is ignored here.\nGHL_SOCIAL_CHANNELS: tuple[str, ...] = (\n    \"facebook\",\n    \"instagram\",\n    \"linkedin\",\n    \"x\",\n)",
         "detail": "engine.distribute.ghl",
         "documentation": {}
     },
@@ -3838,7 +4111,52 @@
         "kind": 5,
         "importPath": "engine.distribute.ghl",
         "description": "engine.distribute.ghl",
-        "peekOfCode": "DELETE_CAVEAT = (\n    \"GHL delete only clears the Social Planner queue. It does not remove posts \"\n    \"already live on the connected pages, and Instagram and TikTok have no delete \"\n    \"API. Changed live posts are handled by regenerate-and-repost (a REDUCED \"\n    \"update); removing a live IG or TikTok post is a manual step.\"\n)\n@dataclass\nclass PlannerResult:\n    \"\"\"Outcome of a Social Planner post attempt.\n    ``mode`` is ``\"posted\"`` when the API accepted the post, ``\"ready_to_post_pack\"``",
+        "peekOfCode": "DELETE_CAVEAT = (\n    \"GHL delete only clears the Social Planner queue. It does not remove posts \"\n    \"already live on the connected pages, and Instagram has no delete API. \"\n    \"Changed live posts are handled by regenerate-and-repost (a REDUCED update); \"\n    \"removing a live Instagram post is a manual step.\"\n)\n@dataclass\nclass PlannerResult:\n    \"\"\"Outcome of a Social Planner post attempt.\n    ``mode`` is ``\"posted\"`` when the API accepted the post, ``\"ready_to_post_pack\"``",
+        "detail": "engine.distribute.ghl",
+        "documentation": {}
+    },
+    {
+        "label": "_MD_HEADING",
+        "kind": 5,
+        "importPath": "engine.distribute.ghl",
+        "description": "engine.distribute.ghl",
+        "peekOfCode": "_MD_HEADING = re.compile(r\"^#{1,6}\\s\")\ndef _strip_leading_heading(text: str) -> str:\n    \"\"\"Drop a leading Markdown title (and blank lines) from artifact copy.\n    The rendered ``facebook_post`` artifact starts with a ``# Facebook Post\n    DP<dp>`` title that must never appear in the posted caption. Only leading\n    heading/blank lines are removed; body content and hashtags are untouched.\n    \"\"\"\n    lines = text.splitlines()\n    i = 0\n    while i < len(lines) and (not lines[i].strip() or _MD_HEADING.match(lines[i].lstrip())):",
+        "detail": "engine.distribute.ghl",
+        "documentation": {}
+    },
+    {
+        "label": "_POSTABLE_IMAGE_MIMES",
+        "kind": 5,
+        "importPath": "engine.distribute.ghl",
+        "description": "engine.distribute.ghl",
+        "peekOfCode": "_POSTABLE_IMAGE_MIMES = {\"image/png\", \"image/jpeg\", \"image/webp\", \"image/gif\"}\n_IMAGE_EXT_MIMES = {\n    \".png\": \"image/png\", \".jpg\": \"image/jpeg\", \".jpeg\": \"image/jpeg\",\n    \".webp\": \"image/webp\", \".gif\": \"image/gif\",\n}\n# Most platforms cap carousel media well above this; four keeps the post tight\n# and the upload cost bounded.\nMAX_POST_IMAGES = 4\ndef _postable_images(\n    artifacts: List[Any], photo_paths: Optional[List[str]] = None",
+        "detail": "engine.distribute.ghl",
+        "documentation": {}
+    },
+    {
+        "label": "_IMAGE_EXT_MIMES",
+        "kind": 5,
+        "importPath": "engine.distribute.ghl",
+        "description": "engine.distribute.ghl",
+        "peekOfCode": "_IMAGE_EXT_MIMES = {\n    \".png\": \"image/png\", \".jpg\": \"image/jpeg\", \".jpeg\": \"image/jpeg\",\n    \".webp\": \"image/webp\", \".gif\": \"image/gif\",\n}\n# Most platforms cap carousel media well above this; four keeps the post tight\n# and the upload cost bounded.\nMAX_POST_IMAGES = 4\ndef _postable_images(\n    artifacts: List[Any], photo_paths: Optional[List[str]] = None\n) -> tuple[List[str], List[str]]:",
+        "detail": "engine.distribute.ghl",
+        "documentation": {}
+    },
+    {
+        "label": "MAX_POST_IMAGES",
+        "kind": 5,
+        "importPath": "engine.distribute.ghl",
+        "description": "engine.distribute.ghl",
+        "peekOfCode": "MAX_POST_IMAGES = 4\ndef _postable_images(\n    artifacts: List[Any], photo_paths: Optional[List[str]] = None\n) -> tuple[List[str], List[str]]:\n    \"\"\"Select the local raster-image files a post may carry, in display order.\n    Property photos (hero first) lead, then raster image artifacts (e.g. the\n    Canva-exported demo ad PNG). Non-raster artifacts (HTML, SVG, PDF) are\n    noted, never attached (D24). Missing files are skipped with a note rather\n    than breaking the post. Capped at ``MAX_POST_IMAGES``.\n    \"\"\"",
+        "detail": "engine.distribute.ghl",
+        "documentation": {}
+    },
+    {
+        "label": "GHL_MEDIA_UPLOAD_URL",
+        "kind": 5,
+        "importPath": "engine.distribute.ghl",
+        "description": "engine.distribute.ghl",
+        "peekOfCode": "GHL_MEDIA_UPLOAD_URL = f\"{GHL_API_BASE}/medias/upload-file\"\ndef upload_media(\n    path: str | Path,\n    token: str,\n    *,\n    client: Any = None,\n    timeout: float = 60.0,\n) -> Optional[str]:\n    \"\"\"Upload a local image into the GHL Media Library; return its public URL.\n    The Social Planner only accepts publicly reachable media URLs, so each",
         "detail": "engine.distribute.ghl",
         "documentation": {}
     },
@@ -3969,6 +4287,15 @@
         "documentation": {}
     },
     {
+        "label": "template_set_names",
+        "kind": 2,
+        "importPath": "engine.render.canva_backend",
+        "description": "engine.render.canva_backend",
+        "peekOfCode": "def template_set_names() -> List[str]:\n    \"\"\"The configured template set names, in declared (default-first) order.\n    The gate-2 template picker lists these. Never raises: an unset or\n    unreadable ``CANVA_TEMPLATE_MAP`` returns ``[]`` (the picker hides), so the\n    webapp needs no Canva-specific error handling.\n    \"\"\"\n    try:\n        return list(CanvaBackend()._load_template_sets().keys())\n    except Exception:\n        return []",
+        "detail": "engine.render.canva_backend",
+        "documentation": {}
+    },
+    {
         "label": "_API_BASE",
         "kind": 5,
         "importPath": "engine.render.canva_backend",
@@ -4000,7 +4327,7 @@
         "kind": 5,
         "importPath": "engine.render.canva_backend",
         "description": "engine.render.canva_backend",
-        "peekOfCode": "_HTTP_TIMEOUT_S = 30.0\n_POLL_INTERVAL_S = 2.0\n_POLL_TIMEOUT_S = 120.0\n# Canva job statuses that mean \"keep waiting\" versus terminal outcomes.\n_JOB_SUCCESS = {\"success\", \"completed\", \"done\"}\n_JOB_FAILURE = {\"failed\", \"error\"}\ndef _now_iso() -> str:\n    \"\"\"UTC timestamp in ISO 8601, seconds precision.\"\"\"\n    return datetime.now(timezone.utc).replace(microsecond=0).isoformat()\n# --- record -> ad-tile field composers -----------------------------------",
+        "peekOfCode": "_HTTP_TIMEOUT_S = 30.0\n_POLL_INTERVAL_S = 2.0\n# The set name a legacy flat CANVA_TEMPLATE_MAP is filed under, and the label\n# shown for it in the gate-2 template picker.\nDEFAULT_TEMPLATE_SET = \"Default\"\n_POLL_TIMEOUT_S = 120.0\n# Canva job statuses that mean \"keep waiting\" versus terminal outcomes.\n_JOB_SUCCESS = {\"success\", \"completed\", \"done\"}\n_JOB_FAILURE = {\"failed\", \"error\"}\ndef _now_iso() -> str:",
         "detail": "engine.render.canva_backend",
         "documentation": {}
     },
@@ -4009,7 +4336,16 @@
         "kind": 5,
         "importPath": "engine.render.canva_backend",
         "description": "engine.render.canva_backend",
-        "peekOfCode": "_POLL_INTERVAL_S = 2.0\n_POLL_TIMEOUT_S = 120.0\n# Canva job statuses that mean \"keep waiting\" versus terminal outcomes.\n_JOB_SUCCESS = {\"success\", \"completed\", \"done\"}\n_JOB_FAILURE = {\"failed\", \"error\"}\ndef _now_iso() -> str:\n    \"\"\"UTC timestamp in ISO 8601, seconds precision.\"\"\"\n    return datetime.now(timezone.utc).replace(microsecond=0).isoformat()\n# --- record -> ad-tile field composers -----------------------------------\n# A DA property brand template exposes short \"stat bar\" fields (beds, baths,",
+        "peekOfCode": "_POLL_INTERVAL_S = 2.0\n# The set name a legacy flat CANVA_TEMPLATE_MAP is filed under, and the label\n# shown for it in the gate-2 template picker.\nDEFAULT_TEMPLATE_SET = \"Default\"\n_POLL_TIMEOUT_S = 120.0\n# Canva job statuses that mean \"keep waiting\" versus terminal outcomes.\n_JOB_SUCCESS = {\"success\", \"completed\", \"done\"}\n_JOB_FAILURE = {\"failed\", \"error\"}\ndef _now_iso() -> str:\n    \"\"\"UTC timestamp in ISO 8601, seconds precision.\"\"\"",
+        "detail": "engine.render.canva_backend",
+        "documentation": {}
+    },
+    {
+        "label": "DEFAULT_TEMPLATE_SET",
+        "kind": 5,
+        "importPath": "engine.render.canva_backend",
+        "description": "engine.render.canva_backend",
+        "peekOfCode": "DEFAULT_TEMPLATE_SET = \"Default\"\n_POLL_TIMEOUT_S = 120.0\n# Canva job statuses that mean \"keep waiting\" versus terminal outcomes.\n_JOB_SUCCESS = {\"success\", \"completed\", \"done\"}\n_JOB_FAILURE = {\"failed\", \"error\"}\ndef _now_iso() -> str:\n    \"\"\"UTC timestamp in ISO 8601, seconds precision.\"\"\"\n    return datetime.now(timezone.utc).replace(microsecond=0).isoformat()\n# --- record -> ad-tile field composers -----------------------------------\n# A DA property brand template exposes short \"stat bar\" fields (beds, baths,",
         "detail": "engine.render.canva_backend",
         "documentation": {}
     },
@@ -4225,7 +4561,7 @@
         "kind": 5,
         "importPath": "engine.render.service",
         "description": "engine.render.service",
-        "peekOfCode": "_PRICE_PATH = \"marketing.price_display\"\n_HEADLINE_PATH = \"marketing.headline\"\n@dataclass\nclass PriceChange:\n    \"\"\"The outcome of a ``set_price`` call: the diff plus the re-rendered set.\"\"\"\n    dp: str\n    old: Optional[str]\n    new: str\n    state: Optional[str]\n    artifacts: List[Artifact] = field(default_factory=list)",
+        "peekOfCode": "_PRICE_PATH = \"marketing.price_display\"\n_HEADLINE_PATH = \"marketing.headline\"\n_TEMPLATE_SET_PATH = \"marketing.template_set\"\n_MARKETING_PATHS = (_PRICE_PATH, _HEADLINE_PATH, _TEMPLATE_SET_PATH)\n@dataclass\nclass PriceChange:\n    \"\"\"The outcome of a ``set_price`` call: the diff plus the re-rendered set.\"\"\"\n    dp: str\n    old: Optional[str]\n    new: str",
         "detail": "engine.render.service",
         "documentation": {}
     },
@@ -4234,7 +4570,25 @@
         "kind": 5,
         "importPath": "engine.render.service",
         "description": "engine.render.service",
-        "peekOfCode": "_HEADLINE_PATH = \"marketing.headline\"\n@dataclass\nclass PriceChange:\n    \"\"\"The outcome of a ``set_price`` call: the diff plus the re-rendered set.\"\"\"\n    dp: str\n    old: Optional[str]\n    new: str\n    state: Optional[str]\n    artifacts: List[Artifact] = field(default_factory=list)\n@dataclass",
+        "peekOfCode": "_HEADLINE_PATH = \"marketing.headline\"\n_TEMPLATE_SET_PATH = \"marketing.template_set\"\n_MARKETING_PATHS = (_PRICE_PATH, _HEADLINE_PATH, _TEMPLATE_SET_PATH)\n@dataclass\nclass PriceChange:\n    \"\"\"The outcome of a ``set_price`` call: the diff plus the re-rendered set.\"\"\"\n    dp: str\n    old: Optional[str]\n    new: str\n    state: Optional[str]",
+        "detail": "engine.render.service",
+        "documentation": {}
+    },
+    {
+        "label": "_TEMPLATE_SET_PATH",
+        "kind": 5,
+        "importPath": "engine.render.service",
+        "description": "engine.render.service",
+        "peekOfCode": "_TEMPLATE_SET_PATH = \"marketing.template_set\"\n_MARKETING_PATHS = (_PRICE_PATH, _HEADLINE_PATH, _TEMPLATE_SET_PATH)\n@dataclass\nclass PriceChange:\n    \"\"\"The outcome of a ``set_price`` call: the diff plus the re-rendered set.\"\"\"\n    dp: str\n    old: Optional[str]\n    new: str\n    state: Optional[str]\n    artifacts: List[Artifact] = field(default_factory=list)",
+        "detail": "engine.render.service",
+        "documentation": {}
+    },
+    {
+        "label": "_MARKETING_PATHS",
+        "kind": 5,
+        "importPath": "engine.render.service",
+        "description": "engine.render.service",
+        "peekOfCode": "_MARKETING_PATHS = (_PRICE_PATH, _HEADLINE_PATH, _TEMPLATE_SET_PATH)\n@dataclass\nclass PriceChange:\n    \"\"\"The outcome of a ``set_price`` call: the diff plus the re-rendered set.\"\"\"\n    dp: str\n    old: Optional[str]\n    new: str\n    state: Optional[str]\n    artifacts: List[Artifact] = field(default_factory=list)\n@dataclass",
         "detail": "engine.render.service",
         "documentation": {}
     },
@@ -4441,7 +4795,7 @@
         "kind": 2,
         "importPath": "engine.extract",
         "description": "engine.extract",
-        "peekOfCode": "def build_request(\n    lightstone_pdf: str | Path,\n    property_report_pdf: str | Path,\n    dp: str,\n) -> dict:\n    \"\"\"Build the kwargs dict passed to ``client.messages.parse``.\n    Factored out so a test can assert the request shape offline: the model id,\n    adaptive thinking, ``output_format`` being ``PropertyRecord``, the\n    ``cache_control`` on the system block, and the two base64 PDF document blocks\n    preceding the text block. No API key or network access is needed to call it.",
+        "peekOfCode": "def build_request(\n    lightstone_pdf: str | Path,\n    property_report_pdf: str | Path,\n    dp: str,\n    section: str,\n    mode: Optional[str] = None,\n) -> dict:\n    \"\"\"Build the kwargs dict passed to ``client.messages.create`` for a section.\n    Factored out so a test can assert the request shape offline: the model id,\n    adaptive thinking, the single section tool plus ``tool_choice``, the",
         "detail": "engine.extract",
         "documentation": {}
     },
@@ -4450,7 +4804,16 @@
         "kind": 2,
         "importPath": "engine.extract",
         "description": "engine.extract",
-        "peekOfCode": "def extract_record(\n    lightstone_pdf: str | Path,\n    property_report_pdf: str | Path,\n    dp: str,\n    parent_dp: Optional[str] = None,\n    client=None,\n) -> PropertyRecord:\n    \"\"\"Extract a validated ``PropertyRecord`` from the source PDF pair.\n    Sends both PDFs to Claude and returns the parsed record. Fills ``dp`` /\n    ``parent_dp`` from the caller if the model left them blank, and stamps the",
+        "peekOfCode": "def extract_record(\n    lightstone_pdf: str | Path,\n    property_report_pdf: str | Path,\n    dp: str,\n    parent_dp: Optional[str] = None,\n    client=None,\n    mode: Optional[str] = None,\n    pace_seconds: Optional[float] = None,\n) -> PropertyRecord:\n    \"\"\"Extract a validated ``PropertyRecord`` from the source PDF pair.",
+        "detail": "engine.extract",
+        "documentation": {}
+    },
+    {
+        "label": "normalize_record",
+        "kind": 2,
+        "importPath": "engine.extract",
+        "description": "engine.extract",
+        "peekOfCode": "def normalize_record(record: PropertyRecord) -> PropertyRecord:\n    \"\"\"Canonicalize source-formatted values on an extracted record, in place.\"\"\"\n    sources = record.sources\n    if sources is not None:\n        if sources.lightstone_evm is not None:\n            sources.lightstone_evm.report_date = _normalize_date(sources.lightstone_evm.report_date)\n        if sources.property_report is not None:\n            sources.property_report.figures_as_at = _normalize_date(sources.property_report.figures_as_at)\n    if record.identity is not None:\n        record.identity.title_type = _normalize_title_type(record.identity.title_type)",
         "detail": "engine.extract",
         "documentation": {}
     },
@@ -4459,7 +4822,34 @@
         "kind": 5,
         "importPath": "engine.extract",
         "description": "engine.extract",
-        "peekOfCode": "MAX_TOKENS = 16000\n# Dynamic's public viewing line. Safe to render; the occupant's own cell is\n# POPIA-internal and must never land here.\nDYNAMIC_CONTACT_PUBLIC = \"086 155 2288 / properties.admin@dynamicauctioneers.co.za\"\n# The extraction brief. Stable and self-contained so the prefix caches across\n# runs. It encodes the rules only; the field docs travel with the Pydantic model\n# the SDK sends, and no property-specific fact is hardcoded here.\nSYSTEM_PROMPT = (\n    \"You are the extraction engine for Dynamic Auctioneers, a South African \"\n    \"property auction and sale house. You read two source documents about a \"",
+        "peekOfCode": "MAX_TOKENS = 16000\n# Per-section extraction tool names: ``record_<section>``. Every section call\n# exposes the SAME full list of section tools (one per section, input_schema IS\n# that section's Pydantic schema) and the prompt directs which one to call; the\n# model's tool call carries the extracted fields, which we then validate with\n# the same model. The list must be identical across the six calls because tool\n# definitions serialize into the prompt prefix AHEAD of the system and message\n# blocks: a per-call tool difference invalidates the prompt cache from position\n# zero, so the two source PDFs re-tokenize on every call (seen live on the\n# Erf 2035 run: six ~57k cache writes, zero reads, ~3x the intended cost).",
+        "detail": "engine.extract",
+        "documentation": {}
+    },
+    {
+        "label": "TOOL_PREFIX",
+        "kind": 5,
+        "importPath": "engine.extract",
+        "description": "engine.extract",
+        "peekOfCode": "TOOL_PREFIX = \"record_\"\ndef _tool_name(section: str) -> str:\n    return TOOL_PREFIX + section\n# How the two source PDFs are sent to Claude:\n# - \"native\" (default, per SPEC tech conventions): base64 PDF document blocks,\n#   which preserve page layout, tables and chart images at full fidelity.\n# - \"text\": text extracted locally with PyMuPDF and sent as text blocks. Far\n#   cheaper in tokens (DP3060: ~5.7k vs ~26k for both docs together), which lets\n#   extraction run under a low per-minute rate-limit tier, at the cost of any\n#   fact that lives only in a page image and not the text layer.",
+        "detail": "engine.extract",
+        "documentation": {}
+    },
+    {
+        "label": "DEFAULT_PDF_MODE",
+        "kind": 5,
+        "importPath": "engine.extract",
+        "description": "engine.extract",
+        "peekOfCode": "DEFAULT_PDF_MODE = \"native\"\n# Optional seconds to wait between the per-section calls, to respect a\n# tokens-per-minute rate limit (each DP3060 section call is ~6.4k input tokens;\n# a 10k/min tier only fits one such call per minute). 0 disables pacing. Set\n# with EXTRACT_PACE_SECONDS.\nDEFAULT_PACE_SECONDS = 0.0\n# Dynamic's public viewing line. Safe to render; the occupant's own cell is\n# POPIA-internal and must never land here.\nDYNAMIC_CONTACT_PUBLIC = \"086 155 2288 / properties.admin@dynamicauctioneers.co.za\"\n# The extraction brief. Stable and self-contained so the prefix caches across",
+        "detail": "engine.extract",
+        "documentation": {}
+    },
+    {
+        "label": "DEFAULT_PACE_SECONDS",
+        "kind": 5,
+        "importPath": "engine.extract",
+        "description": "engine.extract",
+        "peekOfCode": "DEFAULT_PACE_SECONDS = 0.0\n# Dynamic's public viewing line. Safe to render; the occupant's own cell is\n# POPIA-internal and must never land here.\nDYNAMIC_CONTACT_PUBLIC = \"086 155 2288 / properties.admin@dynamicauctioneers.co.za\"\n# The extraction brief. Stable and self-contained so the prefix caches across\n# runs. It encodes the rules only; the field docs travel with the Pydantic model\n# the SDK sends, and no property-specific fact is hardcoded here.\nSYSTEM_PROMPT = (\n    \"You are the extraction engine for Dynamic Auctioneers, a South African \"\n    \"property auction and sale house. You read two source documents about a \"",
         "detail": "engine.extract",
         "documentation": {}
     },
@@ -4468,7 +4858,7 @@
         "kind": 5,
         "importPath": "engine.extract",
         "description": "engine.extract",
-        "peekOfCode": "DYNAMIC_CONTACT_PUBLIC = \"086 155 2288 / properties.admin@dynamicauctioneers.co.za\"\n# The extraction brief. Stable and self-contained so the prefix caches across\n# runs. It encodes the rules only; the field docs travel with the Pydantic model\n# the SDK sends, and no property-specific fact is hardcoded here.\nSYSTEM_PROMPT = (\n    \"You are the extraction engine for Dynamic Auctioneers, a South African \"\n    \"property auction and sale house. You read two source documents about a \"\n    \"single property and return one structured property record.\\n\"\n    \"\\n\"\n    \"The two sources and how to merge them (this is the authoritative rule):\\n\"",
+        "peekOfCode": "DYNAMIC_CONTACT_PUBLIC = \"086 155 2288 / properties.admin@dynamicauctioneers.co.za\"\n# The extraction brief. Stable and self-contained so the prefix caches across\n# runs. It encodes the rules only; the field docs travel with the Pydantic model\n# the SDK sends, and no property-specific fact is hardcoded here.\nSYSTEM_PROMPT = (\n    \"You are the extraction engine for Dynamic Auctioneers, a South African \"\n    \"property auction and sale house. You read two source documents about a \"\n    \"single property and return one structured section of its property record \"\n    \"per request.\\n\"\n    \"\\n\"",
         "detail": "engine.extract",
         "documentation": {}
     },
@@ -4477,7 +4867,25 @@
         "kind": 5,
         "importPath": "engine.extract",
         "description": "engine.extract",
-        "peekOfCode": "SYSTEM_PROMPT = (\n    \"You are the extraction engine for Dynamic Auctioneers, a South African \"\n    \"property auction and sale house. You read two source documents about a \"\n    \"single property and return one structured property record.\\n\"\n    \"\\n\"\n    \"The two sources and how to merge them (this is the authoritative rule):\\n\"\n    \"- The Lightstone EVM report carries the deeds, market and valuation data. \"\n    \"It wins for identity (title type, scheme, unit, erf, legal description, \"\n    \"title deed number, GPS), for valuation (EVM range, suburb bands, municipal \"\n    \"valuation, rates, comparable sales) and for the ownership and financial \"",
+        "peekOfCode": "SYSTEM_PROMPT = (\n    \"You are the extraction engine for Dynamic Auctioneers, a South African \"\n    \"property auction and sale house. You read two source documents about a \"\n    \"single property and return one structured section of its property record \"\n    \"per request.\\n\"\n    \"\\n\"\n    \"The two sources and how to merge them (this is the authoritative rule):\\n\"\n    \"- The Lightstone EVM report carries the deeds, market and valuation data. \"\n    \"It wins for identity (title type, scheme, unit, erf, legal description, \"\n    \"title deed number, GPS), for valuation (EVM range, suburb bands, municipal \"",
+        "detail": "engine.extract",
+        "documentation": {}
+    },
+    {
+        "label": "_SECTION_INDEX",
+        "kind": 5,
+        "importPath": "engine.extract",
+        "description": "engine.extract",
+        "peekOfCode": "_SECTION_INDEX = {name: (model, focus) for name, model, focus in SECTIONS}\n# --- request construction ------------------------------------------------\ndef _pdf_block(path: str | Path) -> dict:\n    \"\"\"Return a base64 PDF document content block for ``path``.\n    The base64 data carries no newlines (``standard_b64encode`` output decoded\n    to ASCII), as the document-block format requires.\n    \"\"\"\n    data = Path(path).read_bytes()\n    encoded = base64.standard_b64encode(data).decode()\n    return {",
+        "detail": "engine.extract",
+        "documentation": {}
+    },
+    {
+        "label": "_SLASH_DATE",
+        "kind": 5,
+        "importPath": "engine.extract",
+        "description": "engine.extract",
+        "peekOfCode": "_SLASH_DATE = re.compile(r\"^(\\d{4})/(\\d{2})/(\\d{2})$\")\ndef _normalize_date(value: Optional[str]) -> Optional[str]:\n    \"\"\"``2026/07/03`` -> ``2026-07-03``; anything else passes through.\"\"\"\n    if isinstance(value, str):\n        match = _SLASH_DATE.match(value.strip())\n        if match:\n            return \"-\".join(match.groups())\n    return value\ndef _normalize_title_type(value: Optional[str]) -> Optional[str]:\n    \"\"\"Map the sources' phrasings onto the schema's enum, else pass through.\"\"\"",
         "detail": "engine.extract",
         "documentation": {}
     },
@@ -4648,7 +5056,7 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class Physical(_Base):\n    unit_size_m2: Optional[float] = None\n    mother_erf_m2: Optional[float] = None\n    zoning: Optional[str] = None\n    bedrooms: Optional[int] = None\n    bathrooms_main_unit: Optional[int] = None\n    separate_toilet: Optional[bool] = None\n    garages: Optional[int] = None\n    garages_conflict: Optional[str] = None  # set when sources disagree\n    flatlet: Optional[Flatlet] = None",
+        "peekOfCode": "class Physical(_Base):\n    unit_size_m2: Optional[float] = None\n    mother_erf_m2: Optional[float] = None\n    zoning: Optional[str] = None\n    bedrooms: Optional[int] = None\n    bathrooms_main_unit: Optional[int] = None\n    separate_toilet: Optional[bool] = None\n    garages: Optional[int] = None\n    garages_conflict: Optional[str] = None  # set when sources disagree\n    # One line per cross-source disagreement on any OTHER physical fact (bed",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -4666,7 +5074,16 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class SameSchemeSale(_Base):\n    unit: Optional[int] = None\n    scheme: Optional[str] = None\n    size_m2: Optional[float] = None\n    price: Optional[float] = None\n    terms: Optional[str] = None\n    sale_date: Optional[str] = None\n    rand_per_m2: Optional[float] = None\nclass Valuation(_Base):\n    evm_range: Optional[List[float]] = None  # [low, high]",
+        "peekOfCode": "class SameSchemeSale(_Base):\n    unit: Optional[int] = None\n    scheme: Optional[str] = None\n    size_m2: Optional[float] = None\n    price: Optional[float] = None\n    terms: Optional[str] = None\n    sale_date: Optional[str] = None\n    rand_per_m2: Optional[float] = None\nclass ProfessionalValuation(_Base):\n    \"\"\"A registered valuer's figures, when a valuation report is a source.",
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "ProfessionalValuation",
+        "kind": 6,
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "peekOfCode": "class ProfessionalValuation(_Base):\n    \"\"\"A registered valuer's figures, when a valuation report is a source.\n    Sale-strategy data, not ad material: ``public_view()`` strips this whole\n    block (a published \"forced sale value\" would undercut the sale), so no\n    renderer or copy model ever sees it. It reaches the verification memo and\n    the internal gate screens only (D32).\n    \"\"\"\n    market_value: Optional[float] = None\n    forced_sale_value: Optional[float] = None\n    valuation_date: Optional[str] = None",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -4675,7 +5092,7 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class Valuation(_Base):\n    evm_range: Optional[List[float]] = None  # [low, high]\n    suburb_bands: Optional[SuburbBands] = None\n    municipal_valuation: Optional[float] = None\n    municipal_valuation_year: Optional[int] = None\n    estimated_monthly_rates: Optional[float] = None\n    comparables_avg_sales_price: Optional[float] = None\n    same_scheme_sale: Optional[SameSchemeSale] = None\n# --- financials_internal (POPIA internal layer — never rendered) ---------\nclass Owner(_Base):",
+        "peekOfCode": "class Valuation(_Base):\n    evm_range: Optional[List[float]] = None  # [low, high]\n    suburb_bands: Optional[SuburbBands] = None\n    municipal_valuation: Optional[float] = None\n    municipal_valuation_year: Optional[int] = None\n    estimated_monthly_rates: Optional[float] = None\n    comparables_avg_sales_price: Optional[float] = None\n    same_scheme_sale: Optional[SameSchemeSale] = None\n    professional: Optional[ProfessionalValuation] = None\n# --- financials_internal (POPIA internal layer — never rendered) ---------",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -4747,7 +5164,7 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class Marketing(_Base):\n    headline: Optional[str] = None\n    price_display: Optional[str] = None\n    channel_routing: Optional[ChannelRouting] = None\n    hero_photo: Optional[str] = None\n    gallery: Optional[List[str]] = None\n# --- compliance / verification -------------------------------------------\nclass Compliance(_Base):\n    owner_pii_redacted: Optional[bool] = None\n    notes: Optional[str] = None",
+        "peekOfCode": "class Marketing(_Base):\n    headline: Optional[str] = None\n    price_display: Optional[str] = None\n    channel_routing: Optional[ChannelRouting] = None\n    hero_photo: Optional[str] = None\n    gallery: Optional[List[str]] = None\n    # The named design/template set the render backends use (the marketing\n    # team's pick on gate 2, D33). None = the default (first-configured) set.\n    template_set: Optional[str] = None\n# --- compliance / verification -------------------------------------------",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -5017,7 +5434,16 @@
         "kind": 5,
         "importPath": "tests.conftest",
         "description": "tests.conftest",
-        "peekOfCode": "REPO_ROOT = Path(__file__).resolve().parent.parent\nif str(REPO_ROOT) not in sys.path:\n    sys.path.insert(0, str(REPO_ROOT))\n# --- golden record (committed) -------------------------------------------\nGOLDEN_RECORD = REPO_ROOT / \"DP3060\" / \"record.json\"\n# --- sample PDFs (not committed; author's machine only) ------------------\nSAMPLE_ROOT = Path.home() / \"Documents\" / \"dynamicAuctioneers\"\nLIGHTSTONE_3060 = (\n    SAMPLE_ROOT\n    / \"Lightstone\"",
+        "peekOfCode": "REPO_ROOT = Path(__file__).resolve().parent.parent\nif str(REPO_ROOT) not in sys.path:\n    sys.path.insert(0, str(REPO_ROOT))\n# --- hermetic environment (no live external calls in the suite) ----------\n# engine.extract / engine.cli call load_dotenv() at import, which pulls a\n# developer's real .env (Anthropic + GoHighLevel credentials) into os.environ\n# for the whole pytest session. Left in place, a distribution test that reaches\n# post_to_planner's real-call path would fire a LIVE social post. This autouse\n# fixture strips every external credential before each test, so the suite stays\n# offline and credential-free as documented; a test that needs one sets it",
+        "detail": "tests.conftest",
+        "documentation": {}
+    },
+    {
+        "label": "_EXTERNAL_CRED_VARS",
+        "kind": 5,
+        "importPath": "tests.conftest",
+        "description": "tests.conftest",
+        "peekOfCode": "_EXTERNAL_CRED_VARS = (\n    \"ANTHROPIC_API_KEY\",\n    \"GHL_API_TOKEN\",\n    \"GHL_LOCATION_ID\",\n    \"GHL_ACCOUNT_MAP\",\n    \"GHL_USER_ID\",\n    \"GHL_POST_STATUS\",\n)\n@pytest.fixture(autouse=True)\ndef _hermetic_env(monkeypatch):",
         "detail": "tests.conftest",
         "documentation": {}
     },
@@ -5117,6 +5543,69 @@
         "importPath": "tests.test_canva",
         "description": "tests.test_canva",
         "peekOfCode": "def test_autofill_payload_carries_only_public_view(golden_record):\n    # Plant PII in the internal layer, then confirm the autofill payload the\n    # backend builds from public_view + copy contains none of it.\n    if golden_record.financials_internal is not None:\n        golden_record.financials_internal.owner = Owner(\n            name=POISON_OWNER, id_number=POISON_ID\n        )\n    if golden_record.sale_process is not None and golden_record.sale_process.viewing is not None:\n        golden_record.sale_process.viewing.contact_internal_only = POISON_CELL\n    request = RenderRequest(",
+        "detail": "tests.test_canva",
+        "documentation": {}
+    },
+    {
+        "label": "test_flat_map_files_under_default_set",
+        "kind": 2,
+        "importPath": "tests.test_canva",
+        "description": "tests.test_canva",
+        "peekOfCode": "def test_flat_map_files_under_default_set(monkeypatch):\n    monkeypatch.setenv(\"CANVA_TEMPLATE_MAP\", '{\"demo_ad\": \"TPL_A\"}')\n    backend = CanvaBackend()\n    assert backend._load_template_sets() == {\"Default\": {\"demo_ad\": \"TPL_A\"}}\n    assert backend.supports(\"demo_ad\") is True\n    assert backend.supports(\"info_pack\") is False\ndef test_named_sets_supports_is_the_default_sets_universe(monkeypatch):\n    monkeypatch.setenv(\n        \"CANVA_TEMPLATE_MAP\",\n        '{\"Classic gold\": {\"demo_ad\": \"TPL_A\", \"info_pack\": \"TPL_P\"},'",
+        "detail": "tests.test_canva",
+        "documentation": {}
+    },
+    {
+        "label": "test_named_sets_supports_is_the_default_sets_universe",
+        "kind": 2,
+        "importPath": "tests.test_canva",
+        "description": "tests.test_canva",
+        "peekOfCode": "def test_named_sets_supports_is_the_default_sets_universe(monkeypatch):\n    monkeypatch.setenv(\n        \"CANVA_TEMPLATE_MAP\",\n        '{\"Classic gold\": {\"demo_ad\": \"TPL_A\", \"info_pack\": \"TPL_P\"},'\n        ' \"Modern dark\": {\"demo_ad\": \"TPL_B\", \"auction_board\": \"TPL_C\"}}',\n    )\n    backend = CanvaBackend()\n    # supports() answers for the DEFAULT (first) set only: it must never claim\n    # a format that _resolve_template cannot resolve for a default-set record\n    # (a union answer crashed a canva-only render pass in review).",
+        "detail": "tests.test_canva",
+        "documentation": {}
+    },
+    {
+        "label": "test_mixed_shapes_are_a_config_error",
+        "kind": 2,
+        "importPath": "tests.test_canva",
+        "description": "tests.test_canva",
+        "peekOfCode": "def test_mixed_shapes_are_a_config_error(monkeypatch):\n    _set_all_creds(\n        monkeypatch, '{\"demo_ad\": \"TPL_A\", \"Modern dark\": {\"demo_ad\": \"TPL_B\"}}'\n    )\n    ok, reason = CanvaBackend().available()\n    assert ok is False\n    assert \"CANVA_TEMPLATE_MAP\" in reason\ndef test_flat_map_with_nested_value_is_a_loud_config_error(monkeypatch):\n    # {\"demo_ad\": {...}} passes an all-values-are-dicts sniff, which would\n    # silently become a named set called \"demo_ad\" and turn a malformed flat",
+        "detail": "tests.test_canva",
+        "documentation": {}
+    },
+    {
+        "label": "test_flat_map_with_nested_value_is_a_loud_config_error",
+        "kind": 2,
+        "importPath": "tests.test_canva",
+        "description": "tests.test_canva",
+        "peekOfCode": "def test_flat_map_with_nested_value_is_a_loud_config_error(monkeypatch):\n    # {\"demo_ad\": {...}} passes an all-values-are-dicts sniff, which would\n    # silently become a named set called \"demo_ad\" and turn a malformed flat\n    # map into Canva quietly rendering nothing. It must refuse instead.\n    _set_all_creds(monkeypatch, '{\"demo_ad\": {\"nested\": \"TPL_A\"}}')\n    ok, reason = CanvaBackend().available()\n    assert ok is False\n    assert \"demo_ad\" in reason and \"collide\" in reason\ndef test_empty_default_set_is_unavailable(monkeypatch):\n    # The first set defines the renderable formats; empty means the backend",
+        "detail": "tests.test_canva",
+        "documentation": {}
+    },
+    {
+        "label": "test_empty_default_set_is_unavailable",
+        "kind": 2,
+        "importPath": "tests.test_canva",
+        "description": "tests.test_canva",
+        "peekOfCode": "def test_empty_default_set_is_unavailable(monkeypatch):\n    # The first set defines the renderable formats; empty means the backend\n    # can render nothing and must say so rather than claim availability.\n    _set_all_creds(\n        monkeypatch, '{\"Classic gold\": {}, \"Modern dark\": {\"demo_ad\": \"TPL_B\"}}'\n    )\n    ok, reason = CanvaBackend().available()\n    assert ok is False\n    assert \"default\" in reason.lower()\ndef test_resolve_template_overlay_and_fallbacks(monkeypatch):",
+        "detail": "tests.test_canva",
+        "documentation": {}
+    },
+    {
+        "label": "test_resolve_template_overlay_and_fallbacks",
+        "kind": 2,
+        "importPath": "tests.test_canva",
+        "description": "tests.test_canva",
+        "peekOfCode": "def test_resolve_template_overlay_and_fallbacks(monkeypatch):\n    monkeypatch.setenv(\n        \"CANVA_TEMPLATE_MAP\",\n        '{\"Classic gold\": {\"demo_ad\": \"TPL_A\", \"info_pack\": \"TPL_P\"},'\n        ' \"Modern dark\": {\"demo_ad\": \"TPL_B\"}}',\n    )\n    backend = CanvaBackend()\n    # The chosen set wins where it maps the format...\n    assert backend._resolve_template(\"demo_ad\", \"Modern dark\") == \"TPL_B\"\n    # ...and overlays the default set where it does not.",
+        "detail": "tests.test_canva",
+        "documentation": {}
+    },
+    {
+        "label": "test_template_set_names_never_raises",
+        "kind": 2,
+        "importPath": "tests.test_canva",
+        "description": "tests.test_canva",
+        "peekOfCode": "def test_template_set_names_never_raises(monkeypatch):\n    from engine.render.canva_backend import template_set_names\n    monkeypatch.delenv(\"CANVA_TEMPLATE_MAP\", raising=False)\n    assert template_set_names() == []\n    monkeypatch.setenv(\"CANVA_TEMPLATE_MAP\", \"{not json\")\n    assert template_set_names() == []",
         "detail": "tests.test_canva",
         "documentation": {}
     },
@@ -5242,7 +5731,7 @@
         "kind": 2,
         "importPath": "tests.test_design_link",
         "description": "tests.test_design_link",
-        "peekOfCode": "def test_render_sets_design_id_and_edit_url(monkeypatch, tmp_path, golden_record_path):\n    rec = PropertyRecord.model_validate_json(golden_record_path.read_text(encoding=\"utf-8\"))\n    b = CanvaBackend()\n    monkeypatch.setattr(b, \"available\", lambda: (True, \"ok\"))\n    monkeypatch.setattr(b, \"_load_template_map\", lambda: {\"demo_ad\": \"TPL1\"})\n    monkeypatch.setattr(b, \"_access_token\", lambda: \"tok\")\n    monkeypatch.setattr(b, \"_get_dataset\", lambda t, tpl: {\"headline\": \"text\", \"photo1\": \"image\"})\n    monkeypatch.setattr(\n        b, \"_run_autofill\",\n        lambda t, tpl, data: {\"id\": \"DAFxyz\", \"urls\": {\"edit_url\": \"https://www.canva.com/design/DAFxyz/edit\"}},",
+        "peekOfCode": "def test_render_sets_design_id_and_edit_url(monkeypatch, tmp_path, golden_record_path):\n    rec = PropertyRecord.model_validate_json(golden_record_path.read_text(encoding=\"utf-8\"))\n    b = CanvaBackend()\n    monkeypatch.setattr(b, \"available\", lambda: (True, \"ok\"))\n    monkeypatch.setattr(b, \"_load_template_sets\", lambda: {\"Default\": {\"demo_ad\": \"TPL1\"}})\n    monkeypatch.setattr(b, \"_access_token\", lambda: \"tok\")\n    monkeypatch.setattr(b, \"_get_dataset\", lambda t, tpl: {\"headline\": \"text\", \"photo1\": \"image\"})\n    monkeypatch.setattr(\n        b, \"_run_autofill\",\n        lambda t, tpl, data: {\"id\": \"DAFxyz\", \"urls\": {\"edit_url\": \"https://www.canva.com/design/DAFxyz/edit\"}},",
         "detail": "tests.test_design_link",
         "documentation": {}
     },
@@ -5262,6 +5751,15 @@
         "description": "tests.test_design_link",
         "peekOfCode": "def test_html_artifact_has_null_design_link(tmp_path):\n    art = Artifact(\n        dp=\"3060\", fmt=\"portal_listing\", backend=\"html\",\n        path=str(tmp_path / \"p.md\"), mime=\"text/markdown\",\n    )\n    _write_manifest(str(tmp_path), \"3060\", [art])\n    man = json.loads((tmp_path / \"DP3060\" / \"artifacts\" / \"manifest.json\").read_text(encoding=\"utf-8\"))\n    assert man[0][\"design_id\"] is None and man[0][\"edit_url\"] is None",
         "detail": "tests.test_design_link",
+        "documentation": {}
+    },
+    {
+        "label": "_FakeHTTP",
+        "kind": 6,
+        "importPath": "tests.test_distribute",
+        "description": "tests.test_distribute",
+        "peekOfCode": "class _FakeHTTP:\n    \"\"\"Captures the outgoing request instead of hitting the network.\n    Dispatches on URL: the media upload endpoint returns a hosted URL, the\n    create-post endpoint returns a draft - so one fake serves the whole\n    upload-then-post flow.\n    \"\"\"\n    def __init__(self, status_code=201, payload=None, media_status=200, media_fail=()):\n        self._status = status_code\n        self._payload = payload or {\"_id\": \"post123\", \"status\": \"draft\"}\n        self._media_status = media_status",
+        "detail": "tests.test_distribute",
         "documentation": {}
     },
     {
@@ -5296,7 +5794,25 @@
         "kind": 2,
         "importPath": "tests.test_distribute",
         "description": "tests.test_distribute",
-        "peekOfCode": "def test_channel_matrix_always_excludes_private_property():\n    for rec in (\n        _record(price_display=\"R2 500 000\"),\n        _record(price_display=\"R12 500 000\"),\n        _record(zoning=\"Industrial\", price_display=\"R30 000 000\"),\n    ):\n        assert channel_matrix(rec)[\"private_property\"] is False\n# --- ready-to-post manual pack -------------------------------------------\ndef test_build_manual_pack_writes_folder_and_checklist(tmp_path):\n    artifacts = [",
+        "peekOfCode": "def test_channel_matrix_always_excludes_private_property():\n    for rec in (\n        _record(price_display=\"R2 500 000\"),\n        _record(price_display=\"R12 500 000\"),\n        _record(zoning=\"Industrial\", price_display=\"R30 000 000\"),\n    ):\n        assert channel_matrix(rec)[\"private_property\"] is False\ndef test_channel_matrix_routes_the_three_connected_socials():\n    # Facebook, Instagram and LinkedIn all route (TikTok/Pinterest are out).\n    matrix = channel_matrix(_record())",
+        "detail": "tests.test_distribute",
+        "documentation": {}
+    },
+    {
+        "label": "test_channel_matrix_routes_the_three_connected_socials",
+        "kind": 2,
+        "importPath": "tests.test_distribute",
+        "description": "tests.test_distribute",
+        "peekOfCode": "def test_channel_matrix_routes_the_three_connected_socials():\n    # Facebook, Instagram and LinkedIn all route (TikTok/Pinterest are out).\n    matrix = channel_matrix(_record())\n    assert matrix[\"facebook\"] is True\n    assert matrix[\"instagram\"] is True\n    assert matrix[\"linkedin\"] is True\ndef test_caption_strips_markdown_title_but_keeps_hashtags(tmp_path):\n    from engine.distribute.ghl import _caption_for, _strip_leading_heading\n    raw = \"# Facebook Post DP3060\\n\\nPELHAM NORTH | OFFERS INVITED\\n3 bed home.\\n#Auction #Pmb\"\n    stripped = _strip_leading_heading(raw)",
+        "detail": "tests.test_distribute",
+        "documentation": {}
+    },
+    {
+        "label": "test_caption_strips_markdown_title_but_keeps_hashtags",
+        "kind": 2,
+        "importPath": "tests.test_distribute",
+        "description": "tests.test_distribute",
+        "peekOfCode": "def test_caption_strips_markdown_title_but_keeps_hashtags(tmp_path):\n    from engine.distribute.ghl import _caption_for, _strip_leading_heading\n    raw = \"# Facebook Post DP3060\\n\\nPELHAM NORTH | OFFERS INVITED\\n3 bed home.\\n#Auction #Pmb\"\n    stripped = _strip_leading_heading(raw)\n    assert stripped.startswith(\"PELHAM NORTH\")   # title gone\n    assert \"# Facebook Post\" not in stripped\n    assert \"#Auction\" in stripped                # hashtags (no space) preserved\n    art = _artifact_file(tmp_path, \"facebook_post\", raw)\n    assert _caption_for([art], \"3060\").startswith(\"PELHAM NORTH\")\n# --- ready-to-post manual pack -------------------------------------------",
         "detail": "tests.test_distribute",
         "documentation": {}
     },
@@ -5351,6 +5867,159 @@
         "importPath": "tests.test_distribute",
         "description": "tests.test_distribute",
         "peekOfCode": "def test_post_to_planner_without_token_returns_pack_and_never_raises(\n    tmp_path, monkeypatch\n):\n    # Guarantee no ambient token so the scaffold path runs.\n    monkeypatch.delenv(\"GHL_API_TOKEN\", raising=False)\n    artifacts = [\n        _artifact_file(tmp_path, \"facebook_post\", \"Come and view this property.\"),\n    ]\n    channels = channel_matrix(_record())\n    result = post_to_planner(\"3060\", artifacts, channels, token=None)",
+        "detail": "tests.test_distribute",
+        "documentation": {}
+    },
+    {
+        "label": "test_build_request_includes_user_id_and_status_from_env",
+        "kind": 2,
+        "importPath": "tests.test_distribute",
+        "description": "tests.test_distribute",
+        "peekOfCode": "def test_build_request_includes_user_id_and_status_from_env(tmp_path, monkeypatch):\n    monkeypatch.setenv(\"GHL_USER_ID\", \"USER123\")\n    monkeypatch.setenv(\"GHL_POST_STATUS\", \"draft\")\n    channels = channel_matrix(_record())\n    req = build_planner_request(\"3060\", [], channels)\n    assert req[\"json\"][\"userId\"] == \"USER123\"\n    assert req[\"json\"][\"status\"] == \"draft\"\n    assert req[\"meta\"][\"has_user_id\"] is True\n    assert req[\"meta\"][\"status\"] == \"draft\"\ndef test_build_request_defaults_published_and_no_user_id(tmp_path):",
+        "detail": "tests.test_distribute",
+        "documentation": {}
+    },
+    {
+        "label": "test_build_request_defaults_published_and_no_user_id",
+        "kind": 2,
+        "importPath": "tests.test_distribute",
+        "description": "tests.test_distribute",
+        "peekOfCode": "def test_build_request_defaults_published_and_no_user_id(tmp_path):\n    # Hermetic env (no GHL_USER_ID / GHL_POST_STATUS): publish, and userId absent\n    # so a caller can tell it is unconfigured rather than sending a bad body.\n    req = build_planner_request(\"3060\", [], channel_matrix(_record()))\n    assert req[\"json\"][\"status\"] == \"published\"\n    assert \"userId\" not in req[\"json\"]\n    assert req[\"meta\"][\"has_user_id\"] is False\ndef test_post_to_planner_packs_when_token_but_no_user_id(tmp_path, monkeypatch):\n    monkeypatch.delenv(\"GHL_USER_ID\", raising=False)\n    artifacts = [_artifact_file(tmp_path, \"facebook_post\", \"View this property.\")]",
+        "detail": "tests.test_distribute",
+        "documentation": {}
+    },
+    {
+        "label": "test_post_to_planner_packs_when_token_but_no_user_id",
+        "kind": 2,
+        "importPath": "tests.test_distribute",
+        "description": "tests.test_distribute",
+        "peekOfCode": "def test_post_to_planner_packs_when_token_but_no_user_id(tmp_path, monkeypatch):\n    monkeypatch.delenv(\"GHL_USER_ID\", raising=False)\n    artifacts = [_artifact_file(tmp_path, \"facebook_post\", \"View this property.\")]\n    channels = channel_matrix(_record())\n    result = post_to_planner(\"3060\", artifacts, channels, token=\"TESTTOKEN\")\n    assert result.mode == \"ready_to_post_pack\"\n    assert result.posted is False\n    assert \"user id\" in result.reason.lower()\nclass _FakeHTTP:\n    \"\"\"Captures the outgoing request instead of hitting the network.",
+        "detail": "tests.test_distribute",
+        "documentation": {}
+    },
+    {
+        "label": "test_env_lock_forces_draft_over_requested_status",
+        "kind": 2,
+        "importPath": "tests.test_distribute",
+        "description": "tests.test_distribute",
+        "peekOfCode": "def test_env_lock_forces_draft_over_requested_status(monkeypatch):\n    # GHL_POST_STATUS is a guard rail: it overrides even an explicit \"post now\".\n    monkeypatch.setenv(\"GHL_POST_STATUS\", \"draft\")\n    req = build_planner_request(\n        \"3060\", [], channel_matrix(_record()),\n        status=\"published\", schedule_date=\"2026-07-24T17:00:00\",\n    )\n    assert req[\"json\"][\"status\"] == \"draft\"\n    assert \"scheduleDate\" not in req[\"json\"]  # a draft is never scheduled\n    assert req[\"meta\"][\"status_overridden\"] is True",
+        "detail": "tests.test_distribute",
+        "documentation": {}
+    },
+    {
+        "label": "test_env_lock_is_case_insensitive_and_trimmed",
+        "kind": 2,
+        "importPath": "tests.test_distribute",
+        "description": "tests.test_distribute",
+        "peekOfCode": "def test_env_lock_is_case_insensitive_and_trimmed(monkeypatch):\n    # A non-canonical value (\"Draft\" with whitespace, as a human might type in\n    # .env) must still enforce the guard rail exactly as the UI reports it.\n    monkeypatch.setenv(\"GHL_POST_STATUS\", \"  Draft \")\n    req = build_planner_request(\n        \"3060\", [], channel_matrix(_record()),\n        status=\"published\", schedule_date=\"2026-07-24T17:00:00\",\n    )\n    assert req[\"json\"][\"status\"] == \"draft\"        # normalized, lock enforced\n    assert \"scheduleDate\" not in req[\"json\"]        # a draft is never scheduled",
+        "detail": "tests.test_distribute",
+        "documentation": {}
+    },
+    {
+        "label": "test_schedule_sets_scheduled_status_and_date",
+        "kind": 2,
+        "importPath": "tests.test_distribute",
+        "description": "tests.test_distribute",
+        "peekOfCode": "def test_schedule_sets_scheduled_status_and_date():\n    req = build_planner_request(\n        \"3060\", [], channel_matrix(_record()),\n        status=\"scheduled\", schedule_date=\"2026-07-24T17:00:00\",\n    )\n    assert req[\"json\"][\"status\"] == \"scheduled\"\n    assert req[\"json\"][\"scheduleDate\"] == \"2026-07-24T17:00:00\"\n    assert req[\"meta\"][\"status_overridden\"] is False\ndef test_scheduled_without_a_date_falls_back_to_publish():\n    req = build_planner_request(",
+        "detail": "tests.test_distribute",
+        "documentation": {}
+    },
+    {
+        "label": "test_scheduled_without_a_date_falls_back_to_publish",
+        "kind": 2,
+        "importPath": "tests.test_distribute",
+        "description": "tests.test_distribute",
+        "peekOfCode": "def test_scheduled_without_a_date_falls_back_to_publish():\n    req = build_planner_request(\n        \"3060\", [], channel_matrix(_record()), status=\"scheduled\", schedule_date=None\n    )\n    assert req[\"json\"][\"status\"] == \"published\"\n    assert \"scheduleDate\" not in req[\"json\"]\ndef test_post_now_publishes_when_no_lock():\n    req = build_planner_request(\"3060\", [], channel_matrix(_record()), status=\"published\")\n    assert req[\"json\"][\"status\"] == \"published\"\n    assert req[\"meta\"][\"status_overridden\"] is False",
+        "detail": "tests.test_distribute",
+        "documentation": {}
+    },
+    {
+        "label": "test_post_now_publishes_when_no_lock",
+        "kind": 2,
+        "importPath": "tests.test_distribute",
+        "description": "tests.test_distribute",
+        "peekOfCode": "def test_post_now_publishes_when_no_lock():\n    req = build_planner_request(\"3060\", [], channel_matrix(_record()), status=\"published\")\n    assert req[\"json\"][\"status\"] == \"published\"\n    assert req[\"meta\"][\"status_overridden\"] is False\ndef test_post_to_planner_posts_draft_via_injected_client(tmp_path):\n    artifacts = [_artifact_file(tmp_path, \"facebook_post\", \"View this property.\")]\n    channels = channel_matrix(_record())\n    http = _FakeHTTP()\n    result = post_to_planner(\n        \"3060\", artifacts, channels,",
+        "detail": "tests.test_distribute",
+        "documentation": {}
+    },
+    {
+        "label": "test_post_to_planner_posts_draft_via_injected_client",
+        "kind": 2,
+        "importPath": "tests.test_distribute",
+        "description": "tests.test_distribute",
+        "peekOfCode": "def test_post_to_planner_posts_draft_via_injected_client(tmp_path):\n    artifacts = [_artifact_file(tmp_path, \"facebook_post\", \"View this property.\")]\n    channels = channel_matrix(_record())\n    http = _FakeHTTP()\n    result = post_to_planner(\n        \"3060\", artifacts, channels,\n        token=\"TESTTOKEN\", user_id=\"USER123\", status=\"draft\", client=http,\n    )\n    assert result.mode == \"posted\" and result.posted is True\n    # Exactly one call went out, carrying the userId and the draft status.",
+        "detail": "tests.test_distribute",
+        "documentation": {}
+    },
+    {
+        "label": "test_postable_images_orders_photos_first_and_excludes_vectors",
+        "kind": 2,
+        "importPath": "tests.test_distribute",
+        "description": "tests.test_distribute",
+        "peekOfCode": "def test_postable_images_orders_photos_first_and_excludes_vectors(tmp_path):\n    from engine.distribute.ghl import _postable_images\n    from engine.render.base import Artifact\n    hero = _png_file(tmp_path, \"hero.png\")\n    demo = _png_file(tmp_path, \"demo_ad.png\")\n    art_png = Artifact(dp=\"3060\", fmt=\"demo_ad\", backend=\"canva\", path=demo, mime=\"image/png\")\n    art_svg = Artifact(dp=\"3060\", fmt=\"webapp_icon\", backend=\"html\",\n                       path=str(tmp_path / \"icon.svg\"), mime=\"image/svg+xml\")\n    art_html = Artifact(dp=\"3060\", fmt=\"saia_banner\", backend=\"html\",\n                        path=str(tmp_path / \"banner.html\"), mime=\"text/html\")",
+        "detail": "tests.test_distribute",
+        "documentation": {}
+    },
+    {
+        "label": "test_postable_images_caps_at_four",
+        "kind": 2,
+        "importPath": "tests.test_distribute",
+        "description": "tests.test_distribute",
+        "peekOfCode": "def test_postable_images_caps_at_four(tmp_path):\n    from engine.distribute.ghl import MAX_POST_IMAGES, _postable_images\n    photos = [_png_file(tmp_path, f\"p{i}.png\") for i in range(6)]\n    images, notes = _postable_images([], photos)\n    assert len(images) == MAX_POST_IMAGES\n    assert any(\"attaching the first\" in n for n in notes)\ndef test_upload_media_returns_hosted_url_and_none_on_failure(tmp_path):\n    from engine.distribute.ghl import upload_media\n    png = _png_file(tmp_path, \"hero.png\")\n    ok = _FakeHTTP()",
+        "detail": "tests.test_distribute",
+        "documentation": {}
+    },
+    {
+        "label": "test_upload_media_returns_hosted_url_and_none_on_failure",
+        "kind": 2,
+        "importPath": "tests.test_distribute",
+        "description": "tests.test_distribute",
+        "peekOfCode": "def test_upload_media_returns_hosted_url_and_none_on_failure(tmp_path):\n    from engine.distribute.ghl import upload_media\n    png = _png_file(tmp_path, \"hero.png\")\n    ok = _FakeHTTP()\n    assert upload_media(png, \"TOKEN\", client=ok) == \"https://cdn.test/hero.png\"\n    bad = _FakeHTTP(media_status=500)\n    assert upload_media(png, \"TOKEN\", client=bad) is None\n    # Non-image and missing files never upload.\n    assert upload_media(str(tmp_path / \"x.svg\"), \"TOKEN\", client=ok) is None\ndef test_post_carries_hosted_urls_never_local_paths(tmp_path):",
+        "detail": "tests.test_distribute",
+        "documentation": {}
+    },
+    {
+        "label": "test_post_carries_hosted_urls_never_local_paths",
+        "kind": 2,
+        "importPath": "tests.test_distribute",
+        "description": "tests.test_distribute",
+        "peekOfCode": "def test_post_carries_hosted_urls_never_local_paths(tmp_path):\n    artifacts = [\n        _artifact_file(tmp_path, \"facebook_post\", \"View this property.\"),\n    ]\n    hero = _png_file(tmp_path, \"hero.png\")\n    http = _FakeHTTP()\n    result = post_to_planner(\n        \"3060\", artifacts, channel_matrix(_record()),\n        token=\"TESTTOKEN\", user_id=\"USER123\", status=\"draft\",\n        photo_paths=[hero], client=http,",
+        "detail": "tests.test_distribute",
+        "documentation": {}
+    },
+    {
+        "label": "test_failed_upload_still_posts_text_first",
+        "kind": 2,
+        "importPath": "tests.test_distribute",
+        "description": "tests.test_distribute",
+        "peekOfCode": "def test_failed_upload_still_posts_text_first(tmp_path):\n    artifacts = [_artifact_file(tmp_path, \"facebook_post\", \"View this property.\")]\n    hero = _png_file(tmp_path, \"hero.png\")\n    http = _FakeHTTP(media_status=500)  # hosting down, posting up\n    result = post_to_planner(\n        \"3060\", artifacts, channel_matrix(_record()),\n        token=\"TESTTOKEN\", user_id=\"USER123\", status=\"draft\",\n        photo_paths=[hero], client=http,\n    )\n    assert result.posted is True                      # the post still went out",
+        "detail": "tests.test_distribute",
+        "documentation": {}
+    },
+    {
+        "label": "test_partial_upload_failure_note_survives_the_rebuild",
+        "kind": 2,
+        "importPath": "tests.test_distribute",
+        "description": "tests.test_distribute",
+        "peekOfCode": "def test_partial_upload_failure_note_survives_the_rebuild(tmp_path):\n    # One image hosts, one fails: the post goes out with the hosted image AND\n    # the returned request still records what was dropped (the rebuild used to\n    # discard the note, so the audit read as a clean fully-imaged post).\n    artifacts = [_artifact_file(tmp_path, \"facebook_post\", \"View this property.\")]\n    hero = _png_file(tmp_path, \"hero.png\")\n    garden = _png_file(tmp_path, \"garden.png\")\n    http = _FakeHTTP(media_fail={\"garden.png\"})\n    result = post_to_planner(\n        \"3060\", artifacts, channel_matrix(_record()),",
+        "detail": "tests.test_distribute",
+        "documentation": {}
+    },
+    {
+        "label": "test_missing_raster_artifact_is_noted_not_silent",
+        "kind": 2,
+        "importPath": "tests.test_distribute",
+        "description": "tests.test_distribute",
+        "peekOfCode": "def test_missing_raster_artifact_is_noted_not_silent(tmp_path):\n    from engine.distribute.ghl import _postable_images\n    from engine.render.base import Artifact\n    gone = Artifact(dp=\"3060\", fmt=\"demo_ad\", backend=\"canva\",\n                    path=str(tmp_path / \"gone.png\"), mime=\"image/png\")\n    images, notes = _postable_images([gone], [])\n    assert images == []\n    assert any(\"not found on disk\" in n for n in notes)\ndef test_checklist_lists_post_images_and_labels_reference_artifacts(tmp_path):\n    from engine.distribute.ghl import build_planner_checklist",
+        "detail": "tests.test_distribute",
+        "documentation": {}
+    },
+    {
+        "label": "test_checklist_lists_post_images_and_labels_reference_artifacts",
+        "kind": 2,
+        "importPath": "tests.test_distribute",
+        "description": "tests.test_distribute",
+        "peekOfCode": "def test_checklist_lists_post_images_and_labels_reference_artifacts(tmp_path):\n    from engine.distribute.ghl import build_planner_checklist\n    art = _artifact_file(tmp_path, \"facebook_post\", \"Copy here.\")\n    hero = _png_file(tmp_path, \"hero.png\")\n    steps = build_planner_checklist(\n        \"3060\", [\"facebook\"], [art], \"no token\", postable_images=[hero],\n    )\n    joined = \"\\n\".join(steps)\n    assert f\"Attach image: {hero}\" in joined\n    assert \"Copy/reference [facebook_post] (not post media)\" in joined",
         "detail": "tests.test_distribute",
         "documentation": {}
     },
@@ -5535,11 +6204,38 @@
         "documentation": {}
     },
     {
+        "label": "_FakeToolUse",
+        "kind": 6,
+        "importPath": "tests.test_extract",
+        "description": "tests.test_extract",
+        "peekOfCode": "class _FakeToolUse:\n    type = \"tool_use\"\n    def __init__(self, name: str, data: dict):\n        self.name = name\n        self.input = data\n_SECTION_MODELS = {name: model for name, model, _focus in SECTIONS}\ndef _requested_section(kwargs: dict) -> str:\n    \"\"\"The section a request asks for, per the trailing directive text block.\n    Every call now carries the identical full tool list (the cache contract),\n    so the directive text is what distinguishes one section call from another.",
+        "detail": "tests.test_extract",
+        "documentation": {}
+    },
+    {
+        "label": "_FakeClient",
+        "kind": 6,
+        "importPath": "tests.test_extract",
+        "description": "tests.test_extract",
+        "peekOfCode": "class _FakeClient:\n    \"\"\"Mocks ``messages.create``: emits the requested section's tool_use block.\n    The requested section is read from the directive text block, and the reply\n    block is named ``record_<section>``, the way ``_extract_section`` matches\n    it before validating with that section's model.\n    \"\"\"\n    def __init__(self, outputs: dict):\n        self._by_name = {model.__name__: inst for model, inst in outputs.items()}\n        self.requests: list = []\n        self.messages = SimpleNamespace(create=self._create)",
+        "detail": "tests.test_extract",
+        "documentation": {}
+    },
+    {
+        "label": "test_sections_cover_exactly_the_source_derived_fields",
+        "kind": 2,
+        "importPath": "tests.test_extract",
+        "description": "tests.test_extract",
+        "peekOfCode": "def test_sections_cover_exactly_the_source_derived_fields():\n    names = [name for name, _model, _focus in SECTIONS]\n    assert names == EXPECTED_SECTIONS\n    # Later-stage fields must never be asked of the extraction model.\n    for later in (\"marketing\", \"verification\", \"compliance\", \"human_overrides\"):\n        assert later not in names\ndef test_build_request_top_level_shape(lightstone_3060, property_report_3060):\n    for name, model, _focus in SECTIONS:\n        req = build_request(lightstone_3060, property_report_3060, \"3060\", name)\n        assert req[\"model\"] == MODEL == \"claude-opus-4-8\"",
+        "detail": "tests.test_extract",
+        "documentation": {}
+    },
+    {
         "label": "test_build_request_top_level_shape",
         "kind": 2,
         "importPath": "tests.test_extract",
         "description": "tests.test_extract",
-        "peekOfCode": "def test_build_request_top_level_shape(lightstone_3060, property_report_3060):\n    req = build_request(lightstone_3060, property_report_3060, \"3060\")\n    assert req[\"model\"] == MODEL == \"claude-opus-4-8\"\n    assert req[\"max_tokens\"] == 16000\n    assert req[\"thinking\"] == {\"type\": \"adaptive\"}\n    assert req[\"output_format\"] is PropertyRecord\n    # messages.parse injects output_config from output_format; passing our own\n    # would collide, so it must be absent.\n    assert \"output_config\" not in req\ndef test_build_request_system_block_is_cacheable(lightstone_3060, property_report_3060):",
+        "peekOfCode": "def test_build_request_top_level_shape(lightstone_3060, property_report_3060):\n    for name, model, _focus in SECTIONS:\n        req = build_request(lightstone_3060, property_report_3060, \"3060\", name)\n        assert req[\"model\"] == MODEL == \"claude-opus-4-8\"\n        assert req[\"max_tokens\"] == 16000\n        assert req[\"thinking\"] == {\"type\": \"adaptive\"}\n        # The FULL tool list rides on every call (tools serialize ahead of the\n        # system block in the cached prefix, so a per-call difference would\n        # break caching); the directive text names this section's tool.\n        assert [t[\"name\"] for t in req[\"tools\"]] == [",
         "detail": "tests.test_extract",
         "documentation": {}
     },
@@ -5548,7 +6244,7 @@
         "kind": 2,
         "importPath": "tests.test_extract",
         "description": "tests.test_extract",
-        "peekOfCode": "def test_build_request_system_block_is_cacheable(lightstone_3060, property_report_3060):\n    req = build_request(lightstone_3060, property_report_3060, \"3060\")\n    system = req[\"system\"]\n    assert isinstance(system, list) and len(system) == 1\n    block = system[0]\n    assert block[\"type\"] == \"text\"\n    assert block[\"cache_control\"] == {\"type\": \"ephemeral\"}\n    assert block[\"text\"].strip()  # non-empty stable brief\ndef test_build_request_document_blocks_precede_text(\n    lightstone_3060, property_report_3060",
+        "peekOfCode": "def test_build_request_system_block_is_cacheable(lightstone_3060, property_report_3060):\n    req = build_request(lightstone_3060, property_report_3060, \"3060\", \"identity\")\n    system = req[\"system\"]\n    assert isinstance(system, list) and len(system) == 1\n    block = system[0]\n    assert block[\"type\"] == \"text\"\n    assert block[\"cache_control\"] == {\"type\": \"ephemeral\"}\n    assert block[\"text\"].strip()  # non-empty stable brief\ndef test_build_request_document_blocks_precede_text(\n    lightstone_3060, property_report_3060",
         "detail": "tests.test_extract",
         "documentation": {}
     },
@@ -5557,7 +6253,7 @@
         "kind": 2,
         "importPath": "tests.test_extract",
         "description": "tests.test_extract",
-        "peekOfCode": "def test_build_request_document_blocks_precede_text(\n    lightstone_3060, property_report_3060\n):\n    req = build_request(lightstone_3060, property_report_3060, \"3060\")\n    messages = req[\"messages\"]\n    assert len(messages) == 1\n    assert messages[0][\"role\"] == \"user\"\n    content = messages[0][\"content\"]\n    assert len(content) == 3\n    doc_a, doc_b, text = content",
+        "peekOfCode": "def test_build_request_document_blocks_precede_text(\n    lightstone_3060, property_report_3060\n):\n    req = build_request(lightstone_3060, property_report_3060, \"3060\", \"identity\")\n    messages = req[\"messages\"]\n    assert len(messages) == 1\n    assert messages[0][\"role\"] == \"user\"\n    content = messages[0][\"content\"]\n    assert len(content) == 3\n    doc_a, doc_b, text = content",
         "detail": "tests.test_extract",
         "documentation": {}
     },
@@ -5566,7 +6262,133 @@
         "kind": 2,
         "importPath": "tests.test_extract",
         "description": "tests.test_extract",
-        "peekOfCode": "def test_build_request_orders_lightstone_first(lightstone_3060, property_report_3060):\n    \"\"\"The Lightstone PDF is the first document block, the Property Report the second.\"\"\"\n    req = build_request(lightstone_3060, property_report_3060, \"3060\")\n    doc_a, doc_b, _ = req[\"messages\"][0][\"content\"]\n    lightstone_bytes = lightstone_3060.read_bytes()\n    report_bytes = property_report_3060.read_bytes()\n    assert base64.b64decode(doc_a[\"source\"][\"data\"]) == lightstone_bytes\n    assert base64.b64decode(doc_b[\"source\"][\"data\"]) == report_bytes",
+        "peekOfCode": "def test_build_request_orders_lightstone_first(lightstone_3060, property_report_3060):\n    \"\"\"The Lightstone PDF is the first document block, the Property Report the second.\"\"\"\n    req = build_request(lightstone_3060, property_report_3060, \"3060\", \"identity\")\n    doc_a, doc_b, _ = req[\"messages\"][0][\"content\"]\n    lightstone_bytes = lightstone_3060.read_bytes()\n    report_bytes = property_report_3060.read_bytes()\n    assert base64.b64decode(doc_a[\"source\"][\"data\"]) == lightstone_bytes\n    assert base64.b64decode(doc_b[\"source\"][\"data\"]) == report_bytes\ndef test_section_requests_share_identical_cached_prefix(\n    lightstone_3060, property_report_3060",
+        "detail": "tests.test_extract",
+        "documentation": {}
+    },
+    {
+        "label": "test_section_requests_share_identical_cached_prefix",
+        "kind": 2,
+        "importPath": "tests.test_extract",
+        "description": "tests.test_extract",
+        "peekOfCode": "def test_section_requests_share_identical_cached_prefix(\n    lightstone_3060, property_report_3060\n):\n    \"\"\"The caching contract: system + PDFs identical, only the text block varies.\"\"\"\n    reqs = [\n        build_request(lightstone_3060, property_report_3060, \"3060\", name)\n        for name, _model, _focus in SECTIONS\n    ]\n    first = reqs[0]\n    for req in reqs[1:]:",
+        "detail": "tests.test_extract",
+        "documentation": {}
+    },
+    {
+        "label": "test_text_mode_sends_text_blocks_not_pdf",
+        "kind": 2,
+        "importPath": "tests.test_extract",
+        "description": "tests.test_extract",
+        "peekOfCode": "def test_text_mode_sends_text_blocks_not_pdf(lightstone_3060, property_report_3060):\n    req = build_request(\n        lightstone_3060, property_report_3060, \"3060\", \"identity\", mode=\"text\"\n    )\n    doc_a, doc_b, text = req[\"messages\"][0][\"content\"]\n    # Both source blocks are now text, labelled by document, carrying extracted\n    # content; no base64 PDF document blocks remain.\n    for block, label in ((doc_a, \"LIGHTSTONE EVM REPORT\"), (doc_b, \"DYNAMIC PROPERTY REPORT\")):\n        assert block[\"type\"] == \"text\"\n        assert label in block[\"text\"]",
+        "detail": "tests.test_extract",
+        "documentation": {}
+    },
+    {
+        "label": "test_env_selects_text_mode",
+        "kind": 2,
+        "importPath": "tests.test_extract",
+        "description": "tests.test_extract",
+        "peekOfCode": "def test_env_selects_text_mode(monkeypatch, lightstone_3060, property_report_3060):\n    monkeypatch.setenv(\"EXTRACT_PDF_MODE\", \"text\")\n    req = build_request(lightstone_3060, property_report_3060, \"3060\", \"physical\")\n    assert req[\"messages\"][0][\"content\"][0][\"type\"] == \"text\"\n    # Default (no env) stays native.\n    monkeypatch.delenv(\"EXTRACT_PDF_MODE\", raising=False)\n    req2 = build_request(lightstone_3060, property_report_3060, \"3060\", \"physical\")\n    assert req2[\"messages\"][0][\"content\"][0][\"type\"] == \"document\"\n# --- assembly (fake client; no sample docs, no key, no network) -----------\nclass _FakeToolUse:",
+        "detail": "tests.test_extract",
+        "documentation": {}
+    },
+    {
+        "label": "test_extract_record_assembles_sections_and_stamps_code_owned_fields",
+        "kind": 2,
+        "importPath": "tests.test_extract",
+        "description": "tests.test_extract",
+        "peekOfCode": "def test_extract_record_assembles_sections_and_stamps_code_owned_fields(tmp_path):\n    lightstone = _fake_pdf(tmp_path, \"lightstone.pdf\")\n    report = _fake_pdf(tmp_path, \"report.pdf\")\n    fake = _FakeClient(\n        {\n            # The model was told to leave file fields null; even if it fills\n            # them, the caller's real paths must win.\n            Sources: Sources(lightstone_evm=LightstoneSource(report_id=\"LSR-1\", file=\"model-guess.pdf\")),\n            Identity: Identity(suburb=\"Prestbury\", title_type=\"sectional\"),\n            Physical: Physical(bedrooms=3),",
+        "detail": "tests.test_extract",
+        "documentation": {}
+    },
+    {
+        "label": "test_extract_record_survives_all_empty_sections",
+        "kind": 2,
+        "importPath": "tests.test_extract",
+        "description": "tests.test_extract",
+        "peekOfCode": "def test_extract_record_survives_all_empty_sections(tmp_path):\n    \"\"\"A property the model finds nothing for still assembles a valid record.\"\"\"\n    lightstone = _fake_pdf(tmp_path, \"l.pdf\")\n    report = _fake_pdf(tmp_path, \"r.pdf\")\n    fake = _FakeClient(\n        {\n            Sources: Sources(),\n            Identity: Identity(),\n            Physical: Physical(),\n            Valuation: Valuation(),",
+        "detail": "tests.test_extract",
+        "documentation": {}
+    },
+    {
+        "label": "test_pace_seconds_waits_between_but_not_before_first_call",
+        "kind": 2,
+        "importPath": "tests.test_extract",
+        "description": "tests.test_extract",
+        "peekOfCode": "def test_pace_seconds_waits_between_but_not_before_first_call(tmp_path, monkeypatch):\n    lightstone = _fake_pdf(tmp_path, \"l.pdf\")\n    report = _fake_pdf(tmp_path, \"r.pdf\")\n    sleeps: list = []\n    monkeypatch.setattr(\"engine.extract.time.sleep\", lambda s: sleeps.append(s))\n    extract_record(lightstone, report, \"3060\", client=_all_empty_client(), pace_seconds=62)\n    # One wait between each pair of the six section calls: five waits, each 62s.\n    assert sleeps == [62] * (len(SECTIONS) - 1)\ndef test_pace_seconds_zero_never_sleeps(tmp_path, monkeypatch):\n    lightstone = _fake_pdf(tmp_path, \"l.pdf\")",
+        "detail": "tests.test_extract",
+        "documentation": {}
+    },
+    {
+        "label": "test_pace_seconds_zero_never_sleeps",
+        "kind": 2,
+        "importPath": "tests.test_extract",
+        "description": "tests.test_extract",
+        "peekOfCode": "def test_pace_seconds_zero_never_sleeps(tmp_path, monkeypatch):\n    lightstone = _fake_pdf(tmp_path, \"l.pdf\")\n    report = _fake_pdf(tmp_path, \"r.pdf\")\n    sleeps: list = []\n    monkeypatch.setattr(\"engine.extract.time.sleep\", lambda s: sleeps.append(s))\n    extract_record(lightstone, report, \"3060\", client=_all_empty_client(), pace_seconds=0)\n    assert sleeps == []\n# --- section retry: tool call is forced (thinking off) if the model skips it ---\ndef test_extract_section_forces_tool_on_retry(tmp_path):\n    lightstone = _fake_pdf(tmp_path, \"l.pdf\")",
+        "detail": "tests.test_extract",
+        "documentation": {}
+    },
+    {
+        "label": "test_extract_section_forces_tool_on_retry",
+        "kind": 2,
+        "importPath": "tests.test_extract",
+        "description": "tests.test_extract",
+        "peekOfCode": "def test_extract_section_forces_tool_on_retry(tmp_path):\n    lightstone = _fake_pdf(tmp_path, \"l.pdf\")\n    report = _fake_pdf(tmp_path, \"r.pdf\")\n    req = build_request(lightstone, report, \"3060\", \"identity\", mode=\"native\")\n    class _SkipThenCall:\n        def __init__(self):\n            self.calls: list = []\n            self.messages = SimpleNamespace(create=self._create)\n        def _create(self, **kwargs):\n            self.calls.append(kwargs)",
+        "detail": "tests.test_extract",
+        "documentation": {}
+    },
+    {
+        "label": "test_extract_section_rejects_wrong_section_tool_and_retries_forced",
+        "kind": 2,
+        "importPath": "tests.test_extract",
+        "description": "tests.test_extract",
+        "peekOfCode": "def test_extract_section_rejects_wrong_section_tool_and_retries_forced(tmp_path):\n    \"\"\"A call to a DIFFERENT section's tool counts as no call and is retried.\n    All six section tools ride on every request (the cache contract), so the\n    model could in principle answer with the wrong one; the forced retry names\n    the right tool.\n    \"\"\"\n    lightstone = _fake_pdf(tmp_path, \"l.pdf\")\n    report = _fake_pdf(tmp_path, \"r.pdf\")\n    req = build_request(lightstone, report, \"3060\", \"identity\", mode=\"native\")\n    class _WrongThenRight:",
+        "detail": "tests.test_extract",
+        "documentation": {}
+    },
+    {
+        "label": "test_normalize_record_canonicalizes_source_formats",
+        "kind": 2,
+        "importPath": "tests.test_extract",
+        "description": "tests.test_extract",
+        "peekOfCode": "def test_normalize_record_canonicalizes_source_formats():\n    from engine.extract import normalize_record\n    from engine.schema import (\n        LastSale,\n        PropertyRecord as PR,\n        SameSchemeSale,\n    )\n    rec = PR(\n        dp=\"3060\",\n        sources={\"lightstone_evm\": {\"report_date\": \"2026/07/03\"},",
+        "detail": "tests.test_extract",
+        "documentation": {}
+    },
+    {
+        "label": "test_normalize_record_passes_unknown_shapes_through",
+        "kind": 2,
+        "importPath": "tests.test_extract",
+        "description": "tests.test_extract",
+        "peekOfCode": "def test_normalize_record_passes_unknown_shapes_through():\n    from engine.extract import normalize_record\n    from engine.schema import PropertyRecord as PR\n    rec = PR(\n        dp=\"3061\",\n        sources={\"lightstone_evm\": {\"report_date\": \"3 July 2026\"}},  # not YYYY/MM/DD\n        identity={\"title_type\": \"Full Title Freehold\"},\n        physical={\"zoning\": \"Mixed Use\"},  # already mixed case: untouched\n    )\n    out = normalize_record(rec)",
+        "detail": "tests.test_extract",
+        "documentation": {}
+    },
+    {
+        "label": "test_extract_section_raises_when_tool_never_called",
+        "kind": 2,
+        "importPath": "tests.test_extract",
+        "description": "tests.test_extract",
+        "peekOfCode": "def test_extract_section_raises_when_tool_never_called(tmp_path):\n    lightstone = _fake_pdf(tmp_path, \"l.pdf\")\n    report = _fake_pdf(tmp_path, \"r.pdf\")\n    req = build_request(lightstone, report, \"3060\", \"identity\", mode=\"native\")\n    class _NeverCall:\n        def __init__(self):\n            self.messages = SimpleNamespace(create=self._create)\n        def _create(self, **kwargs):\n            return SimpleNamespace(\n                content=[SimpleNamespace(type=\"text\", text=\"x\")], stop_reason=\"end_turn\"",
+        "detail": "tests.test_extract",
+        "documentation": {}
+    },
+    {
+        "label": "EXPECTED_SECTIONS",
+        "kind": 5,
+        "importPath": "tests.test_extract",
+        "description": "tests.test_extract",
+        "peekOfCode": "EXPECTED_SECTIONS = [\n    \"sources\",\n    \"identity\",\n    \"physical\",\n    \"valuation\",\n    \"financials_internal\",\n    \"sale_process\",\n]\ndef test_sections_cover_exactly_the_source_derived_fields():\n    names = [name for name, _model, _focus in SECTIONS]",
+        "detail": "tests.test_extract",
+        "documentation": {}
+    },
+    {
+        "label": "_SECTION_MODELS",
+        "kind": 5,
+        "importPath": "tests.test_extract",
+        "description": "tests.test_extract",
+        "peekOfCode": "_SECTION_MODELS = {name: model for name, model, _focus in SECTIONS}\ndef _requested_section(kwargs: dict) -> str:\n    \"\"\"The section a request asks for, per the trailing directive text block.\n    Every call now carries the identical full tool list (the cache contract),\n    so the directive text is what distinguishes one section call from another.\n    \"\"\"\n    directive = kwargs[\"messages\"][0][\"content\"][-1][\"text\"]\n    return re.search(r\"calling the `record_(\\w+)` tool\", directive).group(1)\nclass _FakeClient:\n    \"\"\"Mocks ``messages.create``: emits the requested section's tool_use block.",
         "detail": "tests.test_extract",
         "documentation": {}
     },
@@ -5683,7 +6505,25 @@
         "kind": 2,
         "importPath": "tests.test_mixed",
         "description": "tests.test_mixed",
-        "peekOfCode": "def test_html_backend_unchanged_when_not_mixed(monkeypatch, tmp_path, golden_record_path):\n    # An explicit backend still renders every format through that one backend.\n    store = _seed(\"9502\", golden_record_path)\n    try:\n        arts = render_all(\"9502\", store, backend=\"html\", output_root=str(tmp_path))\n    finally:\n        store.close()\n    assert {a.backend for a in arts} == {\"html\"}\n    assert len(arts) == len(FORMATS)",
+        "peekOfCode": "def test_html_backend_unchanged_when_not_mixed(monkeypatch, tmp_path, golden_record_path):\n    # An explicit backend still renders every format through that one backend.\n    store = _seed(\"9502\", golden_record_path)\n    try:\n        arts = render_all(\"9502\", store, backend=\"html\", output_root=str(tmp_path))\n    finally:\n        store.close()\n    assert {a.backend for a in arts} == {\"html\"}\n    assert len(arts) == len(FORMATS)\ndef test_record_template_set_reaches_the_backend(monkeypatch, tmp_path, golden_record_path):",
+        "detail": "tests.test_mixed",
+        "documentation": {}
+    },
+    {
+        "label": "test_record_template_set_reaches_the_backend",
+        "kind": 2,
+        "importPath": "tests.test_mixed",
+        "description": "tests.test_mixed",
+        "peekOfCode": "def test_record_template_set_reaches_the_backend(monkeypatch, tmp_path, golden_record_path):\n    \"\"\"The marketing team's design pick (D33) rides every RenderRequest.\"\"\"\n    seen: list = []\n    supports, render = _fake_canva()\n    def capture(self, request):\n        seen.append(request.template_set)\n        return render(self, request)\n    monkeypatch.setattr(cb.CanvaBackend, \"available\", lambda self: (True, \"ok\"))\n    monkeypatch.setattr(cb.CanvaBackend, \"supports\", supports)\n    monkeypatch.setattr(cb.CanvaBackend, \"render\", capture)",
+        "detail": "tests.test_mixed",
+        "documentation": {}
+    },
+    {
+        "label": "test_apply_edits_stores_the_template_pick",
+        "kind": 2,
+        "importPath": "tests.test_mixed",
+        "description": "tests.test_mixed",
+        "peekOfCode": "def test_apply_edits_stores_the_template_pick(tmp_path, golden_record_path):\n    from engine.render.service import apply_edits\n    store = _seed(\"9504\", golden_record_path)\n    try:\n        change = apply_edits(\n            \"9504\",\n            store,\n            {\"marketing.template_set\": \"Modern dark\"},\n            user=\"nikki@dynamicauctioneers.co.za\",\n            backend=\"html\",",
         "detail": "tests.test_mixed",
         "documentation": {}
     },
@@ -5859,6 +6699,15 @@
         "documentation": {}
     },
     {
+        "label": "test_public_view_strips_professional_valuation",
+        "kind": 2,
+        "importPath": "tests.test_schema",
+        "description": "tests.test_schema",
+        "peekOfCode": "def test_public_view_strips_professional_valuation():\n    \"\"\"Sale-strategy figures never reach a renderer or the copy model (D32).\n    The valuer's market and forced-sale values would anchor buyers or undercut\n    the sale if they appeared in an ad, so the whole ``valuation.professional``\n    block is structurally absent from the public projection while the rest of\n    the valuation section survives.\n    \"\"\"\n    from engine.schema import ProfessionalValuation, Valuation\n    record = PropertyRecord(\n        dp=\"2035\",",
+        "detail": "tests.test_schema",
+        "documentation": {}
+    },
+    {
         "label": "POISON",
         "kind": 5,
         "importPath": "tests.test_schema",
@@ -6007,7 +6856,25 @@
         "kind": 2,
         "importPath": "tests.test_verify",
         "description": "tests.test_verify",
-        "peekOfCode": "def test_deterministic_checks_are_pure_no_key_needed(golden_record):\n    # Nothing here touches a model or the network; it just runs.\n    flags = deterministic_checks(golden_record)\n    assert flags\n    assert all(isinstance(f, Flag) for f in flags)\n# --- memo ----------------------------------------------------------------\ndef test_memo_distinguishes_block_from_note(golden_record):\n    flags = deterministic_checks(golden_record)\n    memo = build_memo(golden_record, flags)\n    assert \"[BLOCK]\" in memo",
+        "peekOfCode": "def test_deterministic_checks_are_pure_no_key_needed(golden_record):\n    # Nothing here touches a model or the network; it just runs.\n    flags = deterministic_checks(golden_record)\n    assert flags\n    assert all(isinstance(f, Flag) for f in flags)\ndef test_recorded_physical_conflicts_each_raise_a_block_flag(golden_record):\n    # D32 (seen live on Erf 2035): the EVM and the inspection disagreed on the\n    # bedroom count and the building size; each recorded disagreement must gate\n    # sign-off exactly like the garage conflict does.\n    rec = golden_record.model_copy(deep=True)",
+        "detail": "tests.test_verify",
+        "documentation": {}
+    },
+    {
+        "label": "test_recorded_physical_conflicts_each_raise_a_block_flag",
+        "kind": 2,
+        "importPath": "tests.test_verify",
+        "description": "tests.test_verify",
+        "peekOfCode": "def test_recorded_physical_conflicts_each_raise_a_block_flag(golden_record):\n    # D32 (seen live on Erf 2035): the EVM and the inspection disagreed on the\n    # bedroom count and the building size; each recorded disagreement must gate\n    # sign-off exactly like the garage conflict does.\n    rec = golden_record.model_copy(deep=True)\n    rec.physical.conflicts = [\n        \"Bedrooms: EVM comparable line says 2, inspection says 4.\",\n        \"Building size: EVM estimates 106 m2 under roof, inspection measures 310 m2.\",\n    ]\n    flags = deterministic_checks(rec)",
+        "detail": "tests.test_verify",
+        "documentation": {}
+    },
+    {
+        "label": "test_professional_valuation_outside_evm_range_raises_note",
+        "kind": 2,
+        "importPath": "tests.test_verify",
+        "description": "tests.test_verify",
+        "peekOfCode": "def test_professional_valuation_outside_evm_range_raises_note(golden_record):\n    from engine.schema import ProfessionalValuation\n    rec = golden_record.model_copy(deep=True)\n    rec.valuation.evm_range = [2060000.0, 2910000.0]\n    rec.valuation.professional = ProfessionalValuation(\n        market_value=3400000, forced_sale_value=2380000\n    )\n    flags = deterministic_checks(rec)\n    div = [f for f in flags if f.code == \"VALUATION_DIVERGENCE\"]\n    assert len(div) == 1",
         "detail": "tests.test_verify",
         "documentation": {}
     },
@@ -6061,7 +6928,7 @@
         "kind": 2,
         "importPath": "tests.test_verify",
         "description": "tests.test_verify",
-        "peekOfCode": "def test_build_research_request_carries_no_pii(golden_record):\n    # The request is built from public_view only; occupant PII must not appear.\n    req = build_research_request(golden_record)\n    assert GOLDEN_PII not in json.dumps(req)\ndef test_research_market_returns_none_without_key(golden_record, monkeypatch):\n    monkeypatch.delenv(\"ANTHROPIC_API_KEY\", raising=False)\n    assert research_market(golden_record, client=None) is None\n# --- sign-off gate -------------------------------------------------------\ndef test_sign_off_refused_then_allowed_with_override(golden_record, tmp_path, monkeypatch):\n    monkeypatch.delenv(\"ANTHROPIC_API_KEY\", raising=False)",
+        "peekOfCode": "def test_build_research_request_carries_no_pii(golden_record):\n    # The request is built from public_view only; occupant PII must not appear.\n    req = build_research_request(golden_record)\n    assert GOLDEN_PII not in json.dumps(req)\ndef test_research_market_returns_none_without_key(golden_record, monkeypatch):\n    monkeypatch.delenv(\"ANTHROPIC_API_KEY\", raising=False)\n    assert research_market(golden_record, client=None) is None\ndef test_research_market_keeps_findings_drops_narration(golden_record):\n    # A live tool-using turn interleaves narration between searches; the memo\n    # must carry only the final findings (text after the last tool block) while",
         "detail": "tests.test_verify",
         "documentation": {}
     },
@@ -6070,7 +6937,25 @@
         "kind": 2,
         "importPath": "tests.test_verify",
         "description": "tests.test_verify",
-        "peekOfCode": "def test_research_market_returns_none_without_key(golden_record, monkeypatch):\n    monkeypatch.delenv(\"ANTHROPIC_API_KEY\", raising=False)\n    assert research_market(golden_record, client=None) is None\n# --- sign-off gate -------------------------------------------------------\ndef test_sign_off_refused_then_allowed_with_override(golden_record, tmp_path, monkeypatch):\n    monkeypatch.delenv(\"ANTHROPIC_API_KEY\", raising=False)\n    store = RecordStore(db_path=\":memory:\")\n    try:\n        store.upsert(golden_record, state=\"extracted\")\n        memo_path, flags = verify(\"3060\", store, output_root=str(tmp_path))",
+        "peekOfCode": "def test_research_market_returns_none_without_key(golden_record, monkeypatch):\n    monkeypatch.delenv(\"ANTHROPIC_API_KEY\", raising=False)\n    assert research_market(golden_record, client=None) is None\ndef test_research_market_keeps_findings_drops_narration(golden_record):\n    # A live tool-using turn interleaves narration between searches; the memo\n    # must carry only the final findings (text after the last tool block) while\n    # sources still come from every search-result block.\n    from types import SimpleNamespace as NS\n    class _Client:\n        class messages:  # noqa: N801 - mimics the SDK surface",
+        "detail": "tests.test_verify",
+        "documentation": {}
+    },
+    {
+        "label": "test_research_market_keeps_findings_drops_narration",
+        "kind": 2,
+        "importPath": "tests.test_verify",
+        "description": "tests.test_verify",
+        "peekOfCode": "def test_research_market_keeps_findings_drops_narration(golden_record):\n    # A live tool-using turn interleaves narration between searches; the memo\n    # must carry only the final findings (text after the last tool block) while\n    # sources still come from every search-result block.\n    from types import SimpleNamespace as NS\n    class _Client:\n        class messages:  # noqa: N801 - mimics the SDK surface\n            @staticmethod\n            def create(**kwargs):\n                return NS(content=[",
+        "detail": "tests.test_verify",
+        "documentation": {}
+    },
+    {
+        "label": "test_research_market_no_tools_keeps_all_text",
+        "kind": 2,
+        "importPath": "tests.test_verify",
+        "description": "tests.test_verify",
+        "peekOfCode": "def test_research_market_no_tools_keeps_all_text(golden_record):\n    from types import SimpleNamespace as NS\n    class _Client:\n        class messages:  # noqa: N801\n            @staticmethod\n            def create(**kwargs):\n                return NS(content=[NS(type=\"text\", text=\"No search was needed; area is known.\")])\n    out = research_market(golden_record, client=_Client())\n    assert out[\"summary\"] == \"No search was needed; area is known.\"\n# --- sign-off gate -------------------------------------------------------",
         "detail": "tests.test_verify",
         "documentation": {}
     },
@@ -6224,6 +7109,60 @@
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
         "peekOfCode": "def test_repost_requires_internal_approval_then_delete_ack():\n    dp = \"7102\"\n    _seed_golden_live(dp)\n    client = _client()\n    _login_admin(client)\n    client.post(f\"/gates/{dp}/ads/copy\", data={\"suburb\": \"Riverbend\"})\n    assert _state(dp) == \"updated\"\n    # Blocked before an internal approval is recorded (even with the ack ticked).\n    blocked = client.post(f\"/post/{dp}/distribute\", data={\"deleted_old_posts\": \"1\"})\n    assert blocked.status_code == 409",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_hermetic_env_strips_ghl_creds_despite_webapp_dotenv",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_hermetic_env_strips_ghl_creds_despite_webapp_dotenv():\n    # webapp.main calls load_dotenv() at import; the autouse hermetic fixture MUST\n    # still guarantee no live GHL/Anthropic credentials are visible during a test,\n    # so a distribution test can never fire a live post to DA's real pages.\n    import os\n    import webapp.main  # noqa: F401 - ensures the module + its load_dotenv ran\n    for var in (\n        \"GHL_API_TOKEN\", \"GHL_USER_ID\", \"GHL_LOCATION_ID\",\n        \"GHL_ACCOUNT_MAP\", \"GHL_POST_STATUS\", \"ANTHROPIC_API_KEY\",\n    ):",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_post_screen_shows_when_to_post_selector",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_post_screen_shows_when_to_post_selector():\n    dp = \"7330\"\n    _seed_golden_live(dp)\n    client = _client()\n    _login_admin(client)\n    body = client.get(f\"/post/{dp}\").text\n    assert 'name=\"post_mode\"' in body\n    assert 'value=\"schedule\"' in body\n    assert 'type=\"datetime-local\"' in body\ndef test_post_screen_shows_draft_lock_banner(monkeypatch):",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_post_screen_shows_draft_lock_banner",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_post_screen_shows_draft_lock_banner(monkeypatch):\n    monkeypatch.setenv(\"GHL_POST_STATUS\", \"draft\")\n    dp = \"7331\"\n    _seed_golden_live(dp)\n    client = _client()\n    _login_admin(client)\n    body = client.get(f\"/post/{dp}\").text\n    assert \"Draft-only safeguard is on\" in body\ndef test_distribute_schedule_without_time_is_blocked():\n    dp = \"7332\"",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_distribute_schedule_without_time_is_blocked",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_distribute_schedule_without_time_is_blocked():\n    dp = \"7332\"\n    _seed_golden_live(dp)  # 'live' is a postable state\n    client = _client()\n    _login_admin(client)\n    r = client.post(f\"/post/{dp}/distribute\", data={\"post_mode\": \"schedule\"})\n    assert r.status_code == 409\n    assert \"date and time\" in r.text.lower()\ndef test_posting_choice_stamps_sast_timezone():\n    from webapp.routes.post import _posting_choice",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_posting_choice_stamps_sast_timezone",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_posting_choice_stamps_sast_timezone():\n    from webapp.routes.post import _posting_choice\n    status, when = _posting_choice({\"post_mode\": \"schedule\", \"schedule_at\": \"2026-07-24T17:00\"})\n    assert status == \"scheduled\"\n    assert when == \"2026-07-24T17:00:00+02:00\"  # SAST, not read as UTC by GHL\n    assert _posting_choice({\"post_mode\": \"now\"}) == (\"published\", None)\n    assert _posting_choice({\"post_mode\": \"draft\"}) == (\"draft\", None)\n    assert _posting_choice({}) == (\"draft\", None)  # default is draft\ndef test_distribute_without_token_does_not_claim_a_live_post():\n    # No token (hermetic env + empty Settings) -> the post did not run; the",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_distribute_without_token_does_not_claim_a_live_post",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_distribute_without_token_does_not_claim_a_live_post():\n    # No token (hermetic env + empty Settings) -> the post did not run; the\n    # summary must say so, never \"posted live\".\n    dp = \"7333\"\n    _seed_golden_live(dp)\n    client = _client()\n    _login_admin(client)\n    body = client.post(f\"/post/{dp}/distribute\", data={\"post_mode\": \"now\"}).text\n    assert \"did not run\" in body.lower()\n    assert \"posted live\" not in body.lower()",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -6394,7 +7333,34 @@
         "kind": 2,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "def test_advert_preview_img_points_at_serve_route():\n    dp = \"7311\"\n    _seed_live_no_photos(dp)\n    client = _client()\n    _login_admin(client)\n    client.post(f\"/gates/{dp}/ads/photos/upload\", files=[(\"files\", (\"front.png\", _PNG_1X1, \"image/png\"))])\n    html = client.get(f\"/gates/{dp}/ads/artifact/demo_ad\").text\n    # resolves to /gates/{dp}/ads/photos/front.png in the sandboxed preview iframe\n    assert 'src=\"../photos/front.png\"' in html\n# --- smoke boot (real lifespan: worker start/stop) -----------------------",
+        "peekOfCode": "def test_advert_preview_img_points_at_serve_route():\n    dp = \"7311\"\n    _seed_live_no_photos(dp)\n    client = _client()\n    _login_admin(client)\n    client.post(f\"/gates/{dp}/ads/photos/upload\", files=[(\"files\", (\"front.png\", _PNG_1X1, \"image/png\"))])\n    html = client.get(f\"/gates/{dp}/ads/artifact/demo_ad\").text\n    # resolves to /gates/{dp}/ads/photos/front.png in the sandboxed preview iframe\n    assert 'src=\"../photos/front.png\"' in html\ndef test_photo_low_res_warns_but_still_saves():",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_photo_low_res_warns_but_still_saves",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_photo_low_res_warns_but_still_saves():\n    dp = \"7320\"\n    _seed_live_no_photos(dp)\n    client = _client()\n    _login_admin(client)\n    # A small photo (like the PDF thumbnails) is flagged but not blocked.\n    body = client.post(\n        f\"/gates/{dp}/ads/photos/upload\",\n        files=[(\"files\", (\"tiny.png\", _png_of(276, 207), \"image/png\"))],\n    ).text",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_photo_full_res_not_flagged",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_photo_full_res_not_flagged():\n    dp = \"7321\"\n    _seed_live_no_photos(dp)\n    client = _client()\n    _login_admin(client)\n    body = client.post(\n        f\"/gates/{dp}/ads/photos/upload\",\n        files=[(\"files\", (\"big.png\", _png_of(1200, 1200), \"image/png\"))],\n    ).text\n    assert \"Low-res\" not in body    # 1200px shorter side clears the 1080 bar",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_image_dimensions_none_for_unreadable",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_image_dimensions_none_for_unreadable(tmp_path):\n    from webapp.routes.gates import _image_dimensions\n    good = tmp_path / \"good.png\"\n    good.write_bytes(_png_of(1200, 800))\n    assert _image_dimensions(good) == (1200, 800)\n    bad = tmp_path / \"broken.png\"\n    bad.write_bytes(b\"not really a png\")\n    assert _image_dimensions(bad) is None            # corrupt -> no false warning\n    assert _image_dimensions(tmp_path / \"missing.png\") is None  # absent -> no crash\n# --- smoke boot (real lifespan: worker start/stop) -----------------------",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -6403,7 +7369,34 @@
         "kind": 2,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "def test_app_boots_via_testclient():\n    \"\"\"Boot the app through the real lifespan and confirm the login page loads.\"\"\"\n    with TestClient(app) as client:\n        resp = client.get(\"/login\")\n        assert resp.status_code == 200",
+        "peekOfCode": "def test_app_boots_via_testclient():\n    \"\"\"Boot the app through the real lifespan and confirm the login page loads.\"\"\"\n    with TestClient(app) as client:\n        resp = client.get(\"/login\")\n        assert resp.status_code == 200\ndef _enable_canva_picker(monkeypatch, sets_json: str) -> None:\n    \"\"\"Make the design picker (D33) live: named sets + a usable Canva backend.\n    The picker only shows when the active renderer routes through Canva and the\n    backend reports available, so the tests fake availability and the render\n    itself (no credentials, no network) the same way test_mixed does.",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_gate2_template_picker_lists_sets_and_saves_the_pick",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_gate2_template_picker_lists_sets_and_saves_the_pick(monkeypatch):\n    \"\"\"The design picker (D33) lists the sets, saves a pick, and can clear it.\"\"\"\n    _enable_canva_picker(monkeypatch, _TWO_SETS)\n    dp = \"7104\"\n    _seed_golden_live(dp)\n    client = _client()\n    _login_admin(client)\n    page = client.get(f\"/gates/{dp}/ads\")\n    assert page.status_code == 200, page.text\n    assert 'name=\"template_set\"' in page.text",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_gate2_template_picker_hidden_with_a_single_set",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_gate2_template_picker_hidden_with_a_single_set(monkeypatch):\n    \"\"\"One configured set means no choice to make: the picker stays hidden.\"\"\"\n    _enable_canva_picker(monkeypatch, '{\"demo_ad\": \"TPL_A\"}')\n    dp = \"7105\"\n    _seed_golden_live(dp)\n    client = _client()\n    _login_admin(client)\n    page = client.get(f\"/gates/{dp}/ads\")\n    assert page.status_code == 200, page.text\n    assert 'name=\"template_set\"' not in page.text",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_gate2_template_picker_hidden_when_renderer_is_html",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_gate2_template_picker_hidden_when_renderer_is_html(monkeypatch):\n    \"\"\"Two sets configured but the renderer never touches Canva: a pick would\n    be a silent no-op, so the picker must not show and a crafted POST must not\n    land on the record.\"\"\"\n    monkeypatch.setenv(\"CANVA_TEMPLATE_MAP\", _TWO_SETS)\n    monkeypatch.delenv(\"ENGINE_RENDERER\", raising=False)  # default: html\n    dp = \"7106\"\n    _seed_golden_live(dp)\n    client = _client()\n    _login_admin(client)",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -6529,7 +7522,16 @@
         "kind": 5,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "_PNG_1X1 = (\n    b\"\\x89PNG\\r\\n\\x1a\\n\\x00\\x00\\x00\\rIHDR\\x00\\x00\\x00\\x01\\x00\\x00\\x00\\x01\"\n    b\"\\x08\\x06\\x00\\x00\\x00\\x1f\\x15\\xc4\\x89\\x00\\x00\\x00\\nIDATx\\x9cc\\x00\"\n    b\"\\x01\\x00\\x00\\x05\\x00\\x01\\r\\n-\\xb4\\x00\\x00\\x00\\x00IEND\\xaeB`\\x82\"\n)\ndef _seed_live_no_photos(dp: str) -> None:\n    \"\"\"Golden clone at ``live`` with its photos cleared, so uploads start clean.\"\"\"\n    _needs_golden()\n    record = PropertyRecord.model_validate_json(GOLDEN_RECORD.read_text(encoding=\"utf-8\"))\n    record.dp = dp",
+        "peekOfCode": "_PNG_1X1 = (\n    b\"\\x89PNG\\r\\n\\x1a\\n\\x00\\x00\\x00\\rIHDR\\x00\\x00\\x00\\x01\\x00\\x00\\x00\\x01\"\n    b\"\\x08\\x06\\x00\\x00\\x00\\x1f\\x15\\xc4\\x89\\x00\\x00\\x00\\nIDATx\\x9cc\\x00\"\n    b\"\\x01\\x00\\x00\\x05\\x00\\x01\\r\\n-\\xb4\\x00\\x00\\x00\\x00IEND\\xaeB`\\x82\"\n)\ndef _png_of(width: int, height: int) -> bytes:\n    \"\"\"A real PNG of a given pixel size, for the low-res-warning tests.\"\"\"\n    import io\n    from PIL import Image\n    buf = io.BytesIO()",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "_TWO_SETS",
+        "kind": 5,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "_TWO_SETS = '{\"Classic gold\": {\"demo_ad\": \"TPL_A\"}, \"Modern dark\": {\"demo_ad\": \"TPL_B\"}}'\ndef test_gate2_template_picker_lists_sets_and_saves_the_pick(monkeypatch):\n    \"\"\"The design picker (D33) lists the sets, saves a pick, and can clear it.\"\"\"\n    _enable_canva_picker(monkeypatch, _TWO_SETS)\n    dp = \"7104\"\n    _seed_golden_live(dp)\n    client = _client()\n    _login_admin(client)\n    page = client.get(f\"/gates/{dp}/ads\")\n    assert page.status_code == 200, page.text",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -6871,7 +7873,7 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_IMAGE_MIME = {\n    \".jpg\": \"image/jpeg\", \".jpeg\": \"image/jpeg\", \".png\": \"image/png\",\n    \".webp\": \"image/webp\", \".gif\": \"image/gif\",\n}\n_CTYPE_EXT = {\"image/jpeg\": \".jpg\", \"image/png\": \".png\", \"image/webp\": \".webp\", \"image/gif\": \".gif\"}\n_MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image\n_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\ndef _photos_dir(db_path: str, dp: str) -> Path:\n    return Path(_output_root(db_path)) / f\"DP{dp}\" / \"photos\"\ndef _safe_photo_name(name: str) -> str:",
+        "peekOfCode": "_IMAGE_MIME = {\n    \".jpg\": \"image/jpeg\", \".jpeg\": \"image/jpeg\", \".png\": \"image/png\",\n    \".webp\": \"image/webp\", \".gif\": \"image/gif\",\n}\n_CTYPE_EXT = {\"image/jpeg\": \".jpg\", \"image/png\": \".png\", \"image/webp\": \".webp\", \"image/gif\": \".gif\"}\n_MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image\n_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\n# A photo is flagged low-res (a non-blocking warning) when its shorter side is\n# under this. Social feeds render around 1080px wide, so smaller images upscale\n# and look soft. The photos extracted from a Property Report PDF are often tiny",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -6880,7 +7882,7 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_CTYPE_EXT = {\"image/jpeg\": \".jpg\", \"image/png\": \".png\", \"image/webp\": \".webp\", \"image/gif\": \".gif\"}\n_MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image\n_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\ndef _photos_dir(db_path: str, dp: str) -> Path:\n    return Path(_output_root(db_path)) / f\"DP{dp}\" / \"photos\"\ndef _safe_photo_name(name: str) -> str:\n    \"\"\"Basename only, restricted to a safe character set (no path traversal).\"\"\"\n    base = Path(name).name\n    keep = \"\".join(c if (c.isalnum() or c in \"._-\") else \"_\" for c in base).lstrip(\".\")\n    return keep or \"photo\"",
+        "peekOfCode": "_CTYPE_EXT = {\"image/jpeg\": \".jpg\", \"image/png\": \".png\", \"image/webp\": \".webp\", \"image/gif\": \".gif\"}\n_MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image\n_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\n# A photo is flagged low-res (a non-blocking warning) when its shorter side is\n# under this. Social feeds render around 1080px wide, so smaller images upscale\n# and look soft. The photos extracted from a Property Report PDF are often tiny\n# thumbnails (DP3060: ~276x207), which is exactly what this warns about.\n_MIN_PHOTO_PX = 1080\ndef _image_dimensions(path: Path) -> Optional[Tuple[int, int]]:\n    \"\"\"Return (width, height) of an image file, or None if it cannot be read.",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -6889,7 +7891,7 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image\n_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\ndef _photos_dir(db_path: str, dp: str) -> Path:\n    return Path(_output_root(db_path)) / f\"DP{dp}\" / \"photos\"\ndef _safe_photo_name(name: str) -> str:\n    \"\"\"Basename only, restricted to a safe character set (no path traversal).\"\"\"\n    base = Path(name).name\n    keep = \"\".join(c if (c.isalnum() or c in \"._-\") else \"_\" for c in base).lstrip(\".\")\n    return keep or \"photo\"\ndef _photo_list(record: PropertyRecord) -> List[str]:",
+        "peekOfCode": "_MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image\n_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\n# A photo is flagged low-res (a non-blocking warning) when its shorter side is\n# under this. Social feeds render around 1080px wide, so smaller images upscale\n# and look soft. The photos extracted from a Property Report PDF are often tiny\n# thumbnails (DP3060: ~276x207), which is exactly what this warns about.\n_MIN_PHOTO_PX = 1080\ndef _image_dimensions(path: Path) -> Optional[Tuple[int, int]]:\n    \"\"\"Return (width, height) of an image file, or None if it cannot be read.\n    Uses Pillow's lazy header read (no full decode). Any failure (missing file,",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -6898,7 +7900,16 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\ndef _photos_dir(db_path: str, dp: str) -> Path:\n    return Path(_output_root(db_path)) / f\"DP{dp}\" / \"photos\"\ndef _safe_photo_name(name: str) -> str:\n    \"\"\"Basename only, restricted to a safe character set (no path traversal).\"\"\"\n    base = Path(name).name\n    keep = \"\".join(c if (c.isalnum() or c in \"._-\") else \"_\" for c in base).lstrip(\".\")\n    return keep or \"photo\"\ndef _photo_list(record: PropertyRecord) -> List[str]:\n    \"\"\"The record's full ordered photo list: hero first, then gallery (deduped).\"\"\"",
+        "peekOfCode": "_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\n# A photo is flagged low-res (a non-blocking warning) when its shorter side is\n# under this. Social feeds render around 1080px wide, so smaller images upscale\n# and look soft. The photos extracted from a Property Report PDF are often tiny\n# thumbnails (DP3060: ~276x207), which is exactly what this warns about.\n_MIN_PHOTO_PX = 1080\ndef _image_dimensions(path: Path) -> Optional[Tuple[int, int]]:\n    \"\"\"Return (width, height) of an image file, or None if it cannot be read.\n    Uses Pillow's lazy header read (no full decode). Any failure (missing file,\n    unreadable/corrupt image) returns None so the caller simply shows no warning",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_MIN_PHOTO_PX",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "_MIN_PHOTO_PX = 1080\ndef _image_dimensions(path: Path) -> Optional[Tuple[int, int]]:\n    \"\"\"Return (width, height) of an image file, or None if it cannot be read.\n    Uses Pillow's lazy header read (no full decode). Any failure (missing file,\n    unreadable/corrupt image) returns None so the caller simply shows no warning\n    rather than breaking the panel.\n    \"\"\"\n    try:\n        from PIL import Image\n        with Image.open(path) as img:",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -6907,7 +7918,7 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_EDIT_TEXT_FIELDS = {\n    \"headline\": \"marketing.headline\",\n    \"price_display\": \"marketing.price_display\",\n    \"street_address\": \"identity.street_address\",\n    \"suburb\": \"identity.suburb\",\n}\n_SALE_METHODS = (\"offers_invited\", \"auction\")\ndef _collect_edit_fields(form) -> dict:\n    \"\"\"Build the public-view edit map from a submitted form (non-empty only).\n    A blank text input is skipped so it never wipes an existing value. ``terms``",
+        "peekOfCode": "_EDIT_TEXT_FIELDS = {\n    \"headline\": \"marketing.headline\",\n    \"price_display\": \"marketing.price_display\",\n    \"street_address\": \"identity.street_address\",\n    \"suburb\": \"identity.suburb\",\n}\n_SALE_METHODS = (\"offers_invited\", \"auction\")\ndef _design_sets() -> list:\n    \"\"\"The template-set names the gate-2 design picker offers (D33).\n    Empty (picker hidden) unless a choice is real: more than one set is",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -6916,7 +7927,7 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_SALE_METHODS = (\"offers_invited\", \"auction\")\ndef _collect_edit_fields(form) -> dict:\n    \"\"\"Build the public-view edit map from a submitted form (non-empty only).\n    A blank text input is skipped so it never wipes an existing value. ``terms``\n    is a textarea, one term per line, stored as a list.\n    \"\"\"\n    fields: dict = {}\n    for name, path in _EDIT_TEXT_FIELDS.items():\n        value = str(form.get(name, \"\")).strip()\n        if value:",
+        "peekOfCode": "_SALE_METHODS = (\"offers_invited\", \"auction\")\ndef _design_sets() -> list:\n    \"\"\"The template-set names the gate-2 design picker offers (D33).\n    Empty (picker hidden) unless a choice is real: more than one set is\n    configured AND the active renderer actually routes formats through Canva\n    (``ENGINE_RENDERER`` is ``canva`` or ``mixed`` and the backend is\n    available). Otherwise a pick would be a silent no-op -- the html backend\n    ignores ``template_set`` -- while the UI promises a re-rendered design.\n    \"\"\"\n    renderer = (os.getenv(\"ENGINE_RENDERER\") or DEFAULT_BACKEND).strip()",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -6970,7 +7981,7 @@
         "kind": 5,
         "importPath": "webapp.routes.post",
         "description": "webapp.routes.post",
-        "peekOfCode": "router = APIRouter()\n_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / \"templates\"\ntemplates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# The GHL Social Planner channels (D11); everything else is a manual/pack channel.\n_SOCIAL = {\"facebook\", \"instagram\", \"linkedin\", \"tiktok\", \"x\"}\n# SPEC section 12 step 8 reality, surfaced verbatim so the delete limit is no\n# surprise. Single source of truth: import the leaf constant from ghl (gates.py\n# already imports it at top level, so it is always available) instead of keeping\n# a copy here that can drift.\nfrom engine.distribute.ghl import DELETE_CAVEAT as _DELETE_CAVEAT",
+        "peekOfCode": "router = APIRouter()\n_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / \"templates\"\ntemplates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# The GHL Social Planner channels (D11); everything else is a manual/pack channel.\n_SOCIAL = {\"facebook\", \"instagram\", \"linkedin\", \"x\"}\n# SPEC section 12 step 8 reality, surfaced verbatim so the delete limit is no\n# surprise. Single source of truth: import the leaf constant from ghl (gates.py\n# already imports it at top level, so it is always available) instead of keeping\n# a copy here that can drift.\nfrom engine.distribute.ghl import DELETE_CAVEAT as _DELETE_CAVEAT",
         "detail": "webapp.routes.post",
         "documentation": {}
     },
@@ -6979,7 +7990,7 @@
         "kind": 5,
         "importPath": "webapp.routes.post",
         "description": "webapp.routes.post",
-        "peekOfCode": "_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / \"templates\"\ntemplates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# The GHL Social Planner channels (D11); everything else is a manual/pack channel.\n_SOCIAL = {\"facebook\", \"instagram\", \"linkedin\", \"tiktok\", \"x\"}\n# SPEC section 12 step 8 reality, surfaced verbatim so the delete limit is no\n# surprise. Single source of truth: import the leaf constant from ghl (gates.py\n# already imports it at top level, so it is always available) instead of keeping\n# a copy here that can drift.\nfrom engine.distribute.ghl import DELETE_CAVEAT as _DELETE_CAVEAT\n# --- distribute package (guarded; Phase 5 may still be a scaffold) ---------",
+        "peekOfCode": "_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / \"templates\"\ntemplates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# The GHL Social Planner channels (D11); everything else is a manual/pack channel.\n_SOCIAL = {\"facebook\", \"instagram\", \"linkedin\", \"x\"}\n# SPEC section 12 step 8 reality, surfaced verbatim so the delete limit is no\n# surprise. Single source of truth: import the leaf constant from ghl (gates.py\n# already imports it at top level, so it is always available) instead of keeping\n# a copy here that can drift.\nfrom engine.distribute.ghl import DELETE_CAVEAT as _DELETE_CAVEAT\ndef _draft_lock() -> bool:",
         "detail": "webapp.routes.post",
         "documentation": {}
     },
@@ -6988,7 +7999,7 @@
         "kind": 5,
         "importPath": "webapp.routes.post",
         "description": "webapp.routes.post",
-        "peekOfCode": "templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# The GHL Social Planner channels (D11); everything else is a manual/pack channel.\n_SOCIAL = {\"facebook\", \"instagram\", \"linkedin\", \"tiktok\", \"x\"}\n# SPEC section 12 step 8 reality, surfaced verbatim so the delete limit is no\n# surprise. Single source of truth: import the leaf constant from ghl (gates.py\n# already imports it at top level, so it is always available) instead of keeping\n# a copy here that can drift.\nfrom engine.distribute.ghl import DELETE_CAVEAT as _DELETE_CAVEAT\n# --- distribute package (guarded; Phase 5 may still be a scaffold) ---------\ndef _load_distribute():",
+        "peekOfCode": "templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# The GHL Social Planner channels (D11); everything else is a manual/pack channel.\n_SOCIAL = {\"facebook\", \"instagram\", \"linkedin\", \"x\"}\n# SPEC section 12 step 8 reality, surfaced verbatim so the delete limit is no\n# surprise. Single source of truth: import the leaf constant from ghl (gates.py\n# already imports it at top level, so it is always available) instead of keeping\n# a copy here that can drift.\nfrom engine.distribute.ghl import DELETE_CAVEAT as _DELETE_CAVEAT\ndef _draft_lock() -> bool:\n    \"\"\"True when the ``GHL_POST_STATUS=draft`` guard rail is active.",
         "detail": "webapp.routes.post",
         "documentation": {}
     },
@@ -6997,7 +8008,16 @@
         "kind": 5,
         "importPath": "webapp.routes.post",
         "description": "webapp.routes.post",
-        "peekOfCode": "_SOCIAL = {\"facebook\", \"instagram\", \"linkedin\", \"tiktok\", \"x\"}\n# SPEC section 12 step 8 reality, surfaced verbatim so the delete limit is no\n# surprise. Single source of truth: import the leaf constant from ghl (gates.py\n# already imports it at top level, so it is always available) instead of keeping\n# a copy here that can drift.\nfrom engine.distribute.ghl import DELETE_CAVEAT as _DELETE_CAVEAT\n# --- distribute package (guarded; Phase 5 may still be a scaffold) ---------\ndef _load_distribute():\n    \"\"\"Import engine.distribute if available, else None.  # PLACEHOLDER(Phase 5).\"\"\"\n    try:",
+        "peekOfCode": "_SOCIAL = {\"facebook\", \"instagram\", \"linkedin\", \"x\"}\n# SPEC section 12 step 8 reality, surfaced verbatim so the delete limit is no\n# surprise. Single source of truth: import the leaf constant from ghl (gates.py\n# already imports it at top level, so it is always available) instead of keeping\n# a copy here that can drift.\nfrom engine.distribute.ghl import DELETE_CAVEAT as _DELETE_CAVEAT\ndef _draft_lock() -> bool:\n    \"\"\"True when the ``GHL_POST_STATUS=draft`` guard rail is active.\n    While it is on, the engine forces every post to a draft regardless of the\n    per-post choice, so nothing publishes by accident. Surfaced to the UI so the",
+        "detail": "webapp.routes.post",
+        "documentation": {}
+    },
+    {
+        "label": "_SAST_OFFSET",
+        "kind": 5,
+        "importPath": "webapp.routes.post",
+        "description": "webapp.routes.post",
+        "peekOfCode": "_SAST_OFFSET = \"+02:00\"\ndef _posting_choice(form) -> \"tuple[Optional[str], Optional[str]]\":\n    \"\"\"Map the post-mode form to a (status, schedule_date) request.\n    ``now`` -> publish immediately; ``schedule`` -> ``scheduled`` at the given\n    local datetime (stamped with the SAST offset so GHL schedules at the right\n    hour); anything else (incl. the default) -> ``draft``. The engine still\n    applies the ``GHL_POST_STATUS`` guard rail on top of this.\n    \"\"\"\n    mode = (form.get(\"post_mode\") or \"draft\").strip().lower()\n    if mode == \"now\":",
         "detail": "webapp.routes.post",
         "documentation": {}
     },
@@ -7051,7 +8071,7 @@
         "kind": 5,
         "importPath": "webapp.routes.settings",
         "description": "webapp.routes.settings",
-        "peekOfCode": "CHANNELS = [\n    (\"property24\", \"Property24\", True),\n    (\"own_website\", \"Own website\", True),\n    (\"facebook\", \"Facebook\", True),\n    (\"instagram\", \"Instagram\", True),\n    (\"linkedin\", \"LinkedIn\", False),\n    (\"tiktok\", \"TikTok\", False),\n    (\"email_list\", \"Email list\", True),\n    (\"jamesedition\", \"JamesEdition (from R10m)\", False),\n]",
+        "peekOfCode": "CHANNELS = [\n    (\"property24\", \"Property24\", True),\n    (\"own_website\", \"Own website\", True),\n    (\"facebook\", \"Facebook\", True),\n    (\"instagram\", \"Instagram\", True),\n    (\"linkedin\", \"LinkedIn\", True),\n    (\"email_list\", \"Email list\", True),\n    (\"jamesedition\", \"JamesEdition (from R10m)\", False),\n]\n# Credential fields that must never be echoed back into the page. A blank submit",
         "detail": "webapp.routes.settings",
         "documentation": {}
     },
