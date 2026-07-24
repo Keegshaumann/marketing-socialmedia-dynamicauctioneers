@@ -33,7 +33,16 @@ journalctl -u da-marketing --since "10 min ago"
 
 ## Deploy a code update
 
-The app is a git clone, so updates are a pull + restart:
+**Fastest:** push to GitHub, then from the repo root on your Mac run:
+
+```bash
+./scripts/deploy.sh
+```
+
+It SSHes in, pulls `main`, reinstalls deps only if `requirements.txt` changed,
+restarts the service, and confirms the site is back at HTTP 200.
+
+**By hand** (the same thing, if you prefer):
 
 ```bash
 ssh root@46.202.175.127
