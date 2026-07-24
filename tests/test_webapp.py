@@ -70,23 +70,27 @@ POISON_MARKERS = (POISON_OWNER, POISON_ID, POISON_CELL)
 
 APPROVER_EMAIL = "approver@dynamicauctioneers.co.za"
 APPROVER_PW = "approver-pass-123"
+MARKETING_EMAIL = "marketing@dynamicauctioneers.co.za"
+MARKETING_PW = "marketing-pass-123"
 
 
 # --- one-time platform setup ---------------------------------------------
-# Seed the bootstrap admin (captures its printed temp password) and a second,
-# approver-role account. init_db is idempotent; the app already ran it at import.
+# Seed the bootstrap admin (captures its printed temp password) plus an
+# approver-role and a marketing-role account. init_db is idempotent; the app
+# already ran it at import.
 
 DB_PATH = models.init_db()
 ADMIN_PW = auth.seed_admin(DB_PATH)  # temp password on first run, else None
 models.set_setting(DB_PATH, "output_root", str(_TMP))  # contain all writes
 
-if models.get_user(DB_PATH, APPROVER_EMAIL) is None:
-    models.create_user(
-        DB_PATH,
-        email=APPROVER_EMAIL,
-        pw_hash=auth.hash_password(APPROVER_PW),
-        role="approver",
-    )
+for _email, _pw, _role in (
+    (APPROVER_EMAIL, APPROVER_PW, "approver"),
+    (MARKETING_EMAIL, MARKETING_PW, "marketing"),
+):
+    if models.get_user(DB_PATH, _email) is None:
+        models.create_user(
+            DB_PATH, email=_email, pw_hash=auth.hash_password(_pw), role=_role
+        )
 
 
 # --- helpers --------------------------------------------------------------
@@ -1032,3 +1036,43 @@ def test_gate2_template_picker_hidden_when_renderer_is_html(monkeypatch):
 
     client.post(f"/gates/{dp}/ads/copy", data={"template_set": "Modern dark"})
     assert _public_view(dp)["marketing"].get("template_set") is None
+
+
+# --- RBAC (D34): marketing runs everything operational incl. gates;
+#     Settings (connection strings) is admin-only --------------------------
+
+def _login_marketing(client):
+    resp = _login(client, MARKETING_EMAIL, MARKETING_PW)
+    assert resp.status_code == 303, resp.text
+
+
+def test_marketing_can_reach_the_gates():
+    """The marketing role can now open the gate screens (verify/approve)."""
+    dp = "7201"
+    _seed_golden_live(dp)
+    client = _client()
+    _login_marketing(client)
+    assert client.get(f"/gates/{dp}/ads").status_code == 200
+
+
+def test_marketing_cannot_reach_settings():
+    """Connection strings are off-limits to operational staff (view + save)."""
+    client = _client()
+    _login_marketing(client)
+    assert client.get("/settings").status_code == 403
+    assert client.post("/settings/credentials", data={"ghl_token": "x"}).status_code == 403
+    assert client.post("/settings/channels", data={}).status_code == 403
+    assert client.post("/settings/approvers", data={"approver_emails": "a@b.co"}).status_code == 403
+
+
+def test_admin_can_reach_settings():
+    client = _client()
+    _login_admin(client)
+    assert client.get("/settings").status_code == 200
+
+
+def test_settings_link_hidden_for_marketing_shown_for_admin():
+    m = _client(); _login_marketing(m)
+    assert 'href="/settings"' not in m.get("/board").text
+    a = _client(); _login_admin(a)
+    assert 'href="/settings"' in a.get("/board").text

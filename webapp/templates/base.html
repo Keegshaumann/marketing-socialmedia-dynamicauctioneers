@@ -25,9 +25,11 @@
         <a class="navlink {{ 'is-active' if _path.startswith('/intake') else '' }}" href="/intake">
           {{ ui.icon('intake', 'icon--sm') }}<span>Intake</span>
         </a>
+        {% if _user and _user.role == 'admin' %}
         <a class="navlink {{ 'is-active' if _path.startswith('/settings') else '' }}" href="/settings">
           {{ ui.icon('settings', 'icon--sm') }}<span>Settings</span>
         </a>
+        {% endif %}
       </nav>
       <div class="appbar__user">
         {% if _user %}

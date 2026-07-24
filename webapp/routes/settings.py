@@ -9,11 +9,11 @@ Everything persists through ``webapp.models`` settings helpers (a plain key/valu
 table on the shared SQLite file), so the worker (``webapp.jobs``) and the
 distribution package read the same values a human typed here.
 
-Access:
-- Viewing the page needs any logged-in user (``require_login``).
-- Saving a section needs the ``marketing`` role (``require_role('marketing')``);
-  the bootstrap ``admin`` satisfies it. Approver accounts sign gates, they do not
-  edit credentials.
+Access (admin-only — this screen holds connection strings / API tokens):
+- Viewing AND saving both require the ``admin`` role (``require_role('admin')``).
+  Operational staff (``marketing``) run properties end to end but never see or
+  edit credentials; ``approver`` accounts only sign gates. Credentials are an
+  infrastructure concern, kept to the bootstrap admin(s).
 
 No PII: the only personal data here is the approver *login* emails, which are
 operational addresses, not owner or occupant contact details.
@@ -106,7 +106,7 @@ def _normalise_emails(raw: str) -> str:
 @router.get("/settings")
 def settings_page(
     request: Request,
-    user: dict = Depends(auth.require_login),
+    user: dict = Depends(auth.require_role("admin")),
 ):
     """Render the settings screen with the current stored values."""
     db_path = auth.db_path_for(request)
@@ -131,7 +131,7 @@ def settings_page(
 @router.post("/settings/credentials")
 async def save_credentials(
     request: Request,
-    user: dict = Depends(auth.require_role("marketing")),
+    user: dict = Depends(auth.require_role("admin")),
 ):
     """Persist the GHL + Canva credentials and the output root."""
     db_path = auth.db_path_for(request)
@@ -160,7 +160,7 @@ async def save_credentials(
 @router.post("/settings/channels")
 async def save_channels(
     request: Request,
-    user: dict = Depends(auth.require_role("marketing")),
+    user: dict = Depends(auth.require_role("admin")),
 ):
     """Persist the per-channel routing toggles (checkbox present means on)."""
     db_path = auth.db_path_for(request)
@@ -188,7 +188,7 @@ async def save_channels(
 @router.post("/settings/approvers")
 async def save_approvers(
     request: Request,
-    user: dict = Depends(auth.require_role("marketing")),
+    user: dict = Depends(auth.require_role("admin")),
 ):
     """Persist the approver email list used by the gate emails."""
     db_path = auth.db_path_for(request)

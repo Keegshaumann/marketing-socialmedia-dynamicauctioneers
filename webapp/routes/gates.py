@@ -293,7 +293,7 @@ def _approval_links(request: Request, db_path: str, dp: str, approver: str) -> D
 # --- gate 1: verification review -----------------------------------------
 
 @router.get("/{dp}/verify", response_class=HTMLResponse)
-def gate1_page(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
+def gate1_page(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
     db_path = _db(request)
     record = _load(db_path, dp)
     view = _memo_view(record)
@@ -311,7 +311,7 @@ def gate1_page(dp: str, request: Request, user: dict = Depends(require_role("app
 
 
 @router.post("/{dp}/verify")
-async def gate1_signoff(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
+async def gate1_signoff(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
     db_path = _db(request)
     record = _load(db_path, dp)
     form = await request.form()
@@ -355,7 +355,7 @@ async def gate1_signoff(dp: str, request: Request, user: dict = Depends(require_
 # --- gate 2: ad review ----------------------------------------------------
 
 @router.get("/{dp}/ads", response_class=HTMLResponse)
-def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
+def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
     db_path = _db(request)
     record = _load(db_path, dp)
     tiles = _gallery(db_path, dp)
@@ -400,7 +400,7 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
 
 
 @router.get("/{dp}/ads/artifact/{fmt}")
-def gate2_artifact(dp: str, fmt: str, request: Request, user: dict = Depends(require_role("approver"))):
+def gate2_artifact(dp: str, fmt: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
     """Serve one rendered artifact file (PII-free: rendered from public_view)."""
     if fmt not in FORMATS:
         raise HTTPException(status_code=404, detail="Unknown format.")
@@ -526,7 +526,7 @@ def _photo_result(request: Request, db_path: str, dp: str, toast: Dict[str, Any]
 
 
 @router.get("/{dp}/ads/photos/{name}")
-def gate2_photo(dp: str, name: str, request: Request, user: dict = Depends(require_role("approver"))):
+def gate2_photo(dp: str, name: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
     """Serve one property photo (editor thumbnails + advert-preview images)."""
     db_path = _db(request)
     path = _photos_dir(db_path, dp) / Path(name).name  # basename => no traversal
@@ -539,7 +539,7 @@ def gate2_photo(dp: str, name: str, request: Request, user: dict = Depends(requi
 async def gate2_photo_upload(
     dp: str, request: Request,
     files: List[UploadFile] = File(default=[]),
-    user: dict = Depends(require_role("approver")),
+    user: dict = Depends(require_role("approver", "marketing")),
 ):
     db_path = _db(request)
     full = _photo_list(_load(db_path, dp))
@@ -597,7 +597,7 @@ async def gate2_photo_upload(
 
 
 @router.post("/{dp}/ads/photos/hero", response_class=HTMLResponse)
-async def gate2_photo_hero(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
+async def gate2_photo_hero(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
     db_path = _db(request)
     form = await request.form()
     name = Path(str(form.get("name", ""))).name
@@ -615,7 +615,7 @@ async def gate2_photo_hero(dp: str, request: Request, user: dict = Depends(requi
 
 
 @router.post("/{dp}/ads/photos/delete", response_class=HTMLResponse)
-async def gate2_photo_delete(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
+async def gate2_photo_delete(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
     db_path = _db(request)
     form = await request.form()
     name = Path(str(form.get("name", ""))).name
@@ -731,7 +731,7 @@ def _reopen_if_live(db_path: str, dp: str, user: str) -> None:
 
 
 @router.post("/{dp}/ads/copy", response_class=HTMLResponse)
-async def gate2_copy(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
+async def gate2_copy(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
     db_path = _db(request)
     form = await request.form()
     record = _load(db_path, dp)
@@ -765,7 +765,7 @@ async def gate2_copy(dp: str, request: Request, user: dict = Depends(require_rol
 
 
 @router.post("/{dp}/ads/changes", response_class=HTMLResponse)
-async def gate2_changes(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
+async def gate2_changes(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
     db_path = _db(request)
     form = await request.form()
     note = str(form.get("note", "")).strip() or "Changes requested."
@@ -811,7 +811,7 @@ def action_gate2_changes(db_path: str, dp: str, approver: str, note: str) -> str
 
 
 @router.post("/{dp}/ads/approve")
-def gate2_approve(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
+def gate2_approve(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
     db_path = _db(request)
     state = action_gate2_approve(db_path, dp, user["email"])
     if state == "updated":
@@ -828,7 +828,7 @@ def gate2_approve(dp: str, request: Request, user: dict = Depends(require_role("
 # --- gate 3: client approval ---------------------------------------------
 
 @router.get("/{dp}/client", response_class=HTMLResponse)
-def gate3_page(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
+def gate3_page(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
     db_path = _db(request)
     record = _load(db_path, dp)
     client_email = templates.get_template("emails/client_draft.html").render(**_email_view(record))
@@ -847,7 +847,7 @@ def gate3_page(dp: str, request: Request, user: dict = Depends(require_role("app
 
 
 @router.post("/{dp}/client/approve")
-async def gate3_approve(dp: str, request: Request, user: dict = Depends(require_role("approver"))):
+async def gate3_approve(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
     db_path = _db(request)
     form = await request.form()
     when = str(form.get("approved_on", "")).strip() or date.today().isoformat()
