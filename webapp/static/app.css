@@ -1,13 +1,13 @@
 /* ============================================================================
-   Dynamic Auctioneers Marketing Platform (M8) - Design System v2 (Dark/Violet)
-   "Obsidian + violet glow": cool violet-charcoal surfaces, an amethyst accent,
+   Dynamic Auctioneers Marketing Platform (M8) - Design System v2 (Dark/Mint)
+   "Obsidian + mint glow": cool charcoal surfaces, a mint accent,
    a soft glow on every interactive hover, crisp transform/shadow motion.
    Recolour in ONE place: change --accent* (hex) and --accent-rgb (the same
    colour as "r, g, b"); every glow, border and fill follows. Every class name
    is unchanged, so all Jinja templates render without edits.
    Motion follows emilkowal rules: transform/opacity/shadow only, ease-out,
    <=240ms, behind prefers-reduced-motion. Anti-slop: one cohesive cool palette,
-   a restrained violet (not neon purple-on-black), motion is motivated.
+   a restrained mint (not neon green-on-black), motion is motivated.
    ============================================================================ */
 
 /* ---- Tokens ------------------------------------------------------------- */
@@ -30,13 +30,13 @@
   --muted:       #A19AB4;      /* ~6:1 on --surface */
   --faint:       #6F6885;
 
-  /* amethyst accent -- change these + --accent-rgb to reskin the whole app */
-  --accent:        #A78BFA;
-  --accent-bright: #C4B5FD;
-  --accent-deep:   #7C5CE0;
-  --accent-ink:    #17102A;    /* text on solid accent fills */
-  --accent-rgb:         167, 139, 250;
-  --accent-bright-rgb:  196, 181, 253;
+  /* mint accent -- change these + --accent-rgb to reskin the whole app */
+  --accent:        #6EE7B7;
+  --accent-bright: #A7F3D0;
+  --accent-deep:   #10B981;
+  --accent-ink:    #05271E;    /* text on solid accent fills */
+  --accent-rgb:         110, 231, 183;
+  --accent-bright-rgb:  167, 243, 208;
   --accent-bg:  rgba(var(--accent-rgb), .12);
   --accent-bd:  rgba(var(--accent-rgb), .34);
 
