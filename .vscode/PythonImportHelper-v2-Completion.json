@@ -8368,7 +8368,7 @@
         "kind": 5,
         "importPath": "webapp.main",
         "description": "webapp.main",
-        "peekOfCode": "ROUTE_MODULES = (\n    \"board\",\n    \"intake\",\n    \"gates\",\n    \"artifacts\",\n    \"post\",\n    \"settings\",\n    \"email_approve\",\n)\ndef _build_templates() -> Jinja2Templates:",
+        "peekOfCode": "ROUTE_MODULES = (\n    \"board\",\n    \"intake\",\n    \"gates\",\n    \"artifacts\",\n    \"post\",\n    \"settings\",\n    \"email_approve\",\n)\ndef _static_version(filename: str) -> str:",
         "detail": "webapp.main",
         "documentation": {}
     },
