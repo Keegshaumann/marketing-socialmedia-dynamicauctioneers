@@ -4,9 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Dynamic Auctioneers{% endblock %} | Dynamic Auctioneers</title>
-  <link rel="stylesheet" href="/static/app.css">
+  {# ?v=<mtime> busts the browser cache automatically on every deploy #}
+  {%- set _v = ('?v=' ~ static_v('app.css')) if static_v is defined else '' -%}
+  {%- set _vjs = ('?v=' ~ static_v('app.js')) if static_v is defined else '' -%}
+  <link rel="stylesheet" href="/static/app.css{{ _v }}">
   <script src="/static/htmx.min.js" defer></script>
-  <script src="/static/app.js" defer></script>
+  <script src="/static/app.js{{ _vjs }}" defer></script>
 </head>
 <body hx-headers='{"X-Requested-With": "htmx"}'>
   {# request/user are guarded so the template renders under a bare Jinja harness #}

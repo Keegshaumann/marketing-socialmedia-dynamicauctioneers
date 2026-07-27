@@ -79,11 +79,25 @@ ROUTE_MODULES = (
 )
 
 
+def _static_version(filename: str) -> str:
+    """Cache-buster for a static asset: its mtime as an int string.
+
+    Templates append this as ``?v=...`` so browsers refetch app.css / app.js
+    automatically after every deploy (git pull rewrites the file mtime) without
+    anyone needing a hard refresh. Falls back to ``"0"`` if the file is missing.
+    """
+    try:
+        return str(int((_STATIC_DIR / filename).stat().st_mtime))
+    except OSError:
+        return "0"
+
+
 def _build_templates() -> Jinja2Templates:
     templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
     templates.env.globals["brand"] = BRAND_TOKENS
     # SA English niceties; templates may use these, never emojis / dashes.
     templates.env.globals["app_name"] = "Dynamic Auctioneers"
+    templates.env.globals["static_v"] = _static_version
     return templates
 
 
