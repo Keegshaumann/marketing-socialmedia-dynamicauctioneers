@@ -659,17 +659,37 @@ img { max-width: 100%; }
   align-items: center;
   justify-content: center;
 }
-.empty .icon { color: var(--accent); filter: drop-shadow(0 0 14px rgba(var(--accent-rgb), .55)); }
+/* direct-child only, so the hero icon glows mint but the plus INSIDE the
+   button keeps its dark ink (a descendant selector here painted the button's
+   plus mint-on-mint, i.e. invisible) */
+.empty > .icon { color: var(--accent); filter: drop-shadow(0 0 14px rgba(var(--accent-rgb), .55)); }
 .empty__title { font-size: 17px; font-weight: 800; color: var(--text-strong); margin: 14px 0 6px; }
 /* a tight centred column, so the description does not sprawl wider than the
    icon / title / button above and below it */
 .empty__text { font-size: 13.5px; color: var(--muted); margin: 0 auto 18px; max-width: 44ch; }
 .empty__cta { display: inline-flex; }
-/* one-time hero-icon arrival (transform/opacity only, ease-out, <=240ms) */
+/* one-time hero-icon arrival (transform/opacity only, ease-out, <=240ms), plus
+   a playful jiggle-pause-jiggle while the CTA is hovered. empty-pop stays first
+   and identical in both rules so it is not restarted when the jiggle toggles. */
 @media (prefers-reduced-motion: no-preference) {
-  .empty .icon { animation: empty-pop var(--dur-3) var(--ease) both; }
+  .empty > .icon { animation: empty-pop var(--dur-3) var(--ease) both; }
+  .empty:has(.empty__cta:hover) > .icon {
+    animation: empty-pop var(--dur-3) var(--ease) both,
+               empty-jiggle 1.6s var(--ease) infinite;
+  }
 }
 @keyframes empty-pop { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: none; } }
+/* wobble hard for the first ~0.4s, then rest for ~1.2s, then repeat */
+@keyframes empty-jiggle {
+  0%   { transform: rotate(0); }
+  3%   { transform: rotate(-11deg); }
+  7%   { transform: rotate(9deg); }
+  11%  { transform: rotate(-6deg); }
+  15%  { transform: rotate(4deg); }
+  19%  { transform: rotate(-2deg); }
+  23%  { transform: rotate(0); }
+  100% { transform: rotate(0); }
+}
 
 /* ---- Banners (job failures, notices) ----------------------------------- */
 .banner {
