@@ -138,6 +138,13 @@ def _handle_extract(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, s
     store = RecordStore(models.resolve_db_path(db_path))
     try:
         store.upsert(record, state="extracted")
+        # upsert only sets state on the FIRST insert; the intake upload already
+        # created this record at "intake", so the state arg above is ignored and
+        # we must advance it explicitly, or the board stays on "Awaiting
+        # extraction" forever. Guard it so re-extracting an already-advanced
+        # record is a no-op rather than an illegal backward transition.
+        if store.get_state(dp) == "intake":
+            store.transition(dp, "extracted", note="extraction complete")
     finally:
         store.close()
     return "done", f"extracted record for DP {dp}"
