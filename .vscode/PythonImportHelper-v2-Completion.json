@@ -368,6 +368,14 @@
         "documentation": {}
     },
     {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
         "label": "json",
         "kind": 6,
         "isExtraImport": true,
@@ -1975,6 +1983,30 @@
         "documentation": {}
     },
     {
+        "label": "Identity",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "Marketing",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "PropertyRecord",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
         "label": "PropertyRecord",
         "importPath": "engine.schema",
         "description": "engine.schema",
@@ -2686,6 +2718,14 @@
         "documentation": {}
     },
     {
+        "label": "RecordStore",
+        "importPath": "engine.store",
+        "description": "engine.store",
+        "isExtraImport": true,
+        "detail": "engine.store",
+        "documentation": {}
+    },
+    {
         "label": "IllegalTransition",
         "importPath": "engine.store",
         "description": "engine.store",
@@ -3134,6 +3174,222 @@
         "documentation": {}
     },
     {
+        "label": "jobs",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "auth",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "tokens",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "auth",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "auth",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "tokens",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "tokens",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "auth",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "jobs",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "auth",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "jobs",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "auth",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "auth",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "jobs",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "webapp",
+        "description": "webapp",
+        "isExtraImport": true,
+        "detail": "webapp",
+        "documentation": {}
+    },
+    {
         "label": "Flag",
         "importPath": "engine.verify",
         "description": "engine.verify",
@@ -3252,206 +3508,6 @@
         "description": "fastapi.testclient",
         "isExtraImport": true,
         "detail": "fastapi.testclient",
-        "documentation": {}
-    },
-    {
-        "label": "auth",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "tokens",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "auth",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "auth",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "tokens",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "tokens",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "auth",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "jobs",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "auth",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "jobs",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "auth",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "auth",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "jobs",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
-        "documentation": {}
-    },
-    {
-        "label": "models",
-        "importPath": "webapp",
-        "description": "webapp",
-        "isExtraImport": true,
-        "detail": "webapp",
         "documentation": {}
     },
     {
@@ -6480,6 +6536,24 @@
         "description": "tests.test_intake",
         "peekOfCode": "def test_build_jobs_groups_distinct_dps(\n    lightstone_3060, property_report_3060, lightstone_3035_1\n):\n    \"\"\"Files for different DP numbers land in separate jobs, DP-ordered.\"\"\"\n    jobs = build_jobs([property_report_3060, lightstone_3035_1, lightstone_3060])\n    by_dp = {job.dp: job for job in jobs}\n    assert set(by_dp) == {\"3060\", \"3035.1\"}\n    assert by_dp[\"3060\"].is_complete is True\n    # 3035.1 has only its Lightstone doc here, so it waits and flags.\n    assert by_dp[\"3035.1\"].is_complete is False",
         "detail": "tests.test_intake",
+        "documentation": {}
+    },
+    {
+        "label": "test_extract_job_advances_intake_to_extracted",
+        "kind": 2,
+        "importPath": "tests.test_jobs",
+        "description": "tests.test_jobs",
+        "peekOfCode": "def test_extract_job_advances_intake_to_extracted(tmp_path, monkeypatch):\n    \"\"\"Regression: the extract handler must move an existing ``intake`` record to\n    ``extracted``.\n    Production creates the record at ``intake`` on upload, then runs extraction.\n    ``upsert(state=\"extracted\")`` is a no-op on the state column for an existing\n    row, so the handler must call ``transition`` explicitly. Before the fix the\n    board sat on \"Awaiting extraction\" forever even though extraction succeeded.\n    \"\"\"\n    db_path = str(tmp_path / \"engine.db\")\n    dp = \"3024.3\"",
+        "detail": "tests.test_jobs",
+        "documentation": {}
+    },
+    {
+        "label": "test_extract_job_without_key_is_skipped",
+        "kind": 2,
+        "importPath": "tests.test_jobs",
+        "description": "tests.test_jobs",
+        "peekOfCode": "def test_extract_job_without_key_is_skipped(tmp_path, monkeypatch):\n    \"\"\"Without a key the extract job is skipped cleanly and the record stays put\n    (intake), never crashing the worker.\"\"\"\n    db_path = str(tmp_path / \"engine.db\")\n    dp = \"3024.3\"\n    models.init_db(db_path)\n    store = RecordStore(db_path)\n    store.upsert(_record(dp), state=\"intake\")\n    store.close()\n    monkeypatch.delenv(\"ANTHROPIC_API_KEY\", raising=False)",
+        "detail": "tests.test_jobs",
         "documentation": {}
     },
     {
