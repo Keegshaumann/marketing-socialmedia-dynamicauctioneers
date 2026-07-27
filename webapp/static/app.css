@@ -534,6 +534,9 @@ img { max-width: 100%; }
 }
 @media (prefers-reduced-motion: no-preference) {
   .dropzone.is-dragover { transform: scale(1.01); }
+  /* same playful jiggle-pause-jiggle as the empty-state hero icon, while the
+     drop zone is hovered (prompt icon only, never the file-list icons) */
+  .dropzone:hover .dropzone__prompt .icon { animation: empty-jiggle 1.6s var(--ease) infinite; }
 }
 
 /* Selected-file confirmation: swaps the prompt for the chosen files. */
