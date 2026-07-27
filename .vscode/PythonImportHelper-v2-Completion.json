@@ -376,6 +376,14 @@
         "documentation": {}
     },
     {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
         "label": "json",
         "kind": 6,
         "isExtraImport": true,
@@ -1125,6 +1133,14 @@
         "documentation": {}
     },
     {
+        "label": "Any",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
         "label": "Dict",
         "importPath": "typing",
         "description": "typing",
@@ -1791,6 +1807,14 @@
         "documentation": {}
     },
     {
+        "label": "ValuationReportSource",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
         "label": "_Base",
         "importPath": "engine.schema",
         "description": "engine.schema",
@@ -1799,7 +1823,39 @@
         "documentation": {}
     },
     {
+        "label": "resolve_physical_conflicts",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
         "label": "PropertyRecord",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "PHYSICAL_SOURCE_PRECEDENCE",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "SOURCE_LABELS",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "PhysicalConflict",
         "importPath": "engine.schema",
         "description": "engine.schema",
         "isExtraImport": true,
@@ -2015,6 +2071,38 @@
         "documentation": {}
     },
     {
+        "label": "Physical",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "PhysicalConflict",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "PropertyRecord",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "resolve_physical_conflicts",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
         "label": "Owner",
         "importPath": "engine.schema",
         "description": "engine.schema",
@@ -2167,7 +2255,31 @@
         "documentation": {}
     },
     {
+        "label": "PHYSICAL_SOURCE_PRECEDENCE",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "SOURCE_LABELS",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
         "label": "PropertyRecord",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "resolve_physical_conflicts",
         "importPath": "engine.schema",
         "description": "engine.schema",
         "isExtraImport": true,
@@ -2824,6 +2936,22 @@
     },
     {
         "label": "parse_dp",
+        "importPath": "engine.intake",
+        "description": "engine.intake",
+        "isExtraImport": true,
+        "detail": "engine.intake",
+        "documentation": {}
+    },
+    {
+        "label": "build_jobs",
+        "importPath": "engine.intake",
+        "description": "engine.intake",
+        "isExtraImport": true,
+        "detail": "engine.intake",
+        "documentation": {}
+    },
+    {
+        "label": "classify_pdf",
         "importPath": "engine.intake",
         "description": "engine.intake",
         "isExtraImport": true,
@@ -3570,6 +3698,14 @@
     },
     {
         "label": "APIRouter",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "Depends",
         "importPath": "fastapi",
         "description": "fastapi",
         "isExtraImport": true,
@@ -4851,7 +4987,7 @@
         "kind": 2,
         "importPath": "engine.extract",
         "description": "engine.extract",
-        "peekOfCode": "def build_request(\n    lightstone_pdf: str | Path,\n    property_report_pdf: str | Path,\n    dp: str,\n    section: str,\n    mode: Optional[str] = None,\n) -> dict:\n    \"\"\"Build the kwargs dict passed to ``client.messages.create`` for a section.\n    Factored out so a test can assert the request shape offline: the model id,\n    adaptive thinking, the single section tool plus ``tool_choice``, the",
+        "peekOfCode": "def build_request(\n    lightstone_pdf: str | Path,\n    property_report_pdf: str | Path,\n    dp: str,\n    section: str,\n    mode: Optional[str] = None,\n    valuation_pdf: Optional[str | Path] = None,\n) -> dict:\n    \"\"\"Build the kwargs dict passed to ``client.messages.create`` for a section.\n    Factored out so a test can assert the request shape offline: the model id,",
         "detail": "engine.extract",
         "documentation": {}
     },
@@ -4860,7 +4996,7 @@
         "kind": 2,
         "importPath": "engine.extract",
         "description": "engine.extract",
-        "peekOfCode": "def extract_record(\n    lightstone_pdf: str | Path,\n    property_report_pdf: str | Path,\n    dp: str,\n    parent_dp: Optional[str] = None,\n    client=None,\n    mode: Optional[str] = None,\n    pace_seconds: Optional[float] = None,\n) -> PropertyRecord:\n    \"\"\"Extract a validated ``PropertyRecord`` from the source PDF pair.",
+        "peekOfCode": "def extract_record(\n    lightstone_pdf: str | Path,\n    property_report_pdf: str | Path,\n    dp: str,\n    parent_dp: Optional[str] = None,\n    client=None,\n    mode: Optional[str] = None,\n    pace_seconds: Optional[float] = None,\n    valuation_pdf: Optional[str | Path] = None,\n) -> PropertyRecord:",
         "detail": "engine.extract",
         "documentation": {}
     },
@@ -4905,7 +5041,7 @@
         "kind": 5,
         "importPath": "engine.extract",
         "description": "engine.extract",
-        "peekOfCode": "DEFAULT_PACE_SECONDS = 0.0\n# Dynamic's public viewing line. Safe to render; the occupant's own cell is\n# POPIA-internal and must never land here.\nDYNAMIC_CONTACT_PUBLIC = \"086 155 2288 / properties.admin@dynamicauctioneers.co.za\"\n# The extraction brief. Stable and self-contained so the prefix caches across\n# runs. It encodes the rules only; the field docs travel with the Pydantic model\n# the SDK sends, and no property-specific fact is hardcoded here.\nSYSTEM_PROMPT = (\n    \"You are the extraction engine for Dynamic Auctioneers, a South African \"\n    \"property auction and sale house. You read two source documents about a \"",
+        "peekOfCode": "DEFAULT_PACE_SECONDS = 0.0\n# Dynamic's public viewing line. Safe to render; the occupant's own cell is\n# POPIA-internal and must never land here.\nDYNAMIC_CONTACT_PUBLIC = \"086 155 2288 / properties.admin@dynamicauctioneers.co.za\"\n# The extraction brief. Stable and self-contained so the prefix caches across\n# runs. It encodes the rules only; the field docs travel with the Pydantic model\n# the SDK sends, and no property-specific fact is hardcoded here.\nSYSTEM_PROMPT = (\n    \"You are the extraction engine for Dynamic Auctioneers, a South African \"\n    \"property auction and sale house. You read up to three source documents \"",
         "detail": "engine.extract",
         "documentation": {}
     },
@@ -4914,7 +5050,7 @@
         "kind": 5,
         "importPath": "engine.extract",
         "description": "engine.extract",
-        "peekOfCode": "DYNAMIC_CONTACT_PUBLIC = \"086 155 2288 / properties.admin@dynamicauctioneers.co.za\"\n# The extraction brief. Stable and self-contained so the prefix caches across\n# runs. It encodes the rules only; the field docs travel with the Pydantic model\n# the SDK sends, and no property-specific fact is hardcoded here.\nSYSTEM_PROMPT = (\n    \"You are the extraction engine for Dynamic Auctioneers, a South African \"\n    \"property auction and sale house. You read two source documents about a \"\n    \"single property and return one structured section of its property record \"\n    \"per request.\\n\"\n    \"\\n\"",
+        "peekOfCode": "DYNAMIC_CONTACT_PUBLIC = \"086 155 2288 / properties.admin@dynamicauctioneers.co.za\"\n# The extraction brief. Stable and self-contained so the prefix caches across\n# runs. It encodes the rules only; the field docs travel with the Pydantic model\n# the SDK sends, and no property-specific fact is hardcoded here.\nSYSTEM_PROMPT = (\n    \"You are the extraction engine for Dynamic Auctioneers, a South African \"\n    \"property auction and sale house. You read up to three source documents \"\n    \"about a single property and return one structured section of its property \"\n    \"record per request.\\n\"\n    \"\\n\"",
         "detail": "engine.extract",
         "documentation": {}
     },
@@ -4923,7 +5059,7 @@
         "kind": 5,
         "importPath": "engine.extract",
         "description": "engine.extract",
-        "peekOfCode": "SYSTEM_PROMPT = (\n    \"You are the extraction engine for Dynamic Auctioneers, a South African \"\n    \"property auction and sale house. You read two source documents about a \"\n    \"single property and return one structured section of its property record \"\n    \"per request.\\n\"\n    \"\\n\"\n    \"The two sources and how to merge them (this is the authoritative rule):\\n\"\n    \"- The Lightstone EVM report carries the deeds, market and valuation data. \"\n    \"It wins for identity (title type, scheme, unit, erf, legal description, \"\n    \"title deed number, GPS), for valuation (EVM range, suburb bands, municipal \"",
+        "peekOfCode": "SYSTEM_PROMPT = (\n    \"You are the extraction engine for Dynamic Auctioneers, a South African \"\n    \"property auction and sale house. You read up to three source documents \"\n    \"about a single property and return one structured section of its property \"\n    \"record per request.\\n\"\n    \"\\n\"\n    \"The sources and how to merge them (this is the authoritative rule):\\n\"\n    \"- The Lightstone EVM report carries the deeds, market and valuation data. \"\n    \"It wins for identity (title type, scheme, unit, erf, legal description, \"\n    \"title deed number, GPS), for valuation (EVM range, suburb bands, municipal \"",
         "detail": "engine.extract",
         "documentation": {}
     },
@@ -4950,7 +5086,7 @@
         "kind": 6,
         "importPath": "engine.intake",
         "description": "engine.intake",
-        "peekOfCode": "class IntakeJob:\n    \"\"\"One property's paired-document state, keyed by DP number.\"\"\"\n    dp: str\n    parent_dp: Optional[str] = None\n    lot: Optional[int] = None\n    lightstone_evm: Optional[Path] = None\n    property_report: Optional[Path] = None\n    unknown: List[Path] = field(default_factory=list)\n    @property\n    def is_complete(self) -> bool:",
+        "peekOfCode": "class IntakeJob:\n    \"\"\"One property's paired-document state, keyed by DP number.\"\"\"\n    dp: str\n    parent_dp: Optional[str] = None\n    lot: Optional[int] = None\n    lightstone_evm: Optional[Path] = None\n    property_report: Optional[Path] = None\n    # Optional third source (a registered valuer's report). Not required for\n    # completeness - marketing is not always given it (D35).\n    valuation_report: Optional[Path] = None",
         "detail": "engine.intake",
         "documentation": {}
     },
@@ -4968,7 +5104,7 @@
         "kind": 2,
         "importPath": "engine.intake",
         "description": "engine.intake",
-        "peekOfCode": "def classify_pdf(path: PathLike) -> str:\n    \"\"\"Classify a PDF by its content.\n    Returns ``\"lightstone_evm\"``, ``\"property_report\"`` or ``\"unknown\"``.\n    Page text is scored against the marker tables; the filename is consulted\n    only to break an exact tie, never as the sole signal.\n    \"\"\"\n    path = Path(path)\n    text = _read_text(path)\n    ls_score = _score(text, LIGHTSTONE_MARKERS)\n    pr_score = _score(text, PROPERTY_REPORT_MARKERS)",
+        "peekOfCode": "def classify_pdf(path: PathLike) -> str:\n    \"\"\"Classify a PDF by its content.\n    Returns ``\"lightstone_evm\"``, ``\"property_report\"``, ``\"valuation_report\"``\n    or ``\"unknown\"``. Page text is scored against the marker tables; the\n    filename is consulted only to break an exact tie, never as the sole signal.\n    \"\"\"\n    path = Path(path)\n    text = _read_text(path)\n    scores = {\n        \"lightstone_evm\": _score(text, LIGHTSTONE_MARKERS),",
         "detail": "engine.intake",
         "documentation": {}
     },
@@ -5014,6 +5150,15 @@
         "importPath": "engine.intake",
         "description": "engine.intake",
         "peekOfCode": "PROPERTY_REPORT_MARKERS = {\n    \"property report\": 3,\n    \"dynamic auctioneers\": 3,\n    \"dynamic solutions\": 3,\n    \"terms of sale\": 2,\n    \"offers invited\": 2,\n    \"prepared by\": 2,\n    \"viewing\": 1,\n    \"inspection\": 1,\n    \"auction\": 1,",
+        "detail": "engine.intake",
+        "documentation": {}
+    },
+    {
+        "label": "VALUATION_MARKERS",
+        "kind": 5,
+        "importPath": "engine.intake",
+        "description": "engine.intake",
+        "peekOfCode": "VALUATION_MARKERS = {\n    \"forced sale value\": 3,\n    \"registered valuer\": 3,\n    \"sacpvp\": 3,\n    \"professional valuer\": 2,\n    \"valuation report\": 2,\n    \"open market value\": 2,\n    \"date of valuation\": 2,\n    \"market value\": 1,\n    \"valuer\": 1,",
         "detail": "engine.intake",
         "documentation": {}
     },
@@ -5067,7 +5212,7 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class LightstoneSource(_Base):\n    file: Optional[str] = None\n    report_id: Optional[str] = None\n    report_date: Optional[str] = None\n    purchased_by: Optional[str] = None\nclass PropertyReportSource(_Base):\n    file: Optional[str] = None\n    prepared_by: Optional[str] = None\n    figures_as_at: Optional[str] = None\nclass Sources(_Base):",
+        "peekOfCode": "class LightstoneSource(_Base):\n    file: Optional[str] = None\n    report_id: Optional[str] = None\n    report_date: Optional[str] = None\n    purchased_by: Optional[str] = None\nclass PropertyReportSource(_Base):\n    file: Optional[str] = None\n    prepared_by: Optional[str] = None\n    figures_as_at: Optional[str] = None\nclass ValuationReportSource(_Base):",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -5076,7 +5221,16 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class PropertyReportSource(_Base):\n    file: Optional[str] = None\n    prepared_by: Optional[str] = None\n    figures_as_at: Optional[str] = None\nclass Sources(_Base):\n    lightstone_evm: Optional[LightstoneSource] = None\n    property_report: Optional[PropertyReportSource] = None\n# --- identity (Lightstone deeds data wins) -------------------------------\nclass Identity(_Base):\n    title_type: Optional[str] = None  # \"sectional\" | \"freehold\"",
+        "peekOfCode": "class PropertyReportSource(_Base):\n    file: Optional[str] = None\n    prepared_by: Optional[str] = None\n    figures_as_at: Optional[str] = None\nclass ValuationReportSource(_Base):\n    \"\"\"A registered valuer's report, when supplied as an optional 3rd document.\n    Optional per property (marketing is not always given it). When present it\n    ranks ABOVE the Property Report for physical facts (D35).\n    \"\"\"\n    file: Optional[str] = None",
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "ValuationReportSource",
+        "kind": 6,
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "peekOfCode": "class ValuationReportSource(_Base):\n    \"\"\"A registered valuer's report, when supplied as an optional 3rd document.\n    Optional per property (marketing is not always given it). When present it\n    ranks ABOVE the Property Report for physical facts (D35).\n    \"\"\"\n    file: Optional[str] = None\n    valuer: Optional[str] = None\n    valuation_date: Optional[str] = None\nclass Sources(_Base):\n    lightstone_evm: Optional[LightstoneSource] = None",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -5085,7 +5239,7 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class Sources(_Base):\n    lightstone_evm: Optional[LightstoneSource] = None\n    property_report: Optional[PropertyReportSource] = None\n# --- identity (Lightstone deeds data wins) -------------------------------\nclass Identity(_Base):\n    title_type: Optional[str] = None  # \"sectional\" | \"freehold\"\n    scheme: Optional[str] = None  # sectional title only\n    unit: Optional[int] = None  # sectional title only\n    erf: Optional[str] = None  # freehold only (DP3040-style)\n    legal_description: Optional[str] = None",
+        "peekOfCode": "class Sources(_Base):\n    lightstone_evm: Optional[LightstoneSource] = None\n    property_report: Optional[PropertyReportSource] = None\n    valuation_report: Optional[ValuationReportSource] = None\n# --- identity (Lightstone deeds data wins) -------------------------------\nclass Identity(_Base):\n    title_type: Optional[str] = None  # \"sectional\" | \"freehold\"\n    scheme: Optional[str] = None  # sectional title only\n    unit: Optional[int] = None  # sectional title only\n    erf: Optional[str] = None  # freehold only (DP3040-style)",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -5103,7 +5257,16 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class Flatlet(_Base):\n    present: Optional[bool] = None\n    bedrooms: Optional[int] = None\n    ensuite: Optional[bool] = None\n    kitchen: Optional[bool] = None\n    lounge: Optional[bool] = None\n    patio: Optional[bool] = None\n    note: Optional[str] = None\nclass Physical(_Base):\n    unit_size_m2: Optional[float] = None",
+        "peekOfCode": "class Flatlet(_Base):\n    present: Optional[bool] = None\n    bedrooms: Optional[int] = None\n    ensuite: Optional[bool] = None\n    kitchen: Optional[bool] = None\n    lounge: Optional[bool] = None\n    patio: Optional[bool] = None\n    note: Optional[str] = None\nclass PhysicalConflict(_Base):\n    \"\"\"One physical fact the source documents disagree on (D35).",
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "PhysicalConflict",
+        "kind": 6,
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "peekOfCode": "class PhysicalConflict(_Base):\n    \"\"\"One physical fact the source documents disagree on (D35).\n    Each source's value is recorded as it is stated (a string, so int/float/bool\n    facts share one shape). ``resolve_physical_conflicts`` writes the value from\n    the highest-priority source that has one into the matching ``Physical``\n    field, following the precedence valuation > property_report > lightstone,\n    and records which source won in ``resolved_source``. A human can override the\n    pick at gate 1 (setting ``resolved_source`` to their choice + a reason). Each\n    conflict raises a blocking PHYSICAL_CONFLICT flag until it is signed off.\n    Precedence covers physical/condition/feature facts only; Lightstone stays",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -5112,7 +5275,7 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class Physical(_Base):\n    unit_size_m2: Optional[float] = None\n    mother_erf_m2: Optional[float] = None\n    zoning: Optional[str] = None\n    bedrooms: Optional[int] = None\n    bathrooms_main_unit: Optional[int] = None\n    separate_toilet: Optional[bool] = None\n    garages: Optional[int] = None\n    garages_conflict: Optional[str] = None  # set when sources disagree\n    # One line per cross-source disagreement on any OTHER physical fact (bed",
+        "peekOfCode": "class Physical(_Base):\n    unit_size_m2: Optional[float] = None\n    mother_erf_m2: Optional[float] = None\n    zoning: Optional[str] = None\n    bedrooms: Optional[int] = None\n    bathrooms_main_unit: Optional[int] = None\n    separate_toilet: Optional[bool] = None\n    garages: Optional[int] = None\n    # One entry per cross-source disagreement on a physical fact (garages, bed\n    # count, sizes...). Each carries every source's value; the field above holds",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -5261,6 +5424,15 @@
         "documentation": {}
     },
     {
+        "label": "resolve_physical_conflicts",
+        "kind": 2,
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "peekOfCode": "def resolve_physical_conflicts(record: PropertyRecord) -> PropertyRecord:\n    \"\"\"Write each conflicting physical field from its precedence-resolved source.\n    In place; returns the record. Honours a human's ``resolved_source`` override;\n    otherwise picks by precedence (valuation > property_report > lightstone) and\n    stamps ``resolved_source``. Fields not in ``_CONFLICT_FIELD_COERCE`` keep the\n    extracted value but still get a resolved_source recorded.\n    \"\"\"\n    physical = record.physical\n    if physical is None or not physical.conflicts:\n        return record",
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
         "label": "_OVERRIDE_FORBIDDEN_PREFIXES",
         "kind": 5,
         "importPath": "engine.schema",
@@ -5275,6 +5447,42 @@
         "importPath": "engine.schema",
         "description": "engine.schema",
         "peekOfCode": "_OVERRIDE_FORBIDDEN_PATHS = (\"sale_process.viewing.contact_internal_only\",)\ndef override_key_allowed(path: str) -> bool:\n    \"\"\"Whether ``path`` may be set as a ``human_overrides`` key (POPIA guard).\n    Rejects the whole ``financials_internal`` group and the occupant's private\n    cell, so an override can never resurrect a field ``public_view()`` strips.\n    A key is refused when it is a forbidden path, an **ancestor** of one (a\n    whole-dict override that would carry the stripped field back in), or a\n    **descendant** under one.\n    \"\"\"\n    if not path:",
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "PHYSICAL_SOURCE_PRECEDENCE",
+        "kind": 5,
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "peekOfCode": "PHYSICAL_SOURCE_PRECEDENCE = (\"valuation\", \"property_report\", \"lightstone\")\n# Human labels for the sources, for the memo and the gate-1 picker.\nSOURCE_LABELS = {\n    \"valuation\": \"Valuation report\",\n    \"property_report\": \"Property Report\",\n    \"lightstone\": \"Lightstone\",\n}\n_NONE_WORDS = {\"\", \"none\", \"no\", \"nil\", \"n/a\", \"na\", \"zero\", \"0\"}\ndef _coerce_int(raw: Any) -> Optional[int]:\n    s = str(raw).strip().lower()",
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "SOURCE_LABELS",
+        "kind": 5,
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "peekOfCode": "SOURCE_LABELS = {\n    \"valuation\": \"Valuation report\",\n    \"property_report\": \"Property Report\",\n    \"lightstone\": \"Lightstone\",\n}\n_NONE_WORDS = {\"\", \"none\", \"no\", \"nil\", \"n/a\", \"na\", \"zero\", \"0\"}\ndef _coerce_int(raw: Any) -> Optional[int]:\n    s = str(raw).strip().lower()\n    if s in _NONE_WORDS:\n        return 0",
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "_NONE_WORDS",
+        "kind": 5,
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "peekOfCode": "_NONE_WORDS = {\"\", \"none\", \"no\", \"nil\", \"n/a\", \"na\", \"zero\", \"0\"}\ndef _coerce_int(raw: Any) -> Optional[int]:\n    s = str(raw).strip().lower()\n    if s in _NONE_WORDS:\n        return 0\n    match = re.search(r\"-?\\d+\", s.replace(\",\", \"\"))\n    return int(match.group()) if match else None\ndef _coerce_float(raw: Any) -> Optional[float]:\n    s = str(raw).strip().lower()\n    if s in _NONE_WORDS:",
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "_CONFLICT_FIELD_COERCE",
+        "kind": 5,
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "peekOfCode": "_CONFLICT_FIELD_COERCE = {\n    \"garages\": _coerce_int,\n    \"bedrooms\": _coerce_int,\n    \"bathrooms_main_unit\": _coerce_int,\n    \"separate_toilet\": _coerce_bool,\n    \"unit_size_m2\": _coerce_float,\n    \"mother_erf_m2\": _coerce_float,\n}\ndef _pick_source(conflict: \"PhysicalConflict\") -> Optional[str]:\n    \"\"\"The source whose value should stand: an honoured human override if it",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -6629,6 +6837,96 @@
         "documentation": {}
     },
     {
+        "label": "test_valuation_wins_over_property_report_and_lightstone",
+        "kind": 2,
+        "importPath": "tests.test_precedence",
+        "description": "tests.test_precedence",
+        "peekOfCode": "def test_valuation_wins_over_property_report_and_lightstone():\n    rec = _conflict_record(lightstone=\"2\", property_report=\"1\", valuation=\"3\")\n    resolve_physical_conflicts(rec)\n    assert rec.physical.garages == 3\n    assert rec.physical.conflicts[0].resolved_source == \"valuation\"\ndef test_property_report_wins_when_no_valuation():\n    rec = _conflict_record(lightstone=\"2\", property_report=\"1\")\n    resolve_physical_conflicts(rec)\n    assert rec.physical.garages == 1\n    assert rec.physical.conflicts[0].resolved_source == \"property_report\"",
+        "detail": "tests.test_precedence",
+        "documentation": {}
+    },
+    {
+        "label": "test_property_report_wins_when_no_valuation",
+        "kind": 2,
+        "importPath": "tests.test_precedence",
+        "description": "tests.test_precedence",
+        "peekOfCode": "def test_property_report_wins_when_no_valuation():\n    rec = _conflict_record(lightstone=\"2\", property_report=\"1\")\n    resolve_physical_conflicts(rec)\n    assert rec.physical.garages == 1\n    assert rec.physical.conflicts[0].resolved_source == \"property_report\"\ndef test_lightstone_used_only_when_it_is_the_sole_source():\n    rec = _conflict_record(lightstone=\"2\")\n    resolve_physical_conflicts(rec)\n    assert rec.physical.garages == 2\n    assert rec.physical.conflicts[0].resolved_source == \"lightstone\"",
+        "detail": "tests.test_precedence",
+        "documentation": {}
+    },
+    {
+        "label": "test_lightstone_used_only_when_it_is_the_sole_source",
+        "kind": 2,
+        "importPath": "tests.test_precedence",
+        "description": "tests.test_precedence",
+        "peekOfCode": "def test_lightstone_used_only_when_it_is_the_sole_source():\n    rec = _conflict_record(lightstone=\"2\")\n    resolve_physical_conflicts(rec)\n    assert rec.physical.garages == 2\n    assert rec.physical.conflicts[0].resolved_source == \"lightstone\"\ndef test_human_override_source_is_honoured():\n    # A human picked Lightstone at gate 1 even though the valuer's report exists.\n    rec = _conflict_record(lightstone=\"2\", property_report=\"1\", valuation=\"3\")\n    rec.physical.conflicts[0].resolved_source = \"lightstone\"\n    resolve_physical_conflicts(rec)",
+        "detail": "tests.test_precedence",
+        "documentation": {}
+    },
+    {
+        "label": "test_human_override_source_is_honoured",
+        "kind": 2,
+        "importPath": "tests.test_precedence",
+        "description": "tests.test_precedence",
+        "peekOfCode": "def test_human_override_source_is_honoured():\n    # A human picked Lightstone at gate 1 even though the valuer's report exists.\n    rec = _conflict_record(lightstone=\"2\", property_report=\"1\", valuation=\"3\")\n    rec.physical.conflicts[0].resolved_source = \"lightstone\"\n    resolve_physical_conflicts(rec)\n    assert rec.physical.garages == 2  # the human's pick stands, not precedence\ndef test_none_word_coerces_to_zero():\n    rec = _conflict_record(lightstone=\"3\", property_report=\"none\")\n    resolve_physical_conflicts(rec)\n    assert rec.physical.garages == 0  # property report (\"none\") wins over lightstone",
+        "detail": "tests.test_precedence",
+        "documentation": {}
+    },
+    {
+        "label": "test_none_word_coerces_to_zero",
+        "kind": 2,
+        "importPath": "tests.test_precedence",
+        "description": "tests.test_precedence",
+        "peekOfCode": "def test_none_word_coerces_to_zero():\n    rec = _conflict_record(lightstone=\"3\", property_report=\"none\")\n    resolve_physical_conflicts(rec)\n    assert rec.physical.garages == 0  # property report (\"none\") wins over lightstone\ndef test_conflicts_are_stripped_from_public_view():\n    rec = _conflict_record(lightstone=\"2\", property_report=\"1\")\n    resolve_physical_conflicts(rec)\n    physical = rec.public_view().get(\"physical\", {})\n    assert \"conflicts\" not in physical\n    assert physical.get(\"garages\") == 1  # the resolved value still shows",
+        "detail": "tests.test_precedence",
+        "documentation": {}
+    },
+    {
+        "label": "test_conflicts_are_stripped_from_public_view",
+        "kind": 2,
+        "importPath": "tests.test_precedence",
+        "description": "tests.test_precedence",
+        "peekOfCode": "def test_conflicts_are_stripped_from_public_view():\n    rec = _conflict_record(lightstone=\"2\", property_report=\"1\")\n    resolve_physical_conflicts(rec)\n    physical = rec.public_view().get(\"physical\", {})\n    assert \"conflicts\" not in physical\n    assert physical.get(\"garages\") == 1  # the resolved value still shows\n# --- the optional valuation source ---------------------------------------\ndef test_classify_valuation_report_by_content(tmp_path):\n    p = tmp_path / \"3060 - Report.pdf\"\n    _write_pdf(",
+        "detail": "tests.test_precedence",
+        "documentation": {}
+    },
+    {
+        "label": "test_classify_valuation_report_by_content",
+        "kind": 2,
+        "importPath": "tests.test_precedence",
+        "description": "tests.test_precedence",
+        "peekOfCode": "def test_classify_valuation_report_by_content(tmp_path):\n    p = tmp_path / \"3060 - Report.pdf\"\n    _write_pdf(\n        p,\n        \"Valuation report prepared by a registered valuer. Market value \"\n        \"R3 400 000. Forced sale value R2 380 000. SACPVP registration.\",\n    )\n    assert classify_pdf(p) == \"valuation_report\"\ndef test_evm_not_misread_as_valuation(tmp_path):\n    # The EVM mentions valuation figures but its Lightstone markers dominate.",
+        "detail": "tests.test_precedence",
+        "documentation": {}
+    },
+    {
+        "label": "test_evm_not_misread_as_valuation",
+        "kind": 2,
+        "importPath": "tests.test_precedence",
+        "description": "tests.test_precedence",
+        "peekOfCode": "def test_evm_not_misread_as_valuation(tmp_path):\n    # The EVM mentions valuation figures but its Lightstone markers dominate.\n    p = tmp_path / \"3060 - EVM.pdf\"\n    _write_pdf(\n        p,\n        \"Lightstone EVM report. Estimated value (AVM). Comparable sales. \"\n        \"Report id 12345. Municipal valuation and mother erf.\",\n    )\n    assert classify_pdf(p) == \"lightstone_evm\"\ndef test_build_jobs_slots_three_docs_and_stays_complete_on_the_pair(tmp_path):",
+        "detail": "tests.test_precedence",
+        "documentation": {}
+    },
+    {
+        "label": "test_build_jobs_slots_three_docs_and_stays_complete_on_the_pair",
+        "kind": 2,
+        "importPath": "tests.test_precedence",
+        "description": "tests.test_precedence",
+        "peekOfCode": "def test_build_jobs_slots_three_docs_and_stays_complete_on_the_pair(tmp_path):\n    evm = tmp_path / \"3060 - EVM_Report.pdf\"\n    report = tmp_path / \"3060 - PROPERTY REPORT.pdf\"\n    valuation = tmp_path / \"3060 - Valuation.pdf\"\n    _write_pdf(evm, \"Lightstone EVM report. AVM estimated value. Report id 1. Comparable sales.\")\n    _write_pdf(report, \"Property Report. Dynamic Auctioneers. Prepared by Gerrie. Inspection. Viewing.\")\n    _write_pdf(valuation, \"Valuation report by a registered valuer. Forced sale value. SACPVP. Market value.\")\n    jobs = build_jobs([evm, report, valuation])\n    assert len(jobs) == 1\n    job = jobs[0]",
+        "detail": "tests.test_precedence",
+        "documentation": {}
+    },
+    {
+        "label": "test_build_jobs_complete_without_the_valuation",
+        "kind": 2,
+        "importPath": "tests.test_precedence",
+        "description": "tests.test_precedence",
+        "peekOfCode": "def test_build_jobs_complete_without_the_valuation(tmp_path):\n    evm = tmp_path / \"3060 - EVM_Report.pdf\"\n    report = tmp_path / \"3060 - PROPERTY REPORT.pdf\"\n    _write_pdf(evm, \"Lightstone EVM report. AVM estimated value. Report id 1. Comparable sales.\")\n    _write_pdf(report, \"Property Report. Dynamic Auctioneers. Prepared by Gerrie. Inspection. Viewing.\")\n    job = build_jobs([evm, report])[0]\n    assert job.is_complete\n    assert job.valuation_report is None",
+        "detail": "tests.test_precedence",
+        "documentation": {}
+    },
+    {
         "label": "golden_record",
         "kind": 2,
         "importPath": "tests.test_render",
@@ -6903,7 +7201,7 @@
         "kind": 2,
         "importPath": "tests.test_verify",
         "description": "tests.test_verify",
-        "peekOfCode": "def golden_record(golden_record_path: Path) -> PropertyRecord:\n    return PropertyRecord.model_validate_json(\n        golden_record_path.read_text(encoding=\"utf-8\")\n    )\n# --- deterministic checks ------------------------------------------------\ndef test_deterministic_checks_surface_garage_block_and_flatlet_note(golden_record):\n    flags = deterministic_checks(golden_record)\n    by_code = {f.code: f for f in flags}\n    assert \"GARAGE_CONFLICT\" in by_code\n    assert by_code[\"GARAGE_CONFLICT\"].severity == \"block\"",
+        "peekOfCode": "def golden_record(golden_record_path: Path) -> PropertyRecord:\n    return PropertyRecord.model_validate_json(\n        golden_record_path.read_text(encoding=\"utf-8\")\n    )\n# --- deterministic checks ------------------------------------------------\ndef test_deterministic_checks_surface_garage_block_and_flatlet_note(golden_record):\n    flags = deterministic_checks(golden_record)\n    by_code = {f.code: f for f in flags}\n    # The garage disagreement is now a structured PHYSICAL_CONFLICT (D35).\n    assert \"PHYSICAL_CONFLICT\" in by_code",
         "detail": "tests.test_verify",
         "documentation": {}
     },
@@ -6912,7 +7210,7 @@
         "kind": 2,
         "importPath": "tests.test_verify",
         "description": "tests.test_verify",
-        "peekOfCode": "def test_deterministic_checks_surface_garage_block_and_flatlet_note(golden_record):\n    flags = deterministic_checks(golden_record)\n    by_code = {f.code: f for f in flags}\n    assert \"GARAGE_CONFLICT\" in by_code\n    assert by_code[\"GARAGE_CONFLICT\"].severity == \"block\"\n    assert \"FLATLET_INSPECTION_ONLY\" in by_code\n    assert by_code[\"FLATLET_INSPECTION_ONLY\"].severity == \"note\"\ndef test_deterministic_checks_order_block_flags_first(golden_record):\n    flags = deterministic_checks(golden_record)\n    severities = [f.severity for f in flags]",
+        "peekOfCode": "def test_deterministic_checks_surface_garage_block_and_flatlet_note(golden_record):\n    flags = deterministic_checks(golden_record)\n    by_code = {f.code: f for f in flags}\n    # The garage disagreement is now a structured PHYSICAL_CONFLICT (D35).\n    assert \"PHYSICAL_CONFLICT\" in by_code\n    assert by_code[\"PHYSICAL_CONFLICT\"].severity == \"block\"\n    assert by_code[\"PHYSICAL_CONFLICT\"].field == \"garages\"\n    assert \"FLATLET_INSPECTION_ONLY\" in by_code\n    assert by_code[\"FLATLET_INSPECTION_ONLY\"].severity == \"note\"\ndef test_deterministic_checks_order_block_flags_first(golden_record):",
         "detail": "tests.test_verify",
         "documentation": {}
     },
@@ -6930,7 +7228,7 @@
         "kind": 2,
         "importPath": "tests.test_verify",
         "description": "tests.test_verify",
-        "peekOfCode": "def test_deterministic_checks_are_pure_no_key_needed(golden_record):\n    # Nothing here touches a model or the network; it just runs.\n    flags = deterministic_checks(golden_record)\n    assert flags\n    assert all(isinstance(f, Flag) for f in flags)\ndef test_recorded_physical_conflicts_each_raise_a_block_flag(golden_record):\n    # D32 (seen live on Erf 2035): the EVM and the inspection disagreed on the\n    # bedroom count and the building size; each recorded disagreement must gate\n    # sign-off exactly like the garage conflict does.\n    rec = golden_record.model_copy(deep=True)",
+        "peekOfCode": "def test_deterministic_checks_are_pure_no_key_needed(golden_record):\n    # Nothing here touches a model or the network; it just runs.\n    flags = deterministic_checks(golden_record)\n    assert flags\n    assert all(isinstance(f, Flag) for f in flags)\ndef test_recorded_physical_conflicts_each_raise_a_block_flag(golden_record):\n    # D32/D35 (seen live on Erf 2035): the EVM and the inspection disagreed on\n    # the bedroom count and the building size; each recorded disagreement must\n    # gate sign-off, and each names every source's value.\n    from engine.schema import PhysicalConflict",
         "detail": "tests.test_verify",
         "documentation": {}
     },
@@ -6939,7 +7237,7 @@
         "kind": 2,
         "importPath": "tests.test_verify",
         "description": "tests.test_verify",
-        "peekOfCode": "def test_recorded_physical_conflicts_each_raise_a_block_flag(golden_record):\n    # D32 (seen live on Erf 2035): the EVM and the inspection disagreed on the\n    # bedroom count and the building size; each recorded disagreement must gate\n    # sign-off exactly like the garage conflict does.\n    rec = golden_record.model_copy(deep=True)\n    rec.physical.conflicts = [\n        \"Bedrooms: EVM comparable line says 2, inspection says 4.\",\n        \"Building size: EVM estimates 106 m2 under roof, inspection measures 310 m2.\",\n    ]\n    flags = deterministic_checks(rec)",
+        "peekOfCode": "def test_recorded_physical_conflicts_each_raise_a_block_flag(golden_record):\n    # D32/D35 (seen live on Erf 2035): the EVM and the inspection disagreed on\n    # the bedroom count and the building size; each recorded disagreement must\n    # gate sign-off, and each names every source's value.\n    from engine.schema import PhysicalConflict\n    rec = golden_record.model_copy(deep=True)\n    rec.physical.conflicts = [\n        PhysicalConflict(field=\"bedrooms\", label=\"Bedrooms\", lightstone=\"2\", property_report=\"4\"),\n        PhysicalConflict(field=\"unit_size_m2\", label=\"Building size\", lightstone=\"106\", property_report=\"310\"),\n    ]",
         "detail": "tests.test_verify",
         "documentation": {}
     },
@@ -7119,7 +7417,25 @@
         "kind": 2,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "def test_gate1_signoff_refused_then_records_and_transitions():\n    _needs_golden()\n    dp = \"9001\"\n    _golden_clone(dp)  # carries the GARAGE_CONFLICT block flag\n    client = _client()\n    _login_admin(client)\n    # Refused: the block flag has no written override.\n    refused = client.post(f\"/gates/{dp}/verify\", data={}, follow_redirects=False)\n    assert refused.status_code == 400\n    assert _state(dp) == \"extracted\"",
+        "peekOfCode": "def test_gate1_signoff_refused_then_records_and_transitions():\n    _needs_golden()\n    dp = \"9001\"\n    _golden_clone(dp)  # carries the garages PHYSICAL_CONFLICT block flag\n    client = _client()\n    _login_admin(client)\n    # Refused: the physical conflict is untouched (no source pick submitted).\n    refused = client.post(f\"/gates/{dp}/verify\", data={}, follow_redirects=False)\n    assert refused.status_code == 400\n    assert _state(dp) == \"extracted\"",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_gate1_override_to_non_default_source_swaps_the_value",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_gate1_override_to_non_default_source_swaps_the_value():\n    # The garage conflict defaults to the Property Report (none -> 0 garages).\n    # Overriding to Lightstone must write Lightstone's value (3) onto the record.\n    _needs_golden()\n    dp = \"9007\"\n    _golden_clone(dp)\n    client = _client()\n    _login_admin(client)\n    ok = client.post(\n        f\"/gates/{dp}/verify\",",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_board_delete_removes_the_record",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_board_delete_removes_the_record():\n    _needs_golden()\n    dp = \"9008\"\n    _golden_clone(dp)\n    client = _client()\n    _login_admin(client)\n    assert _state(dp) == \"extracted\"\n    resp = client.post(f\"/board/{dp}/delete\", follow_redirects=False)\n    assert resp.status_code == 200  # returns the refreshed ledger body\n    store = RecordStore(DB_PATH)",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -7794,7 +8110,16 @@
         "kind": 2,
         "importPath": "webapp.routes.board",
         "description": "webapp.routes.board",
-        "peekOfCode": "def board_rows(request: Request):\n    \"\"\"The ledger body only: HTMX polls this to keep the board live.\"\"\"\n    if auth.current_user(request) is None:\n        return RedirectResponse(\"/login\", status_code=303)\n    rows = _load_rows(auth.db_path_for(request))\n    return _view(request, \"_board_rows.html\", {\"rows\": rows, \"animate\": False})",
+        "peekOfCode": "def board_rows(request: Request):\n    \"\"\"The ledger body only: HTMX polls this to keep the board live.\"\"\"\n    if auth.current_user(request) is None:\n        return RedirectResponse(\"/login\", status_code=303)\n    rows = _load_rows(auth.db_path_for(request))\n    return _view(request, \"_board_rows.html\", {\"rows\": rows, \"animate\": False})\n@router.post(\"/board/{dp}/delete\", response_class=HTMLResponse)\ndef board_delete(\n    dp: str,\n    request: Request,",
+        "detail": "webapp.routes.board",
+        "documentation": {}
+    },
+    {
+        "label": "board_delete",
+        "kind": 2,
+        "importPath": "webapp.routes.board",
+        "description": "webapp.routes.board",
+        "peekOfCode": "def board_delete(\n    dp: str,\n    request: Request,\n    user: dict = Depends(auth.require_role(\"approver\", \"marketing\")),\n):\n    \"\"\"Remove a property from the board (e.g. intaken in error). Irreversible.\n    Deletes the record and its state history and any queued/finished jobs for the\n    DP, then returns the refreshed ledger body for the HTMX swap. Uploaded source\n    files on disk are left in place. Gated to the operational roles.\n    \"\"\"",
         "detail": "webapp.routes.board",
         "documentation": {}
     },
@@ -8587,6 +8912,15 @@
         "importPath": "webapp.models",
         "description": "webapp.models",
         "peekOfCode": "def list_jobs(\n    db_path: Optional[str | Path] = None,\n    dp: Optional[str] = None,\n    limit: int = 200,\n) -> List[Dict[str, Any]]:\n    \"\"\"Return jobs newest-first, optionally filtered to one DP.\"\"\"\n    conn = _connect(db_path)\n    try:\n        if dp is not None:\n            rows = conn.execute(",
+        "detail": "webapp.models",
+        "documentation": {}
+    },
+    {
+        "label": "delete_jobs_for_dp",
+        "kind": 2,
+        "importPath": "webapp.models",
+        "description": "webapp.models",
+        "peekOfCode": "def delete_jobs_for_dp(db_path: Optional[str | Path], dp: str) -> int:\n    \"\"\"Delete every job row for ``dp`` (used when a record is deleted). Count.\"\"\"\n    conn = _connect(db_path)\n    try:\n        cur = conn.execute(\"DELETE FROM jobs WHERE dp = ?\", (dp,))\n        conn.commit()\n        return cur.rowcount\n    finally:\n        conn.close()\n# --- channel status (proof of marketing) ---------------------------------",
         "detail": "webapp.models",
         "documentation": {}
     },
