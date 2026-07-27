@@ -372,6 +372,17 @@ def list_jobs(
         conn.close()
 
 
+def delete_jobs_for_dp(db_path: Optional[str | Path], dp: str) -> int:
+    """Delete every job row for ``dp`` (used when a record is deleted). Count."""
+    conn = _connect(db_path)
+    try:
+        cur = conn.execute("DELETE FROM jobs WHERE dp = ?", (dp,))
+        conn.commit()
+        return cur.rowcount
+    finally:
+        conn.close()
+
+
 # --- channel status (proof of marketing) ---------------------------------
 
 def log_channel_status(

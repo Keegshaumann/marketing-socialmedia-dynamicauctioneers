@@ -49,8 +49,10 @@ def test_deterministic_checks_surface_garage_block_and_flatlet_note(golden_recor
     flags = deterministic_checks(golden_record)
     by_code = {f.code: f for f in flags}
 
-    assert "GARAGE_CONFLICT" in by_code
-    assert by_code["GARAGE_CONFLICT"].severity == "block"
+    # The garage disagreement is now a structured PHYSICAL_CONFLICT (D35).
+    assert "PHYSICAL_CONFLICT" in by_code
+    assert by_code["PHYSICAL_CONFLICT"].severity == "block"
+    assert by_code["PHYSICAL_CONFLICT"].field == "garages"
 
     assert "FLATLET_INSPECTION_ONLY" in by_code
     assert by_code["FLATLET_INSPECTION_ONLY"].severity == "note"
@@ -72,19 +74,22 @@ def test_deterministic_checks_are_pure_no_key_needed(golden_record):
 
 
 def test_recorded_physical_conflicts_each_raise_a_block_flag(golden_record):
-    # D32 (seen live on Erf 2035): the EVM and the inspection disagreed on the
-    # bedroom count and the building size; each recorded disagreement must gate
-    # sign-off exactly like the garage conflict does.
+    # D32/D35 (seen live on Erf 2035): the EVM and the inspection disagreed on
+    # the bedroom count and the building size; each recorded disagreement must
+    # gate sign-off, and each names every source's value.
+    from engine.schema import PhysicalConflict
+
     rec = golden_record.model_copy(deep=True)
     rec.physical.conflicts = [
-        "Bedrooms: EVM comparable line says 2, inspection says 4.",
-        "Building size: EVM estimates 106 m2 under roof, inspection measures 310 m2.",
+        PhysicalConflict(field="bedrooms", label="Bedrooms", lightstone="2", property_report="4"),
+        PhysicalConflict(field="unit_size_m2", label="Building size", lightstone="106", property_report="310"),
     ]
     flags = deterministic_checks(rec)
     conflicts = [f for f in flags if f.code == "PHYSICAL_CONFLICT"]
     assert len(conflicts) == 2
     assert all(f.severity == "block" for f in conflicts)
-    assert "EVM comparable line says 2" in conflicts[0].evidence
+    assert "Lightstone says 2" in conflicts[0].evidence
+    assert "Property Report says 4" in conflicts[0].evidence
 
 
 def test_professional_valuation_outside_evm_range_raises_note(golden_record):
@@ -229,7 +234,7 @@ def test_sign_off_refused_then_allowed_with_override(golden_record, tmp_path, mo
             store,
             user="gerrie@dynamicauctioneers.co.za",
             override_notes={
-                "GARAGE_CONFLICT": "Agent confirmed no garages; guest parking only."
+                "PHYSICAL_CONFLICT": "Agent confirmed no garages; guest parking only."
             },
         )
         assert store.get_state("3060") == "verified"

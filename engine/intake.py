@@ -65,6 +65,21 @@ PROPERTY_REPORT_MARKERS = {
     "id number": 1,
 }
 
+# A registered valuer's report. The high-weight terms are ones the Lightstone
+# EVM never carries (a "forced sale value", a registered valuer, the SACPVP
+# regulator), so an EVM's stray "market value"/"valuation" cannot flip to here.
+VALUATION_MARKERS = {
+    "forced sale value": 3,
+    "registered valuer": 3,
+    "sacpvp": 3,
+    "professional valuer": 2,
+    "valuation report": 2,
+    "open market value": 2,
+    "date of valuation": 2,
+    "market value": 1,
+    "valuer": 1,
+}
+
 # A DP token is a leading run of digits, optionally prefixed by "DP" and
 # optionally suffixed by ".<lot>". We anchor at the start of the name so an
 # address number later in the string (for example "40 Topham Road") can never
@@ -111,27 +126,32 @@ def _score(text: str, markers: dict) -> int:
 def classify_pdf(path: PathLike) -> str:
     """Classify a PDF by its content.
 
-    Returns ``"lightstone_evm"``, ``"property_report"`` or ``"unknown"``.
-    Page text is scored against the marker tables; the filename is consulted
-    only to break an exact tie, never as the sole signal.
+    Returns ``"lightstone_evm"``, ``"property_report"``, ``"valuation_report"``
+    or ``"unknown"``. Page text is scored against the marker tables; the
+    filename is consulted only to break an exact tie, never as the sole signal.
     """
     path = Path(path)
     text = _read_text(path)
-    ls_score = _score(text, LIGHTSTONE_MARKERS)
-    pr_score = _score(text, PROPERTY_REPORT_MARKERS)
+    scores = {
+        "lightstone_evm": _score(text, LIGHTSTONE_MARKERS),
+        "property_report": _score(text, PROPERTY_REPORT_MARKERS),
+        "valuation_report": _score(text, VALUATION_MARKERS),
+    }
+    best = max(scores, key=lambda k: scores[k])
+    # A clear winner (a positive score not tied with another kind) settles it.
+    if scores[best] > 0 and list(scores.values()).count(scores[best]) == 1:
+        return best
 
-    if ls_score > pr_score:
-        return "lightstone_evm"
-    if pr_score > ls_score:
-        return "property_report"
-
-    # Tie (commonly both zero when text is unreadable): fall back to the
-    # filename hint only.
+    # Tie or all-zero (commonly when the text layer is unreadable): fall back to
+    # the filename hint only. EVM/Lightstone first so an EVM whose name also says
+    # "valuation" is not misread as a valuer's report.
     hint = path.name.lower()
-    if "evm" in hint or "lightstone" in hint or "valuation" in hint:
+    if "evm" in hint or "lightstone" in hint:
         return "lightstone_evm"
     if "property report" in hint or "property_report" in hint:
         return "property_report"
+    if "valuation" in hint or "valuer" in hint:
+        return "valuation_report"
     return "unknown"
 
 
@@ -144,11 +164,17 @@ class IntakeJob:
     lot: Optional[int] = None
     lightstone_evm: Optional[Path] = None
     property_report: Optional[Path] = None
+    # Optional third source (a registered valuer's report). Not required for
+    # completeness - marketing is not always given it (D35).
+    valuation_report: Optional[Path] = None
     unknown: List[Path] = field(default_factory=list)
 
     @property
     def is_complete(self) -> bool:
-        """True when both required documents are present."""
+        """True when both required documents are present.
+
+        The valuation report is optional and never gates completeness.
+        """
         return self.lightstone_evm is not None and self.property_report is not None
 
     @property
@@ -188,6 +214,8 @@ def build_jobs(paths: List[PathLike]) -> List[IntakeJob]:
             job.lightstone_evm = path
         elif kind == "property_report" and job.property_report is None:
             job.property_report = path
+        elif kind == "valuation_report" and job.valuation_report is None:
+            job.valuation_report = path
         else:
             job.unknown.append(path)
 

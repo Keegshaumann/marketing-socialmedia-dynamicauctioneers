@@ -45,7 +45,12 @@ from engine.render import DEFAULT_BACKEND, FORMATS, get_backend
 from engine.render.html_backend import BRAND
 from engine.render.canva_backend import template_set_names
 from engine.render.service import apply_edits, apply_photos, render_all
-from engine.schema import PropertyRecord
+from engine.schema import (
+    PHYSICAL_SOURCE_PRECEDENCE,
+    SOURCE_LABELS,
+    PropertyRecord,
+    resolve_physical_conflicts,
+)
 from engine.store import IllegalTransition, RecordStore
 from engine.verify import (
     Flag,
@@ -244,6 +249,7 @@ def _memo_view(record: PropertyRecord) -> Dict[str, Any]:
         "facts": facts,
         "address": address,
         "suburb": suburb,
+        "source_labels": SOURCE_LABELS,
         "memo_markdown": build_memo(record, flags),
     }
 
@@ -316,17 +322,42 @@ async def gate1_signoff(dp: str, request: Request, user: dict = Depends(require_
     record = _load(db_path, dp)
     form = await request.form()
 
-    # Collect a written override reason for each block flag (field override__CODE).
-    overrides: Dict[str, str] = {}
-    for f in deterministic_checks(record):
-        if f.severity != "block":
-            continue
-        reason = str(form.get(f"override__{f.code}", "")).strip()
-        if reason:
-            overrides[f.code] = reason
-
     store = _store(db_path)
     try:
+        # 1. Resolve each physical conflict from the human's source pick (default
+        #    pre-selected = the precedence winner). Confirming or overriding sets
+        #    override_reason, which flips the block flag to a resolved note and
+        #    writes the chosen value onto the field (D35).
+        physical = record.physical
+        if physical is not None and physical.conflicts:
+            touched = False
+            for c in physical.conflicts:
+                # Only a conflict the human actually addressed in this submission
+                # (its radio group is present) is confirmed; anything left out
+                # stays blocking, so an empty POST cannot sign a conflict away.
+                if form.get(f"conflict_source__{c.field}") is None:
+                    continue
+                touched = True
+                chosen = str(form.get(f"conflict_source__{c.field}", "")).strip()
+                reason = str(form.get(f"conflict_reason__{c.field}", "")).strip()
+                if chosen in PHYSICAL_SOURCE_PRECEDENCE and getattr(c, chosen, None) is not None:
+                    c.resolved_source = chosen
+                label = SOURCE_LABELS.get(c.resolved_source, c.resolved_source)
+                c.override_reason = reason or f"Confirmed the {label} value at gate 1."
+            if touched:
+                resolve_physical_conflicts(record)
+                store.upsert(record)
+                record = store.get(dp)  # reload so the resolutions are the source of truth
+
+        # 2. Any remaining (non-conflict) block flag still needs a written reason.
+        overrides: Dict[str, str] = {}
+        for f in deterministic_checks(record):
+            if f.severity != "block":
+                continue
+            reason = str(form.get(f"override__{f.code}", "")).strip()
+            if reason:
+                overrides[f.code] = reason
+
         sign_off(dp, store, user=user["email"], override_notes=overrides or None)
     except SignOffRefused as exc:
         view = _memo_view(record)

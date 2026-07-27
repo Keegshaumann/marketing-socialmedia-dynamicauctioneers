@@ -6,7 +6,10 @@
 {% block subheading %}
   <div class="topbar__sub">DP {{ dp }}{% if address %} · {{ address }}{% endif %}</div>
 {% endblock %}
-{% block topbar_actions %}{{ ui.state_badge(state) }}{% endblock %}
+{% block topbar_actions %}
+  <a class="btn btn--ghost btn--sm" href="/board">{{ ui.icon('arrow', 'icon--sm icon--flip') }}<span>Back to board</span></a>
+  {{ ui.state_badge(state) }}
+{% endblock %}
 {% block content_mod %}content--narrow{% endblock %}
 
 {% block content %}
@@ -64,12 +67,35 @@
 
             {% for f in block_flags %}
               {{ ui.flag(f) }}
-              <div class="field">
-                <label class="label" for="ov-{{ f.code }}">Written reason to override {{ f.code }}</label>
-                <textarea class="textarea" id="ov-{{ f.code }}" name="override__{{ f.code }}" rows="2"
-                          placeholder="Explain how this blocking flag was resolved. Required to sign off."></textarea>
-                <div class="hint">A blocking flag cannot be signed past without a recorded reason.</div>
-              </div>
+              {% if f.conflict %}
+                {# Physical conflict: pick which source's value stands. The
+                   highest-priority source (valuation > property report >
+                   lightstone) is pre-selected; change it to override. #}
+                <div class="field conflict">
+                  <div class="label">Which source is correct for {{ f.conflict.label }}?</div>
+                  <div class="conflict__opts">
+                    {% for src, val in f.conflict.sources.items() %}
+                      <label class="conflict__opt">
+                        <input type="radio" name="conflict_source__{{ f.conflict.field }}" value="{{ src }}"
+                               {{ 'checked' if src == f.conflict.resolved_source else '' }}>
+                        <span class="conflict__src">{{ source_labels[src] }}</span>
+                        <span class="conflict__val">{{ val }}</span>
+                        {% if src == f.conflict.resolved_source %}<span class="conflict__badge">default</span>{% endif %}
+                      </label>
+                    {% endfor %}
+                  </div>
+                  <textarea class="textarea" name="conflict_reason__{{ f.conflict.field }}" rows="2"
+                            placeholder="Optional note. Explain the choice if you override the default source."></textarea>
+                  <div class="hint">Highest-priority source is pre-selected (valuation &gt; property report &gt; lightstone). Change it to override.</div>
+                </div>
+              {% else %}
+                <div class="field">
+                  <label class="label" for="ov-{{ f.code }}">Written reason to override {{ f.code }}</label>
+                  <textarea class="textarea" id="ov-{{ f.code }}" name="override__{{ f.code }}" rows="2"
+                            placeholder="Explain how this blocking flag was resolved. Required to sign off."></textarea>
+                  <div class="hint">A blocking flag cannot be signed past without a recorded reason.</div>
+                </div>
+              {% endif %}
             {% endfor %}
 
             {% for f in note_flags %}

@@ -246,20 +246,23 @@ def test_gate2_approve_before_gate1_does_not_advance():
 def test_gate1_signoff_refused_then_records_and_transitions():
     _needs_golden()
     dp = "9001"
-    _golden_clone(dp)  # carries the GARAGE_CONFLICT block flag
+    _golden_clone(dp)  # carries the garages PHYSICAL_CONFLICT block flag
     client = _client()
     _login_admin(client)
 
-    # Refused: the block flag has no written override.
+    # Refused: the physical conflict is untouched (no source pick submitted).
     refused = client.post(f"/gates/{dp}/verify", data={}, follow_redirects=False)
     assert refused.status_code == 400
     assert _state(dp) == "extracted"
 
-    # Accepted: overriding the block flag with a reason signs the gate off and
-    # the record is drafted onto gate 2.
+    # Accepted: picking a source for the garage conflict resolves it, signs the
+    # gate off and drafts the record onto gate 2.
     ok = client.post(
         f"/gates/{dp}/verify",
-        data={"override__GARAGE_CONFLICT": "Agent confirmed no garages; guest parking only."},
+        data={
+            "conflict_source__garages": "property_report",
+            "conflict_reason__garages": "Agent confirmed no garages; guest parking only.",
+        },
         follow_redirects=False,
     )
     assert ok.status_code == 303
@@ -274,6 +277,53 @@ def test_gate1_signoff_refused_then_records_and_transitions():
         store.close()
     assert record.verification is not None
     assert record.verification.human_signoff
+
+
+def test_gate1_override_to_non_default_source_swaps_the_value():
+    # The garage conflict defaults to the Property Report (none -> 0 garages).
+    # Overriding to Lightstone must write Lightstone's value (3) onto the record.
+    _needs_golden()
+    dp = "9007"
+    _golden_clone(dp)
+    client = _client()
+    _login_admin(client)
+
+    ok = client.post(
+        f"/gates/{dp}/verify",
+        data={
+            "conflict_source__garages": "lightstone",
+            "conflict_reason__garages": "Seller confirmed the 3 garages on the deeds.",
+        },
+        follow_redirects=False,
+    )
+    assert ok.status_code == 303
+    assert _state(dp) == "drafted"
+
+    store = RecordStore(DB_PATH)
+    try:
+        record = store.get(dp)
+    finally:
+        store.close()
+    assert record.physical.garages == 3  # Lightstone's value now stands
+    assert record.physical.conflicts[0].resolved_source == "lightstone"
+
+
+def test_board_delete_removes_the_record():
+    _needs_golden()
+    dp = "9008"
+    _golden_clone(dp)
+    client = _client()
+    _login_admin(client)
+
+    assert _state(dp) == "extracted"
+    resp = client.post(f"/board/{dp}/delete", follow_redirects=False)
+    assert resp.status_code == 200  # returns the refreshed ledger body
+
+    store = RecordStore(DB_PATH)
+    try:
+        assert store.get(dp) is None  # gone
+    finally:
+        store.close()
 
 
 # --- tokenised gate-2 approve without a session --------------------------

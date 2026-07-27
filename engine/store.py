@@ -199,6 +199,18 @@ class RecordStore:
         self._log_event(dp, from_state, to_state, now, note)
         self.conn.commit()
 
+    def delete(self, dp: str) -> bool:
+        """Remove a record and its state history. Irreversible.
+
+        Returns True if a record was removed, False if the DP did not exist. The
+        board-level delete for a property intaked in error; the state machine
+        does not gate deletion (it removes the whole row, not a transition).
+        """
+        cur = self.conn.execute("DELETE FROM records WHERE dp = ?", (dp,))
+        self.conn.execute("DELETE FROM state_events WHERE dp = ?", (dp,))
+        self.conn.commit()
+        return cur.rowcount > 0
+
     def record_signoff(
         self,
         dp: str,
@@ -248,8 +260,11 @@ class RecordStore:
     # the loader strips these known-legacy dotted paths before validation - a
     # record written before the change stays readable (and loses the dead field
     # on its next save). D19 removed the broadcast channel.
+    # D19 removed the broadcast channel; D35 removed physical.garages_conflict
+    # (folded into the structured physical.conflicts list).
     _LEGACY_PATHS: tuple = (
         ("marketing", "channel_routing", "whatsapp_broadcast"),
+        ("physical", "garages_conflict"),
     )
 
     @classmethod
@@ -262,6 +277,15 @@ class RecordStore:
                     break
             if isinstance(node, dict):
                 node.pop(path[-1], None)
+        # D35: physical.conflicts changed from a list of free-text strings to a
+        # list of structured PhysicalConflict objects. A pre-D35 record carries
+        # strings, which no longer validate; drop the old-shape list (it is
+        # regenerated on the next extraction) so the record still loads.
+        physical = data.get("physical")
+        if isinstance(physical, dict):
+            conflicts = physical.get("conflicts")
+            if isinstance(conflicts, list) and any(not isinstance(c, dict) for c in conflicts):
+                physical.pop("conflicts", None)
         return data
 
     def get(self, dp: str) -> Optional[PropertyRecord]:

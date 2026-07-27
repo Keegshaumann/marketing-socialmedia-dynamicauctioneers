@@ -4,7 +4,10 @@
 {% block title %}Client approval{% endblock %}
 {% block heading %}Client approval{% endblock %}
 {% block subheading %}<div class="topbar__sub">DP {{ dp }}</div>{% endblock %}
-{% block topbar_actions %}{{ ui.state_badge(state) }}{% endblock %}
+{% block topbar_actions %}
+  <a class="btn btn--ghost btn--sm" href="/board">{{ ui.icon('arrow', 'icon--sm icon--flip') }}<span>Back to board</span></a>
+  {{ ui.state_badge(state) }}
+{% endblock %}
 {% block content_mod %}content--narrow{% endblock %}
 
 {% block content %}

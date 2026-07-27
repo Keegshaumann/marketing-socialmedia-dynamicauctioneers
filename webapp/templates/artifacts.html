@@ -10,6 +10,7 @@
 {% endblock %}
 
 {% block topbar_actions %}
+  <a class="btn btn--ghost btn--sm" href="/board">{{ ui.icon('arrow', 'icon--sm icon--flip') }}<span>Back to board</span></a>
   <a class="btn btn--gold btn--sm" href="/artifacts/{{ dp }}/download">{{ ui.icon('download') }}<span>Download pack</span></a>
   <a class="btn btn--ghost btn--sm" href="/post/{{ dp }}">{{ ui.icon('send') }}<span>Post and change</span></a>
 {% endblock %}

@@ -32,12 +32,17 @@ from __future__ import annotations
 import os
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict
 
 from engine import MODEL
-from engine.schema import PropertyRecord
+from engine.schema import (
+    PHYSICAL_SOURCE_PRECEDENCE,
+    SOURCE_LABELS,
+    PhysicalConflict,
+    PropertyRecord,
+)
 from engine.store import RecordStore
 
 
@@ -56,6 +61,10 @@ class Flag(BaseModel):
     title: str
     evidence: str
     action: str
+    # For a PHYSICAL_CONFLICT: the disputed field and each source's value, so
+    # gate 1 can render a source picker instead of a bare override reason (D35).
+    field: Optional[str] = None
+    conflict: Optional[Dict[str, Any]] = None
 
 
 class SignOffRefused(Exception):
@@ -74,6 +83,58 @@ def _rand(amount: Optional[float]) -> str:
         return ""
     whole = int(round(amount))
     return "R" + format(whole, ",").replace(",", " ")
+
+
+def _physical_conflict_flag(conflict: PhysicalConflict) -> Flag:
+    """Build the blocking flag for one physical conflict, naming each source's
+    value and the precedence default so gate 1 can render a source picker."""
+    label = conflict.label or conflict.field.replace("_", " ").title()
+    values = {
+        s: getattr(conflict, s)
+        for s in PHYSICAL_SOURCE_PRECEDENCE
+        if getattr(conflict, s, None) is not None
+    }
+    stated = "; ".join(f"{SOURCE_LABELS[s]} says {values[s]}" for s in values)
+    resolved = conflict.resolved_source
+    # A human decision at gate 1 sets override_reason; until then the disagreement
+    # blocks. Once decided it drops to a note (an audit trail of the resolution).
+    decided = bool(conflict.override_reason)
+    resolved_value = getattr(conflict, resolved, None) if resolved else None
+    if decided:
+        evidence = (
+            f"{label}: {stated}. Resolved to {SOURCE_LABELS.get(resolved, resolved)}"
+            f" = {resolved_value}. {conflict.override_reason}"
+        )
+        action = "Resolved at gate 1; the chosen value stands on the record."
+    else:
+        default = (
+            f" Default (highest-priority source present): "
+            f"{SOURCE_LABELS[resolved]} = {resolved_value}." if resolved in values else ""
+        )
+        evidence = f"{label}: {stated}.{default}"
+        action = (
+            "The highest-priority source's value stands by default "
+            "(valuation > property report > lightstone). Confirm it, or pick "
+            "another source's value, before this reaches an ad."
+        )
+    return Flag(
+        severity="note" if decided else "block",
+        code="PHYSICAL_CONFLICT",
+        title=(
+            f"{label} -- resolved" if decided
+            else f"{label} -- sources disagree, confirm before advertising"
+        ),
+        evidence=evidence,
+        action=action,
+        field=conflict.field,
+        conflict={
+            "field": conflict.field,
+            "label": label,
+            "sources": values,  # {source: value}; 'sources' avoids Jinja dict.values()
+            "resolved_source": resolved,
+            "override_reason": conflict.override_reason,
+        },
+    )
 
 
 # --- deterministic checks (pure code, no model) --------------------------
@@ -96,42 +157,13 @@ def deterministic_checks(record: PropertyRecord) -> List[Flag]:
     identity = record.identity
     valuation = record.valuation
 
-    # 1. Garage conflict -- BLOCK. The two sources disagree and the merge left
-    #    garages null with a recorded conflict; do not advertise until resolved.
-    if physical is not None and physical.garages_conflict:
-        flags.append(
-            Flag(
-                severity="block",
-                code="GARAGE_CONFLICT",
-                title="Garages -- sources disagree, do not advertise until confirmed",
-                evidence=physical.garages_conflict,
-                action=(
-                    "Confirm with the agent whether the unit has garages, "
-                    "carports, or neither. Garages stay omitted from every "
-                    "artifact until this is resolved or overridden with a reason."
-                ),
-            )
-        )
-
-    # 1b. Any other recorded cross-source physical conflict -- BLOCK, same
-    #     rationale as the garage conflict: the inspection's value stands in
-    #     the record per the merge rule, but a disputed fact must be confirmed
-    #     by a human before it reaches an ad (D32).
+    # 1. Cross-source physical conflicts -- BLOCK. Each disputed physical fact
+    #    (garages, bed count, sizes...) carries every source's value; the record
+    #    already holds the precedence-resolved default (valuation > property
+    #    report > lightstone, D35). A human confirms the default or picks another
+    #    source's value at gate 1; never advertise a disputed fact unresolved.
     for conflict in (physical.conflicts or []) if physical is not None else []:
-        flags.append(
-            Flag(
-                severity="block",
-                code="PHYSICAL_CONFLICT",
-                title="Physical fact -- sources disagree, confirm before advertising",
-                evidence=conflict,
-                action=(
-                    "Confirm the disputed fact with the agent or a re-inspection. "
-                    "The inspection's value stands in the record, but do not "
-                    "advertise it until this is resolved or overridden with a "
-                    "reason."
-                ),
-            )
-        )
+        flags.append(_physical_conflict_flag(conflict))
 
     # 2. Flatlet found only on inspection -- NOTE. Present in the record and the
     #    note says the desktop (Lightstone) data did not show it.
@@ -666,7 +698,7 @@ if __name__ == "__main__":
     # deterministic_checks surfaces the two golden findings unprompted.
     flags = deterministic_checks(record)
     codes = {f.code: f.severity for f in flags}
-    assert codes.get("GARAGE_CONFLICT") == "block", "garage conflict must be a block flag"
+    assert codes.get("PHYSICAL_CONFLICT") == "block", "garage conflict must be a block flag"
     assert codes.get("FLATLET_INSPECTION_ONLY") == "note", "flatlet must be a note flag"
     print("deterministic_checks flags:")
     for f in flags:
@@ -693,7 +725,7 @@ if __name__ == "__main__":
 
         memo_path, verify_flags = verify("3060", store, output_root=tmp)
         vcodes = {f.code for f in verify_flags}
-        assert "GARAGE_CONFLICT" in vcodes and "FLATLET_INSPECTION_ONLY" in vcodes
+        assert "PHYSICAL_CONFLICT" in vcodes and "FLATLET_INSPECTION_ONLY" in vcodes
         assert store.get_state("3060") == "flags_raised"
         memo_text = Path(memo_path).read_text(encoding="utf-8")
         assert "[BLOCK]" in memo_text and "[NOTE]" in memo_text
@@ -716,7 +748,7 @@ if __name__ == "__main__":
             store,
             user="gerrie@dynamicauctioneers.co.za",
             override_notes={
-                "GARAGE_CONFLICT": "Agent confirmed no garages; ample guest parking only."
+                "PHYSICAL_CONFLICT": "Agent confirmed no garages; ample guest parking only."
             },
         )
         assert store.get_state("3060") == "verified"

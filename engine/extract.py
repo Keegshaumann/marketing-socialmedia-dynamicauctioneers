@@ -75,7 +75,9 @@ from engine.schema import (
     SaleProcess,
     Sources,
     Valuation,
+    ValuationReportSource,
     _Base,
+    resolve_physical_conflicts,
 )
 
 load_dotenv()
@@ -126,24 +128,34 @@ DYNAMIC_CONTACT_PUBLIC = "086 155 2288 / properties.admin@dynamicauctioneers.co.
 # the SDK sends, and no property-specific fact is hardcoded here.
 SYSTEM_PROMPT = (
     "You are the extraction engine for Dynamic Auctioneers, a South African "
-    "property auction and sale house. You read two source documents about a "
-    "single property and return one structured section of its property record "
-    "per request.\n"
+    "property auction and sale house. You read up to three source documents "
+    "about a single property and return one structured section of its property "
+    "record per request.\n"
     "\n"
-    "The two sources and how to merge them (this is the authoritative rule):\n"
+    "The sources and how to merge them (this is the authoritative rule):\n"
     "- The Lightstone EVM report carries the deeds, market and valuation data. "
     "It wins for identity (title type, scheme, unit, erf, legal description, "
     "title deed number, GPS), for valuation (EVM range, suburb bands, municipal "
     "valuation, rates, comparable sales) and for the ownership and financial "
     "history.\n"
-    "- The Dynamic Property Report is a physical inspection. It wins for physical "
+    "- The Dynamic Property Report is a physical inspection. It informs physical "
     "reality: rooms, bedrooms, bathrooms, garages, the flatlet, condition and "
-    "features actually seen on site, and for the sale process and viewing "
+    "features actually seen on site, and the sale process and viewing "
     "arrangements.\n"
-    "- Where the two sources disagree on the same fact, do NOT silently pick one. "
-    "Record both readings in the relevant conflict or note field (for example "
-    "physical.garages_conflict, or a *_note field) and leave the primary field "
-    "set to the source that owns that fact under the rule above.\n"
+    "- A registered valuer's valuation report may also be supplied (it is "
+    "optional and not always present). It carries a professional physical "
+    "inspection and the valuer's figures.\n"
+    "- PHYSICAL FACT PRECEDENCE: when the sources disagree on a physical fact "
+    "(garages, bedrooms, bathrooms, sizes, condition, features), trust them in "
+    "this order: valuation report > property report > Lightstone. This applies "
+    "to physical facts ONLY; Lightstone still owns deeds, legal and market data "
+    "outright.\n"
+    "- Do NOT silently pick when a physical fact differs across sources. Add one "
+    "entry to physical.conflicts naming the field, a short human label, and each "
+    "source's value as it is stated (lightstone / property_report / valuation; "
+    "leave a source null if it did not state that fact). The system resolves the "
+    "precedence in code, so you need only record every source's value faithfully; "
+    "still fill the primary physical field with your best reading.\n"
     "\n"
     "POPIA (South African data protection) is enforced by where you put things:\n"
     "- The owner's name and ID number go ONLY into financials_internal.owner. "
@@ -196,13 +208,15 @@ SECTIONS: Tuple[Tuple[str, Type[_Base], str], ...] = (
     (
         "physical",
         Physical,
-        "the physical reality per the inspection: unit and mother-erf sizes, "
-        "zoning, bedrooms, bathrooms, separate toilet, garages (record "
-        "garages_conflict when the sources disagree), the flatlet, and the "
-        "main-unit and complex feature lists. When the two sources disagree "
-        "on any OTHER physical fact (bedroom count, sizes, and so on), keep "
-        "the inspection's value in the field but add one line per "
-        "disagreement to conflicts; never resolve a disagreement silently.",
+        "the physical reality: unit and mother-erf sizes, zoning, bedrooms, "
+        "bathrooms, separate toilet, garages, the flatlet, and the main-unit "
+        "and complex feature lists. When the sources disagree on ANY physical "
+        "fact (garages, bedroom count, sizes, and so on), add one entry to "
+        "conflicts giving the field name, a short label, and each source's "
+        "value as stated (lightstone / property_report / valuation; null a "
+        "source that did not state it). Fill the primary field with your best "
+        "reading; the system resolves the precedence. Never resolve a "
+        "disagreement silently by dropping a source's value.",
     ),
     (
         "valuation",
@@ -328,6 +342,7 @@ def build_request(
     dp: str,
     section: str,
     mode: Optional[str] = None,
+    valuation_pdf: Optional[str | Path] = None,
 ) -> dict:
     """Build the kwargs dict passed to ``client.messages.create`` for a section.
 
@@ -345,25 +360,36 @@ def build_request(
     """
     mode = mode or os.environ.get("EXTRACT_PDF_MODE", DEFAULT_PDF_MODE)
     model, focus = _SECTION_INDEX[section]
+    docs_line = (
+        "The documents above are the Lightstone EVM report (first) and the "
+        "Dynamic Property Report (second)."
+        if valuation_pdf is None
+        else "The documents above are the Lightstone EVM report (first), the "
+        "Dynamic Property Report (second) and a registered valuer's valuation "
+        "report (third)."
+    )
     text_block = {
         "type": "text",
         "text": (
             "For DP " + str(dp) + ", extract ONLY the `" + section + "` section "
             "of the property record by calling the `" + _tool_name(section) + "` "
             "tool (ignore the other section tools on this call): " + focus + " "
-            "The two documents above are the Lightstone EVM report (first) and "
-            "the Dynamic Property Report (second). Merge them per the system "
-            "rules and leave any fact the documents do not contain as null."
+            + docs_line + " Merge them per the system rules and leave any fact "
+            "the documents do not contain as null."
         ),
     }
-    lightstone_block = _source_block(lightstone_pdf, mode, "LIGHTSTONE EVM REPORT")
-    report_block = _source_block(property_report_pdf, mode, "DYNAMIC PROPERTY REPORT")
-    # The cached prefix ends after the source blocks: system brief + both
-    # documents are identical for every section call of a property, past the
-    # 4096-token minimum cacheable prefix on claude-opus-4-8 in either mode
-    # (~25.9k native, ~5.7k text for DP3060). The first call writes the cache;
-    # the remaining sections read it at a tenth of the input price.
-    report_block["cache_control"] = {"type": "ephemeral"}
+    source_blocks = [
+        _source_block(lightstone_pdf, mode, "LIGHTSTONE EVM REPORT"),
+        _source_block(property_report_pdf, mode, "DYNAMIC PROPERTY REPORT"),
+    ]
+    if valuation_pdf is not None:
+        source_blocks.append(_source_block(valuation_pdf, mode, "REGISTERED VALUER'S VALUATION REPORT"))
+    # The cached prefix ends after the LAST source block: system brief + every
+    # document are identical for every section call of a property, past the
+    # 4096-token minimum cacheable prefix on claude-opus-4-8 in either mode.
+    # The first call writes the cache; the remaining sections read it at a tenth
+    # of the input price.
+    source_blocks[-1]["cache_control"] = {"type": "ephemeral"}
     return {
         "model": MODEL,
         "max_tokens": MAX_TOKENS,
@@ -380,11 +406,7 @@ def build_request(
         "messages": [
             {
                 "role": "user",
-                "content": [
-                    lightstone_block,
-                    report_block,
-                    text_block,
-                ],
+                "content": [*source_blocks, text_block],
             }
         ],
         # The FULL section-tool list, identical on every call: tools serialize
@@ -452,6 +474,7 @@ def extract_record(
     client=None,
     mode: Optional[str] = None,
     pace_seconds: Optional[float] = None,
+    valuation_pdf: Optional[str | Path] = None,
 ) -> PropertyRecord:
     """Extract a validated ``PropertyRecord`` from the source PDF pair.
 
@@ -487,7 +510,9 @@ def extract_record(
         # the tokens-per-minute limit on a low tier.
         if pace_seconds and idx:
             time.sleep(pace_seconds)
-        request = build_request(lightstone_pdf, property_report_pdf, dp, section, mode)
+        request = build_request(
+            lightstone_pdf, property_report_pdf, dp, section, mode, valuation_pdf=valuation_pdf
+        )
         try:
             parts[section] = _extract_section(client, request, section, model)
         except anthropic.AuthenticationError as exc:
@@ -505,6 +530,10 @@ def extract_record(
     if sources.property_report is None:
         sources.property_report = PropertyReportSource()
     sources.property_report.file = str(property_report_pdf)
+    if valuation_pdf is not None:
+        if sources.valuation_report is None:
+            sources.valuation_report = ValuationReportSource()
+        sources.valuation_report.file = str(valuation_pdf)
     parts["sources"] = sources
 
     record = PropertyRecord(
@@ -578,5 +607,11 @@ def normalize_record(record: PropertyRecord) -> PropertyRecord:
         fin.as_at = _normalize_date(fin.as_at)
         if fin.last_sale is not None:
             fin.last_sale.date = _normalize_date(fin.last_sale.date)
+
+    # Resolve every physical conflict to the precedence winner (valuation >
+    # property_report > lightstone, D35), writing the chosen value onto the
+    # field. Deterministic, code-owned - the model only records each source's
+    # value; the merge rule is enforced here.
+    resolve_physical_conflicts(record)
 
     return record

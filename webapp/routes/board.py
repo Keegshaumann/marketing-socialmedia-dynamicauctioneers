@@ -19,7 +19,7 @@ import sqlite3
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from webapp import auth, models
@@ -218,4 +218,29 @@ def board_rows(request: Request):
     if auth.current_user(request) is None:
         return RedirectResponse("/login", status_code=303)
     rows = _load_rows(auth.db_path_for(request))
+    return _view(request, "_board_rows.html", {"rows": rows, "animate": False})
+
+
+@router.post("/board/{dp}/delete", response_class=HTMLResponse)
+def board_delete(
+    dp: str,
+    request: Request,
+    user: dict = Depends(auth.require_role("approver", "marketing")),
+):
+    """Remove a property from the board (e.g. intaken in error). Irreversible.
+
+    Deletes the record and its state history and any queued/finished jobs for the
+    DP, then returns the refreshed ledger body for the HTMX swap. Uploaded source
+    files on disk are left in place. Gated to the operational roles.
+    """
+    from engine.store import RecordStore
+
+    db_path = auth.db_path_for(request)
+    store = RecordStore(models.resolve_db_path(db_path))
+    try:
+        store.delete(dp)
+    finally:
+        store.close()
+    models.delete_jobs_for_dp(db_path, dp)
+    rows = _load_rows(db_path)
     return _view(request, "_board_rows.html", {"rows": rows, "animate": False})

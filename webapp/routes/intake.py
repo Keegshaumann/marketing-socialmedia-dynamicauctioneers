@@ -138,6 +138,7 @@ async def upload(
 
     lightstone = _relocate(job.lightstone_evm)
     property_report = _relocate(job.property_report)
+    valuation = _relocate(job.valuation_report)  # optional 3rd source (D35)
 
     # Create the base record only if this DP is new; never overwrite an
     # already-extracted record's JSON with an empty shell.
@@ -153,6 +154,7 @@ async def upload(
         "dp": dp,
         "lightstone": lightstone,
         "property_report": property_report,
+        "valuation": valuation,
         "output_root": output_root,
     }
     job_id = jobs.enqueue(db_path, "extract", dp, payload=payload)

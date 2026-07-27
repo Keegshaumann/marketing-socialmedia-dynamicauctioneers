@@ -37,8 +37,17 @@
     "bedrooms": 3,
     "bathrooms_main_unit": 2,
     "separate_toilet": true,
-    "garages": null,
-    "garages_conflict": "Lightstone attributes say 3 garages; physical inspection lists none (ample guest parking). Unresolved, omitted from marketing until confirmed.",
+    "garages": 0,
+    "conflicts": [
+      {
+        "field": "garages",
+        "label": "Garages",
+        "lightstone": "3",
+        "property_report": "none (inspection lists ample guest parking, no garage)",
+        "valuation": null,
+        "resolved_source": "property_report"
+      }
+    ],
     "flatlet": {
       "present": true,
       "bedrooms": 1,

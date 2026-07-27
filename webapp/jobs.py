@@ -125,6 +125,7 @@ def _handle_extract(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, s
     dp = job.get("dp")
     lightstone = payload.get("lightstone")
     property_report = payload.get("property_report")
+    valuation = payload.get("valuation")  # optional 3rd source (D35)
     if not (dp and lightstone and property_report):
         return (
             "skipped: no API key",
@@ -134,7 +135,7 @@ def _handle_extract(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, s
     from engine.extract import extract_record
     from engine.store import RecordStore
 
-    record = extract_record(lightstone, property_report, dp=dp)
+    record = extract_record(lightstone, property_report, dp=dp, valuation_pdf=valuation)
     store = RecordStore(models.resolve_db_path(db_path))
     try:
         store.upsert(record, state="extracted")

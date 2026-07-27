@@ -19,6 +19,7 @@ Design rules baked in here:
 
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict
@@ -43,9 +44,22 @@ class PropertyReportSource(_Base):
     figures_as_at: Optional[str] = None
 
 
+class ValuationReportSource(_Base):
+    """A registered valuer's report, when supplied as an optional 3rd document.
+
+    Optional per property (marketing is not always given it). When present it
+    ranks ABOVE the Property Report for physical facts (D35).
+    """
+
+    file: Optional[str] = None
+    valuer: Optional[str] = None
+    valuation_date: Optional[str] = None
+
+
 class Sources(_Base):
     lightstone_evm: Optional[LightstoneSource] = None
     property_report: Optional[PropertyReportSource] = None
+    valuation_report: Optional[ValuationReportSource] = None
 
 
 # --- identity (Lightstone deeds data wins) -------------------------------
@@ -78,6 +92,35 @@ class Flatlet(_Base):
     note: Optional[str] = None
 
 
+class PhysicalConflict(_Base):
+    """One physical fact the source documents disagree on (D35).
+
+    Each source's value is recorded as it is stated (a string, so int/float/bool
+    facts share one shape). ``resolve_physical_conflicts`` writes the value from
+    the highest-priority source that has one into the matching ``Physical``
+    field, following the precedence valuation > property_report > lightstone,
+    and records which source won in ``resolved_source``. A human can override the
+    pick at gate 1 (setting ``resolved_source`` to their choice + a reason). Each
+    conflict raises a blocking PHYSICAL_CONFLICT flag until it is signed off.
+
+    Precedence covers physical/condition/feature facts only; Lightstone stays
+    authoritative for the deeds/legal/market data it alone holds, which is never
+    recorded here.
+    """
+
+    field: str  # the Physical attribute in dispute, e.g. "garages"
+    label: Optional[str] = None  # human label for the field, e.g. "Garages"
+    # value as each source states it (None = that source did not state it)
+    lightstone: Optional[str] = None
+    property_report: Optional[str] = None
+    valuation: Optional[str] = None
+    # which source's value is currently on the record ("valuation" |
+    # "property_report" | "lightstone"); set by resolve_physical_conflicts or a
+    # human override
+    resolved_source: Optional[str] = None
+    override_reason: Optional[str] = None  # a human's reason if they overrode
+
+
 class Physical(_Base):
     unit_size_m2: Optional[float] = None
     mother_erf_m2: Optional[float] = None
@@ -86,14 +129,13 @@ class Physical(_Base):
     bathrooms_main_unit: Optional[int] = None
     separate_toilet: Optional[bool] = None
     garages: Optional[int] = None
-    garages_conflict: Optional[str] = None  # set when sources disagree
-    # One line per cross-source disagreement on any OTHER physical fact (bed
-    # count, sizes...). The inspection's value stands in the field itself per
-    # the merge rule, but the disagreement must be recorded, never silently
-    # picked (seen live on Erf 2035: EVM said 2 bedrooms / 106 m2, inspection
-    # said 4 / 310 m2, and only the garage half of that line was noted). Each
-    # entry raises a blocking PHYSICAL_CONFLICT verification flag (D32).
-    conflicts: Optional[List[str]] = None
+    # One entry per cross-source disagreement on a physical fact (garages, bed
+    # count, sizes...). Each carries every source's value; the field above holds
+    # the precedence-resolved value (valuation > property_report > lightstone,
+    # D35) and each entry raises a blocking PHYSICAL_CONFLICT flag until signed
+    # off. Never resolve a disagreement silently (seen live on Erf 2035: EVM
+    # said 2 bedrooms / 106 m2, inspection said 4 / 310 m2).
+    conflicts: Optional[List[PhysicalConflict]] = None
     flatlet: Optional[Flatlet] = None
     features_main: Optional[List[str]] = None
     features_complex: Optional[List[str]] = None
@@ -282,6 +324,18 @@ def _strip_internal_strategy(data: dict) -> None:
         valuation.pop("professional", None)
 
 
+def _strip_conflicts(data: dict) -> None:
+    """Remove the internal cross-source conflict list from a projection dict.
+
+    ``physical.conflicts`` is verification metadata (each source's disputed
+    value): the record's fields already hold the resolved values, so a renderer
+    or the copy model never needs — and should never see — the raw disagreement.
+    """
+    physical = data.get("physical")
+    if isinstance(physical, dict):
+        physical.pop("conflicts", None)
+
+
 def _apply_overrides(data: dict, overrides: dict) -> None:
     """Apply a dotted-path override map onto the already-stripped ``data`` dict.
 
@@ -341,6 +395,7 @@ class PropertyRecord(_Base):
         data = self.model_dump(mode="json")
         _strip_pii(data)
         _strip_internal_strategy(data)
+        _strip_conflicts(data)
         overrides = data.pop("human_overrides", None) or {}
         _apply_overrides(data, overrides)
         # Defence in depth: overrides are applied last and are guarded on write,
@@ -348,4 +403,100 @@ class PropertyRecord(_Base):
         # field behind.
         _strip_pii(data)
         _strip_internal_strategy(data)
+        _strip_conflicts(data)
         return data
+
+
+# --- physical-conflict precedence resolution (D35) -----------------------
+#
+# When the source documents disagree on a physical fact, believe them in the
+# order valuation > property_report > lightstone. The resolver writes the
+# highest-priority available source's value into the matching Physical field;
+# the human can override the pick at gate 1. Deeds/legal/market data is never a
+# PhysicalConflict, so this precedence never touches Lightstone's own truth.
+
+PHYSICAL_SOURCE_PRECEDENCE = ("valuation", "property_report", "lightstone")
+
+# Human labels for the sources, for the memo and the gate-1 picker.
+SOURCE_LABELS = {
+    "valuation": "Valuation report",
+    "property_report": "Property Report",
+    "lightstone": "Lightstone",
+}
+
+_NONE_WORDS = {"", "none", "no", "nil", "n/a", "na", "zero", "0"}
+
+
+def _coerce_int(raw: Any) -> Optional[int]:
+    s = str(raw).strip().lower()
+    if s in _NONE_WORDS:
+        return 0
+    match = re.search(r"-?\d+", s.replace(",", ""))
+    return int(match.group()) if match else None
+
+
+def _coerce_float(raw: Any) -> Optional[float]:
+    s = str(raw).strip().lower()
+    if s in _NONE_WORDS:
+        return 0.0
+    match = re.search(r"-?\d+(?:\.\d+)?", s.replace(",", ""))
+    return float(match.group()) if match else None
+
+
+def _coerce_bool(raw: Any) -> Optional[bool]:
+    s = str(raw).strip().lower()
+    if s in {"yes", "true", "y", "1"}:
+        return True
+    if s in {"no", "false", "n", "0", "none", "nil"}:
+        return False
+    return None
+
+
+# Physical fields whose resolved conflict value can be written back onto the
+# record, with the coercion from the recorded string. A field not listed still
+# records the disagreement and picks a resolved_source, but its typed value is
+# left as extracted (e.g. free-text zoning).
+_CONFLICT_FIELD_COERCE = {
+    "garages": _coerce_int,
+    "bedrooms": _coerce_int,
+    "bathrooms_main_unit": _coerce_int,
+    "separate_toilet": _coerce_bool,
+    "unit_size_m2": _coerce_float,
+    "mother_erf_m2": _coerce_float,
+}
+
+
+def _pick_source(conflict: "PhysicalConflict") -> Optional[str]:
+    """The source whose value should stand: an honoured human override if it
+    still has a value, else the highest-priority source that has one."""
+    chosen = conflict.resolved_source
+    if chosen in PHYSICAL_SOURCE_PRECEDENCE and getattr(conflict, chosen, None) is not None:
+        return chosen
+    return next(
+        (s for s in PHYSICAL_SOURCE_PRECEDENCE if getattr(conflict, s, None) is not None),
+        None,
+    )
+
+
+def resolve_physical_conflicts(record: PropertyRecord) -> PropertyRecord:
+    """Write each conflicting physical field from its precedence-resolved source.
+
+    In place; returns the record. Honours a human's ``resolved_source`` override;
+    otherwise picks by precedence (valuation > property_report > lightstone) and
+    stamps ``resolved_source``. Fields not in ``_CONFLICT_FIELD_COERCE`` keep the
+    extracted value but still get a resolved_source recorded.
+    """
+    physical = record.physical
+    if physical is None or not physical.conflicts:
+        return record
+    for conflict in physical.conflicts:
+        source = _pick_source(conflict)
+        conflict.resolved_source = source
+        if source is None:
+            continue
+        coerce = _CONFLICT_FIELD_COERCE.get(conflict.field)
+        if coerce is not None and hasattr(physical, conflict.field):
+            value = coerce(getattr(conflict, source))
+            if value is not None:
+                setattr(physical, conflict.field, value)
+    return record

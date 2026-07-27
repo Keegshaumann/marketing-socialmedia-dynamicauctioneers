@@ -59,9 +59,10 @@
     if (submit) submit.classList.add('is-ready');
 
     var n = files.length;
+    var ok = (n === 2 || n === 3);  // EVM + Property Report, plus an optional valuation
     var head = document.createElement('div');
-    head.className = 'dropzone__files-head ' + (n === 2 ? 'is-ok' : 'is-note');
-    head.innerHTML = (n === 2 ? _CHECK_SVG : '');
+    head.className = 'dropzone__files-head ' + (ok ? 'is-ok' : 'is-note');
+    head.innerHTML = (ok ? _CHECK_SVG : '');
     var headText = document.createElement('span');
     headText.textContent = n === 1 ? '1 file selected' : n + ' files ready';
     head.appendChild(headText);
@@ -85,12 +86,12 @@
       box.appendChild(row);
     });
 
-    if (n !== 2) {
+    if (!ok) {
       var note = document.createElement('div');
       note.className = 'dropzone__files-note';
       note.textContent = n < 2
         ? 'Add the second PDF - the Lightstone EVM and the Property Report make the pair.'
-        : 'That is more than a pair. The engine expects two PDFs per property.';
+        : 'That is more than three PDFs. The engine expects the EVM, the Property Report, and at most one valuation report.';
       box.appendChild(note);
     }
   }

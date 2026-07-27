@@ -772,6 +772,7 @@ pre.card { color: var(--text); font-size: 12.5px; line-height: 1.6; }
 .icon--sm { width: 15px; height: 15px; }
 .icon--lg { width: 24px; height: 24px; }
 .icon--xl { width: 40px; height: 40px; }
+.icon--flip { transform: scaleX(-1); }  /* a right-arrow reused as "back" */
 
 /* ---- HTMX swap motion --------------------------------------------------- */
 @media (prefers-reduced-motion: no-preference) {
@@ -819,4 +820,38 @@ pre.card { color: var(--text); font-size: 12.5px; line-height: 1.6; }
   .grid-2 { grid-template-columns: 1fr; }
   .content, .topbar { padding-left: 18px; padding-right: 18px; }
   .sheet__body { padding: 22px 20px; }
+}
+
+/* --- gate-1 physical-conflict source picker (D35) ---------------------- */
+.conflict__opts { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 10px; }
+.conflict__opt {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border: 1px solid var(--hairline); border-radius: 8px;
+  background: var(--surface-2); cursor: pointer;
+  transition: border-color var(--dur-1) var(--ease), background var(--dur-1) var(--ease);
+}
+.conflict__opt:hover { border-color: var(--accent-bd); }
+.conflict__opt:has(input:checked) { border-color: var(--accent); box-shadow: var(--glow-soft); }
+.conflict__opt input { accent-color: var(--accent); flex: none; }
+.conflict__src { font-weight: 700; color: var(--text-strong); min-width: 130px; }
+.conflict__val { color: var(--text); flex: 1; }
+.conflict__badge {
+  font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--accent-ink); background: var(--accent); padding: 2px 8px; border-radius: 999px;
+}
+
+/* --- board row delete control ----------------------------------------- */
+.ledger__manage { text-align: center; }
+.iconbtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 7px;
+  border: 1px solid transparent; background: transparent; color: var(--faint);
+  cursor: pointer; opacity: .35;
+  transition: opacity var(--dur-1) var(--ease), color var(--dur-1) var(--ease),
+              border-color var(--dur-1) var(--ease), background var(--dur-1) var(--ease);
+}
+tr:hover .iconbtn { opacity: 1; }
+.iconbtn:active { transform: scale(0.94); }
+.iconbtn--danger:hover {
+  color: var(--block); border-color: var(--block); background: rgba(232, 115, 95, .10);
 }

@@ -26,7 +26,16 @@
       <span class="muted">{{ r.next.label }}</span>
     {% endif %}
   </td>
+  <td class="ledger__manage">
+    <button type="button" class="iconbtn iconbtn--danger"
+            title="Delete DP {{ r.dp }}" aria-label="Delete DP {{ r.dp }}"
+            hx-post="/board/{{ r.dp }}/delete"
+            hx-target="#ledger-body" hx-swap="innerHTML"
+            hx-confirm="Delete DP {{ r.dp }}? This removes the record and its history and cannot be undone.">
+      {{ ui.icon('x', 'icon--sm') }}
+    </button>
+  </td>
 </tr>
 {%- else %}
-<tr><td colspan="6" class="muted" style="padding:22px 16px;">No records yet.</td></tr>
+<tr><td colspan="7" class="muted" style="padding:22px 16px;">No records yet.</td></tr>
 {%- endfor %}
