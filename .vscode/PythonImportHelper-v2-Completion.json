@@ -2364,6 +2364,22 @@
         "documentation": {}
     },
     {
+        "label": "parse_qs",
+        "importPath": "urllib.parse",
+        "description": "urllib.parse",
+        "isExtraImport": true,
+        "detail": "urllib.parse",
+        "documentation": {}
+    },
+    {
+        "label": "urlparse",
+        "importPath": "urllib.parse",
+        "description": "urllib.parse",
+        "isExtraImport": true,
+        "detail": "urllib.parse",
+        "documentation": {}
+    },
+    {
         "label": "urllib.request",
         "kind": 6,
         "isExtraImport": true,
@@ -4621,7 +4637,7 @@
         "kind": 5,
         "importPath": "engine.render.canva_backend",
         "description": "engine.render.canva_backend",
-        "peekOfCode": "_AD_HEADLINE_MAX = 40  # chars that fit the tile headline box before it wraps into the FOR SALE badge\n# Fields the engine always sends when the template exposes them, even blank, so a\n# stale template default (e.g. a demo \"MASTER REF\") is cleared rather than shown.\n_ALWAYS_EMIT = {\"master_ref\"}\ndef _ad_headline(record: Dict[str, Any], copy: Dict[str, Any]) -> Optional[str]:\n    \"\"\"A headline sized for the ad tile.\n    Uses the record/copy headline when it fits; when it would overflow the box\n    (wrapping into the badge, as on DP3060) it falls back to a concise form\n    composed from structured fields — still every word tracing to the record.\n    \"\"\"",
+        "peekOfCode": "_AD_HEADLINE_MAX = 40  # chars that fit the tile headline box before it wraps into the FOR SALE badge\n# Fields the engine always sends when the template exposes them, even blank, so a\n# stale template default (e.g. a demo \"MASTER REF\", or a \"PROPERTY REF: DP...\"\n# that would leak the internal DP, D37) is cleared rather than shown.\n_ALWAYS_EMIT = {\"master_ref\", \"property_ref\"}\ndef _ad_headline(record: Dict[str, Any], copy: Dict[str, Any]) -> Optional[str]:\n    \"\"\"A headline sized for the ad tile.\n    Uses the record/copy headline when it fits; when it would overflow the box\n    (wrapping into the badge, as on DP3060) it falls back to a concise form\n    composed from structured fields — still every word tracing to the record.",
         "detail": "engine.render.canva_backend",
         "documentation": {}
     },
@@ -4630,7 +4646,7 @@
         "kind": 5,
         "importPath": "engine.render.canva_backend",
         "description": "engine.render.canva_backend",
-        "peekOfCode": "_ALWAYS_EMIT = {\"master_ref\"}\ndef _ad_headline(record: Dict[str, Any], copy: Dict[str, Any]) -> Optional[str]:\n    \"\"\"A headline sized for the ad tile.\n    Uses the record/copy headline when it fits; when it would overflow the box\n    (wrapping into the badge, as on DP3060) it falls back to a concise form\n    composed from structured fields — still every word tracing to the record.\n    \"\"\"\n    headline = (copy or {}).get(\"headline\") or (record.get(\"marketing\") or {}).get(\"headline\")\n    if not headline:\n        return None",
+        "peekOfCode": "_ALWAYS_EMIT = {\"master_ref\", \"property_ref\"}\ndef _ad_headline(record: Dict[str, Any], copy: Dict[str, Any]) -> Optional[str]:\n    \"\"\"A headline sized for the ad tile.\n    Uses the record/copy headline when it fits; when it would overflow the box\n    (wrapping into the badge, as on DP3060) it falls back to a concise form\n    composed from structured fields — still every word tracing to the record.\n    \"\"\"\n    headline = (copy or {}).get(\"headline\") or (record.get(\"marketing\") or {}).get(\"headline\")\n    if not headline:\n        return None",
         "detail": "engine.render.canva_backend",
         "documentation": {}
     },
@@ -5757,6 +5773,186 @@
         "description": "scripts.canva_authorize",
         "peekOfCode": "DEFAULT_REDIRECT = \"http://127.0.0.1:8080/callback\"\ndef _pkce_pair() -> \"tuple[str, str]\":\n    \"\"\"Return (code_verifier, code_challenge) for PKCE S256.\"\"\"\n    verifier = secrets.token_urlsafe(64)  # 43-128 chars, URL-safe\n    digest = hashlib.sha256(verifier.encode(\"ascii\")).digest()\n    challenge = base64.urlsafe_b64encode(digest).rstrip(b\"=\").decode(\"ascii\")\n    return verifier, challenge\nclass _CallbackHandler(http.server.BaseHTTPRequestHandler):\n    \"\"\"Catch the single OAuth redirect and stash the query params.\"\"\"\n    result: dict = {}",
         "detail": "scripts.canva_authorize",
+        "documentation": {}
+    },
+    {
+        "label": "Handler",
+        "kind": 6,
+        "importPath": "scripts.canva_reauth",
+        "description": "scripts.canva_reauth",
+        "peekOfCode": "class Handler(http.server.BaseHTTPRequestHandler):\n    def log_message(self, *a):\n        pass\n    def do_GET(self):\n        u = urlparse(self.path)\n        if u.path != cb_path:\n            self.send_response(404); self.end_headers(); return\n        q = parse_qs(u.query)\n        result.update(\n            code=(q.get(\"code\") or [None])[0],",
+        "detail": "scripts.canva_reauth",
+        "documentation": {}
+    },
+    {
+        "label": "API_BASE",
+        "kind": 5,
+        "importPath": "scripts.canva_reauth",
+        "description": "scripts.canva_reauth",
+        "peekOfCode": "API_BASE = \"https://api.canva.com/rest/v1\"\nTOKEN_URL = f\"{API_BASE}/oauth/token\"\nAUTHORIZE_URL = \"https://www.canva.com/api/oauth/authorize\"\n# Scopes the autofill render flow uses (a subset of the Connect app's config).\nSCOPES = (\n    \"asset:read asset:write \"\n    \"brandtemplate:content:read brandtemplate:meta:read \"\n    \"design:content:read design:content:write design:meta:read\"\n)\nOUT_FILE = os.environ.get(\"REAUTH_OUT\", \"/tmp/canva_new_refresh_token.txt\")",
+        "detail": "scripts.canva_reauth",
+        "documentation": {}
+    },
+    {
+        "label": "TOKEN_URL",
+        "kind": 5,
+        "importPath": "scripts.canva_reauth",
+        "description": "scripts.canva_reauth",
+        "peekOfCode": "TOKEN_URL = f\"{API_BASE}/oauth/token\"\nAUTHORIZE_URL = \"https://www.canva.com/api/oauth/authorize\"\n# Scopes the autofill render flow uses (a subset of the Connect app's config).\nSCOPES = (\n    \"asset:read asset:write \"\n    \"brandtemplate:content:read brandtemplate:meta:read \"\n    \"design:content:read design:content:write design:meta:read\"\n)\nOUT_FILE = os.environ.get(\"REAUTH_OUT\", \"/tmp/canva_new_refresh_token.txt\")\nclient_id = os.environ[\"CANVA_CLIENT_ID\"]",
+        "detail": "scripts.canva_reauth",
+        "documentation": {}
+    },
+    {
+        "label": "AUTHORIZE_URL",
+        "kind": 5,
+        "importPath": "scripts.canva_reauth",
+        "description": "scripts.canva_reauth",
+        "peekOfCode": "AUTHORIZE_URL = \"https://www.canva.com/api/oauth/authorize\"\n# Scopes the autofill render flow uses (a subset of the Connect app's config).\nSCOPES = (\n    \"asset:read asset:write \"\n    \"brandtemplate:content:read brandtemplate:meta:read \"\n    \"design:content:read design:content:write design:meta:read\"\n)\nOUT_FILE = os.environ.get(\"REAUTH_OUT\", \"/tmp/canva_new_refresh_token.txt\")\nclient_id = os.environ[\"CANVA_CLIENT_ID\"]\nclient_secret = os.environ[\"CANVA_CLIENT_SECRET\"]",
+        "detail": "scripts.canva_reauth",
+        "documentation": {}
+    },
+    {
+        "label": "SCOPES",
+        "kind": 5,
+        "importPath": "scripts.canva_reauth",
+        "description": "scripts.canva_reauth",
+        "peekOfCode": "SCOPES = (\n    \"asset:read asset:write \"\n    \"brandtemplate:content:read brandtemplate:meta:read \"\n    \"design:content:read design:content:write design:meta:read\"\n)\nOUT_FILE = os.environ.get(\"REAUTH_OUT\", \"/tmp/canva_new_refresh_token.txt\")\nclient_id = os.environ[\"CANVA_CLIENT_ID\"]\nclient_secret = os.environ[\"CANVA_CLIENT_SECRET\"]\nredirect_uri = os.environ.get(\"CANVA_REDIRECT_URI\", \"http://127.0.0.1:8080/callback\")\nverifier = secrets.token_urlsafe(72)",
+        "detail": "scripts.canva_reauth",
+        "documentation": {}
+    },
+    {
+        "label": "OUT_FILE",
+        "kind": 5,
+        "importPath": "scripts.canva_reauth",
+        "description": "scripts.canva_reauth",
+        "peekOfCode": "OUT_FILE = os.environ.get(\"REAUTH_OUT\", \"/tmp/canva_new_refresh_token.txt\")\nclient_id = os.environ[\"CANVA_CLIENT_ID\"]\nclient_secret = os.environ[\"CANVA_CLIENT_SECRET\"]\nredirect_uri = os.environ.get(\"CANVA_REDIRECT_URI\", \"http://127.0.0.1:8080/callback\")\nverifier = secrets.token_urlsafe(72)\nchallenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b\"=\").decode()\nstate = secrets.token_urlsafe(16)\nauth_url = AUTHORIZE_URL + \"?\" + urllib.parse.urlencode({\n    \"code_challenge\": challenge,\n    \"code_challenge_method\": \"S256\",",
+        "detail": "scripts.canva_reauth",
+        "documentation": {}
+    },
+    {
+        "label": "client_id",
+        "kind": 5,
+        "importPath": "scripts.canva_reauth",
+        "description": "scripts.canva_reauth",
+        "peekOfCode": "client_id = os.environ[\"CANVA_CLIENT_ID\"]\nclient_secret = os.environ[\"CANVA_CLIENT_SECRET\"]\nredirect_uri = os.environ.get(\"CANVA_REDIRECT_URI\", \"http://127.0.0.1:8080/callback\")\nverifier = secrets.token_urlsafe(72)\nchallenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b\"=\").decode()\nstate = secrets.token_urlsafe(16)\nauth_url = AUTHORIZE_URL + \"?\" + urllib.parse.urlencode({\n    \"code_challenge\": challenge,\n    \"code_challenge_method\": \"S256\",\n    \"scope\": SCOPES,",
+        "detail": "scripts.canva_reauth",
+        "documentation": {}
+    },
+    {
+        "label": "client_secret",
+        "kind": 5,
+        "importPath": "scripts.canva_reauth",
+        "description": "scripts.canva_reauth",
+        "peekOfCode": "client_secret = os.environ[\"CANVA_CLIENT_SECRET\"]\nredirect_uri = os.environ.get(\"CANVA_REDIRECT_URI\", \"http://127.0.0.1:8080/callback\")\nverifier = secrets.token_urlsafe(72)\nchallenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b\"=\").decode()\nstate = secrets.token_urlsafe(16)\nauth_url = AUTHORIZE_URL + \"?\" + urllib.parse.urlencode({\n    \"code_challenge\": challenge,\n    \"code_challenge_method\": \"S256\",\n    \"scope\": SCOPES,\n    \"response_type\": \"code\",",
+        "detail": "scripts.canva_reauth",
+        "documentation": {}
+    },
+    {
+        "label": "redirect_uri",
+        "kind": 5,
+        "importPath": "scripts.canva_reauth",
+        "description": "scripts.canva_reauth",
+        "peekOfCode": "redirect_uri = os.environ.get(\"CANVA_REDIRECT_URI\", \"http://127.0.0.1:8080/callback\")\nverifier = secrets.token_urlsafe(72)\nchallenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b\"=\").decode()\nstate = secrets.token_urlsafe(16)\nauth_url = AUTHORIZE_URL + \"?\" + urllib.parse.urlencode({\n    \"code_challenge\": challenge,\n    \"code_challenge_method\": \"S256\",\n    \"scope\": SCOPES,\n    \"response_type\": \"code\",\n    \"client_id\": client_id,",
+        "detail": "scripts.canva_reauth",
+        "documentation": {}
+    },
+    {
+        "label": "verifier",
+        "kind": 5,
+        "importPath": "scripts.canva_reauth",
+        "description": "scripts.canva_reauth",
+        "peekOfCode": "verifier = secrets.token_urlsafe(72)\nchallenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b\"=\").decode()\nstate = secrets.token_urlsafe(16)\nauth_url = AUTHORIZE_URL + \"?\" + urllib.parse.urlencode({\n    \"code_challenge\": challenge,\n    \"code_challenge_method\": \"S256\",\n    \"scope\": SCOPES,\n    \"response_type\": \"code\",\n    \"client_id\": client_id,\n    \"redirect_uri\": redirect_uri,",
+        "detail": "scripts.canva_reauth",
+        "documentation": {}
+    },
+    {
+        "label": "challenge",
+        "kind": 5,
+        "importPath": "scripts.canva_reauth",
+        "description": "scripts.canva_reauth",
+        "peekOfCode": "challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b\"=\").decode()\nstate = secrets.token_urlsafe(16)\nauth_url = AUTHORIZE_URL + \"?\" + urllib.parse.urlencode({\n    \"code_challenge\": challenge,\n    \"code_challenge_method\": \"S256\",\n    \"scope\": SCOPES,\n    \"response_type\": \"code\",\n    \"client_id\": client_id,\n    \"redirect_uri\": redirect_uri,\n    \"state\": state,",
+        "detail": "scripts.canva_reauth",
+        "documentation": {}
+    },
+    {
+        "label": "state",
+        "kind": 5,
+        "importPath": "scripts.canva_reauth",
+        "description": "scripts.canva_reauth",
+        "peekOfCode": "state = secrets.token_urlsafe(16)\nauth_url = AUTHORIZE_URL + \"?\" + urllib.parse.urlencode({\n    \"code_challenge\": challenge,\n    \"code_challenge_method\": \"S256\",\n    \"scope\": SCOPES,\n    \"response_type\": \"code\",\n    \"client_id\": client_id,\n    \"redirect_uri\": redirect_uri,\n    \"state\": state,\n})",
+        "detail": "scripts.canva_reauth",
+        "documentation": {}
+    },
+    {
+        "label": "auth_url",
+        "kind": 5,
+        "importPath": "scripts.canva_reauth",
+        "description": "scripts.canva_reauth",
+        "peekOfCode": "auth_url = AUTHORIZE_URL + \"?\" + urllib.parse.urlencode({\n    \"code_challenge\": challenge,\n    \"code_challenge_method\": \"S256\",\n    \"scope\": SCOPES,\n    \"response_type\": \"code\",\n    \"client_id\": client_id,\n    \"redirect_uri\": redirect_uri,\n    \"state\": state,\n})\nparsed = urlparse(redirect_uri)",
+        "detail": "scripts.canva_reauth",
+        "documentation": {}
+    },
+    {
+        "label": "parsed",
+        "kind": 5,
+        "importPath": "scripts.canva_reauth",
+        "description": "scripts.canva_reauth",
+        "peekOfCode": "parsed = urlparse(redirect_uri)\nhost, port, cb_path = parsed.hostname, parsed.port or 80, parsed.path or \"/\"\nresult: dict = {}\nclass Handler(http.server.BaseHTTPRequestHandler):\n    def log_message(self, *a):\n        pass\n    def do_GET(self):\n        u = urlparse(self.path)\n        if u.path != cb_path:\n            self.send_response(404); self.end_headers(); return",
+        "detail": "scripts.canva_reauth",
+        "documentation": {}
+    },
+    {
+        "label": "code",
+        "kind": 5,
+        "importPath": "scripts.canva_reauth",
+        "description": "scripts.canva_reauth",
+        "peekOfCode": "code = result.get(\"code\")\nif not code:\n    print(\"REAUTH_ERROR: no authorization code received.\"); sys.exit(1)\nbody = urllib.parse.urlencode({\n    \"grant_type\": \"authorization_code\",\n    \"code\": code,\n    \"code_verifier\": verifier,\n    \"redirect_uri\": redirect_uri,\n}).encode()\nbasic = base64.b64encode(f\"{client_id}:{client_secret}\".encode()).decode()",
+        "detail": "scripts.canva_reauth",
+        "documentation": {}
+    },
+    {
+        "label": "body",
+        "kind": 5,
+        "importPath": "scripts.canva_reauth",
+        "description": "scripts.canva_reauth",
+        "peekOfCode": "body = urllib.parse.urlencode({\n    \"grant_type\": \"authorization_code\",\n    \"code\": code,\n    \"code_verifier\": verifier,\n    \"redirect_uri\": redirect_uri,\n}).encode()\nbasic = base64.b64encode(f\"{client_id}:{client_secret}\".encode()).decode()\nreq = urllib.request.Request(TOKEN_URL, data=body, method=\"POST\", headers={\n    \"Authorization\": f\"Basic {basic}\",\n    \"Content-Type\": \"application/x-www-form-urlencoded\",",
+        "detail": "scripts.canva_reauth",
+        "documentation": {}
+    },
+    {
+        "label": "basic",
+        "kind": 5,
+        "importPath": "scripts.canva_reauth",
+        "description": "scripts.canva_reauth",
+        "peekOfCode": "basic = base64.b64encode(f\"{client_id}:{client_secret}\".encode()).decode()\nreq = urllib.request.Request(TOKEN_URL, data=body, method=\"POST\", headers={\n    \"Authorization\": f\"Basic {basic}\",\n    \"Content-Type\": \"application/x-www-form-urlencoded\",\n})\ntry:\n    with urllib.request.urlopen(req, timeout=30) as r:\n        payload = json.loads(r.read().decode())\nexcept urllib.error.HTTPError as e:\n    print(\"REAUTH_ERROR: token exchange HTTP \" + str(e.code) + \" \" + e.read().decode()[:400]); sys.exit(1)",
+        "detail": "scripts.canva_reauth",
+        "documentation": {}
+    },
+    {
+        "label": "req",
+        "kind": 5,
+        "importPath": "scripts.canva_reauth",
+        "description": "scripts.canva_reauth",
+        "peekOfCode": "req = urllib.request.Request(TOKEN_URL, data=body, method=\"POST\", headers={\n    \"Authorization\": f\"Basic {basic}\",\n    \"Content-Type\": \"application/x-www-form-urlencoded\",\n})\ntry:\n    with urllib.request.urlopen(req, timeout=30) as r:\n        payload = json.loads(r.read().decode())\nexcept urllib.error.HTTPError as e:\n    print(\"REAUTH_ERROR: token exchange HTTP \" + str(e.code) + \" \" + e.read().decode()[:400]); sys.exit(1)\nrefresh = payload.get(\"refresh_token\")",
+        "detail": "scripts.canva_reauth",
+        "documentation": {}
+    },
+    {
+        "label": "refresh",
+        "kind": 5,
+        "importPath": "scripts.canva_reauth",
+        "description": "scripts.canva_reauth",
+        "peekOfCode": "refresh = payload.get(\"refresh_token\")\nif not refresh:\n    print(\"REAUTH_ERROR: no refresh_token in response\"); sys.exit(1)\nfd = os.open(OUT_FILE, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)\nwith os.fdopen(fd, \"w\") as f:\n    f.write(refresh)\nprint(f\"REAUTH_OK: new refresh token written to {OUT_FILE} (len {len(refresh)}); scopes: {payload.get('scope', '?')}\")",
+        "detail": "scripts.canva_reauth",
+        "documentation": {}
+    },
+    {
+        "label": "fd",
+        "kind": 5,
+        "importPath": "scripts.canva_reauth",
+        "description": "scripts.canva_reauth",
+        "peekOfCode": "fd = os.open(OUT_FILE, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)\nwith os.fdopen(fd, \"w\") as f:\n    f.write(refresh)\nprint(f\"REAUTH_OK: new refresh token written to {OUT_FILE} (len {len(refresh)}); scopes: {payload.get('scope', '?')}\")",
+        "detail": "scripts.canva_reauth",
         "documentation": {}
     },
     {
@@ -8455,7 +8651,7 @@
         "kind": 2,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "def gate2_ad_png(dp: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"Serve the branded ad as a PNG attachment, for emailing a client (D39).\n    Rasterises ``demo_ad.html`` -> ``demo_ad.png`` on demand (cached; re-rendered\n    when the HTML is newer). The download filename uses the suburb, never the\n    internal DP (D37). Degrades to a clear message if wkhtmltoimage is missing.\n    \"\"\"\n    from engine.render.rasterize import RasterizeUnavailable, html_to_png\n    db_path = _db(request)\n    art_dir = _artifacts_dir(db_path, dp)\n    html_path = art_dir / \"demo_ad.html\"",
+        "peekOfCode": "def gate2_ad_png(dp: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"Serve the branded ad as a PNG attachment, for emailing a client (D39).\n    Backend-agnostic: the Canva backend outputs ``demo_ad.png`` directly (served\n    as-is), while the html backend outputs ``demo_ad.html`` which is rasterised to\n    PNG via headless Chromium (cached; re-rendered when the HTML is newer). The\n    download filename uses the suburb, never the internal DP (D37). Degrades to a\n    clear message if the rasteriser is unavailable.\n    \"\"\"\n    from engine.render.rasterize import RasterizeUnavailable, html_to_png\n    db_path = _db(request)",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
