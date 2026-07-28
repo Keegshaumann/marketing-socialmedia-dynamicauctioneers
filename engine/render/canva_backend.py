@@ -154,8 +154,9 @@ def _feature_tagline(physical: Dict[str, Any]) -> Optional[str]:
 _AD_HEADLINE_MAX = 40  # chars that fit the tile headline box before it wraps into the FOR SALE badge
 
 # Fields the engine always sends when the template exposes them, even blank, so a
-# stale template default (e.g. a demo "MASTER REF") is cleared rather than shown.
-_ALWAYS_EMIT = {"master_ref"}
+# stale template default (e.g. a demo "MASTER REF", or a "PROPERTY REF: DP..."
+# that would leak the internal DP, D37) is cleared rather than shown.
+_ALWAYS_EMIT = {"master_ref", "property_ref"}
 
 
 def _ad_headline(record: Dict[str, Any], copy: Dict[str, Any]) -> Optional[str]:

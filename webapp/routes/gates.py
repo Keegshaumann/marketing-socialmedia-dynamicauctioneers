@@ -850,28 +850,36 @@ async def gate2_suggest_headline(
 def gate2_ad_png(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
     """Serve the branded ad as a PNG attachment, for emailing a client (D39).
 
-    Rasterises ``demo_ad.html`` -> ``demo_ad.png`` on demand (cached; re-rendered
-    when the HTML is newer). The download filename uses the suburb, never the
-    internal DP (D37). Degrades to a clear message if wkhtmltoimage is missing.
+    Backend-agnostic: the Canva backend outputs ``demo_ad.png`` directly (served
+    as-is), while the html backend outputs ``demo_ad.html`` which is rasterised to
+    PNG via headless Chromium (cached; re-rendered when the HTML is newer). The
+    download filename uses the suburb, never the internal DP (D37). Degrades to a
+    clear message if the rasteriser is unavailable.
     """
     from engine.render.rasterize import RasterizeUnavailable, html_to_png
 
     db_path = _db(request)
     art_dir = _artifacts_dir(db_path, dp)
     html_path = art_dir / "demo_ad.html"
-    if not html_path.exists():
-        _render(db_path, dp, formats=[AD_FORMAT])  # ensure the ad exists
-    if not html_path.exists():
-        raise HTTPException(status_code=404, detail="The ad has not been rendered yet.")
-
     png_path = art_dir / "demo_ad.png"
-    try:
-        if not png_path.exists() or png_path.stat().st_mtime < html_path.stat().st_mtime:
+
+    if not html_path.exists() and not png_path.exists():
+        _render(db_path, dp, formats=[AD_FORMAT])  # ensure the ad exists (either backend)
+
+    # Rasterise only when the html is the live source (present and newer than any
+    # png). A Canva-produced png with no html is served directly.
+    if html_path.exists() and (
+        not png_path.exists() or png_path.stat().st_mtime < html_path.stat().st_mtime
+    ):
+        try:
             html_to_png(html_path, png_path)
-    except RasterizeUnavailable as exc:
-        raise HTTPException(status_code=503, detail=str(exc))
-    except Exception as exc:  # a render failure must not 500 opaquely
-        raise HTTPException(status_code=500, detail=f"Could not render the ad image: {exc}")
+        except RasterizeUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc))
+        except Exception as exc:  # a render failure must not 500 opaquely
+            raise HTTPException(status_code=500, detail=f"Could not render the ad image: {exc}")
+
+    if not png_path.exists():
+        raise HTTPException(status_code=404, detail="The ad has not been rendered yet.")
 
     record = _load(db_path, dp)
     suburb = (record.identity.suburb if record.identity else None) or "property"
