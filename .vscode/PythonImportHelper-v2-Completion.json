@@ -384,6 +384,14 @@
         "documentation": {}
     },
     {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
         "label": "json",
         "kind": 6,
         "isExtraImport": true,
@@ -542,6 +550,14 @@
     },
     {
         "label": "PurePosixPath",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
         "importPath": "pathlib",
         "description": "pathlib",
         "isExtraImport": true,
@@ -1616,6 +1632,22 @@
     },
     {
         "label": "date",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timezone",
         "importPath": "datetime",
         "description": "datetime",
         "isExtraImport": true,
@@ -2751,6 +2783,22 @@
     },
     {
         "label": "build_copy_request",
+        "importPath": "engine.render.copy",
+        "description": "engine.render.copy",
+        "isExtraImport": true,
+        "detail": "engine.render.copy",
+        "documentation": {}
+    },
+    {
+        "label": "build_headline_request",
+        "importPath": "engine.render.copy",
+        "description": "engine.render.copy",
+        "isExtraImport": true,
+        "detail": "engine.render.copy",
+        "documentation": {}
+    },
+    {
+        "label": "generate_headline",
         "importPath": "engine.render.copy",
         "description": "engine.render.copy",
         "isExtraImport": true,
@@ -4623,6 +4671,15 @@
         "documentation": {}
     },
     {
+        "label": "HeadlineSuggestion",
+        "kind": 6,
+        "importPath": "engine.render.copy",
+        "description": "engine.render.copy",
+        "peekOfCode": "class HeadlineSuggestion(_Base):\n    \"\"\"One marketing headline. A trivial one-field schema, so messages.parse's\n    grammar compiles cleanly (unlike the big extraction schemas).\"\"\"\n    headline: str\nHEADLINE_SYSTEM_PROMPT = (\n    \"You are the marketing copywriter for Dynamic Auctioneers, a South African \"\n    \"property auction and sale house. Given the public, POPIA-safe view of one \"\n    \"property, write ONE short marketing headline of about four to nine words.\\n\"\n    \"\\n\"\n    \"Only public fields are given. Never put an owner name, a contact number or a \"",
+        "detail": "engine.render.copy",
+        "documentation": {}
+    },
+    {
         "label": "build_copy_request",
         "kind": 2,
         "importPath": "engine.render.copy",
@@ -4637,6 +4694,24 @@
         "importPath": "engine.render.copy",
         "description": "engine.render.copy",
         "peekOfCode": "def generate_copy(record: PropertyRecord, client=None) -> dict:\n    \"\"\"Return channel-aware marketing copy for ``record``.\n    With no ``client`` and no ``ANTHROPIC_API_KEY``, returns the deterministic\n    template copy so rendering works offline. When a key or client is present,\n    asks Claude for channel-aware copy and overlays it on the template; any\n    credential or API failure degrades gracefully back to the template rather\n    than crashing (SPEC global rule: never crash, never hang).\n    \"\"\"\n    template = _template_copy(record)\n    if client is None and not os.getenv(\"ANTHROPIC_API_KEY\"):",
+        "detail": "engine.render.copy",
+        "documentation": {}
+    },
+    {
+        "label": "build_headline_request",
+        "kind": 2,
+        "importPath": "engine.render.copy",
+        "description": "engine.render.copy",
+        "peekOfCode": "def build_headline_request(record: PropertyRecord) -> dict:\n    \"\"\"Kwargs for ``messages.parse`` that ask Claude for one headline (offline-\n    constructible; reads only ``public_view`` so no PII is ever sent).\"\"\"\n    public_record = record.public_view()\n    text_block = {\n        \"type\": \"text\",\n        \"text\": (\n            \"Write one marketing headline for this property. The public record \"\n            \"follows as JSON. South African English, no em dashes, every word \"\n            \"traceable to a field.\\n\\n\"",
+        "detail": "engine.render.copy",
+        "documentation": {}
+    },
+    {
+        "label": "generate_headline",
+        "kind": 2,
+        "importPath": "engine.render.copy",
+        "description": "engine.render.copy",
+        "peekOfCode": "def generate_headline(record: PropertyRecord, client=None) -> str:\n    \"\"\"Return one marketing headline for ``record``.\n    Key-gated like ``generate_copy``: with no client and no ``ANTHROPIC_API_KEY``\n    it returns the deterministic ``_build_headline``; with a key it asks Claude\n    and falls back to the deterministic headline on any failure (never crashes,\n    always returns a usable string).\n    \"\"\"\n    public = record.public_view()\n    physical = public.get(\"physical\") or {}\n    identity = public.get(\"identity\") or {}",
         "detail": "engine.render.copy",
         "documentation": {}
     },
@@ -4668,6 +4743,15 @@
         "documentation": {}
     },
     {
+        "label": "HEADLINE_SYSTEM_PROMPT",
+        "kind": 5,
+        "importPath": "engine.render.copy",
+        "description": "engine.render.copy",
+        "peekOfCode": "HEADLINE_SYSTEM_PROMPT = (\n    \"You are the marketing copywriter for Dynamic Auctioneers, a South African \"\n    \"property auction and sale house. Given the public, POPIA-safe view of one \"\n    \"property, write ONE short marketing headline of about four to nine words.\\n\"\n    \"\\n\"\n    \"Only public fields are given. Never put an owner name, a contact number or a \"\n    \"price in the headline. Frame in keeping with sale_process.method, though the \"\n    \"headline itself need not name the sale method. Use South African English, no \"\n    \"em dashes or en dashes, no emojis and no obvious AI phrasing. Lead with what \"\n    \"a buyer cares about: property type, bedrooms, a standout feature (a separate \"",
+        "detail": "engine.render.copy",
+        "documentation": {}
+    },
+    {
         "label": "HtmlBackend",
         "kind": 6,
         "importPath": "engine.render.html_backend",
@@ -4683,6 +4767,51 @@
         "description": "engine.render.html_backend",
         "peekOfCode": "_TEMPLATE_DIR = Path(__file__).parent / \"templates\"\ndef _should_autoescape(template_name: Optional[str]) -> bool:\n    \"\"\"Escape markup templates (HTML, SVG); leave Markdown/text unescaped.\"\"\"\n    if not template_name:\n        return False\n    return template_name.endswith((\".html.j2\", \".svg.j2\"))\ndef _fmt_num(value: object) -> Optional[str]:\n    \"\"\"Render a number without a trailing ``.0`` (185.0 -> ``\"185\"``).\"\"\"\n    if value is None:\n        return None",
         "detail": "engine.render.html_backend",
+        "documentation": {}
+    },
+    {
+        "label": "RasterizeUnavailable",
+        "kind": 6,
+        "importPath": "engine.render.rasterize",
+        "description": "engine.render.rasterize",
+        "peekOfCode": "class RasterizeUnavailable(RuntimeError):\n    \"\"\"Playwright or its Chromium browser is not installed on this host.\"\"\"\ndef available() -> bool:\n    \"\"\"True if the Playwright Python package is importable. (Chromium presence is\n    only known at launch; a missing browser surfaces as RasterizeUnavailable.)\"\"\"\n    try:\n        import playwright.sync_api  # noqa: F401\n        return True\n    except Exception:\n        return False",
+        "detail": "engine.render.rasterize",
+        "documentation": {}
+    },
+    {
+        "label": "available",
+        "kind": 2,
+        "importPath": "engine.render.rasterize",
+        "description": "engine.render.rasterize",
+        "peekOfCode": "def available() -> bool:\n    \"\"\"True if the Playwright Python package is importable. (Chromium presence is\n    only known at launch; a missing browser surfaces as RasterizeUnavailable.)\"\"\"\n    try:\n        import playwright.sync_api  # noqa: F401\n        return True\n    except Exception:\n        return False\ndef html_to_png(html_path, png_path, width: int = _DEFAULT_WIDTH, timeout_ms: int = 30000) -> Path:\n    \"\"\"Rasterise a local ad HTML file to a PNG and return the PNG path.",
+        "detail": "engine.render.rasterize",
+        "documentation": {}
+    },
+    {
+        "label": "html_to_png",
+        "kind": 2,
+        "importPath": "engine.render.rasterize",
+        "description": "engine.render.rasterize",
+        "peekOfCode": "def html_to_png(html_path, png_path, width: int = _DEFAULT_WIDTH, timeout_ms: int = 30000) -> Path:\n    \"\"\"Rasterise a local ad HTML file to a PNG and return the PNG path.\n    Loads the file (so the ad's relative photo paths resolve), waits for it to\n    settle, and screenshots the ``.sheet`` card at 2x for a crisp image. Raises\n    ``RasterizeUnavailable`` when Playwright/Chromium is missing and\n    ``RuntimeError`` on any other render failure.\n    \"\"\"\n    html_path = Path(html_path).resolve()  # as_uri() needs an absolute path\n    png_path = Path(png_path)\n    try:",
+        "detail": "engine.render.rasterize",
+        "documentation": {}
+    },
+    {
+        "label": "_AD_SELECTOR",
+        "kind": 5,
+        "importPath": "engine.render.rasterize",
+        "description": "engine.render.rasterize",
+        "peekOfCode": "_AD_SELECTOR = \".sheet\"\n# Match the sheet's max-width so the card renders at its intended size.\n_DEFAULT_WIDTH = 900\nclass RasterizeUnavailable(RuntimeError):\n    \"\"\"Playwright or its Chromium browser is not installed on this host.\"\"\"\ndef available() -> bool:\n    \"\"\"True if the Playwright Python package is importable. (Chromium presence is\n    only known at launch; a missing browser surfaces as RasterizeUnavailable.)\"\"\"\n    try:\n        import playwright.sync_api  # noqa: F401",
+        "detail": "engine.render.rasterize",
+        "documentation": {}
+    },
+    {
+        "label": "_DEFAULT_WIDTH",
+        "kind": 5,
+        "importPath": "engine.render.rasterize",
+        "description": "engine.render.rasterize",
+        "peekOfCode": "_DEFAULT_WIDTH = 900\nclass RasterizeUnavailable(RuntimeError):\n    \"\"\"Playwright or its Chromium browser is not installed on this host.\"\"\"\ndef available() -> bool:\n    \"\"\"True if the Playwright Python package is importable. (Chromium presence is\n    only known at launch; a missing browser surfaces as RasterizeUnavailable.)\"\"\"\n    try:\n        import playwright.sync_api  # noqa: F401\n        return True\n    except Exception:",
+        "detail": "engine.render.rasterize",
         "documentation": {}
     },
     {
@@ -4708,7 +4837,7 @@
         "kind": 2,
         "importPath": "engine.render.service",
         "description": "engine.render.service",
-        "peekOfCode": "def render_all(\n    dp: str,\n    store: RecordStore,\n    backend: Optional[str] = None,\n    output_root: str = \".\",\n    client=None,\n) -> List[Artifact]:\n    \"\"\"Render every supported format for DP ``dp``, one manifest per pass.\n    Resolves the backend (arg -> ``ENGINE_RENDERER`` env -> default ``html``);\n    ``\"mixed\"`` selects the best backend per format (premium where configured,",
+        "peekOfCode": "def render_all(\n    dp: str,\n    store: RecordStore,\n    backend: Optional[str] = None,\n    output_root: str = \".\",\n    client=None,\n    formats: Optional[List[str]] = None,\n) -> List[Artifact]:\n    \"\"\"Render the supported formats for DP ``dp``, one manifest per pass.\n    Resolves the backend (arg -> ``ENGINE_RENDERER`` env -> default ``html``);",
         "detail": "engine.render.service",
         "documentation": {}
     },
@@ -4735,7 +4864,7 @@
         "kind": 2,
         "importPath": "engine.render.service",
         "description": "engine.render.service",
-        "peekOfCode": "def apply_edits(\n    dp: str,\n    store: RecordStore,\n    changes: dict,\n    user: str,\n    backend: Optional[str] = None,\n    output_root: str = \".\",\n    client=None,\n) -> EditChange:\n    \"\"\"Apply human edits to a record's public fields, then re-render once.",
+        "peekOfCode": "def apply_edits(\n    dp: str,\n    store: RecordStore,\n    changes: dict,\n    user: str,\n    backend: Optional[str] = None,\n    output_root: str = \".\",\n    client=None,\n    formats: Optional[List[str]] = None,\n) -> EditChange:",
         "detail": "engine.render.service",
         "documentation": {}
     },
@@ -6981,6 +7110,51 @@
         "documentation": {}
     },
     {
+        "label": "test_dp_number_absent_from_public_tile_and_ads",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_dp_number_absent_from_public_tile_and_ads(golden_record, tmp_path):\n    store = _store_with(golden_record)\n    try:\n        tile = Path(\n            render_one(\"3060\", store, \"webapp_icon\", backend=\"html\", output_root=str(tmp_path)).path\n        ).read_text(encoding=\"utf-8\")\n        ad = Path(\n            render_one(\"3060\", store, \"demo_ad\", backend=\"html\", output_root=str(tmp_path)).path\n        ).read_text(encoding=\"utf-8\")\n    finally:",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_render_all_subset_renders_only_requested",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_render_all_subset_renders_only_requested(golden_record, tmp_path):\n    store = _store_with(golden_record)\n    try:\n        ad = render_all(\"3060\", store, output_root=str(tmp_path), formats=[\"demo_ad\"])\n        assert sorted(a.fmt for a in ad) == [\"demo_ad\"]\n    finally:\n        store.close()\ndef test_render_all_rejects_unknown_format(golden_record, tmp_path):\n    store = _store_with(golden_record)\n    try:",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_render_all_rejects_unknown_format",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_render_all_rejects_unknown_format(golden_record, tmp_path):\n    store = _store_with(golden_record)\n    try:\n        with pytest.raises(ValueError):\n            render_all(\"3060\", store, output_root=str(tmp_path), formats=[\"bogus\"])\n    finally:\n        store.close()\n# --- AI headline generation (gate-2 auto-generate) -----------------------\ndef test_generate_headline_offline_returns_deterministic(golden_record):\n    # No API key in the hermetic test env -> the deterministic fallback.",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_generate_headline_offline_returns_deterministic",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_generate_headline_offline_returns_deterministic(golden_record):\n    # No API key in the hermetic test env -> the deterministic fallback.\n    headline = generate_headline(golden_record)\n    assert headline\n    assert \"Pelham North\" in headline  # built from the record's own facts\ndef test_build_headline_request_shape_and_no_pii(golden_record):\n    rec = _poison(golden_record)\n    req = build_headline_request(rec)\n    assert req[\"model\"] == MODEL\n    assert req[\"output_format\"].__name__ == \"HeadlineSuggestion\"",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_build_headline_request_shape_and_no_pii",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_build_headline_request_shape_and_no_pii(golden_record):\n    rec = _poison(golden_record)\n    req = build_headline_request(rec)\n    assert req[\"model\"] == MODEL\n    assert req[\"output_format\"].__name__ == \"HeadlineSuggestion\"\n    # public_view only -> no owner PII in the prompt.\n    assert POISON_OWNER not in json.dumps(req[\"messages\"], default=str)\n# --- per-backend poison-marker PII test ----------------------------------\n@pytest.mark.parametrize(\"backend_name\", BACKENDS)\ndef test_poison_marker_pii_absent_from_every_artifact(backend_name, golden_record, tmp_path):",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
         "label": "test_poison_marker_pii_absent_from_every_artifact",
         "kind": 2,
         "importPath": "tests.test_render",
@@ -7436,6 +7610,42 @@
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
         "peekOfCode": "def test_board_delete_removes_the_record():\n    _needs_golden()\n    dp = \"9008\"\n    _golden_clone(dp)\n    client = _client()\n    _login_admin(client)\n    assert _state(dp) == \"extracted\"\n    resp = client.post(f\"/board/{dp}/delete\", follow_redirects=False)\n    assert resp.status_code == 200  # returns the refreshed ledger body\n    store = RecordStore(DB_PATH)",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_first_draft_renders_ad_only_then_full_set_on_approve",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_first_draft_renders_ad_only_then_full_set_on_approve():\n    import json as _json\n    _needs_golden()\n    dp = \"9020\"\n    _golden_clone(dp)\n    client = _client()\n    _login_admin(client)\n    manifest = _TMP / f\"DP{dp}\" / \"artifacts\" / \"manifest.json\"\n    # Sign off gate 1 (resolve the garage conflict) -> drafted; the FIRST DRAFT\n    # renders the branded ad only (D39).",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_ad_png_route_serves_png",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_ad_png_route_serves_png(monkeypatch):\n    # The rasteriser is monkeypatched so the route is tested without launching a\n    # browser: it must render the ad html, serve image/png, and name the download\n    # from the suburb (never the DP).\n    from engine.render import rasterize\n    from pathlib import Path as _Path\n    def _fake(html_path, png_path, **kw):\n        _Path(png_path).write_bytes(b\"\\x89PNG\\r\\n\\x1a\\nfake\")\n        return _Path(png_path)\n    monkeypatch.setattr(rasterize, \"html_to_png\", _fake)",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_ad_png_route_degrades_when_rasteriser_unavailable",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_ad_png_route_degrades_when_rasteriser_unavailable(monkeypatch):\n    from engine.render import rasterize\n    def _boom(*a, **k):\n        raise rasterize.RasterizeUnavailable(\"no chromium here\")\n    monkeypatch.setattr(rasterize, \"html_to_png\", _boom)\n    _needs_golden()\n    dp = \"9022\"\n    _golden_clone(dp)\n    client = _client()\n    _login_admin(client)",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_gate2_auto_generate_headline_returns_filled_input",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_gate2_auto_generate_headline_returns_filled_input():\n    _needs_golden()\n    dp = \"9010\"\n    _golden_clone(dp)\n    client = _client()\n    _login_admin(client)\n    resp = client.post(f\"/gates/{dp}/ads/headline\")\n    assert resp.status_code == 200\n    assert 'name=\"headline\"' in resp.text  # the swap-in input\n    assert \"Pelham North\" in resp.text  # a headline was generated from the facts",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -8241,6 +8451,15 @@
         "documentation": {}
     },
     {
+        "label": "gate2_ad_png",
+        "kind": 2,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "def gate2_ad_png(dp: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"Serve the branded ad as a PNG attachment, for emailing a client (D39).\n    Rasterises ``demo_ad.html`` -> ``demo_ad.png`` on demand (cached; re-rendered\n    when the HTML is newer). The download filename uses the suburb, never the\n    internal DP (D37). Degrades to a clear message if wkhtmltoimage is missing.\n    \"\"\"\n    from engine.render.rasterize import RasterizeUnavailable, html_to_png\n    db_path = _db(request)\n    art_dir = _artifacts_dir(db_path, dp)\n    html_path = art_dir / \"demo_ad.html\"",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
         "label": "action_gate2_approve",
         "kind": 2,
         "importPath": "webapp.routes.gates",
@@ -8318,6 +8537,24 @@
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
         "peekOfCode": "_TEXT_MIME_HINTS = (\"text/markdown\", \"text/plain\")\n# --- small helpers --------------------------------------------------------\ndef _db(request: Request) -> str:\n    override = getattr(getattr(request, \"app\", None), \"state\", None)\n    candidate = getattr(override, \"db_path\", None) if override is not None else None\n    return models.resolve_db_path(candidate)\ndef _output_root(db_path: str) -> str:\n    return models.get_setting(db_path, \"output_root\") or \".\"\ndef _store(db_path: str) -> RecordStore:\n    return RecordStore(db_path)",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_AD_ONLY_STATES",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "_AD_ONLY_STATES = frozenset({\"extracted\", \"flags_raised\", \"verified\", \"drafted\"})\nAD_FORMAT = \"demo_ad\"\ndef _formats_for_state(state: Optional[str]) -> Optional[List[str]]:\n    \"\"\"Which formats to render in ``state``: the ad only before approval, the\n    full set (None) once approved (D39).\"\"\"\n    return [AD_FORMAT] if state in _AD_ONLY_STATES else None\ndef _render(db_path: str, dp: str, formats: Any = \"auto\") -> List[Any]:\n    \"\"\"Render the artifacts for ``dp`` from public_view. Never raises upward.\n    ``formats=\"auto\"`` (default) picks the set from the current lifecycle state\n    (ad-only before approval, full after, D39); pass an explicit list/None to",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "AD_FORMAT",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "AD_FORMAT = \"demo_ad\"\ndef _formats_for_state(state: Optional[str]) -> Optional[List[str]]:\n    \"\"\"Which formats to render in ``state``: the ad only before approval, the\n    full set (None) once approved (D39).\"\"\"\n    return [AD_FORMAT] if state in _AD_ONLY_STATES else None\ndef _render(db_path: str, dp: str, formats: Any = \"auto\") -> List[Any]:\n    \"\"\"Render the artifacts for ``dp`` from public_view. Never raises upward.\n    ``formats=\"auto\"`` (default) picks the set from the current lifecycle state\n    (ad-only before approval, full after, D39); pass an explicit list/None to\n    override.",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -8416,7 +8653,16 @@
         "kind": 5,
         "importPath": "webapp.routes.intake",
         "description": "webapp.routes.intake",
-        "peekOfCode": "_ACTIVE = {\"queued\", \"running\"}\ndef _view(request: Request, name: str, ctx: Optional[dict] = None, status_code: int = 200):\n    templates = request.app.state.templates\n    data: Dict[str, Any] = {\"user\": auth.current_user(request)}\n    if ctx:\n        data.update(ctx)\n    return templates.TemplateResponse(request, name, data, status_code=status_code)\ndef _output_root(db_path: str) -> str:\n    return models.get_setting(db_path, \"output_root\") or \".\"\ndef _job_ctx(job: Dict[str, Any]) -> Dict[str, Any]:",
+        "peekOfCode": "_ACTIVE = {\"queued\", \"running\"}\ndef _view(request: Request, name: str, ctx: Optional[dict] = None, status_code: int = 200):\n    templates = request.app.state.templates\n    data: Dict[str, Any] = {\"user\": auth.current_user(request)}\n    if ctx:\n        data.update(ctx)\n    return templates.TemplateResponse(request, name, data, status_code=status_code)\ndef _output_root(db_path: str) -> str:\n    return models.get_setting(db_path, \"output_root\") or \".\"\n# The progress bar is elapsed-driven: extraction has no mid-run signal, so the",
+        "detail": "webapp.routes.intake",
+        "documentation": {}
+    },
+    {
+        "label": "_EXTRACT_HALFLIFE_S",
+        "kind": 5,
+        "importPath": "webapp.routes.intake",
+        "description": "webapp.routes.intake",
+        "peekOfCode": "_EXTRACT_HALFLIFE_S = 40.0\ndef _progress(job: Dict[str, Any]) -> Dict[str, Any]:\n    \"\"\"Elapsed seconds -> an ever-advancing percent + a mm:ss elapsed label.\"\"\"\n    created = job.get(\"created_at\")\n    elapsed = 0.0\n    if created:\n        try:\n            started = datetime.fromisoformat(str(created))\n            if started.tzinfo is None:\n                started = started.replace(tzinfo=timezone.utc)",
         "detail": "webapp.routes.intake",
         "documentation": {}
     },
