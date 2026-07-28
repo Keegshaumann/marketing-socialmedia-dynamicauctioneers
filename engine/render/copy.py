@@ -392,3 +392,85 @@ def generate_copy(record: PropertyRecord, client=None) -> dict:
         return template
 
     return _merge_bundle(template, bundle)
+
+
+# --- single-headline generation (gate-2 "auto-generate") -----------------
+
+class HeadlineSuggestion(_Base):
+    """One marketing headline. A trivial one-field schema, so messages.parse's
+    grammar compiles cleanly (unlike the big extraction schemas)."""
+
+    headline: str
+
+
+HEADLINE_SYSTEM_PROMPT = (
+    "You are the marketing copywriter for Dynamic Auctioneers, a South African "
+    "property auction and sale house. Given the public, POPIA-safe view of one "
+    "property, write ONE short marketing headline of about four to nine words.\n"
+    "\n"
+    "Only public fields are given. Never put an owner name, a contact number or a "
+    "price in the headline. Frame in keeping with sale_process.method, though the "
+    "headline itself need not name the sale method. Use South African English, no "
+    "em dashes or en dashes, no emojis and no obvious AI phrasing. Lead with what "
+    "a buyer cares about: property type, bedrooms, a standout feature (a separate "
+    "flatlet, estate security, a pool) and the suburb. Every word must trace to a "
+    "field in the record; do not invent a feature. Return the headline only."
+)
+
+
+def build_headline_request(record: PropertyRecord) -> dict:
+    """Kwargs for ``messages.parse`` that ask Claude for one headline (offline-
+    constructible; reads only ``public_view`` so no PII is ever sent)."""
+    public_record = record.public_view()
+    text_block = {
+        "type": "text",
+        "text": (
+            "Write one marketing headline for this property. The public record "
+            "follows as JSON. South African English, no em dashes, every word "
+            "traceable to a field.\n\n"
+            + json.dumps(public_record, ensure_ascii=False, indent=2)
+        ),
+    }
+    return {
+        "model": MODEL,
+        "max_tokens": MAX_TOKENS,
+        "thinking": {"type": "adaptive"},
+        "system": [
+            {"type": "text", "text": HEADLINE_SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}
+        ],
+        "messages": [{"role": "user", "content": [text_block]}],
+        "output_format": HeadlineSuggestion,
+    }
+
+
+def generate_headline(record: PropertyRecord, client=None) -> str:
+    """Return one marketing headline for ``record``.
+
+    Key-gated like ``generate_copy``: with no client and no ``ANTHROPIC_API_KEY``
+    it returns the deterministic ``_build_headline``; with a key it asks Claude
+    and falls back to the deterministic headline on any failure (never crashes,
+    always returns a usable string).
+    """
+    public = record.public_view()
+    physical = public.get("physical") or {}
+    identity = public.get("identity") or {}
+    flatlet = physical.get("flatlet") or {}
+    fallback = _build_headline(
+        physical.get("bedrooms"), identity.get("title_type"), flatlet, identity.get("suburb")
+    )
+
+    if client is None and not os.getenv("ANTHROPIC_API_KEY"):
+        return fallback
+    try:
+        client = client or anthropic.Anthropic()
+    except anthropic.AnthropicError:
+        return fallback
+
+    try:
+        response = client.messages.parse(**build_headline_request(record))
+        suggestion = response.parsed_output
+    except Exception:
+        return fallback
+    if suggestion is None or not (suggestion.headline or "").strip():
+        return fallback
+    return suggestion.headline.strip()

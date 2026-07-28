@@ -795,6 +795,24 @@ async def gate2_copy(dp: str, request: Request, user: dict = Depends(require_rol
     )
 
 
+@router.post("/{dp}/ads/headline", response_class=HTMLResponse)
+async def gate2_suggest_headline(
+    dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))
+):
+    """Generate one marketing headline with Claude and return the pre-filled
+    headline input for review. Key-gated with a deterministic fallback (always
+    returns a usable headline); does NOT save - saving stays the Save action.
+    """
+    from engine.render.copy import generate_headline
+
+    record = _load(_db(request), dp)
+    return templates.TemplateResponse(
+        request,
+        "partials/_headline_input.html",
+        {"headline": generate_headline(record)},
+    )
+
+
 @router.post("/{dp}/ads/changes", response_class=HTMLResponse)
 async def gate2_changes(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
     db_path = _db(request)

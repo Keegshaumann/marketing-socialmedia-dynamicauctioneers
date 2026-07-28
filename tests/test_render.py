@@ -19,7 +19,12 @@ import pytest
 
 from engine import MODEL
 from engine.render import get_backend, list_backends
-from engine.render.copy import CopyBundle, build_copy_request
+from engine.render.copy import (
+    CopyBundle,
+    build_copy_request,
+    build_headline_request,
+    generate_headline,
+)
 from engine.render.service import render_all, render_one, set_price
 from engine.schema import Owner, PropertyRecord
 from engine.store import RecordStore
@@ -108,6 +113,46 @@ def test_demo_ad_renders_real_facts_and_brand_tokens(golden_record, tmp_path):
     assert "086 155 2288" in html  # brand phone
     assert "Montserrat" in html  # brand font stack
     assert "DYNAMIC" in html  # brand letterhead
+
+
+# --- the internal DP number never appears on public artifacts (D37) ------
+
+def test_dp_number_absent_from_public_tile_and_ads(golden_record, tmp_path):
+    store = _store_with(golden_record)
+    try:
+        tile = Path(
+            render_one("3060", store, "webapp_icon", backend="html", output_root=str(tmp_path)).path
+        ).read_text(encoding="utf-8")
+        ad = Path(
+            render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path)).path
+        ).read_text(encoding="utf-8")
+    finally:
+        store.close()
+
+    # The tile leads with the suburb, not the internal DP filing code.
+    assert "Pelham North" in tile
+    assert "DP3060" not in tile
+    # The ad chrome shows no "Ref DP..." (no mandate ref on the golden record).
+    assert "DP3060" not in ad
+    assert "Ref DP" not in ad
+
+
+# --- AI headline generation (gate-2 auto-generate) -----------------------
+
+def test_generate_headline_offline_returns_deterministic(golden_record):
+    # No API key in the hermetic test env -> the deterministic fallback.
+    headline = generate_headline(golden_record)
+    assert headline
+    assert "Pelham North" in headline  # built from the record's own facts
+
+
+def test_build_headline_request_shape_and_no_pii(golden_record):
+    rec = _poison(golden_record)
+    req = build_headline_request(rec)
+    assert req["model"] == MODEL
+    assert req["output_format"].__name__ == "HeadlineSuggestion"
+    # public_view only -> no owner PII in the prompt.
+    assert POISON_OWNER not in json.dumps(req["messages"], default=str)
 
 
 # --- per-backend poison-marker PII test ----------------------------------

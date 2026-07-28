@@ -326,6 +326,19 @@ def test_board_delete_removes_the_record():
         store.close()
 
 
+def test_gate2_auto_generate_headline_returns_filled_input():
+    _needs_golden()
+    dp = "9010"
+    _golden_clone(dp)
+    client = _client()
+    _login_admin(client)
+
+    resp = client.post(f"/gates/{dp}/ads/headline")
+    assert resp.status_code == 200
+    assert 'name="headline"' in resp.text  # the swap-in input
+    assert "Pelham North" in resp.text  # a headline was generated from the facts
+
+
 # --- tokenised gate-2 approve without a session --------------------------
 
 def test_tokenised_gate2_approve_without_session():

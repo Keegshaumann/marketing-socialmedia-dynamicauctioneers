@@ -1,6 +1,6 @@
 {# Email blast copy: subject A/B + preheader + body. No emojis, no em/en dashes.
    CTA links carry ?dp=<n> for CRM attribution. #}
-# Email Blast {{ vm.ref }}
+# Email Blast: {{ vm.headline }}
 
 **Subject A:** {{ vm.headline }}: {{ vm.badge_label | lower }}
 **Subject B:** New listing{% if vm.suburb %} in {{ vm.suburb }}{% endif %}{% if vm.flatlet_present %} (with rental income potential){% endif %}

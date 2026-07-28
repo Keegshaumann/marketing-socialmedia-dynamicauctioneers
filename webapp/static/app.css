@@ -600,6 +600,16 @@ form.htmx-request [data-intake-submit] { pointer-events: none; opacity: .9; }
 form.htmx-request [data-intake-submit] > .icon,
 form.htmx-request [data-intake-submit] > span:not(.spinner) { display: none; }
 form.htmx-request [data-intake-submit] .spinner { display: inline-block; }
+/* generic: a button that makes its OWN request (e.g. Auto-generate headline)
+   locks and swaps its label for the spinner while in flight */
+.btn.htmx-request { pointer-events: none; opacity: .9; }
+.btn.htmx-request > .icon,
+.btn.htmx-request > span:not(.spinner) { display: none; }
+.btn.htmx-request .spinner { display: inline-block; }
+
+/* a field label with an inline action on the right (Auto-generate) */
+.label-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.label-row .label { margin-bottom: 0; }
 
 /* ---- Sticky action bar (gate screens) ---------------------------------- */
 .actionbar {

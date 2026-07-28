@@ -37,7 +37,16 @@
         <div class="panel__body">
           <form hx-post="/gates/{{ dp }}/ads/copy" hx-target="#gallery" hx-swap="outerHTML" class="stack">
             <div class="field">
-              <label class="label" for="headline">Headline</label>
+              <div class="label-row">
+                <label class="label" for="headline">Headline</label>
+                <button type="button" class="btn btn--ghost btn--sm" data-generate
+                        hx-post="/gates/{{ dp }}/ads/headline"
+                        hx-target="#headline" hx-swap="outerHTML"
+                        hx-disabled-elt="this"
+                        title="Write a headline from the property facts with AI">
+                  {{ ui.icon('sparkles', 'icon--sm') }}<span>Auto-generate</span><span class="spinner" aria-hidden="true"></span>
+                </button>
+              </div>
               <input class="input" id="headline" name="headline" value="{{ headline }}">
             </div>
             <div class="field">
