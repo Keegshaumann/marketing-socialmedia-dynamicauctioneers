@@ -3,7 +3,7 @@
    and the brand chrome comes from _brand.html.j2. Facts render only when the
    record carries them (no invented facts). #}
 {% import "_brand.html.j2" as brand %}
-<title>{{ vm.ref }} {{ vm.headline }} | {{ vm.brand_name }}</title>
+<title>{{ vm.headline }} | {{ vm.brand_name }}</title>
 <style>
   {{ brand.tokens_css() }}
 
@@ -101,8 +101,8 @@
 
   <div class="inner">
     <div class="eyebrow">
-      <span>Property for sale</span><span class="dot"></span>
-      <span>Ref {{ vm.ref }}</span>
+      <span>Property for sale</span>
+      {% if vm.public_ref %}<span class="dot"></span><span>Ref {{ vm.public_ref }}</span>{% endif %}
       {% if vm.location_line %}<span class="dot"></span><span>{{ vm.location_line }}</span>{% endif %}
     </div>
 

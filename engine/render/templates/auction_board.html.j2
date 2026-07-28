@@ -1,7 +1,7 @@
 {# Print-ready auction board (SPEC 12 step 6d). Portrait board sized for print;
    large legible type, brand chrome, hero image, headline, ref and contact. #}
 {% import "_brand.html.j2" as brand %}
-<title>Auction Board {{ vm.ref }} | {{ vm.brand_name }}</title>
+<title>Auction Board {{ vm.headline }} | {{ vm.brand_name }}</title>
 <style>
   {{ brand.tokens_css() }}
   body { background: var(--ground); }
@@ -39,7 +39,7 @@
     <div class="facts">
       {% if vm.beds %}{{ vm.beds }} bed{% endif %}{% if vm.baths %} &middot; {{ vm.baths }} bath{% endif %}{% if vm.size_str %} &middot; {{ vm.size_str }} m2{% endif %}{% if vm.flatlet_present %} &middot; flatlet{% endif %}
     </div>
-    <div class="ref">Ref {{ vm.ref }}</div>
+    {% if vm.public_ref %}<div class="ref">Ref {{ vm.public_ref }}</div>{% endif %}
   </div>
   <div class="call">
     <div class="num">{{ vm.brand_phone }}</div>

@@ -501,9 +501,12 @@ class CanvaBackend(RenderBackend):
             "address": identity.get("street_address"),
             "suburb": identity.get("suburb"),
             "dp": request.dp,
-            # The DA template bakes the "PROPERTY REF:" / "MASTER REF:" labels into
-            # the field element, so the engine sends the full display line.
-            "property_ref": f"PROPERTY REF: DP{request.dp}" if request.dp else None,
+            # The DP is Dynamic's INTERNAL filing code and must never print on a
+            # public ad (D37); the public reference is the mandate "MASTER REF"
+            # only. property_ref (which used to carry "PROPERTY REF: DP<n>") is
+            # therefore left blank - a template with that field shows nothing
+            # rather than the internal number.
+            "property_ref": None,
             "master_ref": _master_ref(identity),
             "beds": _stat_label(physical.get("bedrooms"), "BED"),
             "baths": _stat_label(physical.get("bathrooms_main_unit"), "BATH"),

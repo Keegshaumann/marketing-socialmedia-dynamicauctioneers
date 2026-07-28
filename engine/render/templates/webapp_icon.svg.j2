@@ -1,16 +1,30 @@
 {# Upcoming-auction tile/icon (SPEC 12 step 6a). Square SVG, brand tokens only,
-   self-contained (no external fonts or images). #}
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="{{ vm.ref }} {{ vm.suburb or vm.headline }}">
+   self-contained (no external fonts or images).
+   - Hero is the SUBURB (a buyer-facing locator); the internal DP number is never
+     shown on this public tile (D37).
+   - Hero font size steps down by suburb length so long names never overflow.
+   - The sale badge box auto-sizes to its label so "OFFERS INVITED" and friends
+     always sit inside the gold pill (was a fixed 220px box that overflowed). #}
+{%- set hero = (vm.suburb or vm.headline or 'For Sale') -%}
+{%- set hlen = hero | length -%}
+{%- set hsize = 62 if hlen <= 8 else (46 if hlen <= 12 else (34 if hlen <= 18 else 26)) -%}
+{%- set sub = ((vm.beds ~ ' BED ') if vm.beds else '') ~ ((vm.title_type_label or '') | upper) -%}
+{%- set badge = (vm.badge_label or '') | upper -%}
+{%- set bw = (badge | length) * 20 + 56 -%}
+{%- set bx = (512 - bw) / 2 -%}
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="{{ hero }} auction">
   <rect width="512" height="512" fill="#191613"/>
   <rect x="0" y="0" width="512" height="10" fill="#B08D4A"/>
   <rect x="0" y="502" width="512" height="10" fill="#B08D4A"/>
   <text x="256" y="150" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-size="44" font-weight="800" letter-spacing="6" fill="#B08D4A">DYNAMIC</text>
   <text x="256" y="196" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-size="26" font-weight="600" letter-spacing="12" fill="#F1E8D6">AUCTIONEERS</text>
   <line x1="146" y1="232" x2="366" y2="232" stroke="#8C6D33" stroke-width="2"/>
-  <text x="256" y="316" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-size="92" font-weight="800" fill="#FFFFFF">{{ vm.ref }}</text>
-  {% if vm.suburb %}
-  <text x="256" y="372" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-size="30" font-weight="600" fill="#EFEBE3">{{ vm.suburb }}</text>
+  <text x="256" y="322" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-size="{{ hsize }}" font-weight="800" fill="#FFFFFF">{{ hero }}</text>
+  {% if sub | trim %}
+  <text x="256" y="372" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-size="24" font-weight="600" letter-spacing="2" fill="#EFEBE3">{{ sub | trim }}</text>
   {% endif %}
-  <rect x="146" y="416" width="220" height="52" fill="#B08D4A"/>
-  <text x="256" y="451" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-size="24" font-weight="800" letter-spacing="3" fill="#191613">{{ vm.badge_label | upper }}</text>
+  {% if badge %}
+  <rect x="{{ bx }}" y="416" width="{{ bw }}" height="52" fill="#B08D4A"/>
+  <text x="256" y="451" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-size="24" font-weight="800" letter-spacing="3" fill="#191613">{{ badge }}</text>
+  {% endif %}
 </svg>

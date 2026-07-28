@@ -1,7 +1,7 @@
 {# Alert-mailer HTML (SPEC 12 step 6b): a single-column email body with the
    letterhead chrome, hero, facts, and a CTA. Inline-ish layout for email clients. #}
 {% import "_brand.html.j2" as brand %}
-<title>Alert Mailer {{ vm.ref }} | {{ vm.brand_name }}</title>
+<title>Alert Mailer {{ vm.headline }} | {{ vm.brand_name }}</title>
 <style>
   {{ brand.tokens_css() }}
   .mail { max-width: 640px; margin: 24px auto; background: var(--sheet); box-shadow: 0 2px 6px rgba(25,22,19,.08), 0 18px 44px rgba(25,22,19,.13); }
@@ -23,7 +23,7 @@
   {{ brand.letterhead(vm) }}
   {% if vm.hero_src %}<div class="hero"><img src="{{ vm.hero_src }}" alt="{{ vm.headline }}" /></div>{% endif %}
   <div class="body">
-    <div class="kicker">New listing | {{ vm.ref }}</div>
+    <div class="kicker">New listing{% if vm.public_ref %} | {{ vm.public_ref }}{% endif %}</div>
     <h1>{{ vm.headline }}</h1>
     {% if vm.address %}<p class="addr">{{ vm.address }}</p>{% endif %}
 

@@ -160,7 +160,13 @@ class HtmlBackend(RenderBackend):
 
         vm: dict = {
             "dp": request.dp,
+            # ``ref`` is the INTERNAL filing code (DP number) - used only on the
+            # internal pack labels, never on public ad chrome. ``public_ref`` is
+            # the DA mandate/MASTER REF, the reference a buyer may quote; it is
+            # None until sourced, and public artifacts then show no reference at
+            # all rather than leaking the internal DP (owner directive, D37).
             "ref": f"DP{request.dp}",
+            "public_ref": identity.get("mandate_ref") or None,
             "headline": marketing.get("headline") or "Property for sale",
             "address": identity.get("street_address"),
             "suburb": identity.get("suburb"),
@@ -199,8 +205,8 @@ class HtmlBackend(RenderBackend):
             "brand_address": BRAND["address"],
             "brand_reg": BRAND["reg"],
             "generated_note": (
-                "Generated automatically from the "
-                f"{request.dp} Lightstone EVM report and Property Report. E&OE."
+                "Generated automatically from the Lightstone EVM report and "
+                "Property Report. E&OE."
             ),
         }
 

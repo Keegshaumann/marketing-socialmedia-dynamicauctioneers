@@ -1,6 +1,6 @@
 {# SAIA alert banner (SPEC 12 step 6b). Wide banner strip, brand tokens. #}
 {% import "_brand.html.j2" as brand %}
-<title>SAIA Banner {{ vm.ref }} | {{ vm.brand_name }}</title>
+<title>SAIA Banner {{ vm.headline }} | {{ vm.brand_name }}</title>
 <style>
   {{ brand.tokens_css() }}
   .banner {
@@ -24,7 +24,7 @@
 
 <div class="banner">
   <div class="copy">
-    <div class="kicker">Auction alert | {{ vm.ref }}</div>
+    <div class="kicker">Auction alert{% if vm.public_ref %} | {{ vm.public_ref }}{% endif %}</div>
     <h1>{{ vm.headline }}</h1>
     <div class="meta">
       {% if vm.location_line %}{{ vm.location_line }}<br/>{% endif %}

@@ -2,7 +2,7 @@
    multi-section document rendered from public_view only: the generated variant
    never carries the owner name/ID that the manual cover page prints (SPEC 4.4). #}
 {% import "_brand.html.j2" as brand %}
-<title>Info Pack {{ vm.ref }} | {{ vm.brand_name }}</title>
+<title>Info Pack {{ vm.headline }} | {{ vm.brand_name }}</title>
 <style>
   {{ brand.tokens_css() }}
   .sheet { max-width: 820px; margin: 24px auto 48px; background: var(--sheet); box-shadow: 0 2px 6px rgba(25,22,19,.08), 0 18px 44px rgba(25,22,19,.13); }
@@ -34,7 +34,7 @@
 <div class="sheet">
   {{ brand.letterhead(vm) }}
   <div class="inner">
-    <div class="kicker">Buyer information pack | {{ vm.ref }}</div>
+    <div class="kicker">Buyer information pack{% if vm.public_ref %} | {{ vm.public_ref }}{% endif %}</div>
     <h1>{{ vm.headline }}</h1>
     {% if vm.address %}<p class="addr">{{ vm.address }}</p>{% endif %}
 
@@ -54,7 +54,7 @@
 
     <h2>Property details</h2>
     <table class="kv">
-      <tr><td>Reference</td><td>{{ vm.ref }}</td></tr>
+      {% if vm.public_ref %}<tr><td>Reference</td><td>{{ vm.public_ref }}</td></tr>{% endif %}
       {% if vm.title_type_label %}<tr><td>Title type</td><td>{{ vm.title_type_label }}</td></tr>{% endif %}
       {% if vm.scheme %}<tr><td>Scheme</td><td>{{ vm.scheme }}{% if vm.unit %}, unit {{ vm.unit }}{% endif %}</td></tr>{% endif %}
       {% if vm.erf %}<tr><td>Erf</td><td>{{ vm.erf }}</td></tr>{% endif %}
