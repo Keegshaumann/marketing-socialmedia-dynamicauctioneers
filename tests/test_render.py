@@ -83,6 +83,14 @@ def test_explicit_arg_overrides_env(monkeypatch):
     assert get_backend("html").name == "html"
 
 
+def test_mixed_env_resolves_get_backend_to_html(monkeypatch):
+    # "mixed" is a per-format render MODE, not a single backend; get_backend()
+    # must resolve it to the default rather than raise (regression: it raised
+    # ValueError, which 500'd every gate page that asks for "a backend", D40).
+    monkeypatch.setenv("ENGINE_RENDERER", "mixed")
+    assert get_backend().name == "html"
+
+
 def test_unconfigured_canva_degrades_without_crashing(monkeypatch):
     if "canva" not in list_backends():
         pytest.skip("canva scaffold not registered")

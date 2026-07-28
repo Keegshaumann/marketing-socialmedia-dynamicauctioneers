@@ -36,10 +36,18 @@ __all__ = [
 
 
 def get_backend(name: str | None = None) -> RenderBackend:
-    """Resolve a backend: explicit arg -> ENGINE_RENDERER env -> default "html"."""
+    """Resolve a SINGLE backend: explicit arg -> ENGINE_RENDERER env -> "html".
+
+    ``"mixed"`` is a per-format render MODE (the render service routes each format
+    to the best backend), not a single backend, so a caller asking for "a
+    backend" while mixed is configured gets the universal default instead of a
+    crash.
+    """
     import importlib
 
     resolved = name or os.getenv("ENGINE_RENDERER") or DEFAULT_BACKEND
+    if resolved == "mixed":
+        resolved = DEFAULT_BACKEND
     if resolved not in _REGISTRY:
         raise ValueError(
             f"Unknown render backend {resolved!r}. Known: {', '.join(sorted(_REGISTRY))}."
