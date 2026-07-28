@@ -9,7 +9,8 @@
 <div class="eyebrow mt-0"><span class="dot"></span>New property<span class="dot"></span>Lightstone EVM + Property Report (+ optional valuation)</div>
 
 <form class="mt-2" hx-post="/intake/upload" hx-encoding="multipart/form-data"
-      hx-target="#intake-result" hx-swap="innerHTML" hx-trigger="submit">
+      hx-target="#intake-result" hx-swap="innerHTML" hx-trigger="submit"
+      hx-disabled-elt="find [data-intake-submit]">
   <div class="dropzone" data-dropzone tabindex="0" role="button"
        aria-label="Drop the source PDFs, or press to browse">
     <div class="dropzone__prompt">
@@ -25,7 +26,7 @@
   <div class="row mt-2">
     <span class="hint">Selected files show above. Extraction runs in the background once you upload.</span>
     <span class="spacer"></span>
-    <button type="submit" class="btn btn--ghost btn--sm" data-intake-submit>{{ ui.icon('arrow') }}<span>Upload</span></button>
+    <button type="submit" class="btn btn--ghost btn--sm" data-intake-submit>{{ ui.icon('arrow') }}<span>Upload</span><span class="spinner" aria-hidden="true"></span></button>
   </div>
 </form>
 

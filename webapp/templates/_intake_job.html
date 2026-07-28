@@ -20,8 +20,9 @@
   </div>
   <div class="panel__body">
     {% if polling %}
-      <div class="progress" aria-hidden="true"><div class="progress__bar" style="width:64%;"></div></div>
-      <p class="hint mt-2">Reading the document pair and extracting the record. This card updates itself.</p>
+      <div class="progress" aria-hidden="true"><div class="progress__bar" style="width:{{ pct | default(6) }}%;"></div></div>
+      <p class="hint mt-2">Reading the documents and extracting the record.
+        Elapsed {{ elapsed_label | default('0:00') }}{% if (pct | default(0)) < 88 %}, usually a minute or two{% endif %}. This card updates itself.</p>
     {% else %}
       <div class="banner banner--{{ 'error' if tone == 'error' else ('ok' if tone == 'ok' else 'note') }}" role="status">
         {{ ui.icon('check' if tone == 'ok' else ('block' if tone == 'error' else 'note')) }}

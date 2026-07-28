@@ -22,6 +22,7 @@ the DP number and job status, so no PII can surface.
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -48,6 +49,29 @@ def _output_root(db_path: str) -> str:
     return models.get_setting(db_path, "output_root") or "."
 
 
+# The progress bar is elapsed-driven: extraction has no mid-run signal, so the
+# bar approaches (never reaches) 95% on this half-life and snaps to done when the
+# job settles - it always creeps forward instead of sitting at a fixed value.
+_EXTRACT_HALFLIFE_S = 40.0
+
+
+def _progress(job: Dict[str, Any]) -> Dict[str, Any]:
+    """Elapsed seconds -> an ever-advancing percent + a mm:ss elapsed label."""
+    created = job.get("created_at")
+    elapsed = 0.0
+    if created:
+        try:
+            started = datetime.fromisoformat(str(created))
+            if started.tzinfo is None:
+                started = started.replace(tzinfo=timezone.utc)
+            elapsed = max(0.0, (datetime.now(timezone.utc) - started).total_seconds())
+        except ValueError:
+            elapsed = 0.0
+    pct = round(95 * (1 - 0.5 ** (elapsed / _EXTRACT_HALFLIFE_S)))
+    minutes, seconds = divmod(int(elapsed), 60)
+    return {"pct": max(4, pct), "elapsed_label": f"{minutes}:{seconds:02d}"}
+
+
 def _job_ctx(job: Dict[str, Any]) -> Dict[str, Any]:
     """Presentation fields for the job card: tone + whether to keep polling."""
     state = job.get("state") or ""
@@ -60,7 +84,10 @@ def _job_ctx(job: Dict[str, Any]) -> Dict[str, Any]:
         tone = "info"
     else:  # done
         tone = "ok"
-    return {"job": job, "polling": polling, "tone": tone}
+    ctx = {"job": job, "polling": polling, "tone": tone}
+    if polling:
+        ctx.update(_progress(job))
+    return ctx
 
 
 # --- screen ---------------------------------------------------------------
