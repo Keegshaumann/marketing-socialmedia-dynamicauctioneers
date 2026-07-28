@@ -304,21 +304,32 @@ def render_all(
     backend: Optional[str] = None,
     output_root: str = ".",
     client=None,
+    formats: Optional[List[str]] = None,
 ) -> List[Artifact]:
-    """Render every supported format for DP ``dp``, one manifest per pass.
+    """Render the supported formats for DP ``dp``, one manifest per pass.
 
     Resolves the backend (arg -> ``ENGINE_RENDERER`` env -> default ``html``);
     ``"mixed"`` selects the best backend per format (premium where configured,
     html otherwise). Loads the record, resolves copy + photos once, renders each
     format through its resolved backend(s), logs a manifest, returns the set.
+
+    ``formats`` renders only that subset (validated against ``FORMATS``); default
+    (None) renders the full set. The manifest is written for exactly the formats
+    rendered, so an ad-only first pass (D39) lists only the ad, and the later
+    full pass rewrites the manifest with everything.
     """
+    targets = list(formats) if formats is not None else FORMATS
+    unknown = [f for f in targets if f not in FORMATS]
+    if unknown:
+        raise ValueError(f"Unknown format(s): {', '.join(unknown)}. Known: {', '.join(FORMATS)}.")
+
     record = _load_record(dp, store)
     resolve = _format_backends(backend)
     public, copy, photos = _prepare(record, output_root, client=client)
     template_set = _resolve_template_set(record)
 
     artifacts: List[Artifact] = []
-    for fmt in FORMATS:
+    for fmt in targets:
         request = RenderRequest(
             dp=dp,
             fmt=fmt,
@@ -428,6 +439,7 @@ def apply_edits(
     backend: Optional[str] = None,
     output_root: str = ".",
     client=None,
+    formats: Optional[List[str]] = None,
 ) -> EditChange:
     """Apply human edits to a record's public fields, then re-render once.
 
@@ -487,7 +499,7 @@ def apply_edits(
     store.upsert(record)
     try:
         artifacts = render_all(
-            dp, store, backend=backend, output_root=output_root, client=client
+            dp, store, backend=backend, output_root=output_root, client=client, formats=formats
         )
     except ValueError as exc:
         # By this point the edit IS saved; a render-time ValueError (e.g. no

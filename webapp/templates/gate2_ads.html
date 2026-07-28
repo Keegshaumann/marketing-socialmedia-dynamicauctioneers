@@ -24,8 +24,24 @@
   <div class="grid-2">
     <div class="stack">
       <div class="panel">
-        <div class="panel__head"><div class="panel__title">Rendered adverts</div></div>
+        <div class="panel__head">
+          <div class="panel__title">Rendered adverts</div>
+          <div class="panel__actions">
+            <a class="btn btn--ghost btn--sm" href="/gates/{{ dp }}/ad.png" download
+               title="Download the ad as a PNG to attach to an email">
+              {{ ui.icon('download', 'icon--sm') }}<span>Export PNG</span>
+            </a>
+            <button type="button" class="btn btn--primary btn--sm" data-email-ad
+                    data-png="/gates/{{ dp }}/ad.png"
+                    data-subject="{{ email_subject }}"
+                    data-body="{{ email_body }}"
+                    title="Download the ad and open a pre-filled email to attach it">
+              {{ ui.icon('mail', 'icon--sm') }}<span>Email the ad</span>
+            </button>
+          </div>
+        </div>
         <div class="panel__body">
+          <p class="hint" style="margin:0 0 12px">The branded ad is ready. Export it or email it to the client for approval. The full pack (info pack, banners, socials) is generated once the ad is approved.</p>
           {% include 'partials/_gate2_gallery.html' %}
         </div>
       </div>

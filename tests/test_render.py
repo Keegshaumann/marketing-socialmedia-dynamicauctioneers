@@ -137,6 +137,26 @@ def test_dp_number_absent_from_public_tile_and_ads(golden_record, tmp_path):
     assert "Ref DP" not in ad
 
 
+# --- ad-first render split (D39) -----------------------------------------
+
+def test_render_all_subset_renders_only_requested(golden_record, tmp_path):
+    store = _store_with(golden_record)
+    try:
+        ad = render_all("3060", store, output_root=str(tmp_path), formats=["demo_ad"])
+        assert sorted(a.fmt for a in ad) == ["demo_ad"]
+    finally:
+        store.close()
+
+
+def test_render_all_rejects_unknown_format(golden_record, tmp_path):
+    store = _store_with(golden_record)
+    try:
+        with pytest.raises(ValueError):
+            render_all("3060", store, output_root=str(tmp_path), formats=["bogus"])
+    finally:
+        store.close()
+
+
 # --- AI headline generation (gate-2 auto-generate) -----------------------
 
 def test_generate_headline_offline_returns_deterministic(golden_record):

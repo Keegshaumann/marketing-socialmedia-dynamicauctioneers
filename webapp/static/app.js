@@ -165,7 +165,34 @@
     });
   }
 
-  function init(root) { wireDropzones(root); armToasts(root); wireSweeps(root); }
+  // ---- Email the ad ------------------------------------------------------
+  // Browsers can't attach a file to a new email for us, so the button does the
+  // next best thing: download the ad PNG, then open a pre-filled compose window
+  // for the marketer to attach the just-downloaded file (one drag).
+  function wireEmailAd(root) {
+    (root || document).querySelectorAll('[data-email-ad]').forEach(function (btn) {
+      if (btn.__emailad) return;
+      btn.__emailad = true;
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        var png = btn.getAttribute('data-png');
+        var subject = btn.getAttribute('data-subject') || '';
+        var body = btn.getAttribute('data-body') || '';
+        if (png) {
+          var a = document.createElement('a');
+          a.href = png; a.download = '';
+          document.body.appendChild(a); a.click(); a.remove();
+        }
+        // give the download a beat to start before the mail client steals focus
+        setTimeout(function () {
+          window.location.href = 'mailto:?subject=' +
+            encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+        }, 600);
+      });
+    });
+  }
+
+  function init(root) { wireDropzones(root); armToasts(root); wireSweeps(root); wireEmailAd(root); }
 
   document.addEventListener('DOMContentLoaded', function () { configHtmx(); init(document); });
   // re-wire content swapped in by HTMX

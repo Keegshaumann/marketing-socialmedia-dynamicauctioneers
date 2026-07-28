@@ -139,11 +139,32 @@ def _signoff(db_path: str, dp: str, gate: str, user: str, note: str) -> None:
         store.close()
 
 
-def _render(db_path: str, dp: str) -> List[Any]:
-    """Render every artifact for ``dp`` from public_view. Never raises upward."""
+# The first draft renders ONLY the branded ad; the rest of the collateral (channel
+# copy, info pack, banners, board, tile) is generated after the ad is approved
+# (owner directive D39). These are the pre-approval states, where only the ad
+# exists; from "approved" onward the full set renders.
+_AD_ONLY_STATES = frozenset({"extracted", "flags_raised", "verified", "drafted"})
+AD_FORMAT = "demo_ad"
+
+
+def _formats_for_state(state: Optional[str]) -> Optional[List[str]]:
+    """Which formats to render in ``state``: the ad only before approval, the
+    full set (None) once approved (D39)."""
+    return [AD_FORMAT] if state in _AD_ONLY_STATES else None
+
+
+def _render(db_path: str, dp: str, formats: Any = "auto") -> List[Any]:
+    """Render the artifacts for ``dp`` from public_view. Never raises upward.
+
+    ``formats="auto"`` (default) picks the set from the current lifecycle state
+    (ad-only before approval, full after, D39); pass an explicit list/None to
+    override.
+    """
     store = _store(db_path)
     try:
-        return render_all(dp, store, output_root=_output_root(db_path))
+        if formats == "auto":
+            formats = _formats_for_state(store.get_state(dp))
+        return render_all(dp, store, output_root=_output_root(db_path), formats=formats)
     finally:
         store.close()
 
@@ -401,6 +422,15 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
     identity = pv.get("identity") or {}
     sale = pv.get("sale_process") or {}
     marketing_pv = pv.get("marketing") or {}
+    # A client-ready email draft for the "email the ad" action (no PII, no DP).
+    _where = identity.get("street_address") or identity.get("suburb") or "the property"
+    email_subject = f"Property advert for approval: {identity.get('suburb') or _where}"
+    email_body = (
+        "Hi,\n\n"
+        f"Please find the attached property advert for {_where}. It is ready for "
+        "your approval before we take it to market. Let us know if you would like "
+        "any changes.\n\nKind regards,\nDynamic Auctioneers"
+    )
     return templates.TemplateResponse(
         request,
         "gate2_ads.html",
@@ -426,6 +456,8 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
             "photos": _photo_view(db_path, dp, record),
             "approval_email": email_html,
             "links": links,
+            "email_subject": email_subject,
+            "email_body": email_body,
         },
     )
 
@@ -741,7 +773,8 @@ def _save_edits(db_path: str, dp: str, fields: dict, user: str) -> None:
         return
     store = _store(db_path)
     try:
-        apply_edits(dp, store, fields, user, output_root=_output_root(db_path))
+        formats = _formats_for_state(store.get_state(dp))
+        apply_edits(dp, store, fields, user, output_root=_output_root(db_path), formats=formats)
     finally:
         store.close()
 
@@ -813,6 +846,39 @@ async def gate2_suggest_headline(
     )
 
 
+@router.get("/{dp}/ad.png")
+def gate2_ad_png(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
+    """Serve the branded ad as a PNG attachment, for emailing a client (D39).
+
+    Rasterises ``demo_ad.html`` -> ``demo_ad.png`` on demand (cached; re-rendered
+    when the HTML is newer). The download filename uses the suburb, never the
+    internal DP (D37). Degrades to a clear message if wkhtmltoimage is missing.
+    """
+    from engine.render.rasterize import RasterizeUnavailable, html_to_png
+
+    db_path = _db(request)
+    art_dir = _artifacts_dir(db_path, dp)
+    html_path = art_dir / "demo_ad.html"
+    if not html_path.exists():
+        _render(db_path, dp, formats=[AD_FORMAT])  # ensure the ad exists
+    if not html_path.exists():
+        raise HTTPException(status_code=404, detail="The ad has not been rendered yet.")
+
+    png_path = art_dir / "demo_ad.png"
+    try:
+        if not png_path.exists() or png_path.stat().st_mtime < html_path.stat().st_mtime:
+            html_to_png(html_path, png_path)
+    except RasterizeUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    except Exception as exc:  # a render failure must not 500 opaquely
+        raise HTTPException(status_code=500, detail=f"Could not render the ad image: {exc}")
+
+    record = _load(db_path, dp)
+    suburb = (record.identity.suburb if record.identity else None) or "property"
+    slug = "".join(c if c.isalnum() else "-" for c in suburb).strip("-").lower() or "property"
+    return FileResponse(str(png_path), media_type="image/png", filename=f"{slug}-advert.png")
+
+
 @router.post("/{dp}/ads/changes", response_class=HTMLResponse)
 async def gate2_changes(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
     db_path = _db(request)
@@ -849,6 +915,9 @@ def action_gate2_approve(db_path: str, dp: str, approver: str) -> str:
     moved, state = _advance(db_path, dp, "approved", note=f"gate 2 approved by {approver}")
     if moved:
         _signoff(db_path, dp, gate="2", user=approver, note="internal ad approval")
+        # The ad is approved: NOW build the rest of the collateral (channel copy,
+        # info pack, banners, board, tile). Until now only the ad existed (D39).
+        _render(db_path, dp)  # state is "approved" -> full set
     return state
 
 

@@ -326,6 +326,80 @@ def test_board_delete_removes_the_record():
         store.close()
 
 
+def test_first_draft_renders_ad_only_then_full_set_on_approve():
+    import json as _json
+
+    _needs_golden()
+    dp = "9020"
+    _golden_clone(dp)
+    client = _client()
+    _login_admin(client)
+    manifest = _TMP / f"DP{dp}" / "artifacts" / "manifest.json"
+
+    # Sign off gate 1 (resolve the garage conflict) -> drafted; the FIRST DRAFT
+    # renders the branded ad only (D39).
+    client.post(
+        f"/gates/{dp}/verify",
+        data={"conflict_source__garages": "property_report"},
+        follow_redirects=False,
+    )
+    assert _state(dp) == "drafted"
+    fmts = [a["fmt"] for a in _json.loads(manifest.read_text())]
+    assert fmts == ["demo_ad"], fmts
+
+    # Approve -> approved; NOW the full pack renders.
+    client.post(f"/gates/{dp}/ads/approve", follow_redirects=False)
+    assert _state(dp) == "approved"
+    fmts2 = [a["fmt"] for a in _json.loads(manifest.read_text())]
+    assert "demo_ad" in fmts2 and "info_pack" in fmts2 and len(fmts2) > 1
+
+
+def test_ad_png_route_serves_png(monkeypatch):
+    # The rasteriser is monkeypatched so the route is tested without launching a
+    # browser: it must render the ad html, serve image/png, and name the download
+    # from the suburb (never the DP).
+    from engine.render import rasterize
+    from pathlib import Path as _Path
+
+    def _fake(html_path, png_path, **kw):
+        _Path(png_path).write_bytes(b"\x89PNG\r\n\x1a\nfake")
+        return _Path(png_path)
+
+    monkeypatch.setattr(rasterize, "html_to_png", _fake)
+
+    _needs_golden()
+    dp = "9021"
+    _golden_clone(dp)
+    client = _client()
+    _login_admin(client)
+    client.get(f"/gates/{dp}/ads")  # renders the ad html
+
+    resp = client.get(f"/gates/{dp}/ad.png")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "image/png"
+    disp = resp.headers.get("content-disposition", "")
+    assert "advert.png" in disp and "DP" not in disp  # public filename, no DP
+
+
+def test_ad_png_route_degrades_when_rasteriser_unavailable(monkeypatch):
+    from engine.render import rasterize
+
+    def _boom(*a, **k):
+        raise rasterize.RasterizeUnavailable("no chromium here")
+
+    monkeypatch.setattr(rasterize, "html_to_png", _boom)
+
+    _needs_golden()
+    dp = "9022"
+    _golden_clone(dp)
+    client = _client()
+    _login_admin(client)
+    client.get(f"/gates/{dp}/ads")
+
+    resp = client.get(f"/gates/{dp}/ad.png")
+    assert resp.status_code == 503  # a clear message, not a crash
+
+
 def test_gate2_auto_generate_headline_returns_filled_input():
     _needs_golden()
     dp = "9010"
