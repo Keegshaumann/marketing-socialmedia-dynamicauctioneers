@@ -53,6 +53,14 @@ def verify_password(password: str, pw_hash: str) -> bool:
         return False
 
 
+# A fixed bcrypt hash of a random string, computed once at import. When a login
+# names an account that does not exist, we still run a checkpw against this hash
+# so the request takes the same ~time as a wrong password on a real account. That
+# removes the timing side-channel an attacker would otherwise use to tell which
+# emails are registered (user enumeration).
+_DUMMY_HASH = bcrypt.hashpw(secrets.token_bytes(16), bcrypt.gensalt()).decode("utf-8")
+
+
 # --- db path resolution ---------------------------------------------------
 
 def db_path_for(request: Request) -> str:
@@ -90,9 +98,14 @@ def current_user(request: Request) -> Optional[Dict[str, Any]]:
 
 
 def login_user(request: Request, email: str, password: str) -> bool:
-    """Verify credentials and, on success, set the session. Returns success."""
+    """Verify credentials and, on success, set the session. Returns success.
+
+    Runs a bcrypt check even when the account does not exist (against a dummy
+    hash) so the response time does not reveal whether an email is registered.
+    """
     user = models.get_user(db_path_for(request), email)
     if user is None:
+        verify_password(password, _DUMMY_HASH)  # equalise timing; result discarded
         return False
     if not verify_password(password, user["pw_hash"]):
         return False

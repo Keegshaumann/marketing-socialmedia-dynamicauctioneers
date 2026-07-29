@@ -46,6 +46,14 @@ _EXTERNAL_CRED_VARS = (
 def _hermetic_env(monkeypatch):
     for var in _EXTERNAL_CRED_VARS:
         monkeypatch.delenv(var, raising=False)
+    # Reset the in-process login throttle so failed-login attempts in one test
+    # never leak into another (all tests share one client IP / app instance).
+    try:
+        from webapp.ratelimit import throttle
+
+        throttle.reset()
+    except Exception:
+        pass
     yield
 
 

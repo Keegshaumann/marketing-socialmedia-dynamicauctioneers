@@ -154,6 +154,17 @@ def create_app() -> FastAPI:
         max_age=14 * 24 * 3600,
     )
 
+    # Security headers on every response: block framing (clickjacking of the
+    # gate-action pages), stop MIME sniffing, and trim referrer leakage. HSTS is
+    # left to the Caddy TLS front so it is not duplicated / wrong on local HTTP.
+    @app.middleware("http")
+    async def _security_headers(request, call_next):
+        response = await call_next(request)
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("Referrer-Policy", "same-origin")
+        return response
+
     app.state.templates = _build_templates()
     app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
 

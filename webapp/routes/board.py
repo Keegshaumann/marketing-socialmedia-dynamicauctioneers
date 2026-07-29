@@ -15,6 +15,7 @@ loaded here, so the ledger cannot leak PII.
 
 from __future__ import annotations
 
+import logging
 import sqlite3
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
@@ -23,8 +24,11 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from webapp import auth, models
+from webapp.ratelimit import account_key, client_ip, throttle
 
 router = APIRouter()
+
+logger = logging.getLogger("webapp.auth")
 
 
 # --- shared render helper -------------------------------------------------
@@ -185,8 +189,33 @@ def login_submit(
     email: str = Form(...),
     password: str = Form(...),
 ):
+    key = account_key(email)
+    wait = throttle.retry_after(key)
+    if wait:
+        minutes = max(1, (wait + 59) // 60)
+        logger.warning("login throttled for %s from %s", key, client_ip(request))
+        return _view(
+            request,
+            "login.html",
+            {
+                "error": (
+                    f"Too many failed attempts. Try again in about {minutes} "
+                    "minute" + ("s" if minutes != 1 else "") + "."
+                ),
+                "email": email,
+            },
+            status_code=429,
+        )
+
     if auth.login_user(request, email, password):
+        throttle.record_success(key)
         return RedirectResponse("/board", status_code=303)
+
+    throttle.record_failure(key)
+    # Log the attempt (email + source IP) for intrusion detection; never the
+    # password, and the same generic message goes back regardless of whether the
+    # email exists (no user enumeration).
+    logger.warning("failed login for %s from %s", key, client_ip(request))
     return _view(
         request,
         "login.html",

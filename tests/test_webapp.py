@@ -196,6 +196,50 @@ def test_good_password_sets_session():
     assert board.status_code == 200
 
 
+# --- sign-in hardening ----------------------------------------------------
+
+def test_login_locks_out_after_repeated_failures():
+    from webapp.ratelimit import throttle
+
+    client = _client()
+    # Fail up to the threshold; each is a normal "not recognised" 401.
+    for _ in range(throttle._max_fails):
+        r = _login(client, APPROVER_EMAIL, "wrong-password")
+        assert r.status_code == 401
+    # Now locked: even the CORRECT password is refused with 429 until it clears.
+    r = _login(client, APPROVER_EMAIL, APPROVER_PW)
+    assert r.status_code == 429
+    assert "Too many failed attempts" in r.text
+
+
+def test_a_successful_login_clears_the_failure_count():
+    from webapp.ratelimit import throttle
+
+    client = _client()
+    for _ in range(throttle._max_fails - 1):  # one short of the lock
+        assert _login(client, APPROVER_EMAIL, "wrong-password").status_code == 401
+    assert _login(client, APPROVER_EMAIL, APPROVER_PW).status_code == 303  # clears
+    # The counter reset, so a fresh wrong attempt is a plain 401, not a lock.
+    assert _login(client, APPROVER_EMAIL, "wrong-password").status_code == 401
+
+
+def test_login_error_is_generic_for_unknown_and_wrong(monkeypatch):
+    # Same status and message whether the email exists or not (no enumeration).
+    client = _client()
+    unknown = _login(client, "nobody@example.com", "whatever")
+    wrong = _login(client, APPROVER_EMAIL, "wrong-password")
+    assert unknown.status_code == wrong.status_code == 401
+    assert "not recognised" in unknown.text and "not recognised" in wrong.text
+
+
+def test_security_headers_present_on_responses():
+    client = _client()
+    r = client.get("/login")
+    assert r.headers.get("X-Frame-Options") == "DENY"
+    assert r.headers.get("X-Content-Type-Options") == "nosniff"
+    assert r.headers.get("Referrer-Policy") == "same-origin"
+
+
 # --- board renders --------------------------------------------------------
 
 def test_board_renders_for_logged_in_user():
