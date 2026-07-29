@@ -103,11 +103,37 @@
             </div>
             <div class="field">
               <label class="label" for="method">Sale method</label>
-              <select class="input" id="method" name="method">
+              <select class="input" id="method" name="method" data-method-select data-auction-target="#auction-panel">
                 {% if not method %}<option value="" selected>&mdash; not set &mdash;</option>{% endif %}
                 <option value="offers_invited" {% if method == 'offers_invited' %}selected{% endif %}>Offers invited</option>
                 <option value="auction" {% if method == 'auction' %}selected{% endif %}>Auction</option>
               </select>
+            </div>
+            <div class="field auction-panel" id="auction-panel"{% if method != 'auction' %} hidden{% endif %}>
+              <div class="label">Auction details <span class="hint hint--inline">shown on auction ads</span></div>
+              <div class="field-grid">
+                <div>
+                  <label class="label label--sm" for="auction_type">Type</label>
+                  <input class="input" id="auction_type" name="auction_type" value="{{ auction_type }}" placeholder="Insolvency">
+                  <div class="hint">Reads as "&lt;type&gt; auction!", e.g. Insolvency Auction!</div>
+                </div>
+                <div>
+                  <label class="label label--sm" for="auction_channel">Channel</label>
+                  <select class="input" id="auction_channel" name="auction_channel">
+                    <option value="" {% if not auction_channel %}selected{% endif %}>&mdash;</option>
+                    <option value="Online" {% if auction_channel == 'Online' %}selected{% endif %}>Online</option>
+                    <option value="On-site" {% if auction_channel == 'On-site' %}selected{% endif %}>On-site</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="label label--sm" for="auction_date">Date</label>
+                  <input class="input" id="auction_date" name="auction_date" value="{{ auction_date }}" placeholder="28 May 2026">
+                </div>
+                <div>
+                  <label class="label label--sm" for="auction_time">Time</label>
+                  <input class="input" id="auction_time" name="auction_time" value="{{ auction_time }}" placeholder="10:00">
+                </div>
+              </div>
             </div>
             {% if template_sets|length > 1 %}
             <div class="field">
@@ -122,9 +148,9 @@
             </div>
             {% endif %}
             <div class="field">
-              <label class="label" for="terms">Terms and dates (one per line)</label>
+              <label class="label" for="terms">Terms (one per line)</label>
               <textarea class="textarea" id="terms" name="terms" rows="3">{{ terms }}</textarea>
-              <div class="hint">The auction date goes here as a line, e.g. Auction 20 Aug 2026. Blank fields are left unchanged.</div>
+              <div class="hint">The terms strip on the ad, e.g. Vacant occupation cannot be guaranteed. The auction date/time has its own fields above. Blank is left unchanged.</div>
             </div>
             {{ ui.button('Save and re-render', variant='primary', icon_name='check', type='submit') }}
           </form>

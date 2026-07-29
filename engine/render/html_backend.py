@@ -215,6 +215,11 @@ class HtmlBackend(RenderBackend):
             # all rather than leaking the internal DP (owner directive, D37).
             "ref": f"DP{request.dp}",
             "public_ref": identity.get("mandate_ref") or None,
+            # PROPERTY REF on the ad chrome: the DP shown as "PROPERTY REF: DP<n>"
+            # top-right on the branded ads, matching the team's real ads (D42
+            # reverses the earlier D37 hide-the-DP directive). Ad templates render
+            # it; the internal board tile still omits it.
+            "property_ref": f"DP{request.dp}",
             "headline": marketing.get("headline") or "Property for sale",
             "address": identity.get("street_address"),
             "suburb": identity.get("suburb"),
@@ -227,6 +232,11 @@ class HtmlBackend(RenderBackend):
             "title_type_label": self._title_type_label(identity.get("title_type")),
             "location_line": self._location_line(identity),
             "method": method,
+            # Auction specifics (D42), rendered on auction ads only.
+            "auction_type": sale.get("auction_type"),
+            "auction_channel": sale.get("auction_channel"),
+            "auction_date": sale.get("auction_date"),
+            "auction_time": sale.get("auction_time"),
             "badge_label": badge_label,
             "price_display": marketing.get("price_display") or badge_label,
             "size_str": _fmt_num(physical.get("unit_size_m2")),

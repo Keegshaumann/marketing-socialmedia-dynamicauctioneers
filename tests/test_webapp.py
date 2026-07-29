@@ -803,6 +803,31 @@ def test_terms_split_and_method_allowlist():
     assert overrides.get("sale_process.method") == "auction"
 
 
+def test_auction_fields_save_and_render():
+    dp = "7211"
+    _seed_golden_live(dp)
+    client = _client()
+    _login_admin(client)
+    client.post(
+        f"/gates/{dp}/ads/copy",
+        data={
+            "method": "auction",
+            "auction_type": "Insolvency",
+            "auction_channel": "Online",
+            "auction_date": "28 May 2026",
+            "auction_time": "10:00",
+        },
+    )
+    sale = _public_view(dp)["sale_process"]
+    assert sale["auction_type"] == "Insolvency"
+    assert sale["auction_channel"] == "Online"
+    assert sale["auction_date"] == "28 May 2026"
+    assert sale["auction_time"] == "10:00"
+    # A blank auction field never wipes an existing value.
+    client.post(f"/gates/{dp}/ads/copy", data={"auction_type": ""})
+    assert _public_view(dp)["sale_process"]["auction_type"] == "Insolvency"
+
+
 def test_blank_fields_do_not_overwrite():
     dp = "7207"
     _seed_golden_live(dp)

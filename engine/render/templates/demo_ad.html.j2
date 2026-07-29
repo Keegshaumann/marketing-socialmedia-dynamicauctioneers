@@ -102,7 +102,8 @@
   <div class="inner">
     <div class="eyebrow">
       <span>Property for sale</span>
-      {% if vm.public_ref %}<span class="dot"></span><span>Ref {{ vm.public_ref }}</span>{% endif %}
+      {% if vm.public_ref %}<span class="dot"></span><span>Master ref {{ vm.public_ref }}</span>{% endif %}
+      {% if vm.property_ref %}<span class="dot"></span><span>Property ref {{ vm.property_ref }}</span>{% endif %}
       {% if vm.location_line %}<span class="dot"></span><span>{{ vm.location_line }}</span>{% endif %}
     </div>
 

@@ -446,6 +446,11 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
             "suburb": identity.get("suburb") or "",
             "method": sale.get("method") or "",
             "terms": "\n".join(sale.get("terms") or []),
+            # Auction specifics (D42), edited on the auction-only panel.
+            "auction_type": sale.get("auction_type") or "",
+            "auction_channel": sale.get("auction_channel") or "",
+            "auction_date": sale.get("auction_date") or "",
+            "auction_time": sale.get("auction_time") or "",
             # Design picker (D33): hidden unless more than one set is
             # configured AND the active renderer routes through Canva; the
             # first configured set is the default a blank pick follows.
@@ -705,6 +710,12 @@ _EDIT_TEXT_FIELDS = {
     "price_display": "marketing.price_display",
     "street_address": "identity.street_address",
     "suburb": "identity.suburb",
+    # Auction specifics (D42): shown on auction ads only. Blank inputs are
+    # skipped by _collect_edit_fields, so they never wipe an existing value.
+    "auction_type": "sale_process.auction_type",
+    "auction_channel": "sale_process.auction_channel",
+    "auction_date": "sale_process.auction_date",
+    "auction_time": "sale_process.auction_time",
 }
 _SALE_METHODS = ("offers_invited", "auction")
 

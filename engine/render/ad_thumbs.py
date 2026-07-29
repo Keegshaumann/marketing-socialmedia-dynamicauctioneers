@@ -48,7 +48,12 @@ def _sample_vm() -> dict:
     photo = _placeholder_photo()
     return {
         "headline": "3 Bedroom Family Home in Sandton",
-        "public_ref": None,
+        "public_ref": "T1234/2024",
+        "property_ref": "DP0000",
+        "auction_type": "Insolvency",
+        "auction_channel": "Online",
+        "auction_date": "20 Aug 2026",
+        "auction_time": "10:00",
         "address": "12 Example Road, Sandton",
         "suburb": "Sandton",
         "municipality": "City of Johannesburg",

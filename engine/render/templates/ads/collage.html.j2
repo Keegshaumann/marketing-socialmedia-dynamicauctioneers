@@ -42,6 +42,10 @@
   .ig-price { margin:14px 40px 0; border:2px solid var(--g3); border-radius:10px; padding:16px;
               text-align:center; font-size:42px; font-weight:800; color:#fff; letter-spacing:.01em; }
   .ig-price small { display:block; font-size:20px; font-weight:800; letter-spacing:.14em; color:var(--g2); }
+  .ig-auction { margin:14px 40px 0; border:2px solid var(--g3); border-radius:10px; padding:16px 14px;
+                text-align:center; font-size:34px; font-weight:800; color:#fff; letter-spacing:.01em; text-transform:uppercase; }
+  .ig-terms { margin:12px 40px 0; border:1.5px solid var(--g3); border-radius:999px; padding:12px 20px;
+              text-align:center; font-size:17px; font-weight:800; letter-spacing:.04em; color:#e9dcc0; text-transform:uppercase; }
   .ig-tag { padding:18px 40px 6px; text-align:center; font-size:23px; font-weight:800; letter-spacing:.02em;
             color:#fff; text-transform:uppercase; }
   .ig-stats { margin:8px 40px 0; border:2px solid var(--g3); border-radius:999px; display:flex;
@@ -56,12 +60,15 @@
 </style>
 
 <div class="ig ad">
-  {% if vm.public_ref %}<div class="ig-ref gold"><span>MASTER REF: {{ vm.public_ref }}</span><span></span></div>{% else %}<div class="gold" style="height:8px"></div>{% endif %}
+  <div class="ig-ref gold">
+    <span>{% if vm.public_ref %}MASTER REF: {{ vm.public_ref }}{% endif %}</span>
+    <span>PROPERTY REF: {{ vm.property_ref }}</span>
+  </div>
 
   <div class="ig-top">
     <div class="ig-head">
       <h1>{% for line in hl %}<span class="{{ 'em' if loop.index == 2 and hl|length == 3 else '' }}">{{ line }}</span>{% if not loop.last %}<br/>{% endif %}{% endfor %}</h1>
-      <span class="ig-badge gold">{% if is_auction %}On Auction{% else %}For Sale{% endif %}!</span>
+      <span class="ig-badge gold">{% if is_auction %}{% if vm.auction_type %}{{ vm.auction_type|upper }} AUCTION{% else %}ON AUCTION{% endif %}{% else %}FOR SALE{% endif %}!</span>
     </div>
     <div class="ig-logo"><img src="{{ logo }}" alt="{{ vm.brand_name }}"/></div>
   </div>
@@ -75,9 +82,11 @@
   </div>
   {% endif %}
 
-  <div class="ig-price">
-    {% if is_auction %}<small>On Auction</small>{% endif %}{{ vm.price_display or 'Offers invited' }}
-  </div>
+  {% if is_auction %}
+  <div class="ig-auction">{{ (vm.auction_channel or 'Online') | upper }} AUCTION{% if vm.auction_date %} | {{ vm.auction_date | upper }}{% endif %}{% if vm.auction_time %} @ {{ vm.auction_time }}{% endif %}</div>
+  {% else %}
+  <div class="ig-price">{{ vm.price_display or 'Offers invited' }}</div>
+  {% endif %}
 
   {% if vm.features_main or vm.features_complex %}
   <div class="ig-tag">{{ ((vm.features_main or []) + (vm.features_complex or []))[:3] | join('  |  ') }}</div>
@@ -89,6 +98,10 @@
     {% if vm.garages and vm.garages != '0' %}<div class="ig-stat"><svg viewBox="0 0 24 24"><path d="M3 20v-8l9-5 9 5v8"/><path d="M6 20v-5h12v5"/><path d="M6 15h12"/></svg><span class="u">Garage</span></div>{% endif %}
     {% if vm.size_str %}<div class="ig-stat">{{ vm.size_str }}<span class="u" style="font-size:19px">m&sup2;</span></div>{% endif %}
   </div>
+
+  {% if vm.terms %}
+  <div class="ig-terms">{{ vm.terms | join('  |  ') }}</div>
+  {% endif %}
 
   <div class="ig-contact gold">
     <span><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11 11 0 0 0 3.4.55 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.3a1 1 0 0 1 1 1 11 11 0 0 0 .55 3.4 1 1 0 0 1-.24 1z"/></svg>{{ vm.brand_phone }}</span>

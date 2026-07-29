@@ -502,12 +502,12 @@ class CanvaBackend(RenderBackend):
             "address": identity.get("street_address"),
             "suburb": identity.get("suburb"),
             "dp": request.dp,
-            # The DP is Dynamic's INTERNAL filing code and must never print on a
-            # public ad (D37); the public reference is the mandate "MASTER REF"
-            # only. property_ref (which used to carry "PROPERTY REF: DP<n>") is
-            # therefore left blank - a template with that field shows nothing
-            # rather than the internal number.
-            "property_ref": None,
+            # PROPERTY REF: DP<n> on the ad, matching the team's real ads (D42
+            # reverses the earlier D37 blanking). The public reference pair is
+            # MASTER REF (mandate) + PROPERTY REF (DP), both shown on the ad
+            # chrome. (This Canva path is dormant - html is the production
+            # renderer - kept consistent for if Canva autofill is ever enabled.)
+            "property_ref": f"DP{request.dp}",
             "master_ref": _master_ref(identity),
             "beds": _stat_label(physical.get("bedrooms"), "BED"),
             "baths": _stat_label(physical.get("bathrooms_main_unit"), "BATH"),

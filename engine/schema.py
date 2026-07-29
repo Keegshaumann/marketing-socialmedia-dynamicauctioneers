@@ -229,6 +229,15 @@ class SaleProcess(_Base):
     method: Optional[str] = None  # "offers_invited" | "auction"
     terms: Optional[List[str]] = None
     viewing: Optional[Viewing] = None
+    # Auction specifics shown on auction ads only (D42), entered by marketing at
+    # gate 2. Free display text so each reads exactly as the ad should. On an
+    # auction ad the badge is "<TYPE> AUCTION!", the auction line is
+    # "<CHANNEL> AUCTION | <DATE> @ <TIME>", and ``terms`` becomes the terms strip
+    # ("Vacant occupation cannot be guaranteed | Viewing not possible").
+    auction_type: Optional[str] = None     # "Insolvency" | "Liquidation" | "Deceased estate" | ...
+    auction_channel: Optional[str] = None  # "Online" | "On-site"
+    auction_date: Optional[str] = None     # "28 May 2026"
+    auction_time: Optional[str] = None     # "10:00"
 
 
 # --- marketing (system + human edits) ------------------------------------

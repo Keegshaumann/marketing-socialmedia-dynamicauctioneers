@@ -208,7 +208,20 @@
     });
   }
 
-  function init(root) { wireDropzones(root); armToasts(root); wireSweeps(root); wireEmailAd(root); wireAdtpl(root); }
+  // Show the auction-details panel only when the sale method is Auction.
+  function wireAuctionPanel(root) {
+    (root || document).querySelectorAll('[data-method-select]').forEach(function (sel) {
+      if (sel.__auction) return;
+      sel.__auction = true;
+      var panel = document.querySelector(sel.getAttribute('data-auction-target') || '#auction-panel');
+      if (!panel) return;
+      var sync = function () { panel.hidden = (sel.value !== 'auction'); };
+      sel.addEventListener('change', sync);
+      sync();
+    });
+  }
+
+  function init(root) { wireDropzones(root); armToasts(root); wireSweeps(root); wireEmailAd(root); wireAdtpl(root); wireAuctionPanel(root); }
 
   document.addEventListener('DOMContentLoaded', function () { configHtmx(); init(document); });
   // re-wire content swapped in by HTMX

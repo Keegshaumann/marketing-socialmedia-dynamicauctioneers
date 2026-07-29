@@ -123,9 +123,9 @@ def test_demo_ad_renders_real_facts_and_brand_tokens(golden_record, tmp_path):
     assert "DYNAMIC" in html  # brand letterhead
 
 
-# --- the internal DP number never appears on public artifacts (D37) ------
+# --- the DP shows as PROPERTY REF on ads (D42), never on the board tile ---
 
-def test_dp_number_absent_from_public_tile_and_ads(golden_record, tmp_path):
+def test_dp_shown_on_ads_but_never_on_the_board_tile(golden_record, tmp_path):
     store = _store_with(golden_record)
     try:
         tile = Path(
@@ -134,15 +134,24 @@ def test_dp_number_absent_from_public_tile_and_ads(golden_record, tmp_path):
         ad = Path(
             render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path)).path
         ).read_text(encoding="utf-8")
+        golden_record.marketing.template_set = "collage"
+        store2 = _store_with(golden_record)
+        try:
+            collage_ad = Path(
+                render_one("3060", store2, "demo_ad", backend="html", output_root=str(tmp_path)).path
+            ).read_text(encoding="utf-8")
+        finally:
+            store2.close()
     finally:
         store.close()
 
-    # The tile leads with the suburb, not the internal DP filing code.
+    # The internal board tile still leads with the suburb, never the DP (D37).
     assert "Pelham North" in tile
     assert "DP3060" not in tile
-    # The ad chrome shows no "Ref DP..." (no mandate ref on the golden record).
-    assert "DP3060" not in ad
-    assert "Ref DP" not in ad
+    # The ads now carry PROPERTY REF: DP<n>, matching the team's real ads (D42).
+    assert "DP3060" in ad
+    assert "DP3060" in collage_ad
+    assert "PROPERTY REF: DP3060" in collage_ad
 
 
 # --- ad-template library (D41) -------------------------------------------
@@ -162,7 +171,7 @@ def test_demo_ad_renders_the_picked_template(golden_record, tmp_path):
 def test_collage_is_method_aware(golden_record, tmp_path):
     # For Sale -> Real Estate brand + "For Sale" badge; Auction -> Auctioneers
     # brand + "On Auction" badge. Same record, only the method differs (D41).
-    for method, badge in [("offers_invited", "For Sale"), ("auction", "On Auction")]:
+    for method, badge in [("offers_invited", "FOR SALE"), ("auction", "ON AUCTION")]:
         golden_record.marketing.template_set = "collage"
         golden_record.sale_process.method = method
         store = _store_with(golden_record)
@@ -173,6 +182,28 @@ def test_collage_is_method_aware(golden_record, tmp_path):
             store.close()
         assert badge in html
         assert "data:image/png;base64," in html  # the brand logo is embedded
+
+
+def test_collage_renders_auction_specifics(golden_record, tmp_path):
+    # An auction record renders the type badge, the channel/date/time line
+    # (instead of a price), and the terms strip (D42).
+    golden_record.marketing.template_set = "collage"
+    golden_record.sale_process.method = "auction"
+    golden_record.sale_process.auction_type = "Insolvency"
+    golden_record.sale_process.auction_channel = "Online"
+    golden_record.sale_process.auction_date = "28 May 2026"
+    golden_record.sale_process.auction_time = "10:00"
+    golden_record.sale_process.terms = ["Vacant occupation cannot be guaranteed"]
+    store = _store_with(golden_record)
+    try:
+        art = render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path))
+        html = Path(art.path).read_text(encoding="utf-8")
+    finally:
+        store.close()
+    assert "INSOLVENCY AUCTION!" in html  # type-aware badge (Jinja upper)
+    assert "ONLINE AUCTION | 28 MAY 2026 @ 10:00" in html  # the auction line
+    assert "Vacant occupation cannot be guaranteed" in html  # terms strip (CSS uppercases)
+    assert 'class="ig-price"' not in html  # auction shows the auction line, not a price bar
 
 
 def test_split3_balances_a_headline():
