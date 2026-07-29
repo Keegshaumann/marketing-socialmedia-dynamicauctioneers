@@ -16,8 +16,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-# The ad card element to capture (defined in demo_ad.html.j2 / _brand chrome).
-_AD_SELECTOR = ".sheet"
+# The ad card element to capture. Ad templates wrap their design in one of these
+# root classes (.sheet on Classic, .card on Bold Dark, .ad reserved); a template
+# with none falls back to a full-page screenshot.
+_AD_SELECTOR = ".sheet, .card, .ad"
 # Match the sheet's max-width so the card renders at its intended size.
 _DEFAULT_WIDTH = 900
 

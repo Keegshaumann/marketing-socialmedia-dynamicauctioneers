@@ -115,6 +115,13 @@ class HtmlBackend(RenderBackend):
             )
 
         template_name, ext, mime = _FORMAT_SPEC[request.fmt]
+        # The ad (demo_ad) design is chosen from the ad-template library (D41);
+        # the marketer's pick rides request.template_set and degrades to Classic.
+        # Every other format keeps its single fixed template.
+        if request.fmt == "demo_ad":
+            from engine.render import ad_templates
+
+            template_name = ad_templates.resolve(request.template_set)
         template = self._env.get_template(template_name)
         context = self._view_model(request)
         rendered = template.render(vm=context)

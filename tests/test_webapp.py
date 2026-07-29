@@ -400,6 +400,47 @@ def test_ad_png_route_degrades_when_rasteriser_unavailable(monkeypatch):
     assert resp.status_code == 503  # a clear message, not a crash
 
 
+def test_gate2_pick_template_applies_and_re_renders():
+    _needs_golden()
+    dp = "9030"
+    _golden_clone(dp)
+    client = _client()
+    _login_admin(client)
+
+    resp = client.post(f"/gates/{dp}/ads/template", data={"template": "bold"})
+    assert resp.status_code == 200
+
+    store = RecordStore(DB_PATH)
+    try:
+        rec = store.get(dp)
+    finally:
+        store.close()
+    assert rec.marketing.template_set == "bold"  # pick stored on the record
+    html = (_TMP / f"DP{dp}" / "artifacts" / "demo_ad.html").read_text(encoding="utf-8")
+    assert "#0E0C0A" in html  # ad re-rendered with the Bold Dark design
+
+
+def test_ad_template_thumb_route(monkeypatch):
+    from pathlib import Path as _Path
+
+    from engine.render import ad_thumbs
+
+    def _fake_thumb(tid, root):
+        d = _Path(root) / ".ad-thumbs"
+        d.mkdir(parents=True, exist_ok=True)
+        f = d / f"{tid}.png"
+        f.write_bytes(b"\x89PNG\r\n\x1a\nfake")
+        return f
+
+    monkeypatch.setattr(ad_thumbs, "thumbnail", _fake_thumb)  # no Chromium in the suite
+
+    client = _client()
+    _login_admin(client)
+    ok = client.get("/gates/ad-template/bold/thumb.png")
+    assert ok.status_code == 200 and ok.headers["content-type"] == "image/png"
+    assert client.get("/gates/ad-template/nope/thumb.png").status_code == 404  # unknown design
+
+
 def test_gate2_auto_generate_headline_returns_filled_input():
     _needs_golden()
     dp = "9010"

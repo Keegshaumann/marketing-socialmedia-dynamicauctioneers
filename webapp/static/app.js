@@ -192,7 +192,23 @@
     });
   }
 
-  function init(root) { wireDropzones(root); armToasts(root); wireSweeps(root); wireEmailAd(root); }
+  // ---- Ad-design picker: optimistic active highlight on click -----------
+  // The click also hx-posts to apply + re-render the ad; this just moves the
+  // "selected" ring immediately so it doesn't wait for the swap.
+  function wireAdtpl(root) {
+    (root || document).querySelectorAll('[data-adtpl-group]').forEach(function (grp) {
+      if (grp.__adtpl) return;
+      grp.__adtpl = true;
+      grp.addEventListener('click', function (e) {
+        var btn = e.target.closest && e.target.closest('.adtpl');
+        if (!btn || !grp.contains(btn)) return;
+        grp.querySelectorAll('.adtpl').forEach(function (b) { b.classList.remove('is-active'); });
+        btn.classList.add('is-active');
+      });
+    });
+  }
+
+  function init(root) { wireDropzones(root); armToasts(root); wireSweeps(root); wireEmailAd(root); wireAdtpl(root); }
 
   document.addEventListener('DOMContentLoaded', function () { configHtmx(); init(document); });
   // re-wire content swapped in by HTMX

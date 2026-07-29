@@ -21,6 +21,29 @@
     </div>
   </div>
   {% endif %}
+
+  {% if ad_templates %}
+  <div class="panel" style="margin-bottom:18px">
+    <div class="panel__head">
+      <div class="panel__title">Ad design</div>
+      <div class="panel__actions"><span class="hint">Pick a template. The ad re-renders in your brand, with this property's details.</span></div>
+    </div>
+    <div class="panel__body">
+      <div class="adtpl-grid" data-adtpl-group>
+        {% for t in ad_templates %}
+        <button class="adtpl {{ 'is-active' if t.id == current_ad_template else '' }}" type="button"
+                name="template" value="{{ t.id }}"
+                hx-post="/gates/{{ dp }}/ads/template" hx-target="#gallery" hx-swap="outerHTML"
+                title="Use the {{ t.name }} design">
+          <span class="adtpl__thumb"><img src="/gates/ad-template/{{ t.id }}/thumb.png" alt="{{ t.name }} preview" loading="lazy"></span>
+          <span class="adtpl__name">{{ t.name }}</span>
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   <div class="grid-2">
     <div class="stack">
       <div class="panel">

@@ -145,6 +145,20 @@ def test_dp_number_absent_from_public_tile_and_ads(golden_record, tmp_path):
     assert "Ref DP" not in ad
 
 
+# --- ad-template library (D41) -------------------------------------------
+
+def test_demo_ad_renders_the_picked_template(golden_record, tmp_path):
+    golden_record.marketing.template_set = "bold"
+    store = _store_with(golden_record)
+    try:
+        art = render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path))
+        html = Path(art.path).read_text(encoding="utf-8")
+    finally:
+        store.close()
+    assert "#0E0C0A" in html  # the Bold Dark design's dark background
+    assert "Pelham North" in html  # still fills the real property facts
+
+
 # --- ad-first render split (D39) -----------------------------------------
 
 def test_render_all_subset_renders_only_requested(golden_record, tmp_path):

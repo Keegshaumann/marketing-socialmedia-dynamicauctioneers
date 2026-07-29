@@ -15,3 +15,5 @@ node_modules/
 # machine-absolute paths; artifacts are rebuilt from the record on demand.
 DP*/artifacts/
 DP*/packs/
+# Ad-design thumbnails, generated on demand from sample data (D41).
+.ad-thumbs/

@@ -451,6 +451,10 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
             # first configured set is the default a blank pick follows.
             "template_sets": _design_sets(),
             "template_set": marketing_pv.get("template_set") or "",
+            # HTML ad-design library (D41): the gallery of designs to pick from,
+            # and the current pick (Classic when unset).
+            "ad_templates": _ad_templates_list(),
+            "current_ad_template": marketing_pv.get("template_set") or "classic",
             "is_update": state in ("live", "updated"),
             "delete_caveat": DELETE_CAVEAT,
             "photos": _photo_view(db_path, dp, record),
@@ -727,6 +731,22 @@ def _design_sets() -> list:
     return names if len(names) > 1 else []
 
 
+def _ad_templates_list() -> list:
+    """The HTML ad-design library for the gate-2 picker (D41).
+
+    Shown when the ad renders through the html backend (renderer ``html`` or
+    ``mixed``) and more than one design exists. A pure-``canva`` renderer uses the
+    Canva design-sets picker instead, so the html library is hidden there.
+    """
+    renderer = (os.getenv("ENGINE_RENDERER") or DEFAULT_BACKEND).strip()
+    if renderer == "canva":
+        return []
+    from engine.render import ad_templates
+
+    tpls = ad_templates.list_templates()
+    return tpls if len(tpls) > 1 else []
+
+
 def _collect_edit_fields(form, current_template_set: "str | None" = None) -> dict:
     """Build the public-view edit map from a submitted form (non-empty only).
 
@@ -885,6 +905,46 @@ def gate2_ad_png(dp: str, request: Request, user: dict = Depends(require_role("a
     suburb = (record.identity.suburb if record.identity else None) or "property"
     slug = "".join(c if c.isalnum() else "-" for c in suburb).strip("-").lower() or "property"
     return FileResponse(str(png_path), media_type="image/png", filename=f"{slug}-advert.png")
+
+
+@router.get("/ad-template/{template_id}/thumb.png")
+def ad_template_thumb(template_id: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
+    """A cached sample-data preview of an ad design, for the gate-2 picker (D41)."""
+    from engine.render import ad_templates
+    from engine.render.ad_thumbs import thumbnail
+
+    if template_id not in ad_templates.template_ids():
+        raise HTTPException(status_code=404, detail="Unknown ad template.")
+    png = thumbnail(template_id, _output_root(_db(request)))
+    if png is None:
+        raise HTTPException(status_code=503, detail="Preview unavailable (rasteriser not installed).")
+    return FileResponse(str(png), media_type="image/png")
+
+
+@router.post("/{dp}/ads/template", response_class=HTMLResponse)
+async def gate2_pick_template(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
+    """Pick an ad design for this property (D41): store it on marketing.template_set
+    and re-render the ad through the chosen template."""
+    from engine.render import ad_templates
+
+    db_path = _db(request)
+    form = await request.form()
+    tid = str(form.get("template", "")).strip()
+    if tid not in ad_templates.template_ids():
+        tid = ad_templates.DEFAULT_ID
+    # Default = "no explicit pick" -> store empty so the record follows Classic.
+    value = "" if tid == ad_templates.DEFAULT_ID else tid
+    _reopen_if_live(db_path, dp, user["email"])
+    try:
+        _save_edits(db_path, dp, {"marketing.template_set": value}, user["email"])
+        toast = {"tone": "ok", "title": "Design applied", "text": "The ad was re-rendered with the chosen design."}
+    except Exception as exc:  # a render failure must not break the picker
+        toast = {"tone": "block", "title": "Could not apply", "text": f"{type(exc).__name__}."}
+    return templates.TemplateResponse(
+        request,
+        "partials/_gate2_gallery.html",
+        {"dp": dp, "tiles": _gallery(db_path, dp), "toast": toast},
+    )
 
 
 @router.post("/{dp}/ads/changes", response_class=HTMLResponse)
