@@ -17,7 +17,7 @@ from typing import Optional
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from engine.render import ad_templates
-from engine.render.html_backend import BRAND
+from engine.render.html_backend import BRAND, _asset_data_uri, _split3
 from engine.render.rasterize import available, html_to_png
 
 _TEMPLATE_DIR = ad_templates._TEMPLATE_DIR
@@ -25,6 +25,8 @@ _env = Environment(
     loader=FileSystemLoader(str(_TEMPLATE_DIR)),
     autoescape=select_autoescape(["html", "svg", "j2"]),
 )
+_env.globals["asset_uri"] = _asset_data_uri
+_env.filters["split3"] = _split3
 
 _placeholder_cache: Optional[str] = None
 
@@ -114,7 +116,7 @@ def thumbnail(template_id: str, cache_root: str) -> Optional[Path]:
     tmp = cache / f"{template_id}.sample.html"
     tmp.write_text(html, encoding="utf-8")
     try:
-        html_to_png(tmp, out, width=760)
+        html_to_png(tmp, out)  # default viewport fits both A4-ish and IG-format ads
     finally:
         try:
             tmp.unlink()

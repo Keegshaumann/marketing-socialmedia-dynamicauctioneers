@@ -20,8 +20,10 @@ from pathlib import Path
 # root classes (.sheet on Classic, .card on Bold Dark, .ad reserved); a template
 # with none falls back to a full-page screenshot.
 _AD_SELECTOR = ".sheet, .card, .ad"
-# Match the sheet's max-width so the card renders at its intended size.
-_DEFAULT_WIDTH = 900
+# Viewport wide enough for both the A4-ish cards (max-width 860) and the
+# Instagram-format ad designs (fixed 1080 wide); the element screenshot then
+# captures each card at its own rendered size.
+_DEFAULT_WIDTH = 1120
 
 
 class RasterizeUnavailable(RuntimeError):

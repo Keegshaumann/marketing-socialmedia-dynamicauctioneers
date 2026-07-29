@@ -17,3 +17,6 @@ DP*/artifacts/
 DP*/packs/
 # Ad-design thumbnails, generated on demand from sample data (D41).
 .ad-thumbs/
+# Ad-design source exports (inputs; I rebuild them into templates/ads/*.html.j2).
+designs/incoming/*
+!designs/incoming/README.md

@@ -1,0 +1,97 @@
+{# name: Collage #}
+{# Dynamic Auctioneers / Real Estate flagship social ad (D41), rebuilt from the
+   real "AD 1" design: 1080x1350 dark canvas, gold chrome, stacked gold-accent
+   headline, 1-big-plus-4 photo collage, price/auction bar, gold stat pill.
+   Method-aware: For Sale vs Auction swaps the badge, brand and price block.
+   Every value fills from the view model; the DP is never shown (D37). #}
+{% import "_brand.html.j2" as brand %}
+{% set is_auction = (vm.method == 'auction') %}
+{% set hl = (vm.headline or '') | split3 %}
+{% set photos = ([vm.hero_src] if vm.hero_src else []) + (vm.stack_photos or []) + (vm.gallery_photos or []) %}
+{# Brand by sale method: Auction -> Dynamic Auctioneers, everything else ->
+   Dynamic Real Estate (the estate-agency department). Dark-bg (white) logo,
+   since the header sits on the dark canvas. #}
+{% set logo = asset_uri('ads/_assets/logo-' ~ ('auctioneers' if is_auction else 'realestate') ~ '-dark.png') %}
+<title>{{ vm.headline }} | {{ vm.brand_name }}</title>
+<style>
+  {{ brand.tokens_css() }}
+  :root { --g1:#8C6D33; --g2:#E8CE92; --g3:#B08D4A; }
+  body { background:#0c0a08; }
+  .ig {
+    width:1080px; margin:0 auto; background:#17130E; color:#F2ECE0;
+    position:relative; overflow:hidden;
+    background-image:radial-gradient(120% 80% at 80% 0%, #241d15 0%, #17130E 55%, #100d09 100%);
+  }
+  .gold { background:linear-gradient(120deg,var(--g1),var(--g2) 42%,var(--g3) 70%,var(--g1)); }
+  .ig-ref { display:flex; justify-content:space-between; padding:14px 40px; font-size:16px; font-weight:800;
+            letter-spacing:.06em; color:#1c1811; text-transform:uppercase; }
+  .ig-top { display:flex; align-items:flex-start; gap:24px; padding:34px 40px 10px; }
+  .ig-head { flex:1; min-width:0; }
+  h1 { margin:0; font-size:56px; line-height:1.02; font-weight:800; letter-spacing:-.01em; color:#fff; text-transform:uppercase; }
+  h1 .em { color:var(--g2); }
+  .ig-badge { display:inline-block; margin-top:16px; padding:10px 22px; font-size:22px; font-weight:800;
+              letter-spacing:.04em; text-transform:uppercase; color:#1c1811; }
+  .ig-logo { width:210px; flex:none; }
+  .ig-logo img { width:100%; display:block; }
+
+  .ig-collage { display:grid; grid-template-columns:1.55fr 1fr; gap:10px; padding:16px 40px; height:560px; }
+  .ig-collage .hero { width:100%; height:100%; object-fit:cover; display:block; border-radius:4px; }
+  .ig-collage .col { display:grid; grid-template-rows:repeat(4,1fr); gap:10px; min-height:0; }
+  .ig-collage .col img { width:100%; height:100%; object-fit:cover; display:block; border-radius:4px; min-height:0; }
+
+  .ig-price { margin:14px 40px 0; border:2px solid var(--g3); border-radius:10px; padding:16px;
+              text-align:center; font-size:42px; font-weight:800; color:#fff; letter-spacing:.01em; }
+  .ig-price small { display:block; font-size:20px; font-weight:800; letter-spacing:.14em; color:var(--g2); }
+  .ig-tag { padding:18px 40px 6px; text-align:center; font-size:23px; font-weight:800; letter-spacing:.02em;
+            color:#fff; text-transform:uppercase; }
+  .ig-stats { margin:8px 40px 0; border:2px solid var(--g3); border-radius:999px; display:flex;
+              align-items:center; justify-content:space-around; gap:8px; padding:16px 10px; }
+  .ig-stat { display:flex; align-items:center; gap:10px; font-size:24px; font-weight:800; color:#fff; letter-spacing:.02em; }
+  .ig-stat svg { width:34px; height:34px; stroke:#fff; fill:none; stroke-width:1.7; flex:none; }
+  .ig-stat .u { font-size:15px; font-weight:700; color:#d9cfb8; letter-spacing:.12em; text-transform:uppercase; }
+  .ig-contact { margin-top:22px; padding:18px 40px; display:flex; align-items:center; gap:40px;
+                font-size:22px; font-weight:800; color:#1c1811; }
+  .ig-contact span { display:flex; align-items:center; gap:12px; }
+  .ig-contact svg { width:26px; height:26px; fill:#1c1811; }
+</style>
+
+<div class="ig ad">
+  {% if vm.public_ref %}<div class="ig-ref gold"><span>MASTER REF: {{ vm.public_ref }}</span><span></span></div>{% else %}<div class="gold" style="height:8px"></div>{% endif %}
+
+  <div class="ig-top">
+    <div class="ig-head">
+      <h1>{% for line in hl %}<span class="{{ 'em' if loop.index == 2 and hl|length == 3 else '' }}">{{ line }}</span>{% if not loop.last %}<br/>{% endif %}{% endfor %}</h1>
+      <span class="ig-badge gold">{% if is_auction %}On Auction{% else %}For Sale{% endif %}!</span>
+    </div>
+    <div class="ig-logo"><img src="{{ logo }}" alt="{{ vm.brand_name }}"/></div>
+  </div>
+
+  {% if photos %}
+  <div class="ig-collage">
+    <img class="hero" src="{{ photos[0] }}" alt="{{ vm.headline }}"/>
+    <div class="col">
+      {% for src in photos[1:5] %}<img src="{{ src }}" alt="Property photo"/>{% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="ig-price">
+    {% if is_auction %}<small>On Auction</small>{% endif %}{{ vm.price_display or 'Offers invited' }}
+  </div>
+
+  {% if vm.features_main or vm.features_complex %}
+  <div class="ig-tag">{{ ((vm.features_main or []) + (vm.features_complex or []))[:3] | join('  |  ') }}</div>
+  {% endif %}
+
+  <div class="ig-stats">
+    {% if vm.beds %}<div class="ig-stat"><svg viewBox="0 0 24 24"><path d="M3 7v11m0-4h18m0 4v-7a2 2 0 0 0-2-2h-7v5"/><circle cx="7" cy="10" r="1.6"/></svg>{{ vm.beds }} <span class="u">Bed</span></div>{% endif %}
+    {% if vm.baths %}<div class="ig-stat"><svg viewBox="0 0 24 24"><path d="M4 12h16v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M6 12V6a2 2 0 0 1 2-2 1.5 1.5 0 0 1 1.5 1.5"/></svg>{{ vm.baths }} <span class="u">Bath</span></div>{% endif %}
+    {% if vm.garages and vm.garages != '0' %}<div class="ig-stat"><svg viewBox="0 0 24 24"><path d="M3 20v-8l9-5 9 5v8"/><path d="M6 20v-5h12v5"/><path d="M6 15h12"/></svg><span class="u">Garage</span></div>{% endif %}
+    {% if vm.size_str %}<div class="ig-stat">{{ vm.size_str }}<span class="u" style="font-size:19px">m&sup2;</span></div>{% endif %}
+  </div>
+
+  <div class="ig-contact gold">
+    <span><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11 11 0 0 0 3.4.55 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.3a1 1 0 0 1 1 1 11 11 0 0 0 .55 3.4 1 1 0 0 1-.24 1z"/></svg>{{ vm.brand_phone }}</span>
+    <span><svg viewBox="0 0 24 24"><path d="M3 5h18v14H3z" fill="none" stroke="#1c1811" stroke-width="1.6"/><path d="M3 6l9 6 9-6" fill="none" stroke="#1c1811" stroke-width="1.6"/></svg>{{ vm.brand_email }}</span>
+  </div>
+</div>

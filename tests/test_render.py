@@ -159,6 +159,33 @@ def test_demo_ad_renders_the_picked_template(golden_record, tmp_path):
     assert "Pelham North" in html  # still fills the real property facts
 
 
+def test_collage_is_method_aware(golden_record, tmp_path):
+    # For Sale -> Real Estate brand + "For Sale" badge; Auction -> Auctioneers
+    # brand + "On Auction" badge. Same record, only the method differs (D41).
+    for method, badge in [("offers_invited", "For Sale"), ("auction", "On Auction")]:
+        golden_record.marketing.template_set = "collage"
+        golden_record.sale_process.method = method
+        store = _store_with(golden_record)
+        try:
+            art = render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path))
+            html = Path(art.path).read_text(encoding="utf-8")
+        finally:
+            store.close()
+        assert badge in html
+        assert "data:image/png;base64," in html  # the brand logo is embedded
+
+
+def test_split3_balances_a_headline():
+    from engine.render.html_backend import _split3
+
+    assert _split3("3 Bedroom Home with Separate Flatlet in Pelham North") == [
+        "3 Bedroom Home",
+        "with Separate Flatlet",
+        "in Pelham North",
+    ]
+    assert _split3("Loft") == ["Loft"]  # short headlines stay one line
+
+
 # --- ad-first render split (D39) -----------------------------------------
 
 def test_render_all_subset_renders_only_requested(golden_record, tmp_path):

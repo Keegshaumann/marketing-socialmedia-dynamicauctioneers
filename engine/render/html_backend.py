@@ -24,7 +24,9 @@ to ``<output_root>/DP<dp>/artifacts/<fmt>.<ext>``.
 
 from __future__ import annotations
 
+import base64
 import os
+from functools import lru_cache
 from pathlib import Path, PurePosixPath
 from typing import Dict, List, Optional, Tuple
 
@@ -73,6 +75,41 @@ def _should_autoescape(template_name: Optional[str]) -> bool:
     return template_name.endswith((".html.j2", ".svg.j2"))
 
 
+_ASSET_MIME = {
+    ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+    ".svg": "image/svg+xml", ".webp": "image/webp",
+}
+
+
+@lru_cache(maxsize=64)
+def _asset_data_uri(relative_path: str) -> str:
+    """Read a template-relative asset (e.g. a logo) and return a base64 data URI.
+
+    Templates embed assets this way so the rendered ad is self-contained and
+    survives file:// rasterising (no external file resolution). Cached; returns
+    "" if the asset is missing so a template never crashes on a typo'd path.
+    """
+    path = _TEMPLATE_DIR / relative_path
+    try:
+        data = path.read_bytes()
+    except OSError:
+        return ""
+    mime = _ASSET_MIME.get(path.suffix.lower(), "application/octet-stream")
+    return f"data:{mime};base64," + base64.b64encode(data).decode()
+
+
+def _split3(text: object) -> List[str]:
+    """Split a headline into up to 3 roughly balanced lines (for the stacked,
+    gold-middle-line headline style the DA ad designs use). One/two words stay on
+    one line; longer headlines chunk into 3 near-equal lines by word count."""
+    words = str(text or "").split()
+    if len(words) <= 2:
+        return [str(text or "")]
+    lines = 3 if len(words) >= 3 else 2
+    per = -(-len(words) // lines)  # ceil division
+    return [" ".join(words[i : i + per]) for i in range(0, len(words), per)][:3]
+
+
 def _fmt_num(value: object) -> Optional[str]:
     """Render a number without a trailing ``.0`` (185.0 -> ``"185"``)."""
     if value is None:
@@ -97,6 +134,10 @@ class HtmlBackend(RenderBackend):
             lstrip_blocks=True,
             keep_trailing_newline=True,
         )
+        # Let templates embed a bundled asset (logo, etc.) as a data URI, so the
+        # rendered ad is self-contained for rasterising (D41).
+        self._env.globals["asset_uri"] = _asset_data_uri
+        self._env.filters["split3"] = _split3
 
     # --- backend contract ------------------------------------------------
 
