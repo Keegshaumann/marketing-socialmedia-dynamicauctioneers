@@ -18,7 +18,7 @@ from typing import List
 import pytest
 
 from engine import MODEL
-from engine.render import get_backend, list_backends
+from engine.render import ad_templates, get_backend, list_backends
 from engine.render.copy import (
     CopyBundle,
     build_copy_request,
@@ -40,6 +40,11 @@ POISON_MARKERS = (POISON_OWNER, POISON_ID, POISON_CELL)
 # Backends registered at import time. Deletion-safe: removing the Canva scaffold
 # simply drops it from this list, so the parametrised PII test still passes.
 BACKENDS: List[str] = sorted(list_backends().keys())
+
+# Every pickable ad design (Classic + the library). The whole set is exercised
+# for PII safety and the property ref below, so a new design added to the
+# library is covered automatically.
+AD_DESIGNS: List[str] = sorted(ad_templates.template_ids())
 
 
 @pytest.fixture
@@ -244,6 +249,81 @@ def test_partials_are_not_offered_as_pickable_designs():
     ids = ad_templates.template_ids()
     assert "_adparts" not in ids  # the shared macro file is not a design
     assert {"collage", "feature_list", "stats_first"} <= ids
+
+
+@pytest.mark.parametrize("template", AD_DESIGNS)
+@pytest.mark.parametrize("method", ["offers_invited", "auction"])
+def test_every_ad_design_is_pii_safe_and_carries_the_ref(template, method, golden_record, tmp_path):
+    # POPIA: no ad design, in either sale method, may leak an internal-layer
+    # field. And every ad carries the PROPERTY REF (the DP, D42). This covers
+    # the whole library, so a newly added design is checked automatically.
+    rec = _poison(golden_record)
+    rec.marketing.template_set = template
+    rec.sale_process.method = method
+    rec.sale_process.auction_type = "Insolvency"
+    rec.sale_process.auction_channel = "Online"
+    rec.sale_process.auction_date = "28 May 2026"
+    rec.sale_process.auction_time = "10:00"
+    store = _store_with(rec)
+    try:
+        art = render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path))
+        html = Path(art.path).read_text(encoding="utf-8")
+    finally:
+        store.close()
+    for marker in POISON_MARKERS:
+        assert marker not in html, f"{marker} leaked into {template}/{method}"
+    assert "DP3060" in html  # the property ref is on every ad (D42)
+
+
+def test_ad_designs_render_with_missing_data(golden_record, tmp_path):
+    # A sparse record (no photos, beds, baths, price or terms) must still render
+    # every design without error, showing only what the record supports.
+    golden_record.marketing.hero_photo = None
+    golden_record.marketing.gallery = None
+    golden_record.marketing.price_display = None
+    golden_record.physical.bedrooms = None
+    golden_record.physical.bathrooms_main_unit = None
+    golden_record.sale_process.terms = None
+    for template in ("collage", "feature_list", "stats_first", "bold"):
+        golden_record.marketing.template_set = template
+        store = _store_with(golden_record)
+        try:
+            art = render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path))
+            html = Path(art.path).read_text(encoding="utf-8")
+        finally:
+            store.close()
+        assert "Pelham North" in html  # still fills the locality it does have
+        assert "DP3060" in html
+
+
+def test_auction_line_reads_on_site(golden_record, tmp_path):
+    golden_record.marketing.template_set = "stats_first"
+    golden_record.sale_process.method = "auction"
+    golden_record.sale_process.auction_channel = "On-site"
+    golden_record.sale_process.auction_date = "3 June 2026"
+    golden_record.sale_process.auction_time = "11:30"
+    store = _store_with(golden_record)
+    try:
+        art = render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path))
+        html = Path(art.path).read_text(encoding="utf-8")
+    finally:
+        store.close()
+    assert "ON-SITE AUCTION | 3 JUNE 2026 @ 11:30" in html
+
+
+def test_badge_defaults_without_a_callout_type(golden_record, tmp_path):
+    # No callout type -> the plain badge, method-aware.
+    golden_record.marketing.template_set = "collage"
+    golden_record.sale_process.auction_type = None
+    for method, expect in [("auction", "ON AUCTION!"), ("offers_invited", "FOR SALE!")]:
+        golden_record.sale_process.method = method
+        store = _store_with(golden_record)
+        try:
+            art = render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path))
+            html = Path(art.path).read_text(encoding="utf-8")
+        finally:
+            store.close()
+        assert expect in html
 
 
 def test_split3_balances_a_headline():

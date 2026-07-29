@@ -3,6 +3,7 @@
    different look. Self-contained: brand tokens + font from _brand, custom dark
    layout. Fills only what the record supports (no invented facts). #}
 {% import "_brand.html.j2" as brand %}
+{% import "_adparts.html.j2" as parts %}
 <title>{{ vm.headline }} | {{ vm.brand_name }}</title>
 <style>
   {{ brand.tokens_css() }}
@@ -52,7 +53,7 @@
 
 <div class="card">
   <div class="top">
-    <div class="brand"><span class="mark">DS</span><span class="name">DYNAMIC <b>AUCTIONEERS</b></span></div>
+    <div class="brand"><span class="mark">DS</span><span class="name">DYNAMIC <b>{{ 'AUCTIONEERS' if vm.method == 'auction' else 'REAL ESTATE' }}</b></span></div>
     <div class="sale">{{ vm.badge_label }}</div>
   </div>
 
@@ -60,16 +61,16 @@
   <div class="hero-wrap">
     <img src="{{ vm.hero_src }}" alt="{{ vm.headline }}" />
     <div class="overlay">
-      <span class="badge">Property for sale{% if vm.public_ref %} &middot; Ref {{ vm.public_ref }}{% endif %}</span>
+      <span class="badge">{{ parts.badge_text(vm) }}{% if vm.property_ref %} &middot; Ref {{ vm.property_ref }}{% endif %}</span>
       <h1>{{ vm.headline }}</h1>
       {% if vm.address %}<p class="addr">{{ vm.address }}</p>{% endif %}
     </div>
   </div>
   {% else %}
-  <div class="body"><span class="badge">Property for sale</span><h1>{{ vm.headline }}</h1>{% if vm.address %}<p class="addr">{{ vm.address }}</p>{% endif %}</div>
+  <div class="body"><span class="badge">{{ parts.badge_text(vm) }}{% if vm.property_ref %} &middot; Ref {{ vm.property_ref }}{% endif %}</span><h1>{{ vm.headline }}</h1>{% if vm.address %}<p class="addr">{{ vm.address }}</p>{% endif %}</div>
   {% endif %}
 
-  <div class="price">{{ vm.price_display }}</div>
+  <div class="price">{{ parts.money_text(vm) }}</div>
 
   <div class="stats">
     {% if vm.size_str %}<div><div class="n">{{ vm.size_str }} m&sup2;</div><div class="l">Extent</div></div>{% endif %}
