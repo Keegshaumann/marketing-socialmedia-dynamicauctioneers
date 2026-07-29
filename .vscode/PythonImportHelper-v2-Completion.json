@@ -392,6 +392,30 @@
         "documentation": {}
     },
     {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
         "label": "json",
         "kind": 6,
         "isExtraImport": true,
@@ -513,6 +537,22 @@
         "isExtraImport": true,
         "importPath": "pathlib",
         "description": "pathlib",
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
         "detail": "pathlib",
         "documentation": {}
     },
@@ -814,6 +854,38 @@
     },
     {
         "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
         "importPath": "typing",
         "description": "typing",
         "isExtraImport": true,
@@ -2328,6 +2400,175 @@
         "documentation": {}
     },
     {
+        "label": "io",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "io",
+        "description": "io",
+        "detail": "io",
+        "documentation": {}
+    },
+    {
+        "label": "Environment",
+        "importPath": "jinja2",
+        "description": "jinja2",
+        "isExtraImport": true,
+        "detail": "jinja2",
+        "documentation": {}
+    },
+    {
+        "label": "FileSystemLoader",
+        "importPath": "jinja2",
+        "description": "jinja2",
+        "isExtraImport": true,
+        "detail": "jinja2",
+        "documentation": {}
+    },
+    {
+        "label": "select_autoescape",
+        "importPath": "jinja2",
+        "description": "jinja2",
+        "isExtraImport": true,
+        "detail": "jinja2",
+        "documentation": {}
+    },
+    {
+        "label": "Environment",
+        "importPath": "jinja2",
+        "description": "jinja2",
+        "isExtraImport": true,
+        "detail": "jinja2",
+        "documentation": {}
+    },
+    {
+        "label": "FileSystemLoader",
+        "importPath": "jinja2",
+        "description": "jinja2",
+        "isExtraImport": true,
+        "detail": "jinja2",
+        "documentation": {}
+    },
+    {
+        "label": "ad_templates",
+        "importPath": "engine.render",
+        "description": "engine.render",
+        "isExtraImport": true,
+        "detail": "engine.render",
+        "documentation": {}
+    },
+    {
+        "label": "DEFAULT_BACKEND",
+        "importPath": "engine.render",
+        "description": "engine.render",
+        "isExtraImport": true,
+        "detail": "engine.render",
+        "documentation": {}
+    },
+    {
+        "label": "get_backend",
+        "importPath": "engine.render",
+        "description": "engine.render",
+        "isExtraImport": true,
+        "detail": "engine.render",
+        "documentation": {}
+    },
+    {
+        "label": "ad_templates",
+        "importPath": "engine.render",
+        "description": "engine.render",
+        "isExtraImport": true,
+        "detail": "engine.render",
+        "documentation": {}
+    },
+    {
+        "label": "get_backend",
+        "importPath": "engine.render",
+        "description": "engine.render",
+        "isExtraImport": true,
+        "detail": "engine.render",
+        "documentation": {}
+    },
+    {
+        "label": "canva_backend",
+        "importPath": "engine.render",
+        "description": "engine.render",
+        "isExtraImport": true,
+        "detail": "engine.render",
+        "documentation": {}
+    },
+    {
+        "label": "get_backend",
+        "importPath": "engine.render",
+        "description": "engine.render",
+        "isExtraImport": true,
+        "detail": "engine.render",
+        "documentation": {}
+    },
+    {
+        "label": "list_backends",
+        "importPath": "engine.render",
+        "description": "engine.render",
+        "isExtraImport": true,
+        "detail": "engine.render",
+        "documentation": {}
+    },
+    {
+        "label": "DEFAULT_BACKEND",
+        "importPath": "engine.render",
+        "description": "engine.render",
+        "isExtraImport": true,
+        "detail": "engine.render",
+        "documentation": {}
+    },
+    {
+        "label": "FORMATS",
+        "importPath": "engine.render",
+        "description": "engine.render",
+        "isExtraImport": true,
+        "detail": "engine.render",
+        "documentation": {}
+    },
+    {
+        "label": "get_backend",
+        "importPath": "engine.render",
+        "description": "engine.render",
+        "isExtraImport": true,
+        "detail": "engine.render",
+        "documentation": {}
+    },
+    {
+        "label": "BRAND",
+        "importPath": "engine.render.html_backend",
+        "description": "engine.render.html_backend",
+        "isExtraImport": true,
+        "detail": "engine.render.html_backend",
+        "documentation": {}
+    },
+    {
+        "label": "BRAND",
+        "importPath": "engine.render.html_backend",
+        "description": "engine.render.html_backend",
+        "isExtraImport": true,
+        "detail": "engine.render.html_backend",
+        "documentation": {}
+    },
+    {
+        "label": "available",
+        "importPath": "engine.render.rasterize",
+        "description": "engine.render.rasterize",
+        "isExtraImport": true,
+        "detail": "engine.render.rasterize",
+        "documentation": {}
+    },
+    {
+        "label": "html_to_png",
+        "importPath": "engine.render.rasterize",
+        "description": "engine.render.rasterize",
+        "isExtraImport": true,
+        "detail": "engine.render.rasterize",
+        "documentation": {}
+    },
+    {
         "label": "sys",
         "kind": 6,
         "isExtraImport": true,
@@ -2691,94 +2932,6 @@
         "description": "engine",
         "isExtraImport": true,
         "detail": "engine",
-        "documentation": {}
-    },
-    {
-        "label": "Environment",
-        "importPath": "jinja2",
-        "description": "jinja2",
-        "isExtraImport": true,
-        "detail": "jinja2",
-        "documentation": {}
-    },
-    {
-        "label": "FileSystemLoader",
-        "importPath": "jinja2",
-        "description": "jinja2",
-        "isExtraImport": true,
-        "detail": "jinja2",
-        "documentation": {}
-    },
-    {
-        "label": "DEFAULT_BACKEND",
-        "importPath": "engine.render",
-        "description": "engine.render",
-        "isExtraImport": true,
-        "detail": "engine.render",
-        "documentation": {}
-    },
-    {
-        "label": "get_backend",
-        "importPath": "engine.render",
-        "description": "engine.render",
-        "isExtraImport": true,
-        "detail": "engine.render",
-        "documentation": {}
-    },
-    {
-        "label": "get_backend",
-        "importPath": "engine.render",
-        "description": "engine.render",
-        "isExtraImport": true,
-        "detail": "engine.render",
-        "documentation": {}
-    },
-    {
-        "label": "canva_backend",
-        "importPath": "engine.render",
-        "description": "engine.render",
-        "isExtraImport": true,
-        "detail": "engine.render",
-        "documentation": {}
-    },
-    {
-        "label": "get_backend",
-        "importPath": "engine.render",
-        "description": "engine.render",
-        "isExtraImport": true,
-        "detail": "engine.render",
-        "documentation": {}
-    },
-    {
-        "label": "list_backends",
-        "importPath": "engine.render",
-        "description": "engine.render",
-        "isExtraImport": true,
-        "detail": "engine.render",
-        "documentation": {}
-    },
-    {
-        "label": "DEFAULT_BACKEND",
-        "importPath": "engine.render",
-        "description": "engine.render",
-        "isExtraImport": true,
-        "detail": "engine.render",
-        "documentation": {}
-    },
-    {
-        "label": "FORMATS",
-        "importPath": "engine.render",
-        "description": "engine.render",
-        "isExtraImport": true,
-        "detail": "engine.render",
-        "documentation": {}
-    },
-    {
-        "label": "get_backend",
-        "importPath": "engine.render",
-        "description": "engine.render",
-        "isExtraImport": true,
-        "detail": "engine.render",
         "documentation": {}
     },
     {
@@ -3711,15 +3864,6 @@
         "documentation": {}
     },
     {
-        "label": "io",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "io",
-        "description": "io",
-        "detail": "io",
-        "documentation": {}
-    },
-    {
         "label": "zipfile",
         "kind": 6,
         "isExtraImport": true,
@@ -4169,14 +4313,6 @@
         "documentation": {}
     },
     {
-        "label": "BRAND",
-        "importPath": "engine.render.html_backend",
-        "description": "engine.render.html_backend",
-        "isExtraImport": true,
-        "detail": "engine.render.html_backend",
-        "documentation": {}
-    },
-    {
         "label": "current_user",
         "importPath": "webapp.auth",
         "description": "webapp.auth",
@@ -4507,6 +4643,105 @@
         "documentation": {}
     },
     {
+        "label": "list_templates",
+        "kind": 2,
+        "importPath": "engine.render.ad_templates",
+        "description": "engine.render.ad_templates",
+        "peekOfCode": "def list_templates() -> List[Dict[str, str]]:\n    \"\"\"Every selectable ad design as ``{\"id\", \"name\", \"template\"}``, Classic first.\"\"\"\n    out: List[Dict[str, str]] = [\n        {\"id\": DEFAULT_ID, \"name\": \"Classic\", \"template\": _DEFAULT_TEMPLATE}\n    ]\n    for path in _library_paths():\n        tid = _template_id(path)\n        if tid == DEFAULT_ID:\n            continue  # never shadow the built-in default\n        out.append({\"id\": tid, \"name\": _display_name(path), \"template\": f\"ads/{path.name}\"})",
+        "detail": "engine.render.ad_templates",
+        "documentation": {}
+    },
+    {
+        "label": "template_ids",
+        "kind": 2,
+        "importPath": "engine.render.ad_templates",
+        "description": "engine.render.ad_templates",
+        "peekOfCode": "def template_ids() -> set:\n    return {t[\"id\"] for t in list_templates()}\ndef resolve(template_id: Optional[str]) -> str:\n    \"\"\"Return the Jinja template name for a pick, falling back to Classic.\n    An unknown or empty pick (e.g. a design later removed from the library)\n    degrades to the default rather than failing the render.\n    \"\"\"\n    if not template_id or template_id == DEFAULT_ID:\n        return _DEFAULT_TEMPLATE\n    path = _ADS_DIR / f\"{template_id}.html.j2\"",
+        "detail": "engine.render.ad_templates",
+        "documentation": {}
+    },
+    {
+        "label": "resolve",
+        "kind": 2,
+        "importPath": "engine.render.ad_templates",
+        "description": "engine.render.ad_templates",
+        "peekOfCode": "def resolve(template_id: Optional[str]) -> str:\n    \"\"\"Return the Jinja template name for a pick, falling back to Classic.\n    An unknown or empty pick (e.g. a design later removed from the library)\n    degrades to the default rather than failing the render.\n    \"\"\"\n    if not template_id or template_id == DEFAULT_ID:\n        return _DEFAULT_TEMPLATE\n    path = _ADS_DIR / f\"{template_id}.html.j2\"\n    return f\"ads/{path.name}\" if path.is_file() else _DEFAULT_TEMPLATE",
+        "detail": "engine.render.ad_templates",
+        "documentation": {}
+    },
+    {
+        "label": "_TEMPLATE_DIR",
+        "kind": 5,
+        "importPath": "engine.render.ad_templates",
+        "description": "engine.render.ad_templates",
+        "peekOfCode": "_TEMPLATE_DIR = Path(__file__).parent / \"templates\"\n_ADS_DIR = _TEMPLATE_DIR / \"ads\"\n# The built-in default design: the original one-pager, kept in place (not moved\n# into ads/) so nothing that references it breaks. It is always offered as\n# \"Classic\" and is what an empty/unknown pick falls back to.\nDEFAULT_ID = \"classic\"\n_DEFAULT_TEMPLATE = \"demo_ad.html.j2\"\n_SUFFIX = \".html.j2\"\ndef _template_id(path: Path) -> str:\n    \"\"\"The clean id from a template filename (Path.stem only strips .j2).\"\"\"",
+        "detail": "engine.render.ad_templates",
+        "documentation": {}
+    },
+    {
+        "label": "_ADS_DIR",
+        "kind": 5,
+        "importPath": "engine.render.ad_templates",
+        "description": "engine.render.ad_templates",
+        "peekOfCode": "_ADS_DIR = _TEMPLATE_DIR / \"ads\"\n# The built-in default design: the original one-pager, kept in place (not moved\n# into ads/) so nothing that references it breaks. It is always offered as\n# \"Classic\" and is what an empty/unknown pick falls back to.\nDEFAULT_ID = \"classic\"\n_DEFAULT_TEMPLATE = \"demo_ad.html.j2\"\n_SUFFIX = \".html.j2\"\ndef _template_id(path: Path) -> str:\n    \"\"\"The clean id from a template filename (Path.stem only strips .j2).\"\"\"\n    name = path.name",
+        "detail": "engine.render.ad_templates",
+        "documentation": {}
+    },
+    {
+        "label": "DEFAULT_ID",
+        "kind": 5,
+        "importPath": "engine.render.ad_templates",
+        "description": "engine.render.ad_templates",
+        "peekOfCode": "DEFAULT_ID = \"classic\"\n_DEFAULT_TEMPLATE = \"demo_ad.html.j2\"\n_SUFFIX = \".html.j2\"\ndef _template_id(path: Path) -> str:\n    \"\"\"The clean id from a template filename (Path.stem only strips .j2).\"\"\"\n    name = path.name\n    return name[: -len(_SUFFIX)] if name.endswith(_SUFFIX) else path.stem\ndef _pretty(stem: str) -> str:\n    return stem.replace(\"_\", \" \").replace(\"-\", \" \").strip().title()\ndef _display_name(path: Path) -> str:",
+        "detail": "engine.render.ad_templates",
+        "documentation": {}
+    },
+    {
+        "label": "_DEFAULT_TEMPLATE",
+        "kind": 5,
+        "importPath": "engine.render.ad_templates",
+        "description": "engine.render.ad_templates",
+        "peekOfCode": "_DEFAULT_TEMPLATE = \"demo_ad.html.j2\"\n_SUFFIX = \".html.j2\"\ndef _template_id(path: Path) -> str:\n    \"\"\"The clean id from a template filename (Path.stem only strips .j2).\"\"\"\n    name = path.name\n    return name[: -len(_SUFFIX)] if name.endswith(_SUFFIX) else path.stem\ndef _pretty(stem: str) -> str:\n    return stem.replace(\"_\", \" \").replace(\"-\", \" \").strip().title()\ndef _display_name(path: Path) -> str:\n    \"\"\"A ``{# name: ... #}`` first line overrides the prettified filename.\"\"\"",
+        "detail": "engine.render.ad_templates",
+        "documentation": {}
+    },
+    {
+        "label": "_SUFFIX",
+        "kind": 5,
+        "importPath": "engine.render.ad_templates",
+        "description": "engine.render.ad_templates",
+        "peekOfCode": "_SUFFIX = \".html.j2\"\ndef _template_id(path: Path) -> str:\n    \"\"\"The clean id from a template filename (Path.stem only strips .j2).\"\"\"\n    name = path.name\n    return name[: -len(_SUFFIX)] if name.endswith(_SUFFIX) else path.stem\ndef _pretty(stem: str) -> str:\n    return stem.replace(\"_\", \" \").replace(\"-\", \" \").strip().title()\ndef _display_name(path: Path) -> str:\n    \"\"\"A ``{# name: ... #}`` first line overrides the prettified filename.\"\"\"\n    try:",
+        "detail": "engine.render.ad_templates",
+        "documentation": {}
+    },
+    {
+        "label": "thumbnail",
+        "kind": 2,
+        "importPath": "engine.render.ad_thumbs",
+        "description": "engine.render.ad_thumbs",
+        "peekOfCode": "def thumbnail(template_id: str, cache_root: str) -> Optional[Path]:\n    \"\"\"Return a cached thumbnail PNG path for ``template_id`` (generating it if\n    missing/stale), or None if the rasteriser is unavailable.\"\"\"\n    template_name = ad_templates.resolve(template_id)\n    template_file = _TEMPLATE_DIR / template_name\n    cache = Path(cache_root) / \".ad-thumbs\"\n    cache.mkdir(parents=True, exist_ok=True)\n    out = cache / f\"{template_id}.png\"\n    if out.exists() and template_file.exists() and out.stat().st_mtime >= template_file.stat().st_mtime:\n        return out",
+        "detail": "engine.render.ad_thumbs",
+        "documentation": {}
+    },
+    {
+        "label": "_TEMPLATE_DIR",
+        "kind": 5,
+        "importPath": "engine.render.ad_thumbs",
+        "description": "engine.render.ad_thumbs",
+        "peekOfCode": "_TEMPLATE_DIR = ad_templates._TEMPLATE_DIR\n_env = Environment(\n    loader=FileSystemLoader(str(_TEMPLATE_DIR)),\n    autoescape=select_autoescape([\"html\", \"svg\", \"j2\"]),\n)\n_placeholder_cache: Optional[str] = None\ndef _placeholder_photo() -> str:\n    \"\"\"A small solid warm-grey JPEG as a data URI, standing in for a photo.\"\"\"\n    global _placeholder_cache\n    if _placeholder_cache is None:",
+        "detail": "engine.render.ad_thumbs",
+        "documentation": {}
+    },
+    {
+        "label": "_env",
+        "kind": 5,
+        "importPath": "engine.render.ad_thumbs",
+        "description": "engine.render.ad_thumbs",
+        "peekOfCode": "_env = Environment(\n    loader=FileSystemLoader(str(_TEMPLATE_DIR)),\n    autoescape=select_autoescape([\"html\", \"svg\", \"j2\"]),\n)\n_placeholder_cache: Optional[str] = None\ndef _placeholder_photo() -> str:\n    \"\"\"A small solid warm-grey JPEG as a data URI, standing in for a photo.\"\"\"\n    global _placeholder_cache\n    if _placeholder_cache is None:\n        from PIL import Image",
+        "detail": "engine.render.ad_thumbs",
+        "documentation": {}
+    },
+    {
         "label": "RenderRequest",
         "kind": 6,
         "importPath": "engine.render.base",
@@ -4817,7 +5052,7 @@
         "kind": 5,
         "importPath": "engine.render.rasterize",
         "description": "engine.render.rasterize",
-        "peekOfCode": "_AD_SELECTOR = \".sheet\"\n# Match the sheet's max-width so the card renders at its intended size.\n_DEFAULT_WIDTH = 900\nclass RasterizeUnavailable(RuntimeError):\n    \"\"\"Playwright or its Chromium browser is not installed on this host.\"\"\"\ndef available() -> bool:\n    \"\"\"True if the Playwright Python package is importable. (Chromium presence is\n    only known at launch; a missing browser surfaces as RasterizeUnavailable.)\"\"\"\n    try:\n        import playwright.sync_api  # noqa: F401",
+        "peekOfCode": "_AD_SELECTOR = \".sheet, .card, .ad\"\n# Match the sheet's max-width so the card renders at its intended size.\n_DEFAULT_WIDTH = 900\nclass RasterizeUnavailable(RuntimeError):\n    \"\"\"Playwright or its Chromium browser is not installed on this host.\"\"\"\ndef available() -> bool:\n    \"\"\"True if the Playwright Python package is importable. (Chromium presence is\n    only known at launch; a missing browser surfaces as RasterizeUnavailable.)\"\"\"\n    try:\n        import playwright.sync_api  # noqa: F401",
         "detail": "engine.render.rasterize",
         "documentation": {}
     },
@@ -6082,6 +6317,42 @@
         "documentation": {}
     },
     {
+        "label": "test_registry_lists_classic_first_and_variants",
+        "kind": 2,
+        "importPath": "tests.test_ad_templates",
+        "description": "tests.test_ad_templates",
+        "peekOfCode": "def test_registry_lists_classic_first_and_variants():\n    tpls = ad_templates.list_templates()\n    ids = [t[\"id\"] for t in tpls]\n    assert ids[0] == \"classic\"  # the built-in default is always offered first\n    assert \"bold\" in ids  # the starter variant is auto-discovered\n    names = {t[\"id\"]: t[\"name\"] for t in tpls}\n    assert names[\"classic\"] == \"Classic\"\n    assert names[\"bold\"] == \"Bold Dark\"  # from the {# name: #} comment\ndef test_ids_round_trip_through_resolve():\n    for t in ad_templates.list_templates():",
+        "detail": "tests.test_ad_templates",
+        "documentation": {}
+    },
+    {
+        "label": "test_ids_round_trip_through_resolve",
+        "kind": 2,
+        "importPath": "tests.test_ad_templates",
+        "description": "tests.test_ad_templates",
+        "peekOfCode": "def test_ids_round_trip_through_resolve():\n    for t in ad_templates.list_templates():\n        assert ad_templates.resolve(t[\"id\"]) == t[\"template\"]\ndef test_resolve_default_and_unknown_fall_back_to_classic():\n    assert ad_templates.resolve(None) == \"demo_ad.html.j2\"\n    assert ad_templates.resolve(\"\") == \"demo_ad.html.j2\"\n    assert ad_templates.resolve(\"classic\") == \"demo_ad.html.j2\"\n    assert ad_templates.resolve(\"bold\") == \"ads/bold.html.j2\"\n    assert ad_templates.resolve(\"was-removed\") == \"demo_ad.html.j2\"\ndef test_template_ids_matches_list():",
+        "detail": "tests.test_ad_templates",
+        "documentation": {}
+    },
+    {
+        "label": "test_resolve_default_and_unknown_fall_back_to_classic",
+        "kind": 2,
+        "importPath": "tests.test_ad_templates",
+        "description": "tests.test_ad_templates",
+        "peekOfCode": "def test_resolve_default_and_unknown_fall_back_to_classic():\n    assert ad_templates.resolve(None) == \"demo_ad.html.j2\"\n    assert ad_templates.resolve(\"\") == \"demo_ad.html.j2\"\n    assert ad_templates.resolve(\"classic\") == \"demo_ad.html.j2\"\n    assert ad_templates.resolve(\"bold\") == \"ads/bold.html.j2\"\n    assert ad_templates.resolve(\"was-removed\") == \"demo_ad.html.j2\"\ndef test_template_ids_matches_list():\n    assert ad_templates.template_ids() == {t[\"id\"] for t in ad_templates.list_templates()}",
+        "detail": "tests.test_ad_templates",
+        "documentation": {}
+    },
+    {
+        "label": "test_template_ids_matches_list",
+        "kind": 2,
+        "importPath": "tests.test_ad_templates",
+        "description": "tests.test_ad_templates",
+        "peekOfCode": "def test_template_ids_matches_list():\n    assert ad_templates.template_ids() == {t[\"id\"] for t in ad_templates.list_templates()}",
+        "detail": "tests.test_ad_templates",
+        "documentation": {}
+    },
+    {
         "label": "golden_record",
         "kind": 2,
         "importPath": "tests.test_canva",
@@ -7274,7 +7545,7 @@
         "kind": 2,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "def test_engine_renderer_env_selects_canva_scaffold(monkeypatch):\n    if \"canva\" not in list_backends():\n        pytest.skip(\"canva scaffold not registered\")\n    monkeypatch.setenv(\"ENGINE_RENDERER\", \"canva\")\n    assert get_backend().name == \"canva\"\ndef test_explicit_arg_overrides_env(monkeypatch):\n    monkeypatch.setenv(\"ENGINE_RENDERER\", \"canva\")\n    assert get_backend(\"html\").name == \"html\"\ndef test_unconfigured_canva_degrades_without_crashing(monkeypatch):\n    if \"canva\" not in list_backends():",
+        "peekOfCode": "def test_engine_renderer_env_selects_canva_scaffold(monkeypatch):\n    if \"canva\" not in list_backends():\n        pytest.skip(\"canva scaffold not registered\")\n    monkeypatch.setenv(\"ENGINE_RENDERER\", \"canva\")\n    assert get_backend().name == \"canva\"\ndef test_explicit_arg_overrides_env(monkeypatch):\n    monkeypatch.setenv(\"ENGINE_RENDERER\", \"canva\")\n    assert get_backend(\"html\").name == \"html\"\ndef test_mixed_env_resolves_get_backend_to_html(monkeypatch):\n    # \"mixed\" is a per-format render MODE, not a single backend; get_backend()",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -7283,7 +7554,16 @@
         "kind": 2,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "def test_explicit_arg_overrides_env(monkeypatch):\n    monkeypatch.setenv(\"ENGINE_RENDERER\", \"canva\")\n    assert get_backend(\"html\").name == \"html\"\ndef test_unconfigured_canva_degrades_without_crashing(monkeypatch):\n    if \"canva\" not in list_backends():\n        pytest.skip(\"canva scaffold not registered\")\n    for var in (\"CANVA_CLIENT_ID\", \"CANVA_CLIENT_SECRET\", \"CANVA_REFRESH_TOKEN\", \"CANVA_TEMPLATE_MAP\"):\n        monkeypatch.delenv(var, raising=False)\n    ok, reason = get_backend(\"canva\").available()\n    assert ok is False",
+        "peekOfCode": "def test_explicit_arg_overrides_env(monkeypatch):\n    monkeypatch.setenv(\"ENGINE_RENDERER\", \"canva\")\n    assert get_backend(\"html\").name == \"html\"\ndef test_mixed_env_resolves_get_backend_to_html(monkeypatch):\n    # \"mixed\" is a per-format render MODE, not a single backend; get_backend()\n    # must resolve it to the default rather than raise (regression: it raised\n    # ValueError, which 500'd every gate page that asks for \"a backend\", D40).\n    monkeypatch.setenv(\"ENGINE_RENDERER\", \"mixed\")\n    assert get_backend().name == \"html\"\ndef test_unconfigured_canva_degrades_without_crashing(monkeypatch):",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_mixed_env_resolves_get_backend_to_html",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_mixed_env_resolves_get_backend_to_html(monkeypatch):\n    # \"mixed\" is a per-format render MODE, not a single backend; get_backend()\n    # must resolve it to the default rather than raise (regression: it raised\n    # ValueError, which 500'd every gate page that asks for \"a backend\", D40).\n    monkeypatch.setenv(\"ENGINE_RENDERER\", \"mixed\")\n    assert get_backend().name == \"html\"\ndef test_unconfigured_canva_degrades_without_crashing(monkeypatch):\n    if \"canva\" not in list_backends():\n        pytest.skip(\"canva scaffold not registered\")\n    for var in (\"CANVA_CLIENT_ID\", \"CANVA_CLIENT_SECRET\", \"CANVA_REFRESH_TOKEN\", \"CANVA_TEMPLATE_MAP\"):",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -7311,6 +7591,15 @@
         "importPath": "tests.test_render",
         "description": "tests.test_render",
         "peekOfCode": "def test_dp_number_absent_from_public_tile_and_ads(golden_record, tmp_path):\n    store = _store_with(golden_record)\n    try:\n        tile = Path(\n            render_one(\"3060\", store, \"webapp_icon\", backend=\"html\", output_root=str(tmp_path)).path\n        ).read_text(encoding=\"utf-8\")\n        ad = Path(\n            render_one(\"3060\", store, \"demo_ad\", backend=\"html\", output_root=str(tmp_path)).path\n        ).read_text(encoding=\"utf-8\")\n    finally:",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_demo_ad_renders_the_picked_template",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_demo_ad_renders_the_picked_template(golden_record, tmp_path):\n    golden_record.marketing.template_set = \"bold\"\n    store = _store_with(golden_record)\n    try:\n        art = render_one(\"3060\", store, \"demo_ad\", backend=\"html\", output_root=str(tmp_path))\n        html = Path(art.path).read_text(encoding=\"utf-8\")\n    finally:\n        store.close()\n    assert \"#0E0C0A\" in html  # the Bold Dark design's dark background\n    assert \"Pelham North\" in html  # still fills the real property facts",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -7833,6 +8122,24 @@
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
         "peekOfCode": "def test_ad_png_route_degrades_when_rasteriser_unavailable(monkeypatch):\n    from engine.render import rasterize\n    def _boom(*a, **k):\n        raise rasterize.RasterizeUnavailable(\"no chromium here\")\n    monkeypatch.setattr(rasterize, \"html_to_png\", _boom)\n    _needs_golden()\n    dp = \"9022\"\n    _golden_clone(dp)\n    client = _client()\n    _login_admin(client)",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_gate2_pick_template_applies_and_re_renders",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_gate2_pick_template_applies_and_re_renders():\n    _needs_golden()\n    dp = \"9030\"\n    _golden_clone(dp)\n    client = _client()\n    _login_admin(client)\n    resp = client.post(f\"/gates/{dp}/ads/template\", data={\"template\": \"bold\"})\n    assert resp.status_code == 200\n    store = RecordStore(DB_PATH)\n    try:",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_ad_template_thumb_route",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_ad_template_thumb_route(monkeypatch):\n    from pathlib import Path as _Path\n    from engine.render import ad_thumbs\n    def _fake_thumb(tid, root):\n        d = _Path(root) / \".ad-thumbs\"\n        d.mkdir(parents=True, exist_ok=True)\n        f = d / f\"{tid}.png\"\n        f.write_bytes(b\"\\x89PNG\\r\\n\\x1a\\nfake\")\n        return f\n    monkeypatch.setattr(ad_thumbs, \"thumbnail\", _fake_thumb)  # no Chromium in the suite",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -8652,6 +8959,15 @@
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
         "peekOfCode": "def gate2_ad_png(dp: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"Serve the branded ad as a PNG attachment, for emailing a client (D39).\n    Backend-agnostic: the Canva backend outputs ``demo_ad.png`` directly (served\n    as-is), while the html backend outputs ``demo_ad.html`` which is rasterised to\n    PNG via headless Chromium (cached; re-rendered when the HTML is newer). The\n    download filename uses the suburb, never the internal DP (D37). Degrades to a\n    clear message if the rasteriser is unavailable.\n    \"\"\"\n    from engine.render.rasterize import RasterizeUnavailable, html_to_png\n    db_path = _db(request)",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "ad_template_thumb",
+        "kind": 2,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "def ad_template_thumb(template_id: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"A cached sample-data preview of an ad design, for the gate-2 picker (D41).\"\"\"\n    from engine.render import ad_templates\n    from engine.render.ad_thumbs import thumbnail\n    if template_id not in ad_templates.template_ids():\n        raise HTTPException(status_code=404, detail=\"Unknown ad template.\")\n    png = thumbnail(template_id, _output_root(_db(request)))\n    if png is None:\n        raise HTTPException(status_code=503, detail=\"Preview unavailable (rasteriser not installed).\")\n    return FileResponse(str(png), media_type=\"image/png\")",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
