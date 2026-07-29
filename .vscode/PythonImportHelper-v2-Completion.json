@@ -416,6 +416,14 @@
         "documentation": {}
     },
     {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
         "label": "json",
         "kind": 6,
         "isExtraImport": true,
@@ -1557,6 +1565,30 @@
         "documentation": {}
     },
     {
+        "label": "Deque",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
         "label": "Any",
         "importPath": "typing",
         "description": "typing",
@@ -2497,6 +2529,14 @@
         "documentation": {}
     },
     {
+        "label": "ad_templates",
+        "importPath": "engine.render",
+        "description": "engine.render",
+        "isExtraImport": true,
+        "detail": "engine.render",
+        "documentation": {}
+    },
+    {
         "label": "get_backend",
         "importPath": "engine.render",
         "description": "engine.render",
@@ -2538,6 +2578,22 @@
     },
     {
         "label": "BRAND",
+        "importPath": "engine.render.html_backend",
+        "description": "engine.render.html_backend",
+        "isExtraImport": true,
+        "detail": "engine.render.html_backend",
+        "documentation": {}
+    },
+    {
+        "label": "_asset_data_uri",
+        "importPath": "engine.render.html_backend",
+        "description": "engine.render.html_backend",
+        "isExtraImport": true,
+        "detail": "engine.render.html_backend",
+        "documentation": {}
+    },
+    {
+        "label": "_split3",
         "importPath": "engine.render.html_backend",
         "description": "engine.render.html_backend",
         "isExtraImport": true,
@@ -2932,6 +2988,14 @@
         "description": "engine",
         "isExtraImport": true,
         "detail": "engine",
+        "documentation": {}
+    },
+    {
+        "label": "lru_cache",
+        "importPath": "functools",
+        "description": "functools",
+        "isExtraImport": true,
+        "detail": "functools",
         "documentation": {}
     },
     {
@@ -4129,6 +4193,14 @@
         "documentation": {}
     },
     {
+        "label": "Request",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
         "label": "FileResponse",
         "importPath": "fastapi.responses",
         "description": "fastapi.responses",
@@ -4281,6 +4353,30 @@
         "documentation": {}
     },
     {
+        "label": "account_key",
+        "importPath": "webapp.ratelimit",
+        "description": "webapp.ratelimit",
+        "isExtraImport": true,
+        "detail": "webapp.ratelimit",
+        "documentation": {}
+    },
+    {
+        "label": "client_ip",
+        "importPath": "webapp.ratelimit",
+        "description": "webapp.ratelimit",
+        "isExtraImport": true,
+        "detail": "webapp.ratelimit",
+        "documentation": {}
+    },
+    {
+        "label": "throttle",
+        "importPath": "webapp.ratelimit",
+        "description": "webapp.ratelimit",
+        "isExtraImport": true,
+        "detail": "webapp.ratelimit",
+        "documentation": {}
+    },
+    {
         "label": "Jinja2Templates",
         "importPath": "starlette.templating",
         "description": "starlette.templating",
@@ -4400,6 +4496,22 @@
         "description": "starlette.middleware.sessions",
         "isExtraImport": true,
         "detail": "starlette.middleware.sessions",
+        "documentation": {}
+    },
+    {
+        "label": "defaultdict",
+        "importPath": "collections",
+        "description": "collections",
+        "isExtraImport": true,
+        "detail": "collections",
+        "documentation": {}
+    },
+    {
+        "label": "deque",
+        "importPath": "collections",
+        "description": "collections",
+        "isExtraImport": true,
+        "detail": "collections",
         "documentation": {}
     },
     {
@@ -4728,7 +4840,7 @@
         "kind": 5,
         "importPath": "engine.render.ad_thumbs",
         "description": "engine.render.ad_thumbs",
-        "peekOfCode": "_TEMPLATE_DIR = ad_templates._TEMPLATE_DIR\n_env = Environment(\n    loader=FileSystemLoader(str(_TEMPLATE_DIR)),\n    autoescape=select_autoescape([\"html\", \"svg\", \"j2\"]),\n)\n_placeholder_cache: Optional[str] = None\ndef _placeholder_photo() -> str:\n    \"\"\"A small solid warm-grey JPEG as a data URI, standing in for a photo.\"\"\"\n    global _placeholder_cache\n    if _placeholder_cache is None:",
+        "peekOfCode": "_TEMPLATE_DIR = ad_templates._TEMPLATE_DIR\n_env = Environment(\n    loader=FileSystemLoader(str(_TEMPLATE_DIR)),\n    autoescape=select_autoescape([\"html\", \"svg\", \"j2\"]),\n)\n_env.globals[\"asset_uri\"] = _asset_data_uri\n_env.filters[\"split3\"] = _split3\n_placeholder_cache: Optional[str] = None\ndef _placeholder_photo() -> str:\n    \"\"\"A small solid warm-grey JPEG as a data URI, standing in for a photo.\"\"\"",
         "detail": "engine.render.ad_thumbs",
         "documentation": {}
     },
@@ -4737,7 +4849,25 @@
         "kind": 5,
         "importPath": "engine.render.ad_thumbs",
         "description": "engine.render.ad_thumbs",
-        "peekOfCode": "_env = Environment(\n    loader=FileSystemLoader(str(_TEMPLATE_DIR)),\n    autoescape=select_autoescape([\"html\", \"svg\", \"j2\"]),\n)\n_placeholder_cache: Optional[str] = None\ndef _placeholder_photo() -> str:\n    \"\"\"A small solid warm-grey JPEG as a data URI, standing in for a photo.\"\"\"\n    global _placeholder_cache\n    if _placeholder_cache is None:\n        from PIL import Image",
+        "peekOfCode": "_env = Environment(\n    loader=FileSystemLoader(str(_TEMPLATE_DIR)),\n    autoescape=select_autoescape([\"html\", \"svg\", \"j2\"]),\n)\n_env.globals[\"asset_uri\"] = _asset_data_uri\n_env.filters[\"split3\"] = _split3\n_placeholder_cache: Optional[str] = None\ndef _placeholder_photo() -> str:\n    \"\"\"A small solid warm-grey JPEG as a data URI, standing in for a photo.\"\"\"\n    global _placeholder_cache",
+        "detail": "engine.render.ad_thumbs",
+        "documentation": {}
+    },
+    {
+        "label": "_env.globals[\"asset_uri\"]",
+        "kind": 5,
+        "importPath": "engine.render.ad_thumbs",
+        "description": "engine.render.ad_thumbs",
+        "peekOfCode": "_env.globals[\"asset_uri\"] = _asset_data_uri\n_env.filters[\"split3\"] = _split3\n_placeholder_cache: Optional[str] = None\ndef _placeholder_photo() -> str:\n    \"\"\"A small solid warm-grey JPEG as a data URI, standing in for a photo.\"\"\"\n    global _placeholder_cache\n    if _placeholder_cache is None:\n        from PIL import Image\n        im = Image.new(\"RGB\", (240, 180), (116, 111, 100))\n        buf = io.BytesIO()",
+        "detail": "engine.render.ad_thumbs",
+        "documentation": {}
+    },
+    {
+        "label": "_env.filters[\"split3\"]",
+        "kind": 5,
+        "importPath": "engine.render.ad_thumbs",
+        "description": "engine.render.ad_thumbs",
+        "peekOfCode": "_env.filters[\"split3\"] = _split3\n_placeholder_cache: Optional[str] = None\ndef _placeholder_photo() -> str:\n    \"\"\"A small solid warm-grey JPEG as a data URI, standing in for a photo.\"\"\"\n    global _placeholder_cache\n    if _placeholder_cache is None:\n        from PIL import Image\n        im = Image.new(\"RGB\", (240, 180), (116, 111, 100))\n        buf = io.BytesIO()\n        im.save(buf, \"JPEG\", quality=60)",
         "detail": "engine.render.ad_thumbs",
         "documentation": {}
     },
@@ -5016,7 +5146,16 @@
         "kind": 5,
         "importPath": "engine.render.html_backend",
         "description": "engine.render.html_backend",
-        "peekOfCode": "_TEMPLATE_DIR = Path(__file__).parent / \"templates\"\ndef _should_autoescape(template_name: Optional[str]) -> bool:\n    \"\"\"Escape markup templates (HTML, SVG); leave Markdown/text unescaped.\"\"\"\n    if not template_name:\n        return False\n    return template_name.endswith((\".html.j2\", \".svg.j2\"))\ndef _fmt_num(value: object) -> Optional[str]:\n    \"\"\"Render a number without a trailing ``.0`` (185.0 -> ``\"185\"``).\"\"\"\n    if value is None:\n        return None",
+        "peekOfCode": "_TEMPLATE_DIR = Path(__file__).parent / \"templates\"\ndef _should_autoescape(template_name: Optional[str]) -> bool:\n    \"\"\"Escape markup templates (HTML, SVG); leave Markdown/text unescaped.\"\"\"\n    if not template_name:\n        return False\n    return template_name.endswith((\".html.j2\", \".svg.j2\"))\n_ASSET_MIME = {\n    \".png\": \"image/png\", \".jpg\": \"image/jpeg\", \".jpeg\": \"image/jpeg\",\n    \".svg\": \"image/svg+xml\", \".webp\": \"image/webp\",\n}",
+        "detail": "engine.render.html_backend",
+        "documentation": {}
+    },
+    {
+        "label": "_ASSET_MIME",
+        "kind": 5,
+        "importPath": "engine.render.html_backend",
+        "description": "engine.render.html_backend",
+        "peekOfCode": "_ASSET_MIME = {\n    \".png\": \"image/png\", \".jpg\": \"image/jpeg\", \".jpeg\": \"image/jpeg\",\n    \".svg\": \"image/svg+xml\", \".webp\": \"image/webp\",\n}\n@lru_cache(maxsize=64)\ndef _asset_data_uri(relative_path: str) -> str:\n    \"\"\"Read a template-relative asset (e.g. a logo) and return a base64 data URI.\n    Templates embed assets this way so the rendered ad is self-contained and\n    survives file:// rasterising (no external file resolution). Cached; returns\n    \"\" if the asset is missing so a template never crashes on a typo'd path.",
         "detail": "engine.render.html_backend",
         "documentation": {}
     },
@@ -5052,7 +5191,7 @@
         "kind": 5,
         "importPath": "engine.render.rasterize",
         "description": "engine.render.rasterize",
-        "peekOfCode": "_AD_SELECTOR = \".sheet, .card, .ad\"\n# Match the sheet's max-width so the card renders at its intended size.\n_DEFAULT_WIDTH = 900\nclass RasterizeUnavailable(RuntimeError):\n    \"\"\"Playwright or its Chromium browser is not installed on this host.\"\"\"\ndef available() -> bool:\n    \"\"\"True if the Playwright Python package is importable. (Chromium presence is\n    only known at launch; a missing browser surfaces as RasterizeUnavailable.)\"\"\"\n    try:\n        import playwright.sync_api  # noqa: F401",
+        "peekOfCode": "_AD_SELECTOR = \".sheet, .card, .ad\"\n# Viewport wide enough for both the A4-ish cards (max-width 860) and the\n# Instagram-format ad designs (fixed 1080 wide); the element screenshot then\n# captures each card at its own rendered size.\n_DEFAULT_WIDTH = 1120\nclass RasterizeUnavailable(RuntimeError):\n    \"\"\"Playwright or its Chromium browser is not installed on this host.\"\"\"\ndef available() -> bool:\n    \"\"\"True if the Playwright Python package is importable. (Chromium presence is\n    only known at launch; a missing browser surfaces as RasterizeUnavailable.)\"\"\"",
         "detail": "engine.render.rasterize",
         "documentation": {}
     },
@@ -5061,7 +5200,7 @@
         "kind": 5,
         "importPath": "engine.render.rasterize",
         "description": "engine.render.rasterize",
-        "peekOfCode": "_DEFAULT_WIDTH = 900\nclass RasterizeUnavailable(RuntimeError):\n    \"\"\"Playwright or its Chromium browser is not installed on this host.\"\"\"\ndef available() -> bool:\n    \"\"\"True if the Playwright Python package is importable. (Chromium presence is\n    only known at launch; a missing browser surfaces as RasterizeUnavailable.)\"\"\"\n    try:\n        import playwright.sync_api  # noqa: F401\n        return True\n    except Exception:",
+        "peekOfCode": "_DEFAULT_WIDTH = 1120\nclass RasterizeUnavailable(RuntimeError):\n    \"\"\"Playwright or its Chromium browser is not installed on this host.\"\"\"\ndef available() -> bool:\n    \"\"\"True if the Playwright Python package is importable. (Chromium presence is\n    only known at launch; a missing browser surfaces as RasterizeUnavailable.)\"\"\"\n    try:\n        import playwright.sync_api  # noqa: F401\n        return True\n    except Exception:",
         "detail": "engine.render.rasterize",
         "documentation": {}
     },
@@ -5736,7 +5875,7 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class Viewing(_Base):\n    by_appointment: Optional[bool] = None\n    contact_public: Optional[str] = None  # Dynamic's number (safe to render)\n    contact_internal_only: Optional[str] = None  # occupant cell — POPIA, stripped\nclass SaleProcess(_Base):\n    method: Optional[str] = None  # \"offers_invited\" | \"auction\"\n    terms: Optional[List[str]] = None\n    viewing: Optional[Viewing] = None\n# --- marketing (system + human edits) ------------------------------------\nclass ChannelRouting(_Base):",
+        "peekOfCode": "class Viewing(_Base):\n    by_appointment: Optional[bool] = None\n    contact_public: Optional[str] = None  # Dynamic's number (safe to render)\n    contact_internal_only: Optional[str] = None  # occupant cell — POPIA, stripped\nclass SaleProcess(_Base):\n    method: Optional[str] = None  # \"offers_invited\" | \"auction\"\n    terms: Optional[List[str]] = None\n    viewing: Optional[Viewing] = None\n    # Auction specifics shown on auction ads only (D42), entered by marketing at\n    # gate 2. Free display text so each reads exactly as the ad should. On an",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -5745,7 +5884,7 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class SaleProcess(_Base):\n    method: Optional[str] = None  # \"offers_invited\" | \"auction\"\n    terms: Optional[List[str]] = None\n    viewing: Optional[Viewing] = None\n# --- marketing (system + human edits) ------------------------------------\nclass ChannelRouting(_Base):\n    property24: Optional[bool] = None\n    own_website: Optional[bool] = None\n    facebook: Optional[bool] = None\n    email_list: Optional[bool] = None",
+        "peekOfCode": "class SaleProcess(_Base):\n    method: Optional[str] = None  # \"offers_invited\" | \"auction\"\n    terms: Optional[List[str]] = None\n    viewing: Optional[Viewing] = None\n    # Auction specifics shown on auction ads only (D42), entered by marketing at\n    # gate 2. Free display text so each reads exactly as the ad should. On an\n    # auction ad the badge is \"<TYPE> AUCTION!\", the auction line is\n    # \"<CHANNEL> AUCTION | <DATE> @ <TIME>\", and ``terms`` becomes the terms strip\n    # (\"Vacant occupation cannot be guaranteed | Viewing not possible\").\n    auction_type: Optional[str] = None     # \"Insolvency\" | \"Liquidation\" | \"Deceased estate\" | ...",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -7586,11 +7725,11 @@
         "documentation": {}
     },
     {
-        "label": "test_dp_number_absent_from_public_tile_and_ads",
+        "label": "test_dp_shown_on_ads_but_never_on_the_board_tile",
         "kind": 2,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "def test_dp_number_absent_from_public_tile_and_ads(golden_record, tmp_path):\n    store = _store_with(golden_record)\n    try:\n        tile = Path(\n            render_one(\"3060\", store, \"webapp_icon\", backend=\"html\", output_root=str(tmp_path)).path\n        ).read_text(encoding=\"utf-8\")\n        ad = Path(\n            render_one(\"3060\", store, \"demo_ad\", backend=\"html\", output_root=str(tmp_path)).path\n        ).read_text(encoding=\"utf-8\")\n    finally:",
+        "peekOfCode": "def test_dp_shown_on_ads_but_never_on_the_board_tile(golden_record, tmp_path):\n    store = _store_with(golden_record)\n    try:\n        tile = Path(\n            render_one(\"3060\", store, \"webapp_icon\", backend=\"html\", output_root=str(tmp_path)).path\n        ).read_text(encoding=\"utf-8\")\n        ad = Path(\n            render_one(\"3060\", store, \"demo_ad\", backend=\"html\", output_root=str(tmp_path)).path\n        ).read_text(encoding=\"utf-8\")\n        golden_record.marketing.template_set = \"collage\"",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -7600,6 +7739,96 @@
         "importPath": "tests.test_render",
         "description": "tests.test_render",
         "peekOfCode": "def test_demo_ad_renders_the_picked_template(golden_record, tmp_path):\n    golden_record.marketing.template_set = \"bold\"\n    store = _store_with(golden_record)\n    try:\n        art = render_one(\"3060\", store, \"demo_ad\", backend=\"html\", output_root=str(tmp_path))\n        html = Path(art.path).read_text(encoding=\"utf-8\")\n    finally:\n        store.close()\n    assert \"#0E0C0A\" in html  # the Bold Dark design's dark background\n    assert \"Pelham North\" in html  # still fills the real property facts",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_collage_is_method_aware",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_collage_is_method_aware(golden_record, tmp_path):\n    # For Sale -> Real Estate brand + \"For Sale\" badge; Auction -> Auctioneers\n    # brand + \"On Auction\" badge. Same record, only the method differs (D41).\n    for method, badge in [(\"offers_invited\", \"FOR SALE\"), (\"auction\", \"ON AUCTION\")]:\n        golden_record.marketing.template_set = \"collage\"\n        golden_record.sale_process.method = method\n        store = _store_with(golden_record)\n        try:\n            art = render_one(\"3060\", store, \"demo_ad\", backend=\"html\", output_root=str(tmp_path))\n            html = Path(art.path).read_text(encoding=\"utf-8\")",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_collage_renders_auction_specifics",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_collage_renders_auction_specifics(golden_record, tmp_path):\n    # An auction record renders the type badge, the channel/date/time line\n    # (instead of a price), and the terms strip (D42).\n    golden_record.marketing.template_set = \"collage\"\n    golden_record.sale_process.method = \"auction\"\n    golden_record.sale_process.auction_type = \"Insolvency\"\n    golden_record.sale_process.auction_channel = \"Online\"\n    golden_record.sale_process.auction_date = \"28 May 2026\"\n    golden_record.sale_process.auction_time = \"10:00\"\n    golden_record.sale_process.terms = [\"Vacant occupation cannot be guaranteed\"]",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_new_ad_designs_render_place_and_descriptor",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_new_ad_designs_render_place_and_descriptor(template, golden_record, tmp_path):\n    # AD 2 / AD 3 lead with the locality + a concise descriptor and carry the\n    # PROPERTY REF (D43). They fill from the same record as the Collage.\n    golden_record.marketing.template_set = template\n    store = _store_with(golden_record)\n    try:\n        art = render_one(\"3060\", store, \"demo_ad\", backend=\"html\", output_root=str(tmp_path))\n        html = Path(art.path).read_text(encoding=\"utf-8\")\n    finally:\n        store.close()",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_badge_says_sale_with_type_on_a_non_auction",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_badge_says_sale_with_type_on_a_non_auction(golden_record, tmp_path):\n    # The callout type applies to a sale too: \"INSOLVENCY SALE!\" (real ads),\n    # not \"... AUCTION!\" (D43).\n    golden_record.marketing.template_set = \"feature_list\"\n    golden_record.sale_process.method = \"offers_invited\"\n    golden_record.sale_process.auction_type = \"Insolvency\"\n    store = _store_with(golden_record)\n    try:\n        art = render_one(\"3060\", store, \"demo_ad\", backend=\"html\", output_root=str(tmp_path))\n        html = Path(art.path).read_text(encoding=\"utf-8\")",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_partials_are_not_offered_as_pickable_designs",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_partials_are_not_offered_as_pickable_designs():\n    from engine.render import ad_templates\n    ids = ad_templates.template_ids()\n    assert \"_adparts\" not in ids  # the shared macro file is not a design\n    assert {\"collage\", \"feature_list\", \"stats_first\"} <= ids\n@pytest.mark.parametrize(\"template\", AD_DESIGNS)\n@pytest.mark.parametrize(\"method\", [\"offers_invited\", \"auction\"])\ndef test_every_ad_design_is_pii_safe_and_carries_the_ref(template, method, golden_record, tmp_path):\n    # POPIA: no ad design, in either sale method, may leak an internal-layer\n    # field. And every ad carries the PROPERTY REF (the DP, D42). This covers",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_every_ad_design_is_pii_safe_and_carries_the_ref",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_every_ad_design_is_pii_safe_and_carries_the_ref(template, method, golden_record, tmp_path):\n    # POPIA: no ad design, in either sale method, may leak an internal-layer\n    # field. And every ad carries the PROPERTY REF (the DP, D42). This covers\n    # the whole library, so a newly added design is checked automatically.\n    rec = _poison(golden_record)\n    rec.marketing.template_set = template\n    rec.sale_process.method = method\n    rec.sale_process.auction_type = \"Insolvency\"\n    rec.sale_process.auction_channel = \"Online\"\n    rec.sale_process.auction_date = \"28 May 2026\"",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_ad_designs_render_with_missing_data",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_ad_designs_render_with_missing_data(golden_record, tmp_path):\n    # A sparse record (no photos, beds, baths, price or terms) must still render\n    # every design without error, showing only what the record supports.\n    golden_record.marketing.hero_photo = None\n    golden_record.marketing.gallery = None\n    golden_record.marketing.price_display = None\n    golden_record.physical.bedrooms = None\n    golden_record.physical.bathrooms_main_unit = None\n    golden_record.sale_process.terms = None\n    for template in (\"collage\", \"feature_list\", \"stats_first\", \"bold\"):",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_auction_line_reads_on_site",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_auction_line_reads_on_site(golden_record, tmp_path):\n    golden_record.marketing.template_set = \"stats_first\"\n    golden_record.sale_process.method = \"auction\"\n    golden_record.sale_process.auction_channel = \"On-site\"\n    golden_record.sale_process.auction_date = \"3 June 2026\"\n    golden_record.sale_process.auction_time = \"11:30\"\n    store = _store_with(golden_record)\n    try:\n        art = render_one(\"3060\", store, \"demo_ad\", backend=\"html\", output_root=str(tmp_path))\n        html = Path(art.path).read_text(encoding=\"utf-8\")",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_badge_defaults_without_a_callout_type",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_badge_defaults_without_a_callout_type(golden_record, tmp_path):\n    # No callout type -> the plain badge, method-aware.\n    golden_record.marketing.template_set = \"collage\"\n    golden_record.sale_process.auction_type = None\n    for method, expect in [(\"auction\", \"ON AUCTION!\"), (\"offers_invited\", \"FOR SALE!\")]:\n        golden_record.sale_process.method = method\n        store = _store_with(golden_record)\n        try:\n            art = render_one(\"3060\", store, \"demo_ad\", backend=\"html\", output_root=str(tmp_path))\n            html = Path(art.path).read_text(encoding=\"utf-8\")",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_split3_balances_a_headline",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_split3_balances_a_headline():\n    from engine.render.html_backend import _split3\n    assert _split3(\"3 Bedroom Home with Separate Flatlet in Pelham North\") == [\n        \"3 Bedroom Home\",\n        \"with Separate Flatlet\",\n        \"in Pelham North\",\n    ]\n    assert _split3(\"Loft\") == [\"Loft\"]  # short headlines stay one line\n# --- ad-first render split (D39) -----------------------------------------\ndef test_render_all_subset_renders_only_requested(golden_record, tmp_path):",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -7671,7 +7900,7 @@
         "kind": 5,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "POISON_OWNER = \"ZZOWNERPOISON_DoNotPublish\"\nPOISON_ID = \"ZZID_9999999999\"\nPOISON_CELL = \"ZZCELL_0820001111\"\nPOISON_MARKERS = (POISON_OWNER, POISON_ID, POISON_CELL)\n# Backends registered at import time. Deletion-safe: removing the Canva scaffold\n# simply drops it from this list, so the parametrised PII test still passes.\nBACKENDS: List[str] = sorted(list_backends().keys())\n@pytest.fixture\ndef golden_record(golden_record_path: Path) -> PropertyRecord:\n    return PropertyRecord.model_validate_json(",
+        "peekOfCode": "POISON_OWNER = \"ZZOWNERPOISON_DoNotPublish\"\nPOISON_ID = \"ZZID_9999999999\"\nPOISON_CELL = \"ZZCELL_0820001111\"\nPOISON_MARKERS = (POISON_OWNER, POISON_ID, POISON_CELL)\n# Backends registered at import time. Deletion-safe: removing the Canva scaffold\n# simply drops it from this list, so the parametrised PII test still passes.\nBACKENDS: List[str] = sorted(list_backends().keys())\n# Every pickable ad design (Classic + the library). The whole set is exercised\n# for PII safety and the property ref below, so a new design added to the\n# library is covered automatically.",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -7680,7 +7909,7 @@
         "kind": 5,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "POISON_ID = \"ZZID_9999999999\"\nPOISON_CELL = \"ZZCELL_0820001111\"\nPOISON_MARKERS = (POISON_OWNER, POISON_ID, POISON_CELL)\n# Backends registered at import time. Deletion-safe: removing the Canva scaffold\n# simply drops it from this list, so the parametrised PII test still passes.\nBACKENDS: List[str] = sorted(list_backends().keys())\n@pytest.fixture\ndef golden_record(golden_record_path: Path) -> PropertyRecord:\n    return PropertyRecord.model_validate_json(\n        golden_record_path.read_text(encoding=\"utf-8\")",
+        "peekOfCode": "POISON_ID = \"ZZID_9999999999\"\nPOISON_CELL = \"ZZCELL_0820001111\"\nPOISON_MARKERS = (POISON_OWNER, POISON_ID, POISON_CELL)\n# Backends registered at import time. Deletion-safe: removing the Canva scaffold\n# simply drops it from this list, so the parametrised PII test still passes.\nBACKENDS: List[str] = sorted(list_backends().keys())\n# Every pickable ad design (Classic + the library). The whole set is exercised\n# for PII safety and the property ref below, so a new design added to the\n# library is covered automatically.\nAD_DESIGNS: List[str] = sorted(ad_templates.template_ids())",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -7689,7 +7918,7 @@
         "kind": 5,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "POISON_CELL = \"ZZCELL_0820001111\"\nPOISON_MARKERS = (POISON_OWNER, POISON_ID, POISON_CELL)\n# Backends registered at import time. Deletion-safe: removing the Canva scaffold\n# simply drops it from this list, so the parametrised PII test still passes.\nBACKENDS: List[str] = sorted(list_backends().keys())\n@pytest.fixture\ndef golden_record(golden_record_path: Path) -> PropertyRecord:\n    return PropertyRecord.model_validate_json(\n        golden_record_path.read_text(encoding=\"utf-8\")\n    )",
+        "peekOfCode": "POISON_CELL = \"ZZCELL_0820001111\"\nPOISON_MARKERS = (POISON_OWNER, POISON_ID, POISON_CELL)\n# Backends registered at import time. Deletion-safe: removing the Canva scaffold\n# simply drops it from this list, so the parametrised PII test still passes.\nBACKENDS: List[str] = sorted(list_backends().keys())\n# Every pickable ad design (Classic + the library). The whole set is exercised\n# for PII safety and the property ref below, so a new design added to the\n# library is covered automatically.\nAD_DESIGNS: List[str] = sorted(ad_templates.template_ids())\n@pytest.fixture",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -7698,7 +7927,7 @@
         "kind": 5,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "POISON_MARKERS = (POISON_OWNER, POISON_ID, POISON_CELL)\n# Backends registered at import time. Deletion-safe: removing the Canva scaffold\n# simply drops it from this list, so the parametrised PII test still passes.\nBACKENDS: List[str] = sorted(list_backends().keys())\n@pytest.fixture\ndef golden_record(golden_record_path: Path) -> PropertyRecord:\n    return PropertyRecord.model_validate_json(\n        golden_record_path.read_text(encoding=\"utf-8\")\n    )\ndef _poison(record: PropertyRecord) -> PropertyRecord:",
+        "peekOfCode": "POISON_MARKERS = (POISON_OWNER, POISON_ID, POISON_CELL)\n# Backends registered at import time. Deletion-safe: removing the Canva scaffold\n# simply drops it from this list, so the parametrised PII test still passes.\nBACKENDS: List[str] = sorted(list_backends().keys())\n# Every pickable ad design (Classic + the library). The whole set is exercised\n# for PII safety and the property ref below, so a new design added to the\n# library is covered automatically.\nAD_DESIGNS: List[str] = sorted(ad_templates.template_ids())\n@pytest.fixture\ndef golden_record(golden_record_path: Path) -> PropertyRecord:",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -8040,7 +8269,43 @@
         "kind": 2,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "def test_good_password_sets_session():\n    client = _client()\n    resp = _login(client, APPROVER_EMAIL, APPROVER_PW)\n    assert resp.status_code == 303\n    assert resp.headers[\"location\"] == \"/board\"\n    # The session cookie now authenticates the board.\n    board = client.get(\"/board\")\n    assert board.status_code == 200\n# --- board renders --------------------------------------------------------\ndef test_board_renders_for_logged_in_user():",
+        "peekOfCode": "def test_good_password_sets_session():\n    client = _client()\n    resp = _login(client, APPROVER_EMAIL, APPROVER_PW)\n    assert resp.status_code == 303\n    assert resp.headers[\"location\"] == \"/board\"\n    # The session cookie now authenticates the board.\n    board = client.get(\"/board\")\n    assert board.status_code == 200\n# --- sign-in hardening ----------------------------------------------------\ndef test_login_locks_out_after_repeated_failures():",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_login_locks_out_after_repeated_failures",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_login_locks_out_after_repeated_failures():\n    from webapp.ratelimit import throttle\n    client = _client()\n    # Fail up to the threshold; each is a normal \"not recognised\" 401.\n    for _ in range(throttle._max_fails):\n        r = _login(client, APPROVER_EMAIL, \"wrong-password\")\n        assert r.status_code == 401\n    # Now locked: even the CORRECT password is refused with 429 until it clears.\n    r = _login(client, APPROVER_EMAIL, APPROVER_PW)\n    assert r.status_code == 429",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_successful_login_clears_the_failure_count",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_a_successful_login_clears_the_failure_count():\n    from webapp.ratelimit import throttle\n    client = _client()\n    for _ in range(throttle._max_fails - 1):  # one short of the lock\n        assert _login(client, APPROVER_EMAIL, \"wrong-password\").status_code == 401\n    assert _login(client, APPROVER_EMAIL, APPROVER_PW).status_code == 303  # clears\n    # The counter reset, so a fresh wrong attempt is a plain 401, not a lock.\n    assert _login(client, APPROVER_EMAIL, \"wrong-password\").status_code == 401\ndef test_login_error_is_generic_for_unknown_and_wrong(monkeypatch):\n    # Same status and message whether the email exists or not (no enumeration).",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_login_error_is_generic_for_unknown_and_wrong",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_login_error_is_generic_for_unknown_and_wrong(monkeypatch):\n    # Same status and message whether the email exists or not (no enumeration).\n    client = _client()\n    unknown = _login(client, \"nobody@example.com\", \"whatever\")\n    wrong = _login(client, APPROVER_EMAIL, \"wrong-password\")\n    assert unknown.status_code == wrong.status_code == 401\n    assert \"not recognised\" in unknown.text and \"not recognised\" in wrong.text\ndef test_security_headers_present_on_responses():\n    client = _client()\n    r = client.get(\"/login\")",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_security_headers_present_on_responses",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_security_headers_present_on_responses():\n    client = _client()\n    r = client.get(\"/login\")\n    assert r.headers.get(\"X-Frame-Options\") == \"DENY\"\n    assert r.headers.get(\"X-Content-Type-Options\") == \"nosniff\"\n    assert r.headers.get(\"Referrer-Policy\") == \"same-origin\"\n# --- board renders --------------------------------------------------------\ndef test_board_renders_for_logged_in_user():\n    client = _client()\n    _login_admin(client)",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -8320,6 +8585,15 @@
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
         "peekOfCode": "def test_terms_split_and_method_allowlist():\n    dp = \"7206\"\n    _seed_golden_live(dp)\n    client = _client()\n    _login_admin(client)\n    client.post(f\"/gates/{dp}/ads/copy\", data={\"terms\": \"Auction 20 Aug 2026\\nDeposit 10%\", \"method\": \"auction\"})\n    pv = _public_view(dp)\n    assert pv[\"sale_process\"][\"terms\"] == [\"Auction 20 Aug 2026\", \"Deposit 10%\"]\n    assert pv[\"sale_process\"][\"method\"] == \"auction\"\n    # A junk method value is not a valid option, so nothing is written.",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_auction_fields_save_and_render",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_auction_fields_save_and_render():\n    dp = \"7211\"\n    _seed_golden_live(dp)\n    client = _client()\n    _login_admin(client)\n    client.post(\n        f\"/gates/{dp}/ads/copy\",\n        data={\n            \"method\": \"auction\",\n            \"auction_type\": \"Insolvency\",",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -8796,7 +9070,7 @@
         "kind": 2,
         "importPath": "webapp.routes.board",
         "description": "webapp.routes.board",
-        "peekOfCode": "def login_submit(\n    request: Request,\n    email: str = Form(...),\n    password: str = Form(...),\n):\n    if auth.login_user(request, email, password):\n        return RedirectResponse(\"/board\", status_code=303)\n    return _view(\n        request,\n        \"login.html\",",
+        "peekOfCode": "def login_submit(\n    request: Request,\n    email: str = Form(...),\n    password: str = Form(...),\n):\n    key = account_key(email)\n    wait = throttle.retry_after(key)\n    if wait:\n        minutes = max(1, (wait + 59) // 60)\n        logger.warning(\"login throttled for %s from %s\", key, client_ip(request))",
         "detail": "webapp.routes.board",
         "documentation": {}
     },
@@ -8841,7 +9115,16 @@
         "kind": 5,
         "importPath": "webapp.routes.board",
         "description": "webapp.routes.board",
-        "peekOfCode": "router = APIRouter()\n# --- shared render helper -------------------------------------------------\ndef _view(request: Request, name: str, ctx: Optional[dict] = None, status_code: int = 200):\n    templates = request.app.state.templates\n    data: Dict[str, Any] = {\"user\": auth.current_user(request)}\n    if ctx:\n        data.update(ctx)\n    return templates.TemplateResponse(request, name, data, status_code=status_code)\n# --- next-action mapping (state -> what a human does next) ----------------\n# href targets follow the platform's screen prefixes; a screen still being",
+        "peekOfCode": "router = APIRouter()\nlogger = logging.getLogger(\"webapp.auth\")\n# --- shared render helper -------------------------------------------------\ndef _view(request: Request, name: str, ctx: Optional[dict] = None, status_code: int = 200):\n    templates = request.app.state.templates\n    data: Dict[str, Any] = {\"user\": auth.current_user(request)}\n    if ctx:\n        data.update(ctx)\n    return templates.TemplateResponse(request, name, data, status_code=status_code)\n# --- next-action mapping (state -> what a human does next) ----------------",
+        "detail": "webapp.routes.board",
+        "documentation": {}
+    },
+    {
+        "label": "logger",
+        "kind": 5,
+        "importPath": "webapp.routes.board",
+        "description": "webapp.routes.board",
+        "peekOfCode": "logger = logging.getLogger(\"webapp.auth\")\n# --- shared render helper -------------------------------------------------\ndef _view(request: Request, name: str, ctx: Optional[dict] = None, status_code: int = 200):\n    templates = request.app.state.templates\n    data: Dict[str, Any] = {\"user\": auth.current_user(request)}\n    if ctx:\n        data.update(ctx)\n    return templates.TemplateResponse(request, name, data, status_code=status_code)\n# --- next-action mapping (state -> what a human does next) ----------------\n# href targets follow the platform's screen prefixes; a screen still being",
         "detail": "webapp.routes.board",
         "documentation": {}
     },
@@ -9120,7 +9403,7 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_EDIT_TEXT_FIELDS = {\n    \"headline\": \"marketing.headline\",\n    \"price_display\": \"marketing.price_display\",\n    \"street_address\": \"identity.street_address\",\n    \"suburb\": \"identity.suburb\",\n}\n_SALE_METHODS = (\"offers_invited\", \"auction\")\ndef _design_sets() -> list:\n    \"\"\"The template-set names the gate-2 design picker offers (D33).\n    Empty (picker hidden) unless a choice is real: more than one set is",
+        "peekOfCode": "_EDIT_TEXT_FIELDS = {\n    \"headline\": \"marketing.headline\",\n    \"price_display\": \"marketing.price_display\",\n    \"street_address\": \"identity.street_address\",\n    \"suburb\": \"identity.suburb\",\n    # Auction specifics (D42): shown on auction ads only. Blank inputs are\n    # skipped by _collect_edit_fields, so they never wipe an existing value.\n    \"auction_type\": \"sale_process.auction_type\",\n    \"auction_channel\": \"sale_process.auction_channel\",\n    \"auction_date\": \"sale_process.auction_date\",",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -9309,7 +9592,7 @@
         "kind": 2,
         "importPath": "webapp.auth",
         "description": "webapp.auth",
-        "peekOfCode": "def hash_password(password: str) -> str:\n    \"\"\"Return a bcrypt hash (utf-8 str) for ``password``.\"\"\"\n    return bcrypt.hashpw(password.encode(\"utf-8\"), bcrypt.gensalt()).decode(\"utf-8\")\ndef verify_password(password: str, pw_hash: str) -> bool:\n    \"\"\"Return whether ``password`` matches ``pw_hash``. Never raises.\"\"\"\n    try:\n        return bcrypt.checkpw(password.encode(\"utf-8\"), pw_hash.encode(\"utf-8\"))\n    except (ValueError, TypeError):\n        return False\n# --- db path resolution ---------------------------------------------------",
+        "peekOfCode": "def hash_password(password: str) -> str:\n    \"\"\"Return a bcrypt hash (utf-8 str) for ``password``.\"\"\"\n    return bcrypt.hashpw(password.encode(\"utf-8\"), bcrypt.gensalt()).decode(\"utf-8\")\ndef verify_password(password: str, pw_hash: str) -> bool:\n    \"\"\"Return whether ``password`` matches ``pw_hash``. Never raises.\"\"\"\n    try:\n        return bcrypt.checkpw(password.encode(\"utf-8\"), pw_hash.encode(\"utf-8\"))\n    except (ValueError, TypeError):\n        return False\n# A fixed bcrypt hash of a random string, computed once at import. When a login",
         "detail": "webapp.auth",
         "documentation": {}
     },
@@ -9318,7 +9601,7 @@
         "kind": 2,
         "importPath": "webapp.auth",
         "description": "webapp.auth",
-        "peekOfCode": "def verify_password(password: str, pw_hash: str) -> bool:\n    \"\"\"Return whether ``password`` matches ``pw_hash``. Never raises.\"\"\"\n    try:\n        return bcrypt.checkpw(password.encode(\"utf-8\"), pw_hash.encode(\"utf-8\"))\n    except (ValueError, TypeError):\n        return False\n# --- db path resolution ---------------------------------------------------\ndef db_path_for(request: Request) -> str:\n    \"\"\"Resolve the db path for a request: app.state override, else env/default.\n    ``main.py`` sets ``app.state.db_path`` at startup; falling back to the env",
+        "peekOfCode": "def verify_password(password: str, pw_hash: str) -> bool:\n    \"\"\"Return whether ``password`` matches ``pw_hash``. Never raises.\"\"\"\n    try:\n        return bcrypt.checkpw(password.encode(\"utf-8\"), pw_hash.encode(\"utf-8\"))\n    except (ValueError, TypeError):\n        return False\n# A fixed bcrypt hash of a random string, computed once at import. When a login\n# names an account that does not exist, we still run a checkpw against this hash\n# so the request takes the same ~time as a wrong password on a real account. That\n# removes the timing side-channel an attacker would otherwise use to tell which",
         "detail": "webapp.auth",
         "documentation": {}
     },
@@ -9345,7 +9628,7 @@
         "kind": 2,
         "importPath": "webapp.auth",
         "description": "webapp.auth",
-        "peekOfCode": "def login_user(request: Request, email: str, password: str) -> bool:\n    \"\"\"Verify credentials and, on success, set the session. Returns success.\"\"\"\n    user = models.get_user(db_path_for(request), email)\n    if user is None:\n        return False\n    if not verify_password(password, user[\"pw_hash\"]):\n        return False\n    request.session[\"user\"] = user[\"email\"]\n    return True\ndef logout(request: Request) -> None:",
+        "peekOfCode": "def login_user(request: Request, email: str, password: str) -> bool:\n    \"\"\"Verify credentials and, on success, set the session. Returns success.\n    Runs a bcrypt check even when the account does not exist (against a dummy\n    hash) so the response time does not reveal whether an email is registered.\n    \"\"\"\n    user = models.get_user(db_path_for(request), email)\n    if user is None:\n        verify_password(password, _DUMMY_HASH)  # equalise timing; result discarded\n        return False\n    if not verify_password(password, user[\"pw_hash\"]):",
         "detail": "webapp.auth",
         "documentation": {}
     },
@@ -9409,6 +9692,15 @@
         "importPath": "webapp.auth",
         "description": "webapp.auth",
         "peekOfCode": "ROLES = (\"marketing\", \"approver\")\n# --- password hashing -----------------------------------------------------\ndef hash_password(password: str) -> str:\n    \"\"\"Return a bcrypt hash (utf-8 str) for ``password``.\"\"\"\n    return bcrypt.hashpw(password.encode(\"utf-8\"), bcrypt.gensalt()).decode(\"utf-8\")\ndef verify_password(password: str, pw_hash: str) -> bool:\n    \"\"\"Return whether ``password`` matches ``pw_hash``. Never raises.\"\"\"\n    try:\n        return bcrypt.checkpw(password.encode(\"utf-8\"), pw_hash.encode(\"utf-8\"))\n    except (ValueError, TypeError):",
+        "detail": "webapp.auth",
+        "documentation": {}
+    },
+    {
+        "label": "_DUMMY_HASH",
+        "kind": 5,
+        "importPath": "webapp.auth",
+        "description": "webapp.auth",
+        "peekOfCode": "_DUMMY_HASH = bcrypt.hashpw(secrets.token_bytes(16), bcrypt.gensalt()).decode(\"utf-8\")\n# --- db path resolution ---------------------------------------------------\ndef db_path_for(request: Request) -> str:\n    \"\"\"Resolve the db path for a request: app.state override, else env/default.\n    ``main.py`` sets ``app.state.db_path`` at startup; falling back to the env\n    default keeps auth usable in tests that skip that wiring.\n    \"\"\"\n    override = getattr(getattr(request, \"app\", None), \"state\", None)\n    candidate = getattr(override, \"db_path\", None) if override is not None else None\n    return models.resolve_db_path(candidate)",
         "detail": "webapp.auth",
         "documentation": {}
     },
@@ -9716,6 +10008,42 @@
         "description": "webapp.models",
         "peekOfCode": "def is_token_used(db_path: Optional[str | Path], jti: str) -> bool:\n    \"\"\"Return whether ``jti`` has already been spent (non-consuming).\"\"\"\n    conn = _connect(db_path)\n    try:\n        row = conn.execute(\n            \"SELECT 1 FROM used_tokens WHERE jti = ?\", (jti,)\n        ).fetchone()\n        return row is not None\n    finally:\n        conn.close()",
         "detail": "webapp.models",
+        "documentation": {}
+    },
+    {
+        "label": "LoginThrottle",
+        "kind": 6,
+        "importPath": "webapp.ratelimit",
+        "description": "webapp.ratelimit",
+        "peekOfCode": "class LoginThrottle:\n    \"\"\"Sliding-window failure counter with a lockout, keyed by an opaque string.\"\"\"\n    def __init__(self, max_fails: int, window: int, lockout: int, clock=time.monotonic):\n        self._max_fails = max_fails\n        self._window = window\n        self._lockout = lockout\n        self._clock = clock\n        self._fails: Dict[str, Deque[float]] = defaultdict(deque)\n        self._locked_until: Dict[str, float] = {}\n        self._mu = threading.Lock()",
+        "detail": "webapp.ratelimit",
+        "documentation": {}
+    },
+    {
+        "label": "account_key",
+        "kind": 2,
+        "importPath": "webapp.ratelimit",
+        "description": "webapp.ratelimit",
+        "peekOfCode": "def account_key(email: str) -> str:\n    \"\"\"The throttle key for an account (normalised like the user table).\"\"\"\n    return \"acct:\" + (email or \"\").strip().lower()\ndef client_ip(request: Request) -> str:\n    \"\"\"Best-effort client IP for LOG lines only (never a throttle key).\n    Prefers the first ``X-Forwarded-For`` hop set by the proxy; falls back to the\n    TCP peer. Used purely for forensics in the failed-login log, so its\n    spoofability does not affect the throttle.\n    \"\"\"\n    xff = request.headers.get(\"x-forwarded-for\")",
+        "detail": "webapp.ratelimit",
+        "documentation": {}
+    },
+    {
+        "label": "client_ip",
+        "kind": 2,
+        "importPath": "webapp.ratelimit",
+        "description": "webapp.ratelimit",
+        "peekOfCode": "def client_ip(request: Request) -> str:\n    \"\"\"Best-effort client IP for LOG lines only (never a throttle key).\n    Prefers the first ``X-Forwarded-For`` hop set by the proxy; falls back to the\n    TCP peer. Used purely for forensics in the failed-login log, so its\n    spoofability does not affect the throttle.\n    \"\"\"\n    xff = request.headers.get(\"x-forwarded-for\")\n    if xff:\n        return xff.split(\",\")[0].strip() or \"unknown\"\n    client = getattr(request, \"client\", None)",
+        "detail": "webapp.ratelimit",
+        "documentation": {}
+    },
+    {
+        "label": "throttle",
+        "kind": 5,
+        "importPath": "webapp.ratelimit",
+        "description": "webapp.ratelimit",
+        "peekOfCode": "throttle = LoginThrottle(\n    max_fails=_int_env(\"LOGIN_THROTTLE_MAX_FAILS\", 8),\n    window=_int_env(\"LOGIN_THROTTLE_WINDOW\", 300),\n    lockout=_int_env(\"LOGIN_THROTTLE_LOCKOUT\", 900),\n)\ndef account_key(email: str) -> str:\n    \"\"\"The throttle key for an account (normalised like the user table).\"\"\"\n    return \"acct:\" + (email or \"\").strip().lower()\ndef client_ip(request: Request) -> str:\n    \"\"\"Best-effort client IP for LOG lines only (never a throttle key).",
+        "detail": "webapp.ratelimit",
         "documentation": {}
     },
     {
