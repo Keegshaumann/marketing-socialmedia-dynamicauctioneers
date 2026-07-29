@@ -206,6 +206,46 @@ def test_collage_renders_auction_specifics(golden_record, tmp_path):
     assert 'class="ig-price"' not in html  # auction shows the auction line, not a price bar
 
 
+@pytest.mark.parametrize("template", ["feature_list", "stats_first"])
+def test_new_ad_designs_render_place_and_descriptor(template, golden_record, tmp_path):
+    # AD 2 / AD 3 lead with the locality + a concise descriptor and carry the
+    # PROPERTY REF (D43). They fill from the same record as the Collage.
+    golden_record.marketing.template_set = template
+    store = _store_with(golden_record)
+    try:
+        art = render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path))
+        html = Path(art.path).read_text(encoding="utf-8")
+    finally:
+        store.close()
+    assert "Pelham North" in html  # the place line
+    assert "Bedroom" in html  # the descriptor line
+    assert "PROPERTY REF: DP3060" in html
+
+
+def test_badge_says_sale_with_type_on_a_non_auction(golden_record, tmp_path):
+    # The callout type applies to a sale too: "INSOLVENCY SALE!" (real ads),
+    # not "... AUCTION!" (D43).
+    golden_record.marketing.template_set = "feature_list"
+    golden_record.sale_process.method = "offers_invited"
+    golden_record.sale_process.auction_type = "Insolvency"
+    store = _store_with(golden_record)
+    try:
+        art = render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path))
+        html = Path(art.path).read_text(encoding="utf-8")
+    finally:
+        store.close()
+    assert "INSOLVENCY SALE!" in html  # SALE, not AUCTION, on an offers property
+    assert "INSOLVENCY AUCTION" not in html
+
+
+def test_partials_are_not_offered_as_pickable_designs():
+    from engine.render import ad_templates
+
+    ids = ad_templates.template_ids()
+    assert "_adparts" not in ids  # the shared macro file is not a design
+    assert {"collage", "feature_list", "stats_first"} <= ids
+
+
 def test_split3_balances_a_headline():
     from engine.render.html_backend import _split3
 

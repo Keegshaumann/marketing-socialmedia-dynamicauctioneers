@@ -5,6 +5,7 @@
    Method-aware: For Sale vs Auction swaps the badge, brand and price block.
    Every value fills from the view model; the DP is never shown (D37). #}
 {% import "_brand.html.j2" as brand %}
+{% import "_adparts.html.j2" as parts %}
 {% set is_auction = (vm.method == 'auction') %}
 {% set hl = (vm.headline or '') | split3 %}
 {% set photos = ([vm.hero_src] if vm.hero_src else []) + (vm.stack_photos or []) + (vm.gallery_photos or []) %}
@@ -68,7 +69,7 @@
   <div class="ig-top">
     <div class="ig-head">
       <h1>{% for line in hl %}<span class="{{ 'em' if loop.index == 2 and hl|length == 3 else '' }}">{{ line }}</span>{% if not loop.last %}<br/>{% endif %}{% endfor %}</h1>
-      <span class="ig-badge gold">{% if is_auction %}{% if vm.auction_type %}{{ vm.auction_type|upper }} AUCTION{% else %}ON AUCTION{% endif %}{% else %}FOR SALE{% endif %}!</span>
+      <span class="ig-badge gold">{{ parts.badge_text(vm) }}</span>
     </div>
     <div class="ig-logo"><img src="{{ logo }}" alt="{{ vm.brand_name }}"/></div>
   </div>

@@ -1,0 +1,94 @@
+{# name: Stats first #}
+{# Dynamic ad design AD 3 (D43), rebuilt from the real "Stats-first" ads
+   (DP2962.2): 1080x1350 dark canvas with a big hero-photo banner across the top,
+   the white-shield logo overlaid, place + descriptor headline, method-aware
+   badge + address pin row, a two-column icon stats grid, a full-width
+   price/auction bar, a three-photo strip, terms strip and contact bar. #}
+{% import "_brand.html.j2" as brand %}
+{% import "_adparts.html.j2" as parts %}
+{% set is_auction = (vm.method == 'auction') %}
+{% set photos = ([vm.hero_src] if vm.hero_src else []) + (vm.stack_photos or []) + (vm.gallery_photos or []) %}
+{% set feats = (vm.features_main or []) + (vm.features_complex or []) %}
+<title>{{ vm.place_line or vm.suburb }} | {{ vm.brand_name }}</title>
+<style>
+  {{ brand.tokens_css() }}
+  :root { --g1:#8C6D33; --g2:#E8CE92; --g3:#B08D4A; }
+  body { background:#0c0a08; }
+  .ig { width:1080px; margin:0 auto; background:#100d09; color:#F2ECE0; position:relative; overflow:hidden; }
+  .gold { background:linear-gradient(120deg,var(--g1),var(--g2) 42%,var(--g3) 70%,var(--g1)); }
+  .ig-ref { display:flex; justify-content:space-between; padding:14px 40px; font-size:16px; font-weight:800;
+            letter-spacing:.06em; color:#1c1811; text-transform:uppercase; }
+  .sf-hero { position:relative; height:430px; }
+  .sf-hero > img { width:100%; height:100%; object-fit:cover; display:block; }
+  .sf-hero .sf-logo { position:absolute; top:22px; right:34px; background:#fff; border-radius:10px; padding:12px 16px; width:200px; }
+  .sf-hero .sf-logo img { width:100%; display:block; }
+  .sf-title { padding:26px 40px 4px; }
+  .sf-place { margin:0; font-size:48px; font-weight:800; line-height:1; color:var(--g2); text-transform:uppercase; letter-spacing:-.01em; }
+  .sf-desc { margin:4px 0 0; font-size:42px; font-weight:800; line-height:1; color:#fff; text-transform:uppercase; letter-spacing:-.01em; }
+  .sf-row { display:flex; align-items:center; gap:16px; padding:14px 40px 4px; }
+  .ig-badge { display:inline-block; padding:10px 22px; font-size:24px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:#1c1811; }
+  .sf-pin { display:inline-flex; align-items:center; gap:12px; border:2px solid var(--g3); border-radius:999px;
+            padding:10px 20px; font-size:20px; font-weight:800; color:#fff; text-transform:uppercase; }
+  .sf-pin svg { width:24px; height:24px; fill:var(--g2); }
+  .sf-stats { display:grid; grid-template-columns:1fr 1fr; gap:16px 30px; padding:18px 40px 6px; }
+  .sf-item { display:flex; align-items:center; gap:14px; font-size:25px; font-weight:800; color:#fff; text-transform:uppercase; line-height:1.05; }
+  .sf-item svg { width:42px; height:42px; stroke:#fff; fill:none; stroke-width:1.6; flex:none; }
+  .sf-item.feat svg { stroke:var(--g2); }
+  .ig-money { margin:8px 40px 0; border:2px solid var(--g3); border-radius:10px; padding:16px 14px; text-align:center;
+              font-weight:800; color:#fff; text-transform:uppercase; }
+  .ig-money.price { font-size:46px; }
+  .ig-money.auction { font-size:34px; }
+  .sf-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding:14px 40px 4px; height:230px; }
+  .sf-strip img { width:100%; height:100%; object-fit:cover; display:block; border-radius:6px; min-height:0; }
+  .ig-terms { margin:8px 40px 0; border:1.5px solid var(--g3); border-radius:999px; padding:12px 20px; text-align:center;
+              font-size:17px; font-weight:800; letter-spacing:.04em; color:#e9dcc0; text-transform:uppercase; }
+  .ig-contact { margin-top:18px; padding:18px 40px; display:flex; align-items:center; gap:40px; font-size:22px; font-weight:800; color:#1c1811; }
+  .ig-contact span { display:flex; align-items:center; gap:12px; }
+  .ig-contact svg { width:26px; height:26px; fill:#1c1811; }
+</style>
+
+<div class="ig ad">
+  <div class="ig-ref gold">
+    <span>{% if vm.public_ref %}MASTER REF: {{ vm.public_ref }}{% endif %}</span>
+    <span>PROPERTY REF: {{ vm.property_ref }}</span>
+  </div>
+
+  <div class="sf-hero">
+    {% if photos %}<img src="{{ photos[0] }}" alt="{{ vm.place_line or vm.suburb }}"/>{% endif %}
+    <div class="sf-logo">{{ parts.brand_logo(vm, 'light') }}</div>
+  </div>
+
+  <div class="sf-title">
+    {% if vm.place_line %}<h1 class="sf-place">{{ vm.place_line }}</h1>{% endif %}
+    {% if vm.descriptor_line %}<div class="sf-desc">{{ vm.descriptor_line }}</div>{% endif %}
+  </div>
+
+  <div class="sf-row">
+    <span class="ig-badge gold">{{ parts.badge_text(vm) }}</span>
+    {% set pin = vm.scheme or vm.address or vm.suburb %}
+    {% if pin %}<span class="sf-pin"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>{{ pin }}</span>{% endif %}
+  </div>
+
+  <div class="sf-stats">
+    {% if vm.size_str %}<div class="sf-item">{{ parts.icon_size() }}<span>&plusmn;{{ vm.size_str }}m&sup2; Property</span></div>{% endif %}
+    {% if vm.beds %}<div class="sf-item">{{ parts.icon_bed() }}<span>{{ vm.beds }} Bedroom{{ 's' if vm.beds != '1' }}</span></div>{% endif %}
+    {% if vm.baths %}<div class="sf-item">{{ parts.icon_bath() }}<span>{{ vm.baths }} Bathroom{{ 's' if vm.baths != '1' }}</span></div>{% endif %}
+    {% if vm.garages and vm.garages != '0' %}<div class="sf-item">{{ parts.icon_garage() }}<span>{{ vm.garages }} Garage</span></div>{% endif %}
+    {% for f in feats[:2] %}<div class="sf-item feat">{{ parts.icon_feature() }}<span>{{ f }}</span></div>{% endfor %}
+  </div>
+
+  <div class="ig-money {{ 'auction' if is_auction else 'price' }}">{{ parts.money_text(vm) }}</div>
+
+  {% if photos[1:] %}
+  <div class="sf-strip">
+    {% for src in photos[1:4] %}<img src="{{ src }}" alt="Property photo"/>{% endfor %}
+  </div>
+  {% endif %}
+
+  {% if vm.terms %}<div class="ig-terms">{{ vm.terms | join('  |  ') }}</div>{% endif %}
+
+  <div class="ig-contact gold">
+    <span><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11 11 0 0 0 3.4.55 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.3a1 1 0 0 1 1 1 11 11 0 0 0 .55 3.4 1 1 0 0 1-.24 1z"/></svg>{{ vm.brand_phone }}</span>
+    <span><svg viewBox="0 0 24 24"><path d="M3 5h18v14H3z" fill="none" stroke="#1c1811" stroke-width="1.6"/><path d="M3 6l9 6 9-6" fill="none" stroke="#1c1811" stroke-width="1.6"/></svg>{{ vm.brand_email }}</span>
+  </div>
+</div>

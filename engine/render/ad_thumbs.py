@@ -48,6 +48,8 @@ def _sample_vm() -> dict:
     photo = _placeholder_photo()
     return {
         "headline": "3 Bedroom Family Home in Sandton",
+        "place_line": "Sandton, Johannesburg",
+        "descriptor_line": "3 Bedroom Home",
         "public_ref": "T1234/2024",
         "property_ref": "DP0000",
         "auction_type": "Insolvency",
@@ -65,6 +67,8 @@ def _sample_vm() -> dict:
         "size_str": "240",
         "beds": "3",
         "baths": "2",
+        "garages": "2",
+        "scheme": "Sandton Estate",
         "separate_toilet": True,
         "zoning": "Residential",
         "title_type": "freehold",

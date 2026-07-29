@@ -57,7 +57,9 @@ def _display_name(path: Path) -> str:
 def _library_paths() -> List[Path]:
     if not _ADS_DIR.is_dir():
         return []
-    return sorted(_ADS_DIR.glob("*.html.j2"))
+    # Skip "_"-prefixed partials (shared macros/includes), which are not
+    # standalone, pickable designs.
+    return sorted(p for p in _ADS_DIR.glob("*.html.j2") if not p.name.startswith("_"))
 
 
 def list_templates() -> List[Dict[str, str]]:

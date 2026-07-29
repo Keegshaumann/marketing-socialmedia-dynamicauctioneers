@@ -1,0 +1,40 @@
+{# Shared pieces for the Dynamic ad designs (D43): method-aware badge, money /
+   auction line, brand logo and the stat icons. Keeping these in one macro file
+   means the Collage / Feature-list / Stats-first designs stay consistent - the
+   badge wording, the auction-vs-price rule and the brand switch live once. #}
+
+{# Badge: "<TYPE> AUCTION!" / "ON AUCTION!" on an auction, "<TYPE> SALE!" /
+   "FOR SALE!" otherwise. The type (Insolvency, Liquidation, ...) applies to both
+   methods; only the SALE/AUCTION word flips (matches the real ads). #}
+{% macro badge_text(vm) -%}
+  {%- set t = vm.auction_type -%}
+  {%- if vm.method == 'auction' -%}
+    {%- if t %}{{ t|upper }} AUCTION{% else %}ON AUCTION{% endif -%}
+  {%- else -%}
+    {%- if t %}{{ t|upper }} SALE{% else %}FOR SALE{% endif -%}
+  {%- endif -%}!
+{%- endmacro %}
+
+{# The headline money row: the channel/date/time line on an auction (there is no
+   price on an auction ad), the display price otherwise. #}
+{% macro money_text(vm) -%}
+  {%- if vm.method == 'auction' -%}
+    {{ (vm.auction_channel or 'Online') | upper }} AUCTION{% if vm.auction_date %} | {{ vm.auction_date | upper }}{% endif %}{% if vm.auction_time %} @ {{ vm.auction_time }}{% endif %}
+  {%- else -%}
+    {{ vm.price_display or 'Offers invited' }}
+  {%- endif -%}
+{%- endmacro %}
+
+{# Method-aware brand logo: Auctioneers on an auction, Real Estate otherwise.
+   variant is 'dark' (white logo, for dark chrome) or 'light' (black logo). #}
+{% macro brand_logo(vm, variant='dark') -%}
+  {%- set which = 'auctioneers' if vm.method == 'auction' else 'realestate' -%}
+  <img src="{{ asset_uri('ads/_assets/logo-' ~ which ~ '-' ~ variant ~ '.png') }}" alt="{{ vm.brand_name }}"/>
+{%- endmacro %}
+
+{# Stat icons (24x24, no fill so the template's CSS colours them). #}
+{% macro icon_bed() %}<svg viewBox="0 0 24 24"><path d="M3 7v11m0-4h18m0 4v-7a2 2 0 0 0-2-2h-7v5"/><circle cx="7" cy="10" r="1.6"/></svg>{% endmacro %}
+{% macro icon_bath() %}<svg viewBox="0 0 24 24"><path d="M4 12h16v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M6 12V6a2 2 0 0 1 2-2 1.5 1.5 0 0 1 1.5 1.5"/></svg>{% endmacro %}
+{% macro icon_garage() %}<svg viewBox="0 0 24 24"><path d="M3 20v-8l9-5 9 5v8"/><path d="M6 20v-5h12v5"/><path d="M6 15h12"/></svg>{% endmacro %}
+{% macro icon_size() %}<svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 15v5h-5M4 4l7 7M20 20l-7-7"/></svg>{% endmacro %}
+{% macro icon_feature() %}<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>{% endmacro %}

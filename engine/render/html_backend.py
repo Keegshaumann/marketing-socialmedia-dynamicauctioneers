@@ -221,6 +221,11 @@ class HtmlBackend(RenderBackend):
             # it; the internal board tile still omits it.
             "property_ref": f"DP{request.dp}",
             "headline": marketing.get("headline") or "Property for sale",
+            # Derived headline parts for the feature-list / stats-first ads, which
+            # lead with the locality and a concise descriptor rather than the free
+            # marketing headline (matches the real AD 2 / AD 3 designs).
+            "place_line": self._place_line(identity),
+            "descriptor_line": self._descriptor_line(physical, identity),
             "address": identity.get("street_address"),
             "suburb": identity.get("suburb"),
             "municipality": identity.get("municipality"),
@@ -242,6 +247,7 @@ class HtmlBackend(RenderBackend):
             "size_str": _fmt_num(physical.get("unit_size_m2")),
             "beds": _fmt_num(physical.get("bedrooms")),
             "baths": _fmt_num(physical.get("bathrooms_main_unit")),
+            "garages": _fmt_num(physical.get("garages")),
             "separate_toilet": bool(physical.get("separate_toilet")),
             "zoning": physical.get("zoning"),
             "flatlet_present": flatlet_present,
@@ -302,6 +308,32 @@ class HtmlBackend(RenderBackend):
             identity.get("province"),
         ]
         return ", ".join(p for p in parts if p)
+
+    @staticmethod
+    def _place_line(identity: dict) -> Optional[str]:
+        """The prominent locality line for the feature-list / stats-first ads:
+        suburb, plus the municipality when it adds a recognisable town/city."""
+        suburb = identity.get("suburb")
+        muni = identity.get("municipality")
+        if suburb and muni and muni.lower() not in suburb.lower():
+            # Drop bureaucratic suffixes so "Msunduzi Local Municipality" -> "Msunduzi".
+            town = muni.split(" Municipality")[0].split(" Local")[0].strip()
+            if town and town.lower() != suburb.lower():
+                return f"{suburb}, {town}"
+        return suburb or identity.get("municipality") or identity.get("province")
+
+    @staticmethod
+    def _descriptor_line(physical: dict, identity: dict) -> Optional[str]:
+        """A concise property descriptor for the feature-list / stats-first ads,
+        e.g. "3 Bedroom Home" / "2 Bedroom Apartment" (matches the real ads)."""
+        beds = _fmt_num(physical.get("bedrooms"))
+        dwelling = {"sectional": "Apartment", "freehold": "Home"}.get(
+            identity.get("title_type") or "", "Property"
+        )
+        if beds:
+            return f"{beds} Bedroom {dwelling}"
+        label = HtmlBackend._title_type_label(identity.get("title_type"))
+        return label or "Property"
 
     @staticmethod
     def _photo_refs(request: RenderRequest, marketing: dict) -> List[str]:

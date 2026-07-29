@@ -109,14 +109,14 @@
                 <option value="auction" {% if method == 'auction' %}selected{% endif %}>Auction</option>
               </select>
             </div>
+            <div class="field">
+              <label class="label" for="auction_type">Sale callout <span class="hint hint--inline">optional</span></label>
+              <input class="input" id="auction_type" name="auction_type" value="{{ auction_type }}" placeholder="Insolvency">
+              <div class="hint">The reason on the badge. Reads as "Insolvency Sale!" (offers) or "Insolvency Auction!" (auction). Blank shows "For Sale!" / "On Auction!".</div>
+            </div>
             <div class="field auction-panel" id="auction-panel"{% if method != 'auction' %} hidden{% endif %}>
-              <div class="label">Auction details <span class="hint hint--inline">shown on auction ads</span></div>
+              <div class="label">Auction date &amp; channel <span class="hint hint--inline">shown on auction ads</span></div>
               <div class="field-grid">
-                <div>
-                  <label class="label label--sm" for="auction_type">Type</label>
-                  <input class="input" id="auction_type" name="auction_type" value="{{ auction_type }}" placeholder="Insolvency">
-                  <div class="hint">Reads as "&lt;type&gt; auction!", e.g. Insolvency Auction!</div>
-                </div>
                 <div>
                   <label class="label label--sm" for="auction_channel">Channel</label>
                   <select class="input" id="auction_channel" name="auction_channel">
