@@ -7801,7 +7801,7 @@
         "kind": 2,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "def test_ad_designs_render_with_missing_data(golden_record, tmp_path):\n    # A sparse record (no photos, beds, baths, price or terms) must still render\n    # every design without error, showing only what the record supports.\n    golden_record.marketing.hero_photo = None\n    golden_record.marketing.gallery = None\n    golden_record.marketing.price_display = None\n    golden_record.physical.bedrooms = None\n    golden_record.physical.bathrooms_main_unit = None\n    golden_record.sale_process.terms = None\n    for template in (\"collage\", \"feature_list\", \"stats_first\", \"bold\"):",
+        "peekOfCode": "def test_ad_designs_render_with_missing_data(golden_record, tmp_path):\n    # A sparse record (no photos, beds, baths, price or terms) must still render\n    # every design without error, showing only what the record supports.\n    golden_record.marketing.hero_photo = None\n    golden_record.marketing.gallery = None\n    golden_record.marketing.price_display = None\n    golden_record.physical.bedrooms = None\n    golden_record.physical.bathrooms_main_unit = None\n    golden_record.sale_process.terms = None\n    for template in (\"collage\", \"feature_list\", \"stats_first\", \"hero_overlay\", \"bold\"):",
         "detail": "tests.test_render",
         "documentation": {}
     },
