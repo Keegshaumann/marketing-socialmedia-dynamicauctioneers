@@ -284,7 +284,7 @@ def test_ad_designs_render_with_missing_data(golden_record, tmp_path):
     golden_record.physical.bedrooms = None
     golden_record.physical.bathrooms_main_unit = None
     golden_record.sale_process.terms = None
-    for template in ("collage", "feature_list", "stats_first", "bold"):
+    for template in ("collage", "feature_list", "stats_first", "hero_overlay", "bold"):
         golden_record.marketing.template_set = template
         store = _store_with(golden_record)
         try:

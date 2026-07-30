@@ -1,0 +1,97 @@
+{# name: Hero overlay #}
+{# Dynamic ad design AD 4 (D45), rebuilt from the real "hero-overlay" ads
+   (DP2513): a big hero photo with the headline overlaid on it (locality white +
+   scheme/complex name gold), a method-aware badge, a full-width descriptor bar,
+   a two-column icon stats grid, a full-width price/auction bar, a three-photo
+   strip and a full-width address bar. The whole dark canvas carries a faint wash
+   of the hero photo for depth, like the real ads. Method-aware + DP-ref'd. #}
+{% import "_brand.html.j2" as brand %}
+{% import "_adparts.html.j2" as parts %}
+{% set is_auction = (vm.method == 'auction') %}
+{% set photos = ([vm.hero_src] if vm.hero_src else []) + (vm.stack_photos or []) + (vm.gallery_photos or []) %}
+{% set feats = (vm.features_main or []) + (vm.features_complex or []) %}
+<title>{{ vm.place_line or vm.suburb }} | {{ vm.brand_name }}</title>
+<style>
+  {{ brand.tokens_css() }}
+  :root { --g1:#8C6D33; --g2:#E8CE92; --g3:#B08D4A; }
+  body { background:#0c0a08; }
+  .ig { width:1080px; margin:0 auto; background:#100d09; color:#F2ECE0; position:relative; overflow:hidden; }
+  {% if photos %}
+  .ig::before { content:''; position:absolute; inset:0; z-index:0;
+                background:linear-gradient(180deg, rgba(16,13,9,.86), rgba(16,13,9,.97)), url('{{ photos[0] }}');
+                background-size:cover; background-position:center; filter:saturate(.5); }
+  {% endif %}
+  .ig > * { position:relative; z-index:1; }
+  .gold { background:linear-gradient(120deg,var(--g1),var(--g2) 42%,var(--g3) 70%,var(--g1)); }
+  .ig-ref { display:flex; justify-content:space-between; padding:14px 40px; font-size:16px; font-weight:800;
+            letter-spacing:.06em; color:#1c1811; text-transform:uppercase; }
+  .ho-hero { position:relative; height:520px; }
+  .ho-hero > img { width:100%; height:100%; object-fit:cover; display:block; }
+  .ho-hero .ho-logo { position:absolute; top:22px; right:34px; background:#fff; border-radius:10px; padding:12px 16px; width:200px; }
+  .ho-hero .ho-logo img { width:100%; display:block; }
+  .ho-cap { position:absolute; left:0; right:0; bottom:0; padding:40px 40px 26px;
+            background:linear-gradient(to top, rgba(12,10,8,.96), rgba(12,10,8,.15) 78%, transparent); }
+  .ho-place { margin:0; font-size:56px; font-weight:800; line-height:.98; color:#fff; text-transform:uppercase; letter-spacing:-.01em; }
+  .ho-scheme { margin:2px 0 0; font-size:46px; font-weight:800; line-height:1; color:var(--g2); text-transform:uppercase; letter-spacing:-.01em; }
+  .ho-badge { display:inline-block; margin-top:14px; padding:9px 20px; font-size:22px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:#1c1811; }
+  .ho-desc { padding:20px 40px 6px; font-size:32px; font-weight:800; color:#fff; text-transform:uppercase; letter-spacing:.01em; line-height:1.05; }
+  .ho-stats { display:grid; grid-template-columns:1fr 1fr; gap:16px 30px; padding:12px 40px 6px; }
+  .ho-item { display:flex; align-items:center; gap:14px; font-size:24px; font-weight:800; color:#fff; text-transform:uppercase; line-height:1.05; }
+  .ho-item svg { width:40px; height:40px; stroke:#fff; fill:none; stroke-width:1.6; flex:none; }
+  .ho-item.feat svg { stroke:var(--g2); }
+  .ig-money { margin:10px 40px 0; border:2px solid var(--g3); border-radius:10px; padding:16px 14px; text-align:center;
+              font-weight:800; color:#fff; text-transform:uppercase; }
+  .ig-money.price { font-size:46px; }
+  .ig-money.auction { font-size:34px; }
+  .ho-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding:14px 40px 6px; height:210px; }
+  .ho-strip img { width:100%; height:100%; object-fit:cover; display:block; border-radius:6px; min-height:0; }
+  .ho-addr { margin:8px 40px 0; border:2px solid var(--g3); border-radius:999px; padding:12px 22px; display:flex;
+             align-items:center; gap:12px; justify-content:center; font-size:19px; font-weight:800; color:#fff; text-transform:uppercase; }
+  .ho-addr svg { width:24px; height:24px; fill:var(--g2); flex:none; }
+  .ig-contact { margin-top:16px; padding:18px 40px; display:flex; align-items:center; gap:40px; font-size:22px; font-weight:800; color:#1c1811; }
+  .ig-contact span { display:flex; align-items:center; gap:12px; }
+  .ig-contact svg { width:26px; height:26px; fill:#1c1811; }
+</style>
+
+<div class="ig ad">
+  <div class="ig-ref gold">
+    <span>{% if vm.public_ref %}MASTER REF: {{ vm.public_ref }}{% endif %}</span>
+    <span>PROPERTY REF: {{ vm.property_ref }}</span>
+  </div>
+
+  <div class="ho-hero">
+    {% if photos %}<img src="{{ photos[0] }}" alt="{{ vm.place_line or vm.suburb }}"/>{% endif %}
+    <div class="ho-logo">{{ parts.brand_logo(vm, 'light') }}</div>
+    <div class="ho-cap">
+      {% if vm.place_line %}<h1 class="ho-place">{{ vm.place_line }}</h1>{% endif %}
+      {% if vm.scheme %}<div class="ho-scheme">{{ vm.scheme }}</div>{% endif %}
+      <span class="ho-badge gold">{{ parts.badge_text(vm) }}</span>
+    </div>
+  </div>
+
+  {% if vm.descriptor_line %}<div class="ho-desc">{{ vm.descriptor_line }}</div>{% endif %}
+
+  <div class="ho-stats">
+    {% if vm.size_str %}<div class="ho-item">{{ parts.icon_size() }}<span>&plusmn;{{ vm.size_str }}m&sup2; Property</span></div>{% endif %}
+    {% if vm.beds %}<div class="ho-item">{{ parts.icon_bed() }}<span>{{ vm.beds }} Bedroom{{ 's' if vm.beds != '1' }}</span></div>{% endif %}
+    {% if vm.baths %}<div class="ho-item">{{ parts.icon_bath() }}<span>{{ vm.baths }} Bathroom{{ 's' if vm.baths != '1' }}</span></div>{% endif %}
+    {% if vm.garages and vm.garages != '0' %}<div class="ho-item">{{ parts.icon_garage() }}<span>{{ vm.garages }} Garage</span></div>{% endif %}
+    {% for f in feats[:2] %}<div class="ho-item feat">{{ parts.icon_feature() }}<span>{{ f }}</span></div>{% endfor %}
+  </div>
+
+  <div class="ig-money {{ 'auction' if is_auction else 'price' }}">{{ parts.money_text(vm) }}</div>
+
+  {% if photos[1:] %}
+  <div class="ho-strip">
+    {% for src in photos[1:4] %}<img src="{{ src }}" alt="Property photo"/>{% endfor %}
+  </div>
+  {% endif %}
+
+  {% set addr = vm.address or vm.location_line or vm.suburb %}
+  {% if addr %}<div class="ho-addr"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>{{ addr }}</div>{% endif %}
+
+  <div class="ig-contact gold">
+    <span><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11 11 0 0 0 3.4.55 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.3a1 1 0 0 1 1 1 11 11 0 0 0 .55 3.4 1 1 0 0 1-.24 1z"/></svg>{{ vm.brand_phone }}</span>
+    <span><svg viewBox="0 0 24 24"><path d="M3 5h18v14H3z" fill="none" stroke="#1c1811" stroke-width="1.6"/><path d="M3 6l9 6 9-6" fill="none" stroke="#1c1811" stroke-width="1.6"/></svg>{{ vm.brand_email }}</span>
+  </div>
+</div>
