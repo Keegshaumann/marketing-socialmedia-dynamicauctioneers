@@ -49,9 +49,16 @@ def test_override_creates_null_intermediate_path():
 def test_override_key_guard_rejects_popia_paths():
     assert override_key_allowed("identity.suburb")
     assert override_key_allowed("sale_process.method")
+    assert override_key_allowed("valuation.municipal_valuation")  # public figure stays editable
     assert not override_key_allowed("financials_internal.owner.name")
     assert not override_key_allowed("financials_internal.bond.amount")
     assert not override_key_allowed("sale_process.viewing.contact_internal_only")
+    # Commercially-sensitive / internal fields are now blocked at write time too
+    # (D44 review), covering the same set public_view() strips.
+    assert not override_key_allowed("valuation.professional")
+    assert not override_key_allowed("valuation.professional.forced_sale_value")
+    assert not override_key_allowed("valuation")  # whole-block override would carry professional
+    assert not override_key_allowed("physical.conflicts")
 
 
 def test_override_cannot_resurrect_stripped_pii_in_projection():

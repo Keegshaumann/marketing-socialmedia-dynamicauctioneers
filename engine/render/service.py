@@ -465,32 +465,39 @@ def apply_edits(
     applied: dict = {}
     for path, value in changes.items():
         old = _read_public_path(record, path)
+        # Normalise the incoming value the same way it will be stored, so the
+        # no-op check below compares like with like.
         if path == _PRICE_PATH:
             new_value = _format_price(value)
-            if record.marketing is None:
-                record.marketing = Marketing()
-            record.marketing.price_display = new_value
             gate = "price"
-        elif path == _HEADLINE_PATH:
-            new_value = value
-            if record.marketing is None:
-                record.marketing = Marketing()
-            record.marketing.headline = new_value
-            gate = "edit"
         elif path == _TEMPLATE_SET_PATH:
-            # The design pick (D33): a canonical marketing field, like photos.
-            # Blank clears the pick back to the backend's default set.
+            # The design pick (D33): blank clears back to the default set.
             new_value = str(value).strip() or None
-            if record.marketing is None:
-                record.marketing = Marketing()
-            record.marketing.template_set = new_value
             gate = "edit"
         else:
             new_value = value
+            gate = "edit"
+        # Skip a no-op edit: the gate-2 form resubmits every prefilled field, so
+        # without this each Save would re-pin unchanged sourced values into
+        # human_overrides and write a "X -> X" audit row for each (D44 review).
+        if new_value == old:
+            continue
+        if path == _PRICE_PATH:
+            if record.marketing is None:
+                record.marketing = Marketing()
+            record.marketing.price_display = new_value
+        elif path == _HEADLINE_PATH:
+            if record.marketing is None:
+                record.marketing = Marketing()
+            record.marketing.headline = new_value
+        elif path == _TEMPLATE_SET_PATH:
+            if record.marketing is None:
+                record.marketing = Marketing()
+            record.marketing.template_set = new_value
+        else:
             if record.human_overrides is None:
                 record.human_overrides = {}
             record.human_overrides[path] = new_value
-            gate = "edit"
         applied[path] = new_value
         store.record_signoff(
             dp, gate=gate, user=user, note=f"{path}: {old} -> {new_value}"

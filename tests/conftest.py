@@ -11,10 +11,18 @@ machine (SPEC / build contract golden data); they are not part of the repo.
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
 import pytest
+
+# The session cookie is Secure by default (webapp.main), which a real browser -
+# and the httpx TestClient - will not send over http://testserver. Opt into the
+# insecure cookie for the test transport. This MUST be set before webapp.main is
+# imported (its middleware reads it at app-construction time); conftest is loaded
+# before any test module, so a module-level setenv here is early enough.
+os.environ.setdefault("ENGINE_ALLOW_INSECURE_COOKIE", "1")
 
 # Make the repo root importable so ``import engine`` works no matter where
 # pytest is invoked from.

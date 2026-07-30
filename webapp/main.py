@@ -142,10 +142,18 @@ def create_app() -> FastAPI:
     # DB. init_db is idempotent, so calling it here and in lifespan is safe.
     models.init_db()
 
-    # Sessions + tokens share one persisted secret. Behind HTTPS (the Caddy
-    # deployment), set ENGINE_HTTPS=1 so the session cookie is marked Secure and
-    # cannot be sniffed on plain HTTP; local dev over HTTP leaves it unset.
-    _https_only = os.getenv("ENGINE_HTTPS", "").lower() in ("1", "true", "yes")
+    # Sessions + tokens share one persisted secret. The session cookie is marked
+    # Secure BY DEFAULT so it is never sent over plain HTTP on the internet-facing
+    # deployment (nginx terminates TLS in front of us). Local HTTP dev opts out
+    # with ENGINE_ALLOW_INSECURE_COOKIE=1, and a loud warning fires whenever it is
+    # off so a misconfigured production box is obvious in the logs.
+    _allow_insecure = os.getenv("ENGINE_ALLOW_INSECURE_COOKIE", "").lower() in ("1", "true", "yes")
+    _https_only = not _allow_insecure
+    if not _https_only:
+        logger.warning(
+            "session cookie is NOT marked Secure (ENGINE_ALLOW_INSECURE_COOKIE set) - "
+            "use this only for local HTTP development, never behind a public URL."
+        )
     app.add_middleware(
         SessionMiddleware,
         secret_key=models.get_or_create_secret(),
@@ -156,7 +164,7 @@ def create_app() -> FastAPI:
 
     # Security headers on every response: block framing (clickjacking of the
     # gate-action pages), stop MIME sniffing, and trim referrer leakage. HSTS is
-    # left to the Caddy TLS front so it is not duplicated / wrong on local HTTP.
+    # left to the nginx TLS front so it is not duplicated / wrong on local HTTP.
     @app.middleware("http")
     async def _security_headers(request, call_next):
         response = await call_next(request)

@@ -64,7 +64,7 @@
   <div class="lh">
     <div class="lh-brand">
       <span class="lh-mark">DS</span>
-      <span class="lh-name">DYNAMIC <b>AUCTIONEERS</b></span>
+      <span class="lh-name">DYNAMIC <b>{{ 'AUCTIONEERS' if vm.method == 'auction' else 'REAL ESTATE' }}</b></span>
     </div>
     <div class="lh-contact">
       <div>{{ vm.brand_phone }}</div>

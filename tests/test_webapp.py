@@ -216,11 +216,15 @@ def test_a_successful_login_clears_the_failure_count():
     from webapp.ratelimit import throttle
 
     client = _client()
-    for _ in range(throttle._max_fails - 1):  # one short of the lock
+    n = throttle._max_fails
+    for _ in range(n - 1):  # one short of the lock
         assert _login(client, APPROVER_EMAIL, "wrong-password").status_code == 401
     assert _login(client, APPROVER_EMAIL, APPROVER_PW).status_code == 303  # clears
-    # The counter reset, so a fresh wrong attempt is a plain 401, not a lock.
-    assert _login(client, APPROVER_EMAIL, "wrong-password").status_code == 401
+    # Proof the counter actually reset: it must take the FULL count again to lock.
+    # If record_success were a no-op, the very first wrong attempt here would 429.
+    for _ in range(n):
+        assert _login(client, APPROVER_EMAIL, "wrong-password").status_code == 401
+    assert _login(client, APPROVER_EMAIL, "wrong-password").status_code == 429
 
 
 def test_login_error_is_generic_for_unknown_and_wrong(monkeypatch):
@@ -847,7 +851,7 @@ def test_terms_split_and_method_allowlist():
     assert overrides.get("sale_process.method") == "auction"
 
 
-def test_auction_fields_save_and_render():
+def test_auction_fields_save_via_overrides():  # render side covered in test_render.py
     dp = "7211"
     _seed_golden_live(dp)
     client = _client()
@@ -870,6 +874,9 @@ def test_auction_fields_save_and_render():
     # A blank auction field never wipes an existing value.
     client.post(f"/gates/{dp}/ads/copy", data={"auction_type": ""})
     assert _public_view(dp)["sale_process"]["auction_type"] == "Insolvency"
+    # An off-list channel (crafted POST) is ignored, leaving the valid value.
+    client.post(f"/gates/{dp}/ads/copy", data={"auction_channel": "ONLINE AUCTION HOUSE"})
+    assert _public_view(dp)["sale_process"]["auction_channel"] == "Online"
 
 
 def test_blank_fields_do_not_overwrite():

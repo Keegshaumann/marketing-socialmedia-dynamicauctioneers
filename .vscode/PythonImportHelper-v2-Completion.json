@@ -1581,14 +1581,6 @@
         "documentation": {}
     },
     {
-        "label": "Optional",
-        "importPath": "typing",
-        "description": "typing",
-        "isExtraImport": true,
-        "detail": "typing",
-        "documentation": {}
-    },
-    {
         "label": "Any",
         "importPath": "typing",
         "description": "typing",
@@ -4369,6 +4361,14 @@
         "documentation": {}
     },
     {
+        "label": "safe_log",
+        "importPath": "webapp.ratelimit",
+        "description": "webapp.ratelimit",
+        "isExtraImport": true,
+        "detail": "webapp.ratelimit",
+        "documentation": {}
+    },
+    {
         "label": "throttle",
         "importPath": "webapp.ratelimit",
         "description": "webapp.ratelimit",
@@ -5956,7 +5956,7 @@
         "kind": 5,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "_OVERRIDE_FORBIDDEN_PREFIXES = (\"financials_internal\",)\n_OVERRIDE_FORBIDDEN_PATHS = (\"sale_process.viewing.contact_internal_only\",)\ndef override_key_allowed(path: str) -> bool:\n    \"\"\"Whether ``path`` may be set as a ``human_overrides`` key (POPIA guard).\n    Rejects the whole ``financials_internal`` group and the occupant's private\n    cell, so an override can never resurrect a field ``public_view()`` strips.\n    A key is refused when it is a forbidden path, an **ancestor** of one (a\n    whole-dict override that would carry the stripped field back in), or a\n    **descendant** under one.\n    \"\"\"",
+        "peekOfCode": "_OVERRIDE_FORBIDDEN_PREFIXES = (\"financials_internal\",)\n# Paths an override may never set. Beyond the POPIA occupant cell, the\n# commercially-sensitive valuation.professional block and the raw\n# physical.conflicts list are here too, so the write-time guard covers the same\n# set public_view() strips at render time (defence in depth, D44 review).\n_OVERRIDE_FORBIDDEN_PATHS = (\n    \"sale_process.viewing.contact_internal_only\",\n    \"valuation.professional\",\n    \"physical.conflicts\",\n)",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -5965,7 +5965,7 @@
         "kind": 5,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "_OVERRIDE_FORBIDDEN_PATHS = (\"sale_process.viewing.contact_internal_only\",)\ndef override_key_allowed(path: str) -> bool:\n    \"\"\"Whether ``path`` may be set as a ``human_overrides`` key (POPIA guard).\n    Rejects the whole ``financials_internal`` group and the occupant's private\n    cell, so an override can never resurrect a field ``public_view()`` strips.\n    A key is refused when it is a forbidden path, an **ancestor** of one (a\n    whole-dict override that would carry the stripped field back in), or a\n    **descendant** under one.\n    \"\"\"\n    if not path:",
+        "peekOfCode": "_OVERRIDE_FORBIDDEN_PATHS = (\n    \"sale_process.viewing.contact_internal_only\",\n    \"valuation.professional\",\n    \"physical.conflicts\",\n)\ndef override_key_allowed(path: str) -> bool:\n    \"\"\"Whether ``path`` may be set as a ``human_overrides`` key (POPIA guard).\n    Rejects the whole ``financials_internal`` group and the occupant's private\n    cell, so an override can never resurrect a field ``public_view()`` strips.\n    A key is refused when it is a forbidden path, an **ancestor** of one (a",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -7045,7 +7045,7 @@
         "kind": 2,
         "importPath": "tests.test_edits",
         "description": "tests.test_edits",
-        "peekOfCode": "def test_override_creates_null_intermediate_path():\n    rec = PropertyRecord(dp=\"9002\")  # sale_process is None\n    rec.human_overrides = {\"sale_process.method\": \"auction\"}\n    assert rec.public_view()[\"sale_process\"][\"method\"] == \"auction\"\ndef test_override_key_guard_rejects_popia_paths():\n    assert override_key_allowed(\"identity.suburb\")\n    assert override_key_allowed(\"sale_process.method\")\n    assert not override_key_allowed(\"financials_internal.owner.name\")\n    assert not override_key_allowed(\"financials_internal.bond.amount\")\n    assert not override_key_allowed(\"sale_process.viewing.contact_internal_only\")",
+        "peekOfCode": "def test_override_creates_null_intermediate_path():\n    rec = PropertyRecord(dp=\"9002\")  # sale_process is None\n    rec.human_overrides = {\"sale_process.method\": \"auction\"}\n    assert rec.public_view()[\"sale_process\"][\"method\"] == \"auction\"\ndef test_override_key_guard_rejects_popia_paths():\n    assert override_key_allowed(\"identity.suburb\")\n    assert override_key_allowed(\"sale_process.method\")\n    assert override_key_allowed(\"valuation.municipal_valuation\")  # public figure stays editable\n    assert not override_key_allowed(\"financials_internal.owner.name\")\n    assert not override_key_allowed(\"financials_internal.bond.amount\")",
         "detail": "tests.test_edits",
         "documentation": {}
     },
@@ -7054,7 +7054,7 @@
         "kind": 2,
         "importPath": "tests.test_edits",
         "description": "tests.test_edits",
-        "peekOfCode": "def test_override_key_guard_rejects_popia_paths():\n    assert override_key_allowed(\"identity.suburb\")\n    assert override_key_allowed(\"sale_process.method\")\n    assert not override_key_allowed(\"financials_internal.owner.name\")\n    assert not override_key_allowed(\"financials_internal.bond.amount\")\n    assert not override_key_allowed(\"sale_process.viewing.contact_internal_only\")\ndef test_override_cannot_resurrect_stripped_pii_in_projection():\n    rec = PropertyRecord(dp=\"9003\")\n    # Even if a forbidden override is somehow present, public_view drops it.\n    rec.human_overrides = {",
+        "peekOfCode": "def test_override_key_guard_rejects_popia_paths():\n    assert override_key_allowed(\"identity.suburb\")\n    assert override_key_allowed(\"sale_process.method\")\n    assert override_key_allowed(\"valuation.municipal_valuation\")  # public figure stays editable\n    assert not override_key_allowed(\"financials_internal.owner.name\")\n    assert not override_key_allowed(\"financials_internal.bond.amount\")\n    assert not override_key_allowed(\"sale_process.viewing.contact_internal_only\")\n    # Commercially-sensitive / internal fields are now blocked at write time too\n    # (D44 review), covering the same set public_view() strips.\n    assert not override_key_allowed(\"valuation.professional\")",
         "detail": "tests.test_edits",
         "documentation": {}
     },
@@ -7747,7 +7747,7 @@
         "kind": 2,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "def test_collage_is_method_aware(golden_record, tmp_path):\n    # For Sale -> Real Estate brand + \"For Sale\" badge; Auction -> Auctioneers\n    # brand + \"On Auction\" badge. Same record, only the method differs (D41).\n    for method, badge in [(\"offers_invited\", \"FOR SALE\"), (\"auction\", \"ON AUCTION\")]:\n        golden_record.marketing.template_set = \"collage\"\n        golden_record.sale_process.method = method\n        store = _store_with(golden_record)\n        try:\n            art = render_one(\"3060\", store, \"demo_ad\", backend=\"html\", output_root=str(tmp_path))\n            html = Path(art.path).read_text(encoding=\"utf-8\")",
+        "peekOfCode": "def test_collage_is_method_aware(golden_record, tmp_path):\n    # For Sale -> Real Estate brand + \"For Sale\" badge; Auction -> Auctioneers\n    # brand + \"On Auction\" badge. Same record, only the method differs (D41).\n    from engine.render.html_backend import _asset_data_uri\n    auct_logo = _asset_data_uri(\"ads/_assets/logo-auctioneers-dark.png\")\n    re_logo = _asset_data_uri(\"ads/_assets/logo-realestate-dark.png\")\n    assert auct_logo and re_logo and auct_logo != re_logo  # the two brands differ\n    for method, badge, want, other in [\n        (\"offers_invited\", \"FOR SALE\", re_logo, auct_logo),\n        (\"auction\", \"ON AUCTION\", auct_logo, re_logo),",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -7820,6 +7820,33 @@
         "importPath": "tests.test_render",
         "description": "tests.test_render",
         "peekOfCode": "def test_badge_defaults_without_a_callout_type(golden_record, tmp_path):\n    # No callout type -> the plain badge, method-aware.\n    golden_record.marketing.template_set = \"collage\"\n    golden_record.sale_process.auction_type = None\n    for method, expect in [(\"auction\", \"ON AUCTION!\"), (\"offers_invited\", \"FOR SALE!\")]:\n        golden_record.sale_process.method = method\n        store = _store_with(golden_record)\n        try:\n            art = render_one(\"3060\", store, \"demo_ad\", backend=\"html\", output_root=str(tmp_path))\n            html = Path(art.path).read_text(encoding=\"utf-8\")",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_bold_never_fabricates_a_flatlet_bed_count",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_bold_never_fabricates_a_flatlet_bed_count(golden_record, tmp_path):\n    # A flatlet present with an unknown bedroom count must NOT render \"1 Bed\n    # flatlet\" (hard rule 3: no invented facts, D44 review).\n    from engine.schema import Flatlet\n    if golden_record.physical.flatlet is None:\n        golden_record.physical.flatlet = Flatlet()\n    golden_record.physical.flatlet.present = True\n    golden_record.physical.flatlet.bedrooms = None\n    golden_record.marketing.template_set = \"bold\"\n    store = _store_with(golden_record)",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_collage_stat_bar_shows_the_garage_count",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_collage_stat_bar_shows_the_garage_count(golden_record, tmp_path):\n    # Regression: the garage cell used to render \"Garage\" with no number (D44).\n    golden_record.marketing.template_set = \"collage\"\n    golden_record.physical.garages = 2\n    store = _store_with(golden_record)\n    try:\n        html = Path(\n            render_one(\"3060\", store, \"demo_ad\", backend=\"html\", output_root=str(tmp_path)).path\n        ).read_text(encoding=\"utf-8\")\n    finally:",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_classic_shows_the_money_line",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_classic_shows_the_money_line(golden_record, tmp_path):\n    # Classic (the default one-pager) must show the auction line on an auction\n    # and the price on a sale, not just the badge (D44 review).\n    golden_record.marketing.template_set = \"classic\"\n    golden_record.sale_process.method = \"auction\"\n    golden_record.sale_process.auction_channel = \"Online\"\n    golden_record.sale_process.auction_date = \"28 May 2026\"\n    golden_record.sale_process.auction_time = \"10:00\"\n    store = _store_with(golden_record)\n    try:",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -8287,7 +8314,7 @@
         "kind": 2,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "def test_a_successful_login_clears_the_failure_count():\n    from webapp.ratelimit import throttle\n    client = _client()\n    for _ in range(throttle._max_fails - 1):  # one short of the lock\n        assert _login(client, APPROVER_EMAIL, \"wrong-password\").status_code == 401\n    assert _login(client, APPROVER_EMAIL, APPROVER_PW).status_code == 303  # clears\n    # The counter reset, so a fresh wrong attempt is a plain 401, not a lock.\n    assert _login(client, APPROVER_EMAIL, \"wrong-password\").status_code == 401\ndef test_login_error_is_generic_for_unknown_and_wrong(monkeypatch):\n    # Same status and message whether the email exists or not (no enumeration).",
+        "peekOfCode": "def test_a_successful_login_clears_the_failure_count():\n    from webapp.ratelimit import throttle\n    client = _client()\n    n = throttle._max_fails\n    for _ in range(n - 1):  # one short of the lock\n        assert _login(client, APPROVER_EMAIL, \"wrong-password\").status_code == 401\n    assert _login(client, APPROVER_EMAIL, APPROVER_PW).status_code == 303  # clears\n    # Proof the counter actually reset: it must take the FULL count again to lock.\n    # If record_success were a no-op, the very first wrong attempt here would 429.\n    for _ in range(n):",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -8589,11 +8616,11 @@
         "documentation": {}
     },
     {
-        "label": "test_auction_fields_save_and_render",
+        "label": "test_auction_fields_save_via_overrides",
         "kind": 2,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "def test_auction_fields_save_and_render():\n    dp = \"7211\"\n    _seed_golden_live(dp)\n    client = _client()\n    _login_admin(client)\n    client.post(\n        f\"/gates/{dp}/ads/copy\",\n        data={\n            \"method\": \"auction\",\n            \"auction_type\": \"Insolvency\",",
+        "peekOfCode": "def test_auction_fields_save_via_overrides():  # render side covered in test_render.py\n    dp = \"7211\"\n    _seed_golden_live(dp)\n    client = _client()\n    _login_admin(client)\n    client.post(\n        f\"/gates/{dp}/ads/copy\",\n        data={\n            \"method\": \"auction\",\n            \"auction_type\": \"Insolvency\",",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -9070,7 +9097,7 @@
         "kind": 2,
         "importPath": "webapp.routes.board",
         "description": "webapp.routes.board",
-        "peekOfCode": "def login_submit(\n    request: Request,\n    email: str = Form(...),\n    password: str = Form(...),\n):\n    key = account_key(email)\n    wait = throttle.retry_after(key)\n    if wait:\n        minutes = max(1, (wait + 59) // 60)\n        logger.warning(\"login throttled for %s from %s\", key, client_ip(request))",
+        "peekOfCode": "def login_submit(\n    request: Request,\n    email: str = Form(...),\n    password: str = Form(...),\n):\n    key = account_key(email)\n    # Count the attempt and get the allow/deny decision atomically, BEFORE the\n    # bcrypt check, so a concurrent burst cannot overrun the cap.\n    wait = throttle.hit(key)\n    if wait:",
         "detail": "webapp.routes.board",
         "documentation": {}
     },
@@ -9403,7 +9430,7 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_EDIT_TEXT_FIELDS = {\n    \"headline\": \"marketing.headline\",\n    \"price_display\": \"marketing.price_display\",\n    \"street_address\": \"identity.street_address\",\n    \"suburb\": \"identity.suburb\",\n    # Auction specifics (D42): shown on auction ads only. Blank inputs are\n    # skipped by _collect_edit_fields, so they never wipe an existing value.\n    \"auction_type\": \"sale_process.auction_type\",\n    \"auction_channel\": \"sale_process.auction_channel\",\n    \"auction_date\": \"sale_process.auction_date\",",
+        "peekOfCode": "_EDIT_TEXT_FIELDS = {\n    \"headline\": \"marketing.headline\",\n    \"price_display\": \"marketing.price_display\",\n    \"street_address\": \"identity.street_address\",\n    \"suburb\": \"identity.suburb\",\n    # Auction specifics (D42): shown on auction ads only. Blank inputs are\n    # skipped by _collect_edit_fields, so they never wipe an existing value.\n    # (auction_channel is validated against an allow-list separately, below.)\n    \"auction_type\": \"sale_process.auction_type\",\n    \"auction_date\": \"sale_process.auction_date\",",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -9412,7 +9439,16 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_SALE_METHODS = (\"offers_invited\", \"auction\")\ndef _design_sets() -> list:\n    \"\"\"The template-set names the gate-2 design picker offers (D33).\n    Empty (picker hidden) unless a choice is real: more than one set is\n    configured AND the active renderer actually routes formats through Canva\n    (``ENGINE_RENDERER`` is ``canva`` or ``mixed`` and the backend is\n    available). Otherwise a pick would be a silent no-op -- the html backend\n    ignores ``template_set`` -- while the UI promises a re-rendered design.\n    \"\"\"\n    renderer = (os.getenv(\"ENGINE_RENDERER\") or DEFAULT_BACKEND).strip()",
+        "peekOfCode": "_SALE_METHODS = (\"offers_invited\", \"auction\")\n_AUCTION_CHANNELS = (\"Online\", \"On-site\")\ndef _design_sets() -> list:\n    \"\"\"The template-set names the gate-2 design picker offers (D33).\n    Empty (picker hidden) unless a choice is real: more than one set is\n    configured AND the active renderer actually routes formats through Canva\n    (``ENGINE_RENDERER`` is ``canva`` or ``mixed`` and the backend is\n    available). Otherwise a pick would be a silent no-op -- the html backend\n    ignores ``template_set`` -- while the UI promises a re-rendered design.\n    \"\"\"",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_AUCTION_CHANNELS",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "_AUCTION_CHANNELS = (\"Online\", \"On-site\")\ndef _design_sets() -> list:\n    \"\"\"The template-set names the gate-2 design picker offers (D33).\n    Empty (picker hidden) unless a choice is real: more than one set is\n    configured AND the active renderer actually routes formats through Canva\n    (``ENGINE_RENDERER`` is ``canva`` or ``mixed`` and the backend is\n    available). Otherwise a pick would be a silent no-op -- the html backend\n    ignores ``template_set`` -- while the UI promises a re-rendered design.\n    \"\"\"\n    renderer = (os.getenv(\"ENGINE_RENDERER\") or DEFAULT_BACKEND).strip()",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -9763,7 +9799,7 @@
         "kind": 2,
         "importPath": "webapp.main",
         "description": "webapp.main",
-        "peekOfCode": "def create_app() -> FastAPI:\n    app = FastAPI(title=\"Dynamic Auctioneers Marketing Platform\", lifespan=lifespan)\n    # Ensure the schema exists before we read the shared secret: the middleware is\n    # constructed at import time, ahead of the lifespan startup that also inits the\n    # DB. init_db is idempotent, so calling it here and in lifespan is safe.\n    models.init_db()\n    # Sessions + tokens share one persisted secret. Behind HTTPS (the Caddy\n    # deployment), set ENGINE_HTTPS=1 so the session cookie is marked Secure and\n    # cannot be sniffed on plain HTTP; local dev over HTTP leaves it unset.\n    _https_only = os.getenv(\"ENGINE_HTTPS\", \"\").lower() in (\"1\", \"true\", \"yes\")",
+        "peekOfCode": "def create_app() -> FastAPI:\n    app = FastAPI(title=\"Dynamic Auctioneers Marketing Platform\", lifespan=lifespan)\n    # Ensure the schema exists before we read the shared secret: the middleware is\n    # constructed at import time, ahead of the lifespan startup that also inits the\n    # DB. init_db is idempotent, so calling it here and in lifespan is safe.\n    models.init_db()\n    # Sessions + tokens share one persisted secret. The session cookie is marked\n    # Secure BY DEFAULT so it is never sent over plain HTTP on the internet-facing\n    # deployment (nginx terminates TLS in front of us). Local HTTP dev opts out\n    # with ENGINE_ALLOW_INSECURE_COOKIE=1, and a loud warning fires whenever it is",
         "detail": "webapp.main",
         "documentation": {}
     },
@@ -10015,7 +10051,7 @@
         "kind": 6,
         "importPath": "webapp.ratelimit",
         "description": "webapp.ratelimit",
-        "peekOfCode": "class LoginThrottle:\n    \"\"\"Sliding-window failure counter with a lockout, keyed by an opaque string.\"\"\"\n    def __init__(self, max_fails: int, window: int, lockout: int, clock=time.monotonic):\n        self._max_fails = max_fails\n        self._window = window\n        self._lockout = lockout\n        self._clock = clock\n        self._fails: Dict[str, Deque[float]] = defaultdict(deque)\n        self._locked_until: Dict[str, float] = {}\n        self._mu = threading.Lock()",
+        "peekOfCode": "class LoginThrottle:\n    \"\"\"Sliding-window failure counter with a lockout, keyed by an opaque string.\"\"\"\n    def __init__(self, max_fails: int, window: int, lockout: int, max_keys: int = 50000,\n                 clock=time.monotonic):\n        self._max_fails = max_fails\n        self._window = window\n        self._lockout = lockout\n        self._max_keys = max_keys\n        self._clock = clock\n        self._fails: Dict[str, Deque[float]] = defaultdict(deque)",
         "detail": "webapp.ratelimit",
         "documentation": {}
     },
@@ -10033,7 +10069,16 @@
         "kind": 2,
         "importPath": "webapp.ratelimit",
         "description": "webapp.ratelimit",
-        "peekOfCode": "def client_ip(request: Request) -> str:\n    \"\"\"Best-effort client IP for LOG lines only (never a throttle key).\n    Prefers the first ``X-Forwarded-For`` hop set by the proxy; falls back to the\n    TCP peer. Used purely for forensics in the failed-login log, so its\n    spoofability does not affect the throttle.\n    \"\"\"\n    xff = request.headers.get(\"x-forwarded-for\")\n    if xff:\n        return xff.split(\",\")[0].strip() or \"unknown\"\n    client = getattr(request, \"client\", None)",
+        "peekOfCode": "def client_ip(request: Request) -> str:\n    \"\"\"Best-effort client IP for LOG lines only (never a throttle key).\n    Prefers the first ``X-Forwarded-For`` hop set by the proxy; falls back to the\n    TCP peer. Used purely for forensics in the failed-login log, so its\n    spoofability does not affect the throttle.\n    \"\"\"\n    xff = request.headers.get(\"x-forwarded-for\")\n    if xff:\n        return safe_log(xff.split(\",\")[0].strip() or \"unknown\")\n    client = getattr(request, \"client\", None)",
+        "detail": "webapp.ratelimit",
+        "documentation": {}
+    },
+    {
+        "label": "safe_log",
+        "kind": 2,
+        "importPath": "webapp.ratelimit",
+        "description": "webapp.ratelimit",
+        "peekOfCode": "def safe_log(value: object, limit: int = 120) -> str:\n    \"\"\"Neutralise an attacker-controlled string for a single log line.\n    Strips CR/LF (so a submitted email or header cannot forge extra log records)\n    and caps the length. Used on the email/IP that reach the failed-login logs.\n    \"\"\"\n    s = str(value if value is not None else \"\")\n    s = s.replace(\"\\r\", \" \").replace(\"\\n\", \" \").replace(\"\\t\", \" \")\n    return s[:limit]",
         "detail": "webapp.ratelimit",
         "documentation": {}
     },

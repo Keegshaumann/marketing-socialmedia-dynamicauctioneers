@@ -176,7 +176,16 @@ def test_demo_ad_renders_the_picked_template(golden_record, tmp_path):
 def test_collage_is_method_aware(golden_record, tmp_path):
     # For Sale -> Real Estate brand + "For Sale" badge; Auction -> Auctioneers
     # brand + "On Auction" badge. Same record, only the method differs (D41).
-    for method, badge in [("offers_invited", "FOR SALE"), ("auction", "ON AUCTION")]:
+    from engine.render.html_backend import _asset_data_uri
+
+    auct_logo = _asset_data_uri("ads/_assets/logo-auctioneers-dark.png")
+    re_logo = _asset_data_uri("ads/_assets/logo-realestate-dark.png")
+    assert auct_logo and re_logo and auct_logo != re_logo  # the two brands differ
+
+    for method, badge, want, other in [
+        ("offers_invited", "FOR SALE", re_logo, auct_logo),
+        ("auction", "ON AUCTION", auct_logo, re_logo),
+    ]:
         golden_record.marketing.template_set = "collage"
         golden_record.sale_process.method = method
         store = _store_with(golden_record)
@@ -186,7 +195,8 @@ def test_collage_is_method_aware(golden_record, tmp_path):
         finally:
             store.close()
         assert badge in html
-        assert "data:image/png;base64," in html  # the brand logo is embedded
+        assert want in html  # the correct brand logo is embedded...
+        assert other not in html  # ...and only that one
 
 
 def test_collage_renders_auction_specifics(golden_record, tmp_path):
@@ -223,7 +233,9 @@ def test_new_ad_designs_render_place_and_descriptor(template, golden_record, tmp
     finally:
         store.close()
     assert "Pelham North" in html  # the place line
-    assert "Bedroom" in html  # the descriptor line
+    # "3 Bedroom Apartment" isolates the descriptor bar; the feature bullets
+    # render "3 Bedrooms" (plural), so this substring proves descriptor_line ran.
+    assert "3 Bedroom Apartment" in html
     assert "PROPERTY REF: DP3060" in html
 
 
@@ -324,6 +336,81 @@ def test_badge_defaults_without_a_callout_type(golden_record, tmp_path):
         finally:
             store.close()
         assert expect in html
+
+
+def test_bold_never_fabricates_a_flatlet_bed_count(golden_record, tmp_path):
+    # A flatlet present with an unknown bedroom count must NOT render "1 Bed
+    # flatlet" (hard rule 3: no invented facts, D44 review).
+    from engine.schema import Flatlet
+
+    if golden_record.physical.flatlet is None:
+        golden_record.physical.flatlet = Flatlet()
+    golden_record.physical.flatlet.present = True
+    golden_record.physical.flatlet.bedrooms = None
+    golden_record.marketing.template_set = "bold"
+    store = _store_with(golden_record)
+    try:
+        html = Path(
+            render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path)).path
+        ).read_text(encoding="utf-8")
+    finally:
+        store.close()
+    assert "Bed flatlet" not in html  # the stat is dropped, not defaulted to 1
+
+    # With a real count it shows honestly.
+    golden_record.physical.flatlet.bedrooms = 2
+    store = _store_with(golden_record)
+    try:
+        html = Path(
+            render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path)).path
+        ).read_text(encoding="utf-8")
+    finally:
+        store.close()
+    assert "Bed flatlet" in html
+    assert ">2</div><div class=\"l\">Bed flatlet" in html
+
+
+def test_collage_stat_bar_shows_the_garage_count(golden_record, tmp_path):
+    # Regression: the garage cell used to render "Garage" with no number (D44).
+    golden_record.marketing.template_set = "collage"
+    golden_record.physical.garages = 2
+    store = _store_with(golden_record)
+    try:
+        html = Path(
+            render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path)).path
+        ).read_text(encoding="utf-8")
+    finally:
+        store.close()
+    assert '2 <span class="u">Garages</span>' in html  # count + pluralised label
+
+
+def test_classic_shows_the_money_line(golden_record, tmp_path):
+    # Classic (the default one-pager) must show the auction line on an auction
+    # and the price on a sale, not just the badge (D44 review).
+    golden_record.marketing.template_set = "classic"
+    golden_record.sale_process.method = "auction"
+    golden_record.sale_process.auction_channel = "Online"
+    golden_record.sale_process.auction_date = "28 May 2026"
+    golden_record.sale_process.auction_time = "10:00"
+    store = _store_with(golden_record)
+    try:
+        html = Path(
+            render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path)).path
+        ).read_text(encoding="utf-8")
+    finally:
+        store.close()
+    assert "ONLINE AUCTION | 28 MAY 2026 @ 10:00" in html
+
+    golden_record.sale_process.method = "offers_invited"
+    golden_record.marketing.price_display = "R1 250 000"
+    store = _store_with(golden_record)
+    try:
+        html = Path(
+            render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path)).path
+        ).read_text(encoding="utf-8")
+    finally:
+        store.close()
+    assert "R1 250 000" in html
 
 
 def test_split3_balances_a_headline():

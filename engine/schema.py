@@ -287,7 +287,15 @@ class Verification(_Base):
 # path: the guard below rejects any key that would recreate a stripped field.
 
 _OVERRIDE_FORBIDDEN_PREFIXES = ("financials_internal",)
-_OVERRIDE_FORBIDDEN_PATHS = ("sale_process.viewing.contact_internal_only",)
+# Paths an override may never set. Beyond the POPIA occupant cell, the
+# commercially-sensitive valuation.professional block and the raw
+# physical.conflicts list are here too, so the write-time guard covers the same
+# set public_view() strips at render time (defence in depth, D44 review).
+_OVERRIDE_FORBIDDEN_PATHS = (
+    "sale_process.viewing.contact_internal_only",
+    "valuation.professional",
+    "physical.conflicts",
+)
 
 
 def override_key_allowed(path: str) -> bool:

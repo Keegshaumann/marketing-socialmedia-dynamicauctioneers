@@ -712,12 +712,13 @@ _EDIT_TEXT_FIELDS = {
     "suburb": "identity.suburb",
     # Auction specifics (D42): shown on auction ads only. Blank inputs are
     # skipped by _collect_edit_fields, so they never wipe an existing value.
+    # (auction_channel is validated against an allow-list separately, below.)
     "auction_type": "sale_process.auction_type",
-    "auction_channel": "sale_process.auction_channel",
     "auction_date": "sale_process.auction_date",
     "auction_time": "sale_process.auction_time",
 }
 _SALE_METHODS = ("offers_invited", "auction")
+_AUCTION_CHANNELS = ("Online", "On-site")
 
 
 def _design_sets() -> list:
@@ -777,6 +778,11 @@ def _collect_edit_fields(form, current_template_set: "str | None" = None) -> dic
     method = str(form.get("method", "")).strip()
     if method in _SALE_METHODS:
         fields["sale_process.method"] = method
+    # Auction channel is a fixed choice, validated like method so a crafted POST
+    # cannot store an off-list value that then fails to round-trip in the select.
+    channel = str(form.get("auction_channel", "")).strip()
+    if channel in _AUCTION_CHANNELS:
+        fields["sale_process.auction_channel"] = channel
     # The design pick (D33). Only names the picker actually offers are
     # accepted, so a crafted value cannot land on the record.
     if "template_set" in form:

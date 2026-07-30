@@ -3,6 +3,7 @@
    and the brand chrome comes from _brand.html.j2. Facts render only when the
    record carries them (no invented facts). #}
 {% import "_brand.html.j2" as brand %}
+{% import "_adparts.html.j2" as parts %}
 <title>{{ vm.headline }} | {{ vm.brand_name }}</title>
 <style>
   {{ brand.tokens_css() }}
@@ -32,6 +33,7 @@
     letter-spacing: .16em; text-transform: uppercase; padding: 10px 18px; border-left: 4px solid var(--gold);
   }
   .offerline .viewing { font-size: 12.5px; font-weight: 600; letter-spacing: .04em; color: var(--muted); }
+  .offerline .money { font-size: 20px; font-weight: 800; color: var(--ink); letter-spacing: .01em; }
 
   .hero { display: grid; grid-template-columns: 1.55fr 1fr; gap: 10px; }
   .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -101,7 +103,7 @@
 
   <div class="inner">
     <div class="eyebrow">
-      <span>Property for sale</span>
+      <span>{% if vm.method == 'auction' %}Property on auction{% else %}Property for sale{% endif %}</span>
       {% if vm.public_ref %}<span class="dot"></span><span>Master ref {{ vm.public_ref }}</span>{% endif %}
       {% if vm.property_ref %}<span class="dot"></span><span>Property ref {{ vm.property_ref }}</span>{% endif %}
       {% if vm.location_line %}<span class="dot"></span><span>{{ vm.location_line }}</span>{% endif %}
@@ -112,6 +114,7 @@
 
     <div class="offerline">
       <span class="badge">{{ vm.badge_label }}</span>
+      <span class="money">{{ parts.money_text(vm) }}</span>
       {% if vm.viewing_by_appt %}<span class="viewing">Viewing strictly by appointment</span>{% endif %}
     </div>
 

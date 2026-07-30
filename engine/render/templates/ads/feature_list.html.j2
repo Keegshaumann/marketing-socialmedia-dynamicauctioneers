@@ -72,15 +72,17 @@
         {% if vm.size_str %}<div class="fl-item">{{ parts.icon_size() }}<span>&plusmn;{{ vm.size_str }}m&sup2; Property</span></div>{% endif %}
         {% if vm.beds %}<div class="fl-item">{{ parts.icon_bed() }}<span>{{ vm.beds }} Bedroom{{ 's' if vm.beds != '1' }}</span></div>{% endif %}
         {% if vm.baths %}<div class="fl-item">{{ parts.icon_bath() }}<span>{{ vm.baths }} Bathroom{{ 's' if vm.baths != '1' }}</span></div>{% endif %}
-        {% if vm.garages and vm.garages != '0' %}<div class="fl-item">{{ parts.icon_garage() }}<span>{{ vm.garages }} Garage</span></div>{% endif %}
+        {% if vm.garages and vm.garages != '0' %}<div class="fl-item">{{ parts.icon_garage() }}<span>{{ vm.garages }} Garage{{ 's' if vm.garages != '1' }}</span></div>{% endif %}
         {% for f in feats[:3] %}<div class="fl-item feat">{{ parts.icon_feature() }}<span>{{ f }}</span></div>{% endfor %}
       </div>
       {% set pin = vm.scheme or vm.address or vm.suburb %}
       {% if pin %}<div class="fl-pin"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>{{ pin }}</div>{% endif %}
     </div>
+    {% if photos %}
     <div class="fl-photos">
       {% for src in photos[:3] %}<img src="{{ src }}" alt="Property photo"/>{% endfor %}
     </div>
+    {% endif %}
   </div>
 
   <div class="ig-money {{ 'auction' if is_auction else 'price' }}">{{ parts.money_text(vm) }}</div>

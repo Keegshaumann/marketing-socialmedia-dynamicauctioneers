@@ -24,7 +24,7 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from webapp import auth, models
-from webapp.ratelimit import account_key, client_ip, throttle
+from webapp.ratelimit import account_key, client_ip, safe_log, throttle
 
 router = APIRouter()
 
@@ -190,10 +190,12 @@ def login_submit(
     password: str = Form(...),
 ):
     key = account_key(email)
-    wait = throttle.retry_after(key)
+    # Count the attempt and get the allow/deny decision atomically, BEFORE the
+    # bcrypt check, so a concurrent burst cannot overrun the cap.
+    wait = throttle.hit(key)
     if wait:
         minutes = max(1, (wait + 59) // 60)
-        logger.warning("login throttled for %s from %s", key, client_ip(request))
+        logger.warning("login locked for %s from %s", safe_log(key), client_ip(request))
         return _view(
             request,
             "login.html",
@@ -211,11 +213,10 @@ def login_submit(
         throttle.record_success(key)
         return RedirectResponse("/board", status_code=303)
 
-    throttle.record_failure(key)
-    # Log the attempt (email + source IP) for intrusion detection; never the
-    # password, and the same generic message goes back regardless of whether the
-    # email exists (no user enumeration).
-    logger.warning("failed login for %s from %s", key, client_ip(request))
+    # The attempt was already counted by hit(). Log it (email + source IP,
+    # both CR/LF-sanitised) for intrusion detection; never the password, and the
+    # same generic message goes back whether or not the email exists.
+    logger.warning("failed login for %s from %s", safe_log(key), client_ip(request))
     return _view(
         request,
         "login.html",
