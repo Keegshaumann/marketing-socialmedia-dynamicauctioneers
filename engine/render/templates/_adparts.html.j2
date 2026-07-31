@@ -27,9 +27,15 @@
 
 {# Method-aware brand logo: Auctioneers on an auction, Real Estate otherwise.
    variant is 'dark' (white logo, for dark chrome) or 'light' (black logo). #}
-{% macro brand_logo(vm, variant='dark') -%}
+{% macro brand_logo(vm, on='light') -%}
+  {#- `on` names the BACKGROUND the logo sits on, NOT the logo's colour:
+        on='light' -> logo-<brand>-on-light.png = the full black+gold "DS DYNAMIC"
+                      lockup, legible on a white/light surface;
+        on='dark'  -> logo-<brand>-on-dark.png  = the gold-only mark, legible on a
+                      dark surface (the black lockup would vanish there).
+     Picking the wrong one hides half the logo, so pass the surface colour. -#}
   {%- set which = 'auctioneers' if vm.method == 'auction' else 'realestate' -%}
-  <img src="{{ asset_uri('ads/_assets/logo-' ~ which ~ '-' ~ variant ~ '.png') }}" alt="{{ vm.brand_name }}"/>
+  <img src="{{ asset_uri('ads/_assets/logo-' ~ which ~ '-on-' ~ on ~ '.png') }}" alt="{{ vm.brand_name }}"/>
 {%- endmacro %}
 
 {# Stat icons (24x24, no fill so the template's CSS colours them). #}

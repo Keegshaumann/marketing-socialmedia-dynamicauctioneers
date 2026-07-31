@@ -12,7 +12,7 @@
 {# Brand by sale method: Auction -> Dynamic Auctioneers, everything else ->
    Dynamic Real Estate (the estate-agency department). Dark-bg (white) logo,
    since the header sits on the dark canvas. #}
-{% set logo = asset_uri('ads/_assets/logo-' ~ ('auctioneers' if is_auction else 'realestate') ~ '-dark.png') %}
+{% set logo = asset_uri('ads/_assets/logo-' ~ ('auctioneers' if is_auction else 'realestate') ~ '-on-dark.png') %}
 <title>{{ vm.headline }} | {{ vm.brand_name }}</title>
 <style>
   {{ brand.tokens_css() }}

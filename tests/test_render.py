@@ -178,8 +178,9 @@ def test_collage_is_method_aware(golden_record, tmp_path):
     # brand + "On Auction" badge. Same record, only the method differs (D41).
     from engine.render.html_backend import _asset_data_uri
 
-    auct_logo = _asset_data_uri("ads/_assets/logo-auctioneers-dark.png")
-    re_logo = _asset_data_uri("ads/_assets/logo-realestate-dark.png")
+    # Collage is on the dark canvas, so it uses the on-dark (gold-only) logo.
+    auct_logo = _asset_data_uri("ads/_assets/logo-auctioneers-on-dark.png")
+    re_logo = _asset_data_uri("ads/_assets/logo-realestate-on-dark.png")
     assert auct_logo and re_logo and auct_logo != re_logo  # the two brands differ
 
     for method, badge, want, other in [
@@ -197,6 +198,41 @@ def test_collage_is_method_aware(golden_record, tmp_path):
         assert badge in html
         assert want in html  # the correct brand logo is embedded...
         assert other not in html  # ...and only that one
+
+
+def test_logo_matches_its_background_in_every_design(golden_record, tmp_path):
+    # Guard against the "you can't see half the logo" bug: every placement must
+    # use the logo built for the surface it sits on. on-light = the full
+    # black+gold "DS DYNAMIC" lockup (legible on white); on-dark = the gold-only
+    # mark (legible on a dark canvas; the black lockup would vanish there).
+    # Renders each design and asserts the right variant is embedded and the wrong
+    # one is not, so a future edit that swaps them fails here.
+    from engine.render.html_backend import _asset_data_uri
+
+    # The golden record is offers_invited -> Real Estate brand.
+    on_light = _asset_data_uri("ads/_assets/logo-realestate-on-light.png")
+    on_dark = _asset_data_uri("ads/_assets/logo-realestate-on-dark.png")
+    assert on_light and on_dark and on_light != on_dark
+
+    # design -> the surface colour its logo sits on
+    surface = {
+        "classic": "light",       # the white letterhead sheet
+        "collage": "dark",        # the dark canvas, logo direct on it
+        "feature_list": "light",  # logo sits in a white box
+        "stats_first": "light",   # logo sits in a white box
+        "hero_overlay": "light",  # logo sits in a white box
+    }
+    for design, bg in surface.items():
+        golden_record.marketing.template_set = design
+        store = _store_with(golden_record)
+        try:
+            art = render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path))
+            html = Path(art.path).read_text(encoding="utf-8")
+        finally:
+            store.close()
+        want, other = (on_light, on_dark) if bg == "light" else (on_dark, on_light)
+        assert want in html, f"{design}: expected the on-{bg} logo for its background"
+        assert other not in html, f"{design}: a logo for the wrong background leaked in"
 
 
 def test_collage_renders_auction_specifics(golden_record, tmp_path):

@@ -168,7 +168,11 @@ def create_app() -> FastAPI:
     @app.middleware("http")
     async def _security_headers(request, call_next):
         response = await call_next(request)
-        response.headers.setdefault("X-Frame-Options", "DENY")
+        # SAMEORIGIN (not DENY): the gate-2 ad preview embeds the rendered
+        # artifact HTML in a same-origin <iframe>. DENY blocked that (the
+        # preview showed a broken frame); SAMEORIGIN still stops cross-site
+        # framing / clickjacking.
+        response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("Referrer-Policy", "same-origin")
         return response

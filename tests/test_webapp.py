@@ -239,7 +239,8 @@ def test_login_error_is_generic_for_unknown_and_wrong(monkeypatch):
 def test_security_headers_present_on_responses():
     client = _client()
     r = client.get("/login")
-    assert r.headers.get("X-Frame-Options") == "DENY"
+    # SAMEORIGIN (not DENY) so the gate-2 preview can iframe our own artifacts.
+    assert r.headers.get("X-Frame-Options") == "SAMEORIGIN"
     assert r.headers.get("X-Content-Type-Options") == "nosniff"
     assert r.headers.get("Referrer-Policy") == "same-origin"
 
