@@ -304,7 +304,7 @@ def test_gate1_signoff_refused_then_records_and_transitions():
     assert _state(dp) == "extracted"
 
     # Accepted: picking a source for the garage conflict resolves it, signs the
-    # gate off and drafts the record onto gate 2.
+    # gate off and lands on the add-photos step (before the ad is drafted).
     ok = client.post(
         f"/gates/{dp}/verify",
         data={
@@ -314,7 +314,13 @@ def test_gate1_signoff_refused_then_records_and_transitions():
         follow_redirects=False,
     )
     assert ok.status_code == 303
-    assert ok.headers["location"] == f"/gates/{dp}/ads"
+    assert ok.headers["location"] == f"/gates/{dp}/photos"
+    assert _state(dp) == "photos"
+
+    # Continuing the photos step (with or without photos) drafts the ad onto gate 2.
+    cont = client.post(f"/gates/{dp}/photos/continue", follow_redirects=False)
+    assert cont.status_code == 303
+    assert cont.headers["location"] == f"/gates/{dp}/ads"
     assert _state(dp) == "drafted"
 
     # The sign-off is recorded on the record itself.
@@ -345,7 +351,7 @@ def test_gate1_override_to_non_default_source_swaps_the_value():
         follow_redirects=False,
     )
     assert ok.status_code == 303
-    assert _state(dp) == "drafted"
+    assert _state(dp) == "photos"  # gate 1 now lands on the add-photos step
 
     store = RecordStore(DB_PATH)
     try:
@@ -354,6 +360,36 @@ def test_gate1_override_to_non_default_source_swaps_the_value():
         store.close()
     assert record.physical.garages == 3  # Lightstone's value now stands
     assert record.physical.conflicts[0].resolved_source == "lightstone"
+
+
+def test_photos_step_renders_and_continue_drafts():
+    # After gate 1 the record sits on the add-photos step; the page reuses the
+    # gate-2 photos panel, and Continue/Skip drafts the ad onto gate 2.
+    _needs_golden()
+    dp = "9030"
+    _golden_clone(dp)
+    client = _client()
+    _login_admin(client)
+    client.post(
+        f"/gates/{dp}/verify",
+        data={"conflict_source__garages": "property_report"},
+        follow_redirects=False,
+    )
+    assert _state(dp) == "photos"
+
+    page = client.get(f"/gates/{dp}/photos")
+    assert page.status_code == 200
+    assert 'id="photos"' in page.text                      # reused upload panel
+    assert f"/gates/{dp}/photos/continue" in page.text     # skip/continue action
+
+    cont = client.post(
+        f"/gates/{dp}/photos/continue",
+        headers={"HX-Request": "true"},
+        follow_redirects=False,
+    )
+    assert cont.status_code == 204
+    assert cont.headers["HX-Redirect"] == f"/gates/{dp}/ads"
+    assert _state(dp) == "drafted"
 
 
 def test_board_delete_removes_the_record():
@@ -384,13 +420,15 @@ def test_first_draft_renders_ad_only_then_full_set_on_approve():
     _login_admin(client)
     manifest = _TMP / f"DP{dp}" / "artifacts" / "manifest.json"
 
-    # Sign off gate 1 (resolve the garage conflict) -> drafted; the FIRST DRAFT
-    # renders the branded ad only (D39).
+    # Sign off gate 1 (resolve the garage conflict) -> add-photos step, then
+    # continue -> drafted; the FIRST DRAFT renders the branded ad only (D39).
     client.post(
         f"/gates/{dp}/verify",
         data={"conflict_source__garages": "property_report"},
         follow_redirects=False,
     )
+    assert _state(dp) == "photos"
+    client.post(f"/gates/{dp}/photos/continue", follow_redirects=False)
     assert _state(dp) == "drafted"
     fmts = [a["fmt"] for a in _json.loads(manifest.read_text())]
     assert fmts == ["demo_ad"], fmts
@@ -625,7 +663,7 @@ def test_board_gate_links_use_the_valid_shape():
     _login_admin(client)
     board = client.get("/board")
     assert board.status_code == 200
-    assert f"/gates/{dp}/ads" in board.text      # fixed href shape
+    assert f"/gates/{dp}/photos" in board.text   # verified -> add-photos step
     assert f"/gates/ad/{dp}" not in board.text   # old broken shape is gone
 
 

@@ -143,7 +143,7 @@ def _signoff(db_path: str, dp: str, gate: str, user: str, note: str) -> None:
 # copy, info pack, banners, board, tile) is generated after the ad is approved
 # (owner directive D39). These are the pre-approval states, where only the ad
 # exists; from "approved" onward the full set renders.
-_AD_ONLY_STATES = frozenset({"extracted", "flags_raised", "verified", "drafted"})
+_AD_ONLY_STATES = frozenset({"extracted", "flags_raised", "verified", "photos", "drafted"})
 AD_FORMAT = "demo_ad"
 
 
@@ -398,10 +398,48 @@ async def gate1_signoff(dp: str, request: Request, user: dict = Depends(require_
     finally:
         store.close()
 
-    # Signed off -> verified. Draft the artifacts and advance to gate 2.
+    # Signed off -> verified. Before drafting the ad, offer an "add photos" step
+    # (D-log): the marketer can upload property photos (or skip) so the very
+    # first render already has them, rather than building a text-only ad first.
+    _advance(db_path, dp, "photos", note=f"gate 1 signed off by {user['email']}")
+    return RedirectResponse(url=f"/gates/{dp}/photos", status_code=303)
+
+
+# --- photos step (optional, between gate 1 and gate 2) --------------------
+
+@router.get("/{dp}/photos", response_class=HTMLResponse)
+def gate_photos_page(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
+    """The add-photos step after gate 1: upload property photos (or skip) so the
+    first ad render already carries them. Reuses the gate-2 photos panel and a
+    live ad preview; the upload / set-lead / remove actions are the same routes."""
+    db_path = _db(request)
+    record = _load(db_path, dp)
+    return templates.TemplateResponse(
+        request,
+        "gate_photos.html",
+        {
+            "user": user,
+            "dp": dp,
+            "state": _state(db_path, dp),
+            "headline": (record.marketing.headline if record.marketing else None),
+            "photos": _photo_view(db_path, dp, record),
+            "tiles": _gallery(db_path, dp),
+        },
+    )
+
+
+@router.post("/{dp}/photos/continue")
+def gate_photos_continue(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
+    """Leave the photos step: make sure the ad is rendered, then advance to gate
+    2. Both "Continue to ad review" and "Skip for now" post here (skip just means
+    no photos were added)."""
+    db_path = _db(request)
     _render(db_path, dp)
-    _advance(db_path, dp, "drafted", note=f"drafts generated after sign-off by {user['email']}")
-    return RedirectResponse(url=f"/gates/{dp}/ads", status_code=303)
+    _advance(db_path, dp, "drafted", note=f"photos step completed by {user['email']}")
+    target = f"/gates/{dp}/ads"
+    if request.headers.get("HX-Request"):
+        return Response(status_code=204, headers={"HX-Redirect": target})
+    return RedirectResponse(url=target, status_code=303)
 
 
 # --- gate 2: ad review ----------------------------------------------------

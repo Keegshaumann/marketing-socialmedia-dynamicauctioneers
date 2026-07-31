@@ -50,7 +50,8 @@ def _next_action(dp: str, state: str) -> Dict[str, Any]:
         "intake":          ("Awaiting extraction", None, "muted"),
         "extracted":       ("Verify", f"/gates/{dp}/verify", "primary"),
         "flags_raised":    ("Review flags", f"/gates/{dp}/verify", "primary"),
-        "verified":        ("Draft ad", f"/gates/{dp}/ads", "primary"),
+        "verified":        ("Add photos", f"/gates/{dp}/photos", "primary"),
+        "photos":          ("Add photos", f"/gates/{dp}/photos", "primary"),
         "drafted":         ("Review ad", f"/gates/{dp}/ads", "gold"),
         "approved":        ("Client approval", f"/gates/{dp}/client", "gold"),
         "client_approved": ("Build assets", f"/artifacts/{dp}", "primary"),
@@ -73,7 +74,7 @@ def _next_action(dp: str, state: str) -> Dict[str, Any]:
 STAGES = ("Intake", "Verify", "Draft", "Approve", "Live")
 _STAGE_INDEX = {
     "intake": 0, "extracted": 1, "flags_raised": 1, "verified": 2,
-    "drafted": 2, "approved": 3, "client_approved": 3, "assets_built": 3,
+    "photos": 2, "drafted": 2, "approved": 3, "client_approved": 3, "assets_built": 3,
     "live": 4, "updated": 4, "sold": 4, "withdrawn": 4, "archived": 4,
 }
 

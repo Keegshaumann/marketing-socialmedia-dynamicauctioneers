@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as ui %}
+
+{% block title %}Add photos{% endblock %}
+{% block heading %}Add photos{% endblock %}
+{% block subheading %}
+  <div class="topbar__sub">DP {{ dp }}{% if headline %} &middot; {{ headline }}{% endif %}</div>
+{% endblock %}
+{% block topbar_actions %}
+  <a class="btn btn--ghost btn--sm" href="/board">{{ ui.icon('arrow', 'icon--sm icon--flip') }}<span>Back to board</span></a>
+  {{ ui.state_badge(state) }}
+{% endblock %}
+
+{% block content %}
+  <div class="banner banner--note">
+    {{ ui.icon('photo') }}
+    <div class="banner__body">
+      <div class="banner__title">Add photos before the advert is drafted</div>
+      <div>Upload photos of the property so the first advert already shows them.
+        No photos yet? Skip for now and add them later on the ad-review screen.</div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:18px">
+    <div class="panel__head">
+      <div class="panel__title">Property photos</div>
+      <div class="panel__actions"><span class="hint">The lead photo is the main image on every advert.</span></div>
+    </div>
+    <div class="panel__body">
+      {% include 'partials/_gate2_photos.html' %}
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:18px">
+    <div class="panel__head">
+      <div class="panel__title">Advert preview</div>
+      <div class="panel__actions"><span class="hint">Updates as you add photos. Full review and approval come next.</span></div>
+    </div>
+    <div class="panel__body">
+      {% include 'partials/_gate2_gallery.html' %}
+    </div>
+  </div>
+
+  <div class="actionbar">
+    <div class="actionbar__note">Both options take you to ad review, where you can still add or change photos.</div>
+    <div class="spacer"></div>
+    {{ ui.button('Skip for now', variant='ghost', icon_name='arrow', type='button',
+        attrs='hx-post="/gates/' ~ dp ~ '/photos/continue"'|safe) }}
+    {{ ui.button('Continue to ad review', variant='gold', icon_name='check', type='button',
+        attrs='hx-post="/gates/' ~ dp ~ '/photos/continue"'|safe) }}
+  </div>
+{% endblock %}

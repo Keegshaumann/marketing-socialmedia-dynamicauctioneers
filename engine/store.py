@@ -42,7 +42,10 @@ ALLOWED_TRANSITIONS: Dict[str, Set[str]] = {
     "intake": {"extracted"},
     "extracted": {"flags_raised", "verified"},
     "flags_raised": {"verified"},
-    "verified": {"drafted"},
+    # After gate 1 the web flow inserts an optional "add photos" step before the
+    # ad is drafted; "verified -> drafted" stays legal for programmatic paths.
+    "verified": {"photos", "drafted"},
+    "photos": {"drafted"},
     "drafted": {"approved"},
     "approved": {"client_approved"},
     "client_approved": {"assets_built"},
