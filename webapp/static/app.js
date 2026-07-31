@@ -143,8 +143,12 @@
       setTimeout(function () { if (node.parentNode) node.parentNode.removeChild(node); }, 220);
     }, delay || 4200);
   }
-  function armToasts(root) {
-    (root || document).querySelectorAll('.toast:not([data-armed])').forEach(function (t) {
+  function armToasts() {
+    // Toasts always live in #toasts and arrive via an OOB swap, so the swap
+    // target (e.g. #photos) never contains them. Scan the whole document; the
+    // data-armed flag makes this idempotent, so re-scanning on every swap is
+    // safe and guarantees a newly OOB-added toast gets its dismiss timer.
+    document.querySelectorAll('.toast:not([data-armed])').forEach(function (t) {
       t.setAttribute('data-armed', '1');
       dismiss(t, parseInt(t.getAttribute('data-ttl') || '4200', 10));
     });

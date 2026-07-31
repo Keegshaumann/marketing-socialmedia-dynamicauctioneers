@@ -600,12 +600,18 @@ img { max-width: 100%; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 1.6s; } }
-/* while the intake form's request is in flight: lock the submit button and
-   swap its label/icon for the spinner, so it cannot be clicked twice */
-form.htmx-request [data-intake-submit] { pointer-events: none; opacity: .9; }
+/* while a form's request is in flight: lock its submit button and swap the
+   label/icon for the spinner, so it cannot be clicked twice and the user can
+   see it is busy. htmx puts .htmx-request on the FORM, not the button, so the
+   .btn.htmx-request rule below never catches a form-submit button. */
+form.htmx-request [data-intake-submit],
+form.htmx-request button[type="submit"] { pointer-events: none; opacity: .9; }
 form.htmx-request [data-intake-submit] > .icon,
-form.htmx-request [data-intake-submit] > span:not(.spinner) { display: none; }
-form.htmx-request [data-intake-submit] .spinner { display: inline-block; }
+form.htmx-request [data-intake-submit] > span:not(.spinner),
+form.htmx-request button[type="submit"] > .icon,
+form.htmx-request button[type="submit"] > span:not(.spinner) { display: none; }
+form.htmx-request [data-intake-submit] .spinner,
+form.htmx-request button[type="submit"] .spinner { display: inline-block; }
 /* generic: a button that makes its OWN request (e.g. Auto-generate headline)
    locks and swaps its label for the spinner while in flight */
 .btn.htmx-request, .btn.is-submitting { pointer-events: none; opacity: .9; }
