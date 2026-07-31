@@ -9286,7 +9286,7 @@
         "kind": 2,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "def gate2_artifact(dp: str, fmt: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"Serve one rendered artifact file (PII-free: rendered from public_view).\"\"\"\n    if fmt not in FORMATS:\n        raise HTTPException(status_code=404, detail=\"Unknown format.\")\n    db_path = _db(request)\n    for art in _manifest(db_path, dp):\n        if art.get(\"fmt\") == fmt and art.get(\"path\"):\n            path = Path(art[\"path\"])\n            if path.exists():\n                return FileResponse(str(path), media_type=art.get(\"mime\") or \"text/plain\")",
+        "peekOfCode": "def gate2_artifact(dp: str, fmt: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"Serve one rendered artifact file (PII-free: rendered from public_view).\"\"\"\n    if fmt not in FORMATS:\n        raise HTTPException(status_code=404, detail=\"Unknown format.\")\n    db_path = _db(request)\n    for art in _manifest(db_path, dp):\n        if art.get(\"fmt\") == fmt and art.get(\"path\"):\n            path = Path(art[\"path\"])\n            if path.exists():\n                # no-cache: the preview re-renders as the record/photos change, so",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -9313,7 +9313,7 @@
         "kind": 2,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "def ad_template_thumb(template_id: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"A cached sample-data preview of an ad design, for the gate-2 picker (D41).\"\"\"\n    from engine.render import ad_templates\n    from engine.render.ad_thumbs import thumbnail\n    if template_id not in ad_templates.template_ids():\n        raise HTTPException(status_code=404, detail=\"Unknown ad template.\")\n    png = thumbnail(template_id, _output_root(_db(request)))\n    if png is None:\n        raise HTTPException(status_code=503, detail=\"Preview unavailable (rasteriser not installed).\")\n    return FileResponse(str(png), media_type=\"image/png\")",
+        "peekOfCode": "def ad_template_thumb(template_id: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"A cached sample-data preview of an ad design, for the gate-2 picker (D41).\"\"\"\n    from engine.render import ad_templates\n    from engine.render.ad_thumbs import thumbnail\n    if template_id not in ad_templates.template_ids():\n        raise HTTPException(status_code=404, detail=\"Unknown ad template.\")\n    png = thumbnail(template_id, _output_root(_db(request)))\n    if png is None:\n        raise HTTPException(status_code=503, detail=\"Preview unavailable (rasteriser not installed).\")\n    # no-cache so a regenerated design thumbnail (after a template change) is",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
