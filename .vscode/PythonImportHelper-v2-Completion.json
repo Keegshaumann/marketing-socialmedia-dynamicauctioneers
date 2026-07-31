@@ -8382,6 +8382,15 @@
         "documentation": {}
     },
     {
+        "label": "test_photos_step_renders_and_continue_drafts",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_photos_step_renders_and_continue_drafts():\n    # After gate 1 the record sits on the add-photos step; the page reuses the\n    # gate-2 photos panel, and Continue/Skip drafts the ad onto gate 2.\n    _needs_golden()\n    dp = \"9030\"\n    _golden_clone(dp)\n    client = _client()\n    _login_admin(client)\n    client.post(\n        f\"/gates/{dp}/verify\",",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
         "label": "test_board_delete_removes_the_record",
         "kind": 2,
         "importPath": "tests.test_webapp",
@@ -8395,7 +8404,7 @@
         "kind": 2,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "def test_first_draft_renders_ad_only_then_full_set_on_approve():\n    import json as _json\n    _needs_golden()\n    dp = \"9020\"\n    _golden_clone(dp)\n    client = _client()\n    _login_admin(client)\n    manifest = _TMP / f\"DP{dp}\" / \"artifacts\" / \"manifest.json\"\n    # Sign off gate 1 (resolve the garage conflict) -> drafted; the FIRST DRAFT\n    # renders the branded ad only (D39).",
+        "peekOfCode": "def test_first_draft_renders_ad_only_then_full_set_on_approve():\n    import json as _json\n    _needs_golden()\n    dp = \"9020\"\n    _golden_clone(dp)\n    client = _client()\n    _login_admin(client)\n    manifest = _TMP / f\"DP{dp}\" / \"artifacts\" / \"manifest.json\"\n    # Sign off gate 1 (resolve the garage conflict) -> add-photos step, then\n    # continue -> drafted; the FIRST DRAFT renders the branded ad only (D39).",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -8485,7 +8494,7 @@
         "kind": 2,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "def test_board_gate_links_use_the_valid_shape():\n    dp = \"7104\"\n    _seed_minimal(dp, \"verified\")\n    client = _client()\n    _login_admin(client)\n    board = client.get(\"/board\")\n    assert board.status_code == 200\n    assert f\"/gates/{dp}/ads\" in board.text      # fixed href shape\n    assert f\"/gates/ad/{dp}\" not in board.text   # old broken shape is gone\ndef test_live_edit_reopens_and_applies_override():",
+        "peekOfCode": "def test_board_gate_links_use_the_valid_shape():\n    dp = \"7104\"\n    _seed_minimal(dp, \"verified\")\n    client = _client()\n    _login_admin(client)\n    board = client.get(\"/board\")\n    assert board.status_code == 200\n    assert f\"/gates/{dp}/photos\" in board.text   # verified -> add-photos step\n    assert f\"/gates/ad/{dp}\" not in board.text   # old broken shape is gone\ndef test_live_edit_reopens_and_applies_override():",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -9160,7 +9169,7 @@
         "kind": 5,
         "importPath": "webapp.routes.board",
         "description": "webapp.routes.board",
-        "peekOfCode": "STAGES = (\"Intake\", \"Verify\", \"Draft\", \"Approve\", \"Live\")\n_STAGE_INDEX = {\n    \"intake\": 0, \"extracted\": 1, \"flags_raised\": 1, \"verified\": 2,\n    \"drafted\": 2, \"approved\": 3, \"client_approved\": 3, \"assets_built\": 3,\n    \"live\": 4, \"updated\": 4, \"sold\": 4, \"withdrawn\": 4, \"archived\": 4,\n}\ndef _pipeline_stage(state: str) -> int:\n    return _STAGE_INDEX.get(state, 0)\ndef _deck_stats(rows: List[Dict[str, Any]]) -> Dict[str, int]:\n    \"\"\"The command-deck KPIs: live listings, the action queue, open flags, total.\"\"\"",
+        "peekOfCode": "STAGES = (\"Intake\", \"Verify\", \"Draft\", \"Approve\", \"Live\")\n_STAGE_INDEX = {\n    \"intake\": 0, \"extracted\": 1, \"flags_raised\": 1, \"verified\": 2,\n    \"photos\": 2, \"drafted\": 2, \"approved\": 3, \"client_approved\": 3, \"assets_built\": 3,\n    \"live\": 4, \"updated\": 4, \"sold\": 4, \"withdrawn\": 4, \"archived\": 4,\n}\ndef _pipeline_stage(state: str) -> int:\n    return _STAGE_INDEX.get(state, 0)\ndef _deck_stats(rows: List[Dict[str, Any]]) -> Dict[str, int]:\n    \"\"\"The command-deck KPIs: live listings, the action queue, open flags, total.\"\"\"",
         "detail": "webapp.routes.board",
         "documentation": {}
     },
@@ -9169,7 +9178,7 @@
         "kind": 5,
         "importPath": "webapp.routes.board",
         "description": "webapp.routes.board",
-        "peekOfCode": "_STAGE_INDEX = {\n    \"intake\": 0, \"extracted\": 1, \"flags_raised\": 1, \"verified\": 2,\n    \"drafted\": 2, \"approved\": 3, \"client_approved\": 3, \"assets_built\": 3,\n    \"live\": 4, \"updated\": 4, \"sold\": 4, \"withdrawn\": 4, \"archived\": 4,\n}\ndef _pipeline_stage(state: str) -> int:\n    return _STAGE_INDEX.get(state, 0)\ndef _deck_stats(rows: List[Dict[str, Any]]) -> Dict[str, int]:\n    \"\"\"The command-deck KPIs: live listings, the action queue, open flags, total.\"\"\"\n    live = sum(1 for r in rows if r[\"state\"] in (\"live\", \"updated\"))",
+        "peekOfCode": "_STAGE_INDEX = {\n    \"intake\": 0, \"extracted\": 1, \"flags_raised\": 1, \"verified\": 2,\n    \"photos\": 2, \"drafted\": 2, \"approved\": 3, \"client_approved\": 3, \"assets_built\": 3,\n    \"live\": 4, \"updated\": 4, \"sold\": 4, \"withdrawn\": 4, \"archived\": 4,\n}\ndef _pipeline_stage(state: str) -> int:\n    return _STAGE_INDEX.get(state, 0)\ndef _deck_stats(rows: List[Dict[str, Any]]) -> Dict[str, int]:\n    \"\"\"The command-deck KPIs: live listings, the action queue, open flags, total.\"\"\"\n    live = sum(1 for r in rows if r[\"state\"] in (\"live\", \"updated\"))",
         "detail": "webapp.routes.board",
         "documentation": {}
     },
@@ -9233,6 +9242,24 @@
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
         "peekOfCode": "def gate1_page(dp: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    db_path = _db(request)\n    record = _load(db_path, dp)\n    view = _memo_view(record)\n    return templates.TemplateResponse(\n        request,\n        \"gate1_verify.html\",\n        {\n            \"user\": user,\n            \"dp\": dp,",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "gate_photos_page",
+        "kind": 2,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "def gate_photos_page(dp: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"The add-photos step after gate 1: a photos-only screen where the marketer\n    uploads property photos (or skips) so the first ad render already carries\n    them. Reuses the gate-2 photos panel; the ad is not rendered yet (that\n    happens on continue), so this page never shows the advert.\"\"\"\n    db_path = _db(request)\n    record = _load(db_path, dp)\n    return templates.TemplateResponse(\n        request,\n        \"gate_photos.html\",",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "gate_photos_continue",
+        "kind": 2,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "def gate_photos_continue(dp: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"Leave the photos step: make sure the ad is rendered, then advance to gate\n    2. Both \"Continue to ad review\" and \"Skip for now\" post here (skip just means\n    no photos were added).\"\"\"\n    db_path = _db(request)\n    _render(db_path, dp)\n    _advance(db_path, dp, \"drafted\", note=f\"photos step completed by {user['email']}\")\n    target = f\"/gates/{dp}/ads\"\n    if request.headers.get(\"HX-Request\"):\n        return Response(status_code=204, headers={\"HX-Redirect\": target})",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -9367,7 +9394,7 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_AD_ONLY_STATES = frozenset({\"extracted\", \"flags_raised\", \"verified\", \"drafted\"})\nAD_FORMAT = \"demo_ad\"\ndef _formats_for_state(state: Optional[str]) -> Optional[List[str]]:\n    \"\"\"Which formats to render in ``state``: the ad only before approval, the\n    full set (None) once approved (D39).\"\"\"\n    return [AD_FORMAT] if state in _AD_ONLY_STATES else None\ndef _render(db_path: str, dp: str, formats: Any = \"auto\") -> List[Any]:\n    \"\"\"Render the artifacts for ``dp`` from public_view. Never raises upward.\n    ``formats=\"auto\"`` (default) picks the set from the current lifecycle state\n    (ad-only before approval, full after, D39); pass an explicit list/None to",
+        "peekOfCode": "_AD_ONLY_STATES = frozenset({\"extracted\", \"flags_raised\", \"verified\", \"photos\", \"drafted\"})\nAD_FORMAT = \"demo_ad\"\ndef _formats_for_state(state: Optional[str]) -> Optional[List[str]]:\n    \"\"\"Which formats to render in ``state``: the ad only before approval, the\n    full set (None) once approved (D39).\"\"\"\n    return [AD_FORMAT] if state in _AD_ONLY_STATES else None\ndef _render(db_path: str, dp: str, formats: Any = \"auto\") -> List[Any]:\n    \"\"\"Render the artifacts for ``dp`` from public_view. Never raises upward.\n    ``formats=\"auto\"`` (default) picks the set from the current lifecycle state\n    (ad-only before approval, full after, D39); pass an explicit list/None to",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
