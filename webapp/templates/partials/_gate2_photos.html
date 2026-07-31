@@ -1,7 +1,7 @@
 {% import '_macros.html' as ui %}
 <div id="photos" class="stack"{% if oob %} hx-swap-oob="true"{% endif %}>
   <form hx-post="/gates/{{ dp }}/ads/photos/upload" hx-encoding="multipart/form-data"
-        hx-target="#gallery" hx-swap="outerHTML" class="stack">
+        hx-target="#photos" hx-swap="outerHTML" class="stack">
     <div class="field">
       <label class="label" for="photo-files">Add photos</label>
       <input class="input" type="file" id="photo-files" name="files" accept="image/*" multiple>
@@ -28,11 +28,11 @@
           <span class="badge badge--ok"><span class="dot"></span>Lead</span>
         {% else %}
           <button class="btn btn--ghost btn--sm" hx-post="/gates/{{ dp }}/ads/photos/hero"
-                  hx-vals='{{ {"name": p.name} | tojson }}' hx-target="#gallery" hx-swap="outerHTML">
+                  hx-vals='{{ {"name": p.name} | tojson }}' hx-target="#photos" hx-swap="outerHTML">
             {{ ui.icon('check', 'icon--sm') }}<span>Lead</span></button>
         {% endif %}
         <button class="btn btn--ghost btn--sm" hx-post="/gates/{{ dp }}/ads/photos/delete"
-                hx-vals='{{ {"name": p.name} | tojson }}' hx-target="#gallery" hx-swap="outerHTML"
+                hx-vals='{{ {"name": p.name} | tojson }}' hx-target="#photos" hx-swap="outerHTML"
                 hx-confirm="Remove this photo from the adverts?">
           {{ ui.icon('x', 'icon--sm') }}<span>Remove</span></button>
       </div>

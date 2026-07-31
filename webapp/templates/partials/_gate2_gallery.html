@@ -1,5 +1,5 @@
 {% import '_macros.html' as ui %}
-<div id="gallery" class="gallery-grid">
+<div id="gallery" class="gallery-grid"{% if gallery_oob %} hx-swap-oob="true"{% endif %}>
   {% for t in tiles %}
     <div class="tile stagger" style="--i:{{ loop.index0 }}">
       <div class="tile__body">

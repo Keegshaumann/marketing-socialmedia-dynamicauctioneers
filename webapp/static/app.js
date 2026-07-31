@@ -223,6 +223,18 @@
 
   function init(root) { wireDropzones(root); armToasts(root); wireSweeps(root); wireEmailAd(root); wireAdtpl(root); wireAuctionPanel(root); }
 
+  // A plain (non-HTMX) form submit does a full-page nav; swap the submit
+  // button's label for its spinner so the click has immediate feedback. HTMX
+  // forms get .htmx-request instead, so they are skipped here.
+  document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (!form || form.nodeName !== 'FORM') return;
+    if (form.hasAttribute('hx-post') || form.hasAttribute('hx-get') ||
+        form.hasAttribute('hx-put') || form.hasAttribute('hx-delete')) return;
+    var btn = form.querySelector('[type="submit"]');
+    if (btn) btn.classList.add('is-submitting');
+  });
+
   document.addEventListener('DOMContentLoaded', function () { configHtmx(); init(document); });
   // re-wire content swapped in by HTMX
   document.body && document.body.addEventListener &&

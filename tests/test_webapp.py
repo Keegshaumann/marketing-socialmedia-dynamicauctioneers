@@ -380,6 +380,8 @@ def test_photos_step_renders_and_continue_drafts():
     page = client.get(f"/gates/{dp}/photos")
     assert page.status_code == 200
     assert 'id="photos"' in page.text                      # reused upload panel
+    assert 'id="gallery"' not in page.text                 # photos-only: no advert preview
+    assert 'hx-target="#photos"' in page.text              # photo actions swap the panel
     assert f"/gates/{dp}/photos/continue" in page.text     # skip/continue action
 
     cont = client.post(

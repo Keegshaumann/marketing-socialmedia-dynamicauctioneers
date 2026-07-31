@@ -1,5 +1,7 @@
-{# Photo-action response: swap the rendered-adverts gallery (main target) and
-   refresh the photos panel out-of-band, since a photo change re-renders both. #}
+{# Photo-action response. The photos panel is the primary swap (target #photos),
+   so it works on the photos-only step where there is no advert gallery. The
+   rendered-adverts gallery updates out-of-band when it is on the page (gate 2);
+   on the photos step there is no #gallery, so the OOB swap is simply skipped. #}
+{% set gallery_oob = true %}
 {% include 'partials/_gate2_gallery.html' %}
-{% set oob = true %}
 {% include 'partials/_gate2_photos.html' %}

@@ -409,9 +409,10 @@ async def gate1_signoff(dp: str, request: Request, user: dict = Depends(require_
 
 @router.get("/{dp}/photos", response_class=HTMLResponse)
 def gate_photos_page(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
-    """The add-photos step after gate 1: upload property photos (or skip) so the
-    first ad render already carries them. Reuses the gate-2 photos panel and a
-    live ad preview; the upload / set-lead / remove actions are the same routes."""
+    """The add-photos step after gate 1: a photos-only screen where the marketer
+    uploads property photos (or skips) so the first ad render already carries
+    them. Reuses the gate-2 photos panel; the ad is not rendered yet (that
+    happens on continue), so this page never shows the advert."""
     db_path = _db(request)
     record = _load(db_path, dp)
     return templates.TemplateResponse(
@@ -423,7 +424,6 @@ def gate_photos_page(dp: str, request: Request, user: dict = Depends(require_rol
             "state": _state(db_path, dp),
             "headline": (record.marketing.headline if record.marketing else None),
             "photos": _photo_view(db_path, dp, record),
-            "tiles": _gallery(db_path, dp),
         },
     )
 
