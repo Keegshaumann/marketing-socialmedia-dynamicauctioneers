@@ -35,8 +35,8 @@
     <div class="actionbar__note">Both options take you to ad review, where you can still add or change photos.</div>
     <div class="spacer"></div>
     {{ ui.button('Skip for now', variant='ghost', icon_name='arrow', type='button',
-        attrs='hx-post="/gates/' ~ dp ~ '/photos/continue"'|safe) }}
+        attrs='hx-post="/gates/' ~ dp ~ '/photos/continue"') }}
     {{ ui.button('Continue to ad review', variant='gold', icon_name='check', type='button',
-        attrs='hx-post="/gates/' ~ dp ~ '/photos/continue"'|safe) }}
+        attrs='hx-post="/gates/' ~ dp ~ '/photos/continue"') }}
   </div>
 {% endblock %}

@@ -201,8 +201,8 @@
     </div>
     <div class="spacer"></div>
     {{ ui.button('Request changes', variant='ghost', icon_name='note', type='button',
-        attrs='hx-post="/gates/' ~ dp ~ '/ads/changes" hx-target="#gallery" hx-swap="outerHTML"'|safe) }}
+        attrs='hx-post="/gates/' ~ dp ~ '/ads/changes" hx-target="#gallery" hx-swap="outerHTML"') }}
     {{ ui.button('Approve adverts', variant='gold', icon_name='check', type='button',
-        attrs='hx-post="/gates/' ~ dp ~ '/ads/approve" data-gold-sweep'|safe) }}
+        attrs='hx-post="/gates/' ~ dp ~ '/ads/approve" data-gold-sweep') }}
   </div>
 {% endblock %}

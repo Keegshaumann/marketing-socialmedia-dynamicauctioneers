@@ -382,7 +382,10 @@ def test_photos_step_renders_and_continue_drafts():
     assert 'id="photos"' in page.text                      # reused upload panel
     assert 'id="gallery"' not in page.text                 # photos-only: no advert preview
     assert 'hx-target="#photos"' in page.text              # photo actions swap the panel
-    assert f"/gates/{dp}/photos/continue" in page.text     # skip/continue action
+    # The continue/skip hx-post must be a well-formed URL (not quote-corrupted by
+    # the |safe/~ precedence bug that made htmx treat it as a relative path).
+    assert f'hx-post="/gates/{dp}/photos/continue"' in page.text
+    assert "&#34;/gates" not in page.text                  # no escaped-quote corruption
 
     cont = client.post(
         f"/gates/{dp}/photos/continue",
@@ -619,6 +622,10 @@ def test_poison_pii_absent_from_gate2_view_and_board():
     assert ads.status_code == 200, ads.text
     for marker in POISON_MARKERS:
         assert marker not in ads.text, f"{marker} leaked into the gate-2 view"
+    # The approve/changes buttons must carry well-formed hx-post URLs (guards the
+    # |safe/~ quote-corruption that made htmx post to a relative 404 path).
+    assert f'hx-post="/gates/{dp}/ads/approve"' in ads.text
+    assert "&#34;/gates" not in ads.text
 
     # The board must not surface any PII either (it reads only indexed columns).
     board = client.get("/board")
