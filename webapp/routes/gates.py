@@ -519,7 +519,15 @@ def gate2_artifact(dp: str, fmt: str, request: Request, user: dict = Depends(req
         if art.get("fmt") == fmt and art.get("path"):
             path = Path(art["path"])
             if path.exists():
-                return FileResponse(str(path), media_type=art.get("mime") or "text/plain")
+                # no-cache: the preview re-renders as the record/photos change, so
+                # the browser must revalidate rather than serve a stale copy (a
+                # cached copy also kept stale response headers, e.g. the old
+                # X-Frame-Options, which had blocked the preview iframe).
+                return FileResponse(
+                    str(path),
+                    media_type=art.get("mime") or "text/plain",
+                    headers={"Cache-Control": "no-cache"},
+                )
     raise HTTPException(status_code=404, detail="Artifact not rendered yet.")
 
 
@@ -973,7 +981,9 @@ def ad_template_thumb(template_id: str, request: Request, user: dict = Depends(r
     png = thumbnail(template_id, _output_root(_db(request)))
     if png is None:
         raise HTTPException(status_code=503, detail="Preview unavailable (rasteriser not installed).")
-    return FileResponse(str(png), media_type="image/png")
+    # no-cache so a regenerated design thumbnail (after a template change) is
+    # revalidated rather than served stale from the browser cache.
+    return FileResponse(str(png), media_type="image/png", headers={"Cache-Control": "no-cache"})
 
 
 @router.post("/{dp}/ads/template", response_class=HTMLResponse)
