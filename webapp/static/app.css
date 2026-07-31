@@ -840,6 +840,12 @@ pre.card { color: var(--text); font-size: 12.5px; line-height: 1.6; }
   #status-board .htmx-added,
   #status-board.htmx-added { animation: none; opacity: 1; }
 
+  /* Self-polling intake card: it re-swaps every 1.2s, so don't fade the whole
+     panel out and back on each tick. The one-time entrance on settle still
+     plays via the `enter` class. */
+  .job-card.htmx-added { animation: none; opacity: 1; }
+  .job-card.htmx-swapping { opacity: 1; transform: none; transition: none; }
+
   /* blur-to-sharp bridge on a freshly changed state badge */
   .polish-blur-bridge { animation: blur-bridge 360ms var(--ease); }
   @keyframes blur-bridge { from { filter: blur(4px); opacity: .4; } to { filter: none; opacity: 1; } }

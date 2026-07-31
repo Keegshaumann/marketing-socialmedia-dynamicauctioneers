@@ -3,7 +3,7 @@
    swaps to a final banner with a link to the board. -#}
 {#- `enter` only when settled: while polling the card re-swaps every 1.2s and
    the @starting-style entrance would re-play each time (a visible flicker). -#}
-<div id="job-{{ job.id }}" class="panel{% if not polling %} enter{% endif %}"
+<div id="job-{{ job.id }}" class="panel job-card{% if not polling %} enter{% endif %}"
      {% if polling %}hx-get="/intake/job/{{ job.id }}" hx-trigger="load delay:1200ms"
         hx-swap="outerHTML" hx-target="#job-{{ job.id }}"{% endif %}>
   <div class="panel__head">
