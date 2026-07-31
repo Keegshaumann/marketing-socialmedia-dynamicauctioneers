@@ -40,12 +40,7 @@
     background: var(--sheet); padding: 22px 44px;
   }
   .lh-brand { display: flex; align-items: center; gap: 16px; }
-  .lh-mark {
-    font-weight: 800; font-size: 34px; letter-spacing: -.04em;
-    color: var(--ink); border: 3px solid var(--gold); padding: 2px 10px; line-height: 1;
-  }
-  .lh-name { font-size: 22px; font-weight: 800; letter-spacing: .14em; color: var(--ink); }
-  .lh-name b { color: var(--gold-deep); font-weight: 800; }
+  .lh-logo { height: 78px; width: auto; display: block; }
   .lh-contact { font-size: 12px; line-height: 1.7; color: var(--body); text-align: right; }
   .lh-contact .lh-web { color: var(--gold-deep); font-weight: 600; }
   .reg {
@@ -63,8 +58,9 @@
 {% macro letterhead(vm) %}
   <div class="lh">
     <div class="lh-brand">
-      <span class="lh-mark">DS</span>
-      <span class="lh-name">DYNAMIC <b>{{ 'AUCTIONEERS' if vm.method == 'auction' else 'REAL ESTATE' }}</b></span>
+      <img class="lh-logo"
+           src="{{ asset_uri('ads/_assets/logo-' ~ ('auctioneers' if vm.method == 'auction' else 'realestate') ~ '-dark.png') }}"
+           alt="Dynamic {{ 'Auctioneers' if vm.method == 'auction' else 'Real Estate' }}">
     </div>
     <div class="lh-contact">
       <div>{{ vm.brand_phone }}</div>

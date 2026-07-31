@@ -125,7 +125,7 @@ def test_demo_ad_renders_real_facts_and_brand_tokens(golden_record, tmp_path):
     # Real brand tokens / chrome.
     assert "086 155 2288" in html  # brand phone
     assert "Montserrat" in html  # brand font stack
-    assert "DYNAMIC" in html  # brand letterhead
+    assert "lh-logo" in html  # brand letterhead now carries the real logo image
 
 
 # --- the DP shows as PROPERTY REF on ads (D42), never on the board tile ---

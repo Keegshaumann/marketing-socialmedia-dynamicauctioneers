@@ -92,5 +92,6 @@
   <button type="{{ type }}" class="btn btn--{{ variant }}{{ ' btn--' ~ size if size else '' }}" {{ attrs|safe }}>
     {%- if icon_name %}{{ icon(icon_name) }}{% endif -%}
     <span>{{ label }}</span>
+    <span class="spinner" aria-hidden="true"></span>
   </button>
 {%- endmacro %}
