@@ -623,23 +623,38 @@ def _photo_view(db_path: str, dp: str, record: PropertyRecord) -> List[Dict[str,
 
 
 def _save_photos(db_path: str, dp: str, full: List[str], user: str) -> None:
-    """Persist an ordered photo list (hero = first) and re-render, once."""
+    """Persist an ordered photo list (hero = first).
+
+    On the add-photos step (state ``photos``) the ad is not shown, so we save the
+    picks WITHOUT rendering - the single render happens on "continue". Everywhere
+    else (gate 2, a live repost) we render only the state-appropriate formats
+    (ad-only before approval, D39) rather than all nine, so a lead/upload change
+    is a second or two, not a full-pack rebuild."""
     hero = full[0] if full else None
     gallery = full[1:] if len(full) > 1 else []
     store = _store(db_path)
     try:
-        apply_photos(dp, store, hero, gallery, user, output_root=_output_root(db_path))
+        state = store.get_state(dp)
+        if state == "photos":
+            apply_photos(dp, store, hero, gallery, user, output_root=_output_root(db_path), render=False)
+        else:
+            apply_photos(dp, store, hero, gallery, user,
+                         output_root=_output_root(db_path), formats=_formats_for_state(state))
     finally:
         store.close()
 
 
 def _photo_result(request: Request, db_path: str, dp: str, toast: Dict[str, Any]):
-    """Action response: swap the rendered-adverts gallery + the photos panel (OOB)."""
+    """Action response: refresh the photos panel (primary swap) and, on gate 2,
+    the rendered-adverts gallery out-of-band. On the add-photos step there is no
+    gallery and nothing is rendered yet, so we skip building it (which would
+    otherwise trigger a render) and just return the panel."""
     record = _load(db_path, dp)
+    tiles = [] if _state(db_path, dp) == "photos" else _gallery(db_path, dp)
     return templates.TemplateResponse(
         request,
         "partials/_gate2_photo_result.html",
-        {"dp": dp, "tiles": _gallery(db_path, dp), "photos": _photo_view(db_path, dp, record), "toast": toast},
+        {"dp": dp, "tiles": tiles, "photos": _photo_view(db_path, dp, record), "toast": toast},
     )
 
 

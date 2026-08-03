@@ -528,15 +528,21 @@ def apply_photos(
     backend: Optional[str] = None,
     output_root: str = ".",
     client=None,
+    formats: Optional[List[str]] = None,
+    render: bool = True,
 ) -> EditChange:
     """Set the record's hero + gallery photo picks (canonical) and re-render.
 
     Photos are written to the canonical ``marketing.hero_photo``/``gallery`` fields
     (not ``human_overrides``) so both the html backend and Canva (which uploads
     ``request.photos``) pick them up. Paths are stored relative to the DP folder
-    (``photos/x.png``). The change is logged on the audit trail and every artifact
-    re-rendered once. The ``live -> updated`` reopen a live change needs is owned
-    by the caller, as for ``apply_edits``.
+    (``photos/x.png``). The change is logged on the audit trail.
+
+    ``formats`` limits the re-render to that subset (default None = the full set);
+    pass the state-appropriate set so a photo tweak before approval only rebuilds
+    the ad, not all nine artifacts. ``render=False`` saves the picks WITHOUT
+    rendering at all (the add-photos step defers the first render to "continue").
+    The ``live -> updated`` reopen a live change needs is owned by the caller.
     """
     record = _load_record(dp, store)
     if record.marketing is None:
@@ -548,8 +554,10 @@ def apply_photos(
     store.record_signoff(
         dp, gate="edit", user=user, note=f"photos: {total} (hero={hero or 'none'})"
     )
-    artifacts = render_all(
-        dp, store, backend=backend, output_root=output_root, client=client
+    artifacts = (
+        render_all(dp, store, backend=backend, output_root=output_root, client=client, formats=formats)
+        if render
+        else []
     )
     return EditChange(
         dp=dp,
