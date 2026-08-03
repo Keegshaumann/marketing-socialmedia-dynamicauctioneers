@@ -126,6 +126,10 @@ def test_demo_ad_renders_real_facts_and_brand_tokens(golden_record, tmp_path):
     assert "086 155 2288" in html  # brand phone
     assert "Montserrat" in html  # brand font stack
     assert "ho-hero" in html  # the default Hero-overlay design's branded chrome (D49)
+    # The tight ad contact bar carries only the primary enquiries email; the
+    # second (admin) mailbox is shown on the roomy documents, not the ad.
+    assert "properties@dynamicauctioneers.co.za" in html
+    assert "properties.admin@dynamicauctioneers.co.za" not in html
 
 
 # --- multi-portion extent is summed in code (multi-file intake) ----------
@@ -352,6 +356,9 @@ def test_info_pack_sale_uses_offer_language_not_auction(golden_record, tmp_path)
     assert "On auction" not in html
     # Disclaimers present verbatim.
     assert _LEGAL_DISCLAIMER in html
+    # Both enquiry mailboxes are offered so a buyer can choose who to email.
+    assert "properties@dynamicauctioneers.co.za" in html
+    assert "properties.admin@dynamicauctioneers.co.za" in html
 
 
 def test_info_pack_auction_uses_auction_language_and_details(golden_record, tmp_path):

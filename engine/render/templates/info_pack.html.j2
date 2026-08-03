@@ -135,7 +135,7 @@
     <table class="kv">
       <tr><td>Handled by</td><td>Dynamic Auctioneers</td></tr>
       <tr><td>Telephone</td><td>{{ vm.brand_phone }}</td></tr>
-      <tr><td>Email</td><td>{{ vm.brand_email }}</td></tr>
+      <tr><td>Email</td><td>{{ vm.brand_email }}{% if vm.brand_email_admin %}<br>{{ vm.brand_email_admin }}{% endif %}</td></tr>
       <tr><td>Web</td><td>{{ vm.brand_web }}</td></tr>
       {% if vm.viewing_by_appt %}<tr><td>Viewing</td><td>Strictly by appointment</td></tr>{% endif %}
     </table>

@@ -40,7 +40,7 @@
     <p><strong>{{ vm.badge_label }}.</strong>{% if vm.viewing_by_appt %} Viewing strictly by appointment.{% endif %}</p>
 
     <a class="cta-btn" href="?dp={{ vm.dp }}">View the listing</a>
-    <p style="font-size:13px;color:var(--muted)">Enquiries: {{ vm.brand_phone }} &middot; {{ vm.brand_email }}</p>
+    <p style="font-size:13px;color:var(--muted)">Enquiries: {{ vm.brand_phone }} &middot; {{ vm.brand_email }}{% if vm.brand_email_admin %} &middot; {{ vm.brand_email_admin }}{% endif %}</p>
   </div>
   {{ brand.footer(vm) }}
 </div>

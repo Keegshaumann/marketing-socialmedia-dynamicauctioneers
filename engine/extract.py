@@ -121,7 +121,10 @@ DEFAULT_PACE_SECONDS = 0.0
 
 # Dynamic's public viewing line. Safe to render; the occupant's own cell is
 # POPIA-internal and must never land here.
-DYNAMIC_CONTACT_PUBLIC = "086 155 2288 / properties@dynamicauctioneers.co.za"
+DYNAMIC_CONTACT_PUBLIC = (
+    "086 155 2288 / properties@dynamicauctioneers.co.za / "
+    "properties.admin@dynamicauctioneers.co.za"
+)
 
 # The extraction brief. Stable and self-contained so the prefix caches across
 # runs. It encodes the rules only; the field docs travel with the Pydantic model

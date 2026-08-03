@@ -23,4 +23,4 @@
 {% if vm.viewing_by_appt %}Viewing strictly by appointment.
 
 {% endif %}
-**{{ vm.brand_name }}** | {{ vm.brand_phone }} | {{ vm.brand_email }}
+**{{ vm.brand_name }}** | {{ vm.brand_phone }} | {{ vm.brand_email }}{% if vm.brand_email_admin %} | {{ vm.brand_email_admin }}{% endif %}

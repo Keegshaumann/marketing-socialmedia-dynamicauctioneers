@@ -41,6 +41,10 @@ BRAND: Dict[str, str] = {
     "name": "Dynamic Auctioneers",
     "phone": "086 155 2288",
     "email": "properties@dynamicauctioneers.co.za",
+    # A second public mailbox shown alongside the first on the roomy document
+    # surfaces (info pack, letterhead) so an enquirer can choose who to mail; the
+    # tight ad contact bar keeps only the primary address.
+    "email_admin": "properties.admin@dynamicauctioneers.co.za",
     "web": "dynamicauctioneers.co.za",
     "address": "187 Gouws Avenue, Raslouw AH, Centurion",
     "reg": (
@@ -283,6 +287,7 @@ class HtmlBackend(RenderBackend):
             "brand_name": BRAND["name"],
             "brand_phone": BRAND["phone"],
             "brand_email": BRAND["email"],
+            "brand_email_admin": BRAND["email_admin"],
             "brand_web": BRAND["web"],
             "brand_address": BRAND["address"],
             "brand_reg": BRAND["reg"],

@@ -30,7 +30,7 @@ A new listing has just opened{% if vm.badge_label == "Offers Invited" %} for off
 
 {% endif %}
 {{ vm.brand_name }}
-{{ vm.brand_phone }} | {{ vm.brand_email }}
+{{ vm.brand_phone }} | {{ vm.brand_email }}{% if vm.brand_email_admin %} | {{ vm.brand_email_admin }}{% endif %}
 Registered with the PPRA
 
 ---

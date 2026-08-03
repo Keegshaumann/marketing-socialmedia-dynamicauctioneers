@@ -65,6 +65,7 @@
     <div class="lh-contact">
       <div>{{ vm.brand_phone }}</div>
       <div>{{ vm.brand_email }}</div>
+      {% if vm.brand_email_admin %}<div>{{ vm.brand_email_admin }}</div>{% endif %}
       <div>{{ vm.brand_address }}</div>
       <div class="lh-web">{{ vm.brand_web }}</div>
     </div>
