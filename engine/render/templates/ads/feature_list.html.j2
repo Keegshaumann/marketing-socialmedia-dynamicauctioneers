@@ -15,9 +15,9 @@
 <title>{{ vm.place_line or vm.suburb }} | {{ vm.brand_name }}</title>
 <style>
   {{ brand.tokens_css() }}
-  :root { --g1:#7d5f2b; --g2:#e7d19a; --g3:#b08d4a; --gline:#c9a85f; }
+  :root { --g1:#8a6a38; --g2:#ddc689; --g3:#ac874a; --gline:#ac874a; }
   body { background:#0c0a08; }
-  .ig { width:1080px; height:1350px; margin:0 auto; background:#17130E; color:#F2ECE0;
+  .ig { width:1080px; height:1350px; margin:0 auto; background:#17130E; color:#ffffff;
         position:relative; overflow:hidden; display:flex; flex-direction:column;
         font-family:'Montserrat',system-ui,sans-serif; }
 
@@ -30,11 +30,11 @@
 
   .fl { position:relative; z-index:1; display:flex; flex-direction:column; height:100%; }
 
-  .gold { background:linear-gradient(180deg,#6f5325 0%,#c9a85f 22%,#efdaa6 50%,#c9a85f 78%,#6f5325 100%); }
+  .gold { background:linear-gradient(180deg,#8a6a38 0%,#ac874a 22%,#ddc689 50%,#ac874a 78%,#8a6a38 100%); }
 
   /* Top ref bar */
   .ig-ref { display:flex; justify-content:space-between; padding:16px 40px; font-size:19px; font-weight:800;
-            letter-spacing:.04em; color:#1c1811; text-transform:uppercase; }
+            letter-spacing:.04em; color:#191613; text-transform:uppercase; }
 
   /* Header: white shield logo + headline */
   .fl-top { display:flex; align-items:flex-start; gap:26px; padding:26px 44px 6px; }
@@ -53,7 +53,7 @@
   /* Method badge, right-aligned */
   .fl-badge-row { display:flex; justify-content:flex-end; padding:10px 44px 0; }
   .ig-badge { display:inline-block; padding:12px 30px; font-size:30px; font-weight:900;
-              letter-spacing:.02em; text-transform:uppercase; color:#141210; border-radius:8px;
+              letter-spacing:.02em; text-transform:uppercase; color:#191613; border-radius:8px;
               box-shadow:0 4px 14px rgba(0,0,0,.4); }
 
   /* Two-column body fills the space between header and contact bar */
@@ -81,11 +81,11 @@
   .fl-money-s { margin-top:4px; font-size:38px; font-weight:900; color:var(--g2); text-transform:uppercase; line-height:1.02; }
 
   /* Contact bar */
-  .ig-contact { padding:20px 44px; display:flex; align-items:center; gap:44px; font-size:24px; font-weight:800; color:#141210; }
+  .ig-contact { padding:20px 44px; display:flex; align-items:center; gap:44px; font-size:24px; font-weight:800; color:#191613; }
   .ig-contact span { display:flex; align-items:center; gap:14px; }
-  .ig-contact .dot { width:38px; height:38px; border-radius:50%; background:#141210; display:flex; align-items:center; justify-content:center; flex:none; }
-  .ig-contact .dot svg { width:20px; height:20px; fill:#efdaa6; }
-  .ig-contact svg.mail { width:30px; height:24px; fill:none; stroke:#141210; stroke-width:1.8; }
+  .ig-contact .dot { width:38px; height:38px; border-radius:50%; background:#191613; display:flex; align-items:center; justify-content:center; flex:none; }
+  .ig-contact .dot svg { width:20px; height:20px; fill:#ddc689; }
+  .ig-contact svg.mail { width:30px; height:24px; fill:none; stroke:#191613; stroke-width:1.8; }
 </style>
 
 <div class="ig ad">

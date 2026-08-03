@@ -13,9 +13,9 @@
 <title>{{ vm.place_line or vm.suburb }} | {{ vm.brand_name }}</title>
 <style>
   {{ brand.tokens_css() }}
-  :root { --g2:#e7d19a; --g3:#b08d4a; --gline:#c9a85f; }
+  :root { --g2:#ddc689; --g3:#ac874a; --gline:#ac874a; }
   body { background:#0c0a08; }
-  .ig { width:1080px; height:1350px; margin:0 auto; background:#0d0b08; color:#F2ECE0; position:relative; overflow:hidden;
+  .ig { width:1080px; height:1350px; margin:0 auto; background:#0d0b08; color:#ffffff; position:relative; overflow:hidden;
         display:flex; flex-direction:column; font-family:'Montserrat',system-ui,sans-serif; }
   {% if photos %}
   .ig::before { content:''; position:absolute; inset:0; z-index:0;
@@ -23,9 +23,9 @@
                 background-size:cover; background-position:center; filter:saturate(.5); }
   {% endif %}
   .ig > * { position:relative; z-index:1; }
-  .gold { background:linear-gradient(180deg,#6f5325 0%,#c9a85f 22%,#efdaa6 50%,#c9a85f 78%,#6f5325 100%); }
+  .gold { background:linear-gradient(180deg,#8a6a38 0%,#ac874a 22%,#ddc689 50%,#ac874a 78%,#8a6a38 100%); }
   .ig-ref { display:flex; justify-content:space-between; padding:16px 40px; font-size:19px; font-weight:800;
-            letter-spacing:.04em; color:#1c1811; text-transform:uppercase; }
+            letter-spacing:.04em; color:#191613; text-transform:uppercase; }
 
   .ho-hero { position:relative; height:520px; flex:none; }
   .ho-hero > img { width:100%; height:100%; object-fit:cover; display:block; }
@@ -38,7 +38,7 @@
   .ho-place { margin:0; font-size:60px; font-weight:900; line-height:.96; color:#fff; text-transform:uppercase; letter-spacing:-.01em; }
   .ho-scheme { margin:2px 0 0; font-size:48px; font-weight:900; line-height:1; color:var(--g2); text-transform:uppercase; letter-spacing:-.01em; }
   .ho-badge { display:inline-block; margin-top:16px; padding:12px 28px; font-size:28px; font-weight:900; letter-spacing:.02em;
-              text-transform:uppercase; color:#141210; border-radius:8px; box-shadow:0 4px 14px rgba(0,0,0,.4); }
+              text-transform:uppercase; color:#191613; border-radius:8px; box-shadow:0 4px 14px rgba(0,0,0,.4); }
 
   .ho-desc { padding:22px 44px 6px; font-size:34px; font-weight:900; color:#fff; text-transform:uppercase; letter-spacing:.01em; line-height:1.04; }
   .ho-stats { flex:1 1 auto; min-height:0; overflow:hidden; display:grid; grid-template-columns:1fr 1fr;
@@ -58,11 +58,11 @@
              align-items:center; gap:12px; justify-content:center; font-size:21px; font-weight:800; color:#fff; text-transform:uppercase; }
   .ho-addr svg { width:26px; height:26px; fill:var(--g2); flex:none; }
 
-  .ig-contact { margin-top:auto; padding:20px 44px; display:flex; align-items:center; gap:44px; font-size:24px; font-weight:800; color:#141210; }
+  .ig-contact { margin-top:auto; padding:20px 44px; display:flex; align-items:center; gap:44px; font-size:24px; font-weight:800; color:#191613; }
   .ig-contact span { display:flex; align-items:center; gap:14px; }
-  .ig-contact .dot { width:38px; height:38px; border-radius:50%; background:#141210; display:flex; align-items:center; justify-content:center; flex:none; }
-  .ig-contact .dot svg { width:20px; height:20px; fill:#efdaa6; }
-  .ig-contact svg.mail { width:30px; height:24px; fill:none; stroke:#141210; stroke-width:1.8; }
+  .ig-contact .dot { width:38px; height:38px; border-radius:50%; background:#191613; display:flex; align-items:center; justify-content:center; flex:none; }
+  .ig-contact .dot svg { width:20px; height:20px; fill:#ddc689; }
+  .ig-contact svg.mail { width:30px; height:24px; fill:none; stroke:#191613; stroke-width:1.8; }
 </style>
 
 <div class="ig ad">

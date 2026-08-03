@@ -98,7 +98,8 @@
       {% if vm.size_str %}<tr><td>Extent</td><td>approx. {{ vm.size_str }} m2</td></tr>{% endif %}
       {% if vm.zoning %}<tr><td>Zoning</td><td>{{ vm.zoning }}</td></tr>{% endif %}
       {% if vm.municipality %}<tr><td>Municipality</td><td>{{ vm.municipality }}</td></tr>{% endif %}
-      {% if vm.municipal_valuation %}<tr><td>Municipal value</td><td>approx. R {{ vm.municipal_valuation }} (municipal value, not a market valuation)</td></tr>{% endif %}
+      {# Municipal valuation is never shown to buyers - the money element is
+         always the offers framing, never a valuation figure (owner directive). #}
       <tr><td>Method of sale</td><td>{{ 'Auction' if is_auction else 'Offers invited' }}</td></tr>
     </table>
     <p class="note">All extents, figures and features are approximate, drawn from public deeds and third-party records, and to be confirmed on due diligence.</p>
