@@ -2,7 +2,7 @@
 {% import '_macros.html' as ui %}
 {% block title %}Intake{% endblock %}
 {% block heading %}Intake{% endblock %}
-{% block subheading %}<div class="topbar__sub">Drop a property's document pair to start the pipeline</div>{% endblock %}
+{% block subheading %}<div class="topbar__sub">Drop a property's source documents to start the pipeline</div>{% endblock %}
 {% block content_mod %}content--narrow{% endblock %}
 
 {% block content %}
@@ -17,8 +17,10 @@
       {{ ui.icon('intake', 'icon--xl') }}
       <div class="dropzone__title">Drop the documents here</div>
       <div class="dropzone__hint">The Lightstone EVM and the Property Report, each named with
-        the DP number ("3060 - EVM_Report.pdf", "3060 - PROPERTY REPORT.pdf"). You may add a
-        third PDF, a registered valuer's report, if you have one. Or press to browse.</div>
+        the DP number ("3060 - EVM_Report.pdf", "3060 - PROPERTY REPORT.pdf"), plus a registered
+        valuer's report if you have one. A property that spans several land portions can carry
+        many EVMs, so drop as many PDFs as it needs. If a file has no DP number in its name you
+        will be asked to type one. Or press to browse.</div>
     </div>
     <div class="dropzone__files" data-dropzone-files aria-live="polite"></div>
     <input type="file" name="files" accept="application/pdf,.pdf" multiple class="sr-only">

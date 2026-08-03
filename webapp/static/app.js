@@ -59,7 +59,9 @@
     if (submit) submit.classList.add('is-ready');
 
     var n = files.length;
-    var ok = (n === 2 || n === 3);  // EVM + Property Report, plus an optional valuation
+    // A pair is the minimum; a multi-portion property can carry many EVMs, so
+    // any count of two or more is fine. One file just needs its partner.
+    var ok = (n >= 2);
     var head = document.createElement('div');
     head.className = 'dropzone__files-head ' + (ok ? 'is-ok' : 'is-note');
     head.innerHTML = (ok ? _CHECK_SVG : '');
@@ -89,9 +91,8 @@
     if (!ok) {
       var note = document.createElement('div');
       note.className = 'dropzone__files-note';
-      note.textContent = n < 2
-        ? 'Add the second PDF - the Lightstone EVM and the Property Report make the pair.'
-        : 'That is more than three PDFs. The engine expects the EVM, the Property Report, and at most one valuation report.';
+      note.textContent =
+        'Add the second PDF - the Lightstone EVM and the Property Report make the pair.';
       box.appendChild(note);
     }
   }

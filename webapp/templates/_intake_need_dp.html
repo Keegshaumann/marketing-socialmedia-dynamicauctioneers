@@ -1,0 +1,35 @@
+{% import '_macros.html' as ui %}
+{#- No DP number could be read from the uploaded filenames (e.g. farm-portion
+   files). Ask the user to type one; it becomes the record key. The staged files
+   wait in the batch tray until this form is submitted. -#}
+<div class="panel enter">
+  <div class="panel__head">
+    <div class="panel__title">DP number needed</div>
+    <span class="badge badge--note"><span class="dot"></span>{{ count }} file{{ '' if count == 1 else 's' }} staged</span>
+  </div>
+  <div class="panel__body">
+    {% if error %}
+      <div class="banner banner--error" role="alert">
+        {{ ui.icon('block') }}
+        <div class="banner__body"><div>{{ error }}</div></div>
+      </div>
+    {% endif %}
+    <p class="hint">The uploaded files don't carry a DP number in their names, so the
+      property can't be filed automatically. Enter the DP number for this property to continue.</p>
+    <ul class="filelist mt-2">
+      {% for f in files %}<li class="filelist__item">{{ ui.icon('file') }}<span>{{ f }}</span></li>{% endfor %}
+    </ul>
+    <form class="mt-2" hx-post="/intake/finalize" hx-target="#intake-result" hx-swap="innerHTML">
+      <input type="hidden" name="batch_id" value="{{ batch_id }}">
+      <div class="field">
+        <label class="label" for="dp-input">DP number</label>
+        <input class="input" id="dp-input" name="dp" type="text"
+               placeholder="e.g. 3060 or 3035.1" autocomplete="off" autofocus required>
+      </div>
+      <div class="row mt-2">
+        <button type="submit" class="btn btn--primary btn--sm">{{ ui.icon('arrow') }}<span>Continue</span></button>
+        <a class="btn btn--ghost btn--sm" href="/intake">{{ ui.icon('plus') }}<span>Start over</span></a>
+      </div>
+    </form>
+  </div>
+</div>

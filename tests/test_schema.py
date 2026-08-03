@@ -115,3 +115,40 @@ def test_public_view_strips_professional_valuation():
     assert POISON not in json.dumps(public)
     # The rest of the valuation section is untouched.
     assert public["valuation"]["municipal_valuation"] == 2310000
+
+
+# --- multi-portion property (multi-file intake) --------------------------
+
+def test_portions_total_m2_sums_in_code():
+    """A multi-portion property's extent is the sum of its portions, in code."""
+    from engine.schema import Physical, Portion, portions_total_m2
+
+    physical = Physical(
+        portions=[
+            Portion(label="Portion 6 of Farm 7", size_m2=21000.0),
+            Portion(label="Portion 7 of Farm 7", size_m2=18500.5),
+            Portion(label="Remainder", size_m2=None),  # a portion with no stated size
+        ]
+    )
+    assert portions_total_m2(physical) == 39500.5
+
+
+def test_portions_total_m2_none_without_portions():
+    """No portions (an ordinary property) or none with a size -> None, not 0."""
+    from engine.schema import Physical, Portion, portions_total_m2
+
+    assert portions_total_m2(None) is None
+    assert portions_total_m2(Physical()) is None
+    assert portions_total_m2(Physical(portions=[Portion(label="A", size_m2=None)])) is None
+
+
+def test_public_view_carries_portions():
+    """Portions are public marketing facts and survive the projection."""
+    from engine.schema import Physical, Portion
+
+    record = PropertyRecord(
+        dp="2918.1",
+        physical=Physical(portions=[Portion(label="Erf 15", size_m2=744.0)]),
+    )
+    public = record.public_view()
+    assert public["physical"]["portions"][0]["label"] == "Erf 15"

@@ -128,6 +128,41 @@ def test_demo_ad_renders_real_facts_and_brand_tokens(golden_record, tmp_path):
     assert "ho-hero" in html  # the default Hero-overlay design's branded chrome (D49)
 
 
+# --- multi-portion extent is summed in code (multi-file intake) ----------
+
+def test_view_model_sums_portion_extents():
+    """A multi-portion property's size is the SUM of its portions (code, D-multi)."""
+    from engine.render.base import RenderRequest
+    from engine.render.html_backend import HtmlBackend, _fmt_num
+
+    pub = {
+        "physical": {
+            "unit_size_m2": 185.0,  # ignored once portions are present
+            "portions": [
+                {"label": "Portion 6", "size_m2": 21000.0},
+                {"label": "Portion 7", "size_m2": 18500.0},
+            ],
+        }
+    }
+    vm = HtmlBackend()._view_model(
+        RenderRequest(dp="2918.1", fmt="demo_ad", public_record=pub)
+    )
+    assert vm["size_str"] == _fmt_num(39500.0)
+    assert [p["label"] for p in vm["portions"]] == ["Portion 6", "Portion 7"]
+
+
+def test_view_model_size_falls_back_to_unit_size_without_portions():
+    from engine.render.base import RenderRequest
+    from engine.render.html_backend import HtmlBackend, _fmt_num
+
+    pub = {"physical": {"unit_size_m2": 185.0}}
+    vm = HtmlBackend()._view_model(
+        RenderRequest(dp="3060", fmt="demo_ad", public_record=pub)
+    )
+    assert vm["size_str"] == _fmt_num(185.0)
+    assert vm["portions"] == []
+
+
 # --- the DP shows as PROPERTY REF on ads (D42), never on the board tile ---
 
 def test_dp_shown_on_ads_but_never_on_the_board_tile(golden_record, tmp_path):

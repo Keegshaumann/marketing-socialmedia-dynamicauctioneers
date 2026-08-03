@@ -92,6 +92,24 @@ class Flatlet(_Base):
     note: Optional[str] = None
 
 
+class Portion(_Base):
+    """One land portion of a multi-portion property (multi-file intake).
+
+    A single marketing instruction can span several separately-registered land
+    portions, each described by its own Lightstone EVM (e.g. several PTNs of a
+    farm, or the two erven of a portfolio). They are ONE property record; each
+    portion is recorded here so the ad can list them and the system can sum
+    their extents in code (deterministic, never a model's arithmetic). A plain
+    single-portion property leaves ``portions`` null.
+    """
+
+    label: Optional[str] = None  # e.g. "Portion 6 of Farm 7 Slagboom" / "Erf 15"
+    erf: Optional[str] = None
+    size_m2: Optional[float] = None
+    title_deed_no: Optional[str] = None
+    note: Optional[str] = None
+
+
 class PhysicalConflict(_Base):
     """One physical fact the source documents disagree on (D35).
 
@@ -136,6 +154,11 @@ class Physical(_Base):
     # off. Never resolve a disagreement silently (seen live on Erf 2035: EVM
     # said 2 bedrooms / 106 m2, inspection said 4 / 310 m2).
     conflicts: Optional[List[PhysicalConflict]] = None
+    # The land portions of a multi-portion property (multi-file intake). Each is
+    # a separately-registered piece of land, usually with its own Lightstone EVM.
+    # Null for an ordinary single-portion property. Extents are summed in code
+    # (``portions_total_m2``), never by the model.
+    portions: Optional[List[Portion]] = None
     flatlet: Optional[Flatlet] = None
     features_main: Optional[List[str]] = None
     features_complex: Optional[List[str]] = None
@@ -431,6 +454,20 @@ class PropertyRecord(_Base):
 # highest-priority available source's value into the matching Physical field;
 # the human can override the pick at gate 1. Deeds/legal/market data is never a
 # PhysicalConflict, so this precedence never touches Lightstone's own truth.
+
+def portions_total_m2(physical: Optional[Physical]) -> Optional[float]:
+    """Sum the extents of a multi-portion property's land portions, in code.
+
+    Returns the total of every portion that states a ``size_m2``; ``None`` when
+    there are no portions or none carries a size. Deterministic on purpose: the
+    combined extent an ad prints is arithmetic the system owns, never a value
+    the extraction model is asked to add up (hard rule 3, no invented facts).
+    """
+    if physical is None or not physical.portions:
+        return None
+    sizes = [p.size_m2 for p in physical.portions if p.size_m2 is not None]
+    return sum(sizes) if sizes else None
+
 
 PHYSICAL_SOURCE_PRECEDENCE = ("valuation", "property_report", "lightstone")
 

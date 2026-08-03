@@ -22,11 +22,14 @@ the DP number and job status, so no PII can surface.
 
 from __future__ import annotations
 
+import re
+import shutil
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, File, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from webapp import auth, jobs, models
@@ -35,6 +38,24 @@ router = APIRouter(prefix="/intake")
 
 # Job states the worker uses that mean "still working" (keep polling).
 _ACTIVE = {"queued", "running"}
+
+# A DP typed by a human: digits, optional ".<lot>", an optional "DP" prefix.
+_DP_INPUT_RE = re.compile(r"^\s*(?:DP)?\s*(\d+(?:\.\d+)?)\s*$", re.IGNORECASE)
+# A batch id is our own uuid4 hex; validate before using it as a path segment.
+_BATCH_RE = re.compile(r"^[0-9a-f]{32}$")
+
+
+def _normalize_dp_input(raw: str) -> Optional[str]:
+    """A human-typed DP -> canonical ``3060`` / ``3035.1``, or None if unusable."""
+    match = _DP_INPUT_RE.match(raw or "")
+    return match.group(1) if match else None
+
+
+def _tray_dir(output_root: str, batch_id: str) -> Optional[Path]:
+    """The staged-uploads folder for ``batch_id``, or None if the id is malformed."""
+    if not _BATCH_RE.match(batch_id or ""):
+        return None
+    return Path(output_root) / "_intake_tray" / batch_id
 
 
 def _view(request: Request, name: str, ctx: Optional[dict] = None, status_code: int = 200):
@@ -105,9 +126,7 @@ async def upload(
     files: List[UploadFile] = File(default=[]),
     user: dict = Depends(auth.require_role("marketing")),
 ):
-    from engine.intake import build_jobs
-    from engine.schema import PropertyRecord
-    from engine.store import RecordStore
+    from engine.intake import build_combined_job
 
     db_path = auth.db_path_for(request)
 
@@ -115,57 +134,120 @@ async def upload(
         return _view(
             request,
             "_intake_error.html",
-            {"message": "No files were received. Drop the two source PDFs to begin."},
+            {"message": "No files were received. Drop the source PDFs to begin."},
             status_code=400,
         )
 
-    # Save each upload to a temporary tray, then let build_jobs read the DP
-    # number from the filenames and classify each PDF.
+    # Stage every upload under a unique batch folder, so a drop of many files
+    # (a multi-portion property with several EVMs) is kept together and cannot
+    # collide with another user's concurrent upload.
     output_root = _output_root(db_path)
-    tray = Path(output_root) / "_intake_tray"
-    tray.mkdir(parents=True, exist_ok=True)
+    batch_id = uuid.uuid4().hex
+    batch_dir = _tray_dir(output_root, batch_id)
+    batch_dir.mkdir(parents=True, exist_ok=True)
 
     saved: List[Path] = []
     for upload_file in files:
         name = Path(upload_file.filename or "").name
         if not name:
             continue
-        dest = tray / name
+        dest = batch_dir / name
         dest.write_bytes(await upload_file.read())
         saved.append(dest)
 
-    intake_jobs = build_jobs(saved)
-    if not intake_jobs:
+    if not saved:
+        shutil.rmtree(batch_dir, ignore_errors=True)
         return _view(
             request,
             "_intake_error.html",
+            {"message": "No readable files were received. Drop the source PDFs to begin."},
+            status_code=400,
+        )
+
+    # One combined property record from all the files. The DP is read from the
+    # filenames when they agree; when they do not (a farm portion named
+    # "PTN 6 of Farm 7.pdf" carries no DP), ask the user to type one rather than
+    # guess a wrong key.
+    job = build_combined_job(saved)
+    if not job.dp:
+        return _view(
+            request,
+            "_intake_need_dp.html",
+            {"batch_id": batch_id, "files": [p.name for p in saved], "count": len(saved)},
+        )
+    return _finalize_intake(request, db_path, output_root, job, batch_dir)
+
+
+@router.post("/finalize", response_class=HTMLResponse)
+async def finalize(
+    request: Request,
+    batch_id: str = Form(...),
+    dp: str = Form(...),
+    user: dict = Depends(auth.require_role("marketing")),
+):
+    """Second step of a no-DP upload: the user supplied the DP; proceed with it."""
+    from engine.intake import build_combined_job
+
+    db_path = auth.db_path_for(request)
+    output_root = _output_root(db_path)
+
+    batch_dir = _tray_dir(output_root, batch_id)
+    staged = sorted(batch_dir.glob("*.pdf")) if (batch_dir and batch_dir.is_dir()) else []
+    if not staged:
+        return _view(
+            request,
+            "_intake_error.html",
+            {"message": "The staged files could not be found. Please upload them again."},
+            status_code=400,
+        )
+
+    clean = _normalize_dp_input(dp)
+    if not clean:
+        return _view(
+            request,
+            "_intake_need_dp.html",
             {
-                "message": "Could not read a DP number from the filenames. "
-                "Name each file with its DP number, for example "
-                "'3060 - PROPERTY REPORT.pdf'.",
+                "batch_id": batch_id,
+                "files": [p.name for p in staged],
+                "count": len(staged),
+                "error": "Enter a DP number like 3060 or 3035.1.",
             },
             status_code=400,
         )
 
-    # Prefer a complete pair; otherwise take the first job and note the gap.
-    job = next((j for j in intake_jobs if j.is_complete), intake_jobs[0])
-    dp = job.dp
+    job = build_combined_job(staged, dp=clean)
+    return _finalize_intake(request, db_path, output_root, job, batch_dir)
 
-    # Move the pair into the property's own uploads folder.
+
+def _finalize_intake(request: Request, db_path, output_root: str, job, batch_dir: Optional[Path]):
+    """Relocate a combined job's files, create the record, enqueue extraction.
+
+    Shared by the direct upload path and the DP-prompt finalize path. All of the
+    property's EVMs, Property Reports and valuations are moved into its uploads
+    folder and passed to extraction as lists (one combined record).
+    """
+    from engine.schema import PropertyRecord
+    from engine.store import RecordStore
+
+    dp = job.dp
     uploads_dir = Path(output_root) / f"DP{dp}" / "uploads"
     uploads_dir.mkdir(parents=True, exist_ok=True)
 
-    def _relocate(src: Optional[Path]) -> Optional[str]:
-        if src is None:
-            return None
+    def _relocate(src: Path) -> str:
         target = uploads_dir / src.name
         if src.resolve() != target.resolve():
             target.write_bytes(src.read_bytes())
         return str(target)
 
-    lightstone = _relocate(job.lightstone_evm)
-    property_report = _relocate(job.property_report)
-    valuation = _relocate(job.valuation_report)  # optional 3rd source (D35)
+    lightstones = [_relocate(p) for p in job.lightstone_evms]
+    property_reports = [_relocate(p) for p in job.property_reports]
+    valuations = [_relocate(p) for p in job.valuation_reports]  # optional (D35)
+    for extra in job.unknown:  # keep unclassified files with the property too
+        _relocate(extra)
+
+    # The staged batch is now copied into the property folder; drop the tray.
+    if batch_dir is not None:
+        shutil.rmtree(batch_dir, ignore_errors=True)
 
     # Create the base record only if this DP is new; never overwrite an
     # already-extracted record's JSON with an empty shell.
@@ -179,17 +261,16 @@ async def upload(
 
     payload = {
         "dp": dp,
-        "lightstone": lightstone,
-        "property_report": property_report,
-        "valuation": valuation,
+        "lightstones": lightstones,
+        "property_reports": property_reports,
+        "valuations": valuations,
         "output_root": output_root,
     }
     job_id = jobs.enqueue(db_path, "extract", dp, payload=payload)
 
-    missing = job.missing  # e.g. one document could not be classified
     row = models.get_job(db_path, job_id)
     ctx = _job_ctx(row)
-    ctx["missing"] = missing
+    ctx["missing"] = job.missing  # e.g. no Property Report among the files
     return _view(request, "_intake_job.html", ctx)
 
 

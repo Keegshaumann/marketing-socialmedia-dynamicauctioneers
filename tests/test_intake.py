@@ -9,7 +9,13 @@ from __future__ import annotations
 
 import pytest
 
-from engine.intake import build_jobs, classify_pdf, parse_dp
+from engine.intake import (
+    build_combined_job,
+    build_jobs,
+    classify_pdf,
+    find_dp,
+    parse_dp,
+)
 
 
 # --- parse_dp ------------------------------------------------------------
@@ -86,3 +92,59 @@ def test_build_jobs_groups_distinct_dps(
     assert by_dp["3035.1"].missing == ["property_report"]
     assert by_dp["3035.1"].parent_dp == "3035"
     assert by_dp["3035.1"].lot == 1
+
+
+# --- multi-file / multi-portion intake (offline: filename-hint classify) ---
+#
+# Fake PDF bytes are unreadable to PyMuPDF, so classification falls back to the
+# filename hint. Naming each file lets these run offline without the real docs.
+
+def _fake_pdf(tmp_path, name: str):
+    path = tmp_path / name
+    path.write_bytes(b"%PDF-1.4 not a real pdf")
+    return path
+
+
+def test_find_dp_agrees_or_prompts(tmp_path):
+    evm = _fake_pdf(tmp_path, "2918 - EVM lightstone.pdf")
+    report = _fake_pdf(tmp_path, "2918 - property report.pdf")
+    # All files agree on one DP -> that DP.
+    assert find_dp([evm, report]) == "2918"
+    # Different DPs -> None (ask the user, never guess).
+    other = _fake_pdf(tmp_path, "3060 - EVM lightstone.pdf")
+    assert find_dp([evm, other]) is None
+    # No DP in any name (farm portions) -> None.
+    a = _fake_pdf(tmp_path, "PTN 6 of Farm 7 lightstone evm.pdf")
+    b = _fake_pdf(tmp_path, "PTN 7 of Farm 7 lightstone evm.pdf")
+    assert find_dp([a, b]) is None
+
+
+def test_build_combined_job_keeps_every_evm_as_one_property(tmp_path):
+    """Several EVMs under one DP become ONE job holding all of them."""
+    evm1 = _fake_pdf(tmp_path, "2918 - EVM lightstone portion 1.pdf")
+    evm2 = _fake_pdf(tmp_path, "2918 - EVM lightstone portion 2.pdf")
+    report = _fake_pdf(tmp_path, "2918 - property report.pdf")
+
+    job = build_combined_job([evm1, evm2, report])
+    assert job.dp == "2918"
+    assert job.lightstone_evms == [evm1, evm2]
+    assert job.property_reports == [report]
+    assert job.is_complete is True
+    # Back-compat singular accessor returns the first EVM.
+    assert job.lightstone_evm == evm1
+    assert set(job.all_sources) == {evm1, evm2, report}
+
+
+def test_build_combined_job_without_dp_leaves_key_blank(tmp_path):
+    """Farm-portion files with no DP -> job.dp is empty; the caller must prompt."""
+    a = _fake_pdf(tmp_path, "PTN 6 of Farm 7 lightstone evm.pdf")
+    b = _fake_pdf(tmp_path, "PTN 7 of Farm 7 lightstone evm.pdf")
+    job = build_combined_job([a, b])
+    assert job.dp == ""
+    assert job.lightstone_evms == [a, b]
+
+    # Supplying the DP explicitly (the user typed it) fills the key + parentage.
+    job2 = build_combined_job([a, b], dp="2918.1")
+    assert job2.dp == "2918.1"
+    assert job2.parent_dp == "2918"
+    assert job2.lot == 1

@@ -120,13 +120,23 @@ def _handle_extract(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, s
             "paths continue without it.",
         )
 
-    # With a key: run extraction over the uploaded pair if paths were supplied.
+    # With a key: run extraction over the uploaded sources if paths were
+    # supplied. A property may carry several EVMs (multi-portion), so the payload
+    # holds LISTS; the singular keys are still read for any older queued job.
     payload = job.get("payload") or {}
     dp = job.get("dp")
-    lightstone = payload.get("lightstone")
-    property_report = payload.get("property_report")
-    valuation = payload.get("valuation")  # optional 3rd source (D35)
-    if not (dp and lightstone and property_report):
+
+    def _paths(plural_key: str, singular_key: str) -> list:
+        vals = payload.get(plural_key)
+        if vals:
+            return list(vals)
+        one = payload.get(singular_key)
+        return [one] if one else []
+
+    lightstones = _paths("lightstones", "lightstone")
+    reports = _paths("property_reports", "property_report")
+    valuations = _paths("valuations", "valuation")  # optional 3rd source (D35)
+    if not (dp and lightstones and reports):
         return (
             "skipped: no API key",
             "no source pair on the job payload; nothing to extract.",
@@ -135,7 +145,7 @@ def _handle_extract(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, s
     from engine.extract import extract_record
     from engine.store import RecordStore
 
-    record = extract_record(lightstone, property_report, dp=dp, valuation_pdf=valuation)
+    record = extract_record(lightstones, reports, dp=dp, valuation_pdf=valuations)
     store = RecordStore(models.resolve_db_path(db_path))
     try:
         store.upsert(record, state="extracted")

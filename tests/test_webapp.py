@@ -30,6 +30,7 @@ Coverage:
 from __future__ import annotations
 
 import os
+import re
 import tempfile
 from pathlib import Path
 
@@ -273,6 +274,56 @@ def test_upload_creates_a_job():
     jobs_for_dp = models.list_jobs(DB_PATH, dp="3099")
     assert jobs_for_dp, "upload should have enqueued a job for DP 3099"
     assert any(j["kind"] == "extract" for j in jobs_for_dp)
+
+
+def test_upload_without_dp_prompts_then_finalizes():
+    """Files with no DP in their names ask the user for one, then proceed."""
+    client = _client()
+    _login_admin(client)
+
+    # Farm-portion files: the names carry no DP, so classification works off the
+    # hint but ``find_dp`` returns nothing and the screen must ask for a DP.
+    files = [
+        ("files", ("portion 6 lightstone evm.pdf", b"%PDF-a", "application/pdf")),
+        ("files", ("portion 6 property report.pdf", b"%PDF-b", "application/pdf")),
+    ]
+    resp = client.post("/intake/upload", files=files)
+    assert resp.status_code == 200, resp.text
+    assert "DP number needed" in resp.text
+    assert not models.list_jobs(DB_PATH, dp="4477")  # nothing filed yet
+
+    match = re.search(r'name="batch_id" value="([0-9a-f]{32})"', resp.text)
+    assert match, resp.text
+    batch_id = match.group(1)
+
+    # The user types the DP (a "DP " prefix and spaces are tolerated).
+    resp2 = client.post("/intake/finalize", data={"batch_id": batch_id, "dp": "DP 4477"})
+    assert resp2.status_code == 200, resp2.text
+
+    jobs_for_dp = models.list_jobs(DB_PATH, dp="4477")
+    extract = next((j for j in jobs_for_dp if j["kind"] == "extract"), None)
+    assert extract is not None
+    payload = models.get_job(DB_PATH, extract["id"])["payload"]
+    # Sources are carried as lists (ready for a multi-portion property).
+    assert isinstance(payload["lightstones"], list) and payload["lightstones"]
+    assert isinstance(payload["property_reports"], list) and payload["property_reports"]
+
+
+def test_finalize_rejects_a_non_dp_and_re_prompts():
+    """A junk DP re-shows the prompt with an error rather than filing garbage."""
+    client = _client()
+    _login_admin(client)
+
+    files = [
+        ("files", ("portion 9 lightstone evm.pdf", b"%PDF-a", "application/pdf")),
+        ("files", ("portion 9 property report.pdf", b"%PDF-b", "application/pdf")),
+    ]
+    resp = client.post("/intake/upload", files=files)
+    batch_id = re.search(r'name="batch_id" value="([0-9a-f]{32})"', resp.text).group(1)
+
+    bad = client.post("/intake/finalize", data={"batch_id": batch_id, "dp": "not a dp"})
+    assert bad.status_code == 400
+    assert "DP number needed" in bad.text
 
 
 # --- gate order: gate 2 cannot be actioned before gate 1 -----------------

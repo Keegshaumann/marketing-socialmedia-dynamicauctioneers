@@ -157,44 +157,83 @@ def classify_pdf(path: PathLike) -> str:
 
 @dataclass
 class IntakeJob:
-    """One property's paired-document state, keyed by DP number."""
+    """One property's source-document state, keyed by DP number.
+
+    A property may span several land portions, each with its own Lightstone EVM
+    (multi-file intake), so every slot is a LIST. The singular ``lightstone_evm``
+    / ``property_report`` / ``valuation_report`` properties return the first of
+    each for the common single-portion case and for back-compatible callers.
+    """
 
     dp: str
     parent_dp: Optional[str] = None
     lot: Optional[int] = None
-    lightstone_evm: Optional[Path] = None
-    property_report: Optional[Path] = None
+    lightstone_evms: List[Path] = field(default_factory=list)
+    property_reports: List[Path] = field(default_factory=list)
     # Optional third source (a registered valuer's report). Not required for
     # completeness - marketing is not always given it (D35).
-    valuation_report: Optional[Path] = None
+    valuation_reports: List[Path] = field(default_factory=list)
     unknown: List[Path] = field(default_factory=list)
+
+    # --- back-compat singular accessors (first of each list, or None) ------
+    @property
+    def lightstone_evm(self) -> Optional[Path]:
+        return self.lightstone_evms[0] if self.lightstone_evms else None
+
+    @property
+    def property_report(self) -> Optional[Path]:
+        return self.property_reports[0] if self.property_reports else None
+
+    @property
+    def valuation_report(self) -> Optional[Path]:
+        return self.valuation_reports[0] if self.valuation_reports else None
+
+    @property
+    def all_sources(self) -> List[Path]:
+        """Every classified source file, EVMs then reports then valuations."""
+        return [*self.lightstone_evms, *self.property_reports, *self.valuation_reports]
 
     @property
     def is_complete(self) -> bool:
-        """True when both required documents are present.
+        """True when at least one EVM and one Property Report are present.
 
-        The valuation report is optional and never gates completeness.
+        The valuation report is optional and never gates completeness. A
+        multi-portion property needs only one Property Report to proceed even if
+        it carries several EVMs.
         """
-        return self.lightstone_evm is not None and self.property_report is not None
+        return bool(self.lightstone_evms) and bool(self.property_reports)
 
     @property
     def missing(self) -> List[str]:
-        """The required documents that are still absent, in a stable order."""
+        """The required document kinds still absent, in a stable order."""
         gaps: List[str] = []
-        if self.lightstone_evm is None:
+        if not self.lightstone_evms:
             gaps.append("lightstone_evm")
-        if self.property_report is None:
+        if not self.property_reports:
             gaps.append("property_report")
         return gaps
+
+
+def _slot(job: "IntakeJob", path: Path) -> None:
+    """Classify ``path`` and append it to the matching list slot on ``job``."""
+    kind = classify_pdf(path)
+    if kind == "lightstone_evm":
+        job.lightstone_evms.append(path)
+    elif kind == "property_report":
+        job.property_reports.append(path)
+    elif kind == "valuation_report":
+        job.valuation_reports.append(path)
+    else:
+        job.unknown.append(path)
 
 
 def build_jobs(paths: List[PathLike]) -> List[IntakeJob]:
     """Group PDFs by DP number, classify each, and build an ``IntakeJob`` per DP.
 
-    Files whose name carries no DP number are skipped. A file that classifies
-    as ``unknown``, or that would overwrite an already-filled slot, is parked
-    in the job's ``unknown`` list rather than silently dropped. Jobs are
-    returned in DP order.
+    Files whose name carries no DP number are skipped. Each classified file is
+    appended to its list slot, so several EVMs under one DP all land (a
+    multi-portion property); an ``unknown`` file is parked rather than dropped.
+    Jobs are returned in DP order.
     """
     jobs: dict[str, IntakeJob] = {}
     for raw in paths:
@@ -208,18 +247,50 @@ def build_jobs(paths: List[PathLike]) -> List[IntakeJob]:
         if job is None:
             job = IntakeJob(dp=dp, parent_dp=parent_dp, lot=lot)
             jobs[dp] = job
-
-        kind = classify_pdf(path)
-        if kind == "lightstone_evm" and job.lightstone_evm is None:
-            job.lightstone_evm = path
-        elif kind == "property_report" and job.property_report is None:
-            job.property_report = path
-        elif kind == "valuation_report" and job.valuation_report is None:
-            job.valuation_report = path
-        else:
-            job.unknown.append(path)
+        _slot(job, path)
 
     return [jobs[dp] for dp in sorted(jobs)]
+
+
+def find_dp(paths: List[PathLike]) -> Optional[str]:
+    """The single DP number shared by every named file, or ``None`` if unclear.
+
+    Returns a DP only when all parseable filenames agree on exactly one value.
+    Multiple distinct DPs, or names with no DP at all (a farm portion like
+    "PTN 6 of Farm 7.pdf"), return ``None`` so the caller prompts the user to
+    type one rather than guessing. Erring toward a prompt is deliberate: a wrong
+    key names the wrong folder and URL for the whole property.
+    """
+    dps: set[str] = set()
+    for raw in paths:
+        try:
+            dp, _parent, _lot = parse_dp(Path(raw).name)
+        except ValueError:
+            continue
+        dps.add(dp)
+    return next(iter(dps)) if len(dps) == 1 else None
+
+
+def build_combined_job(paths: List[PathLike], dp: Optional[str] = None) -> IntakeJob:
+    """Build ONE ``IntakeJob`` from every file, for the multi-file intake screen.
+
+    Unlike ``build_jobs`` (which groups by DP), this treats the whole drop as a
+    single property that may span several portions and returns one job holding
+    all of its EVMs, reports and valuations. ``dp`` is taken as given, else read
+    from the filenames via ``find_dp``; when neither yields one the job's ``dp``
+    is empty and the caller must ask the user for it.
+    """
+    dp = dp or find_dp(paths) or ""
+    parent_dp: Optional[str] = None
+    lot: Optional[int] = None
+    if "." in dp:
+        base, _, lot_str = dp.partition(".")
+        parent_dp = base
+        lot = int(lot_str) if lot_str.isdigit() else None
+    job = IntakeJob(dp=dp, parent_dp=parent_dp, lot=lot)
+    for raw in paths:
+        _slot(job, Path(raw))
+    return job
 
 
 def build_jobs_from_dir(directory: PathLike) -> List[IntakeJob]:

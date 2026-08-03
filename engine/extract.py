@@ -128,7 +128,7 @@ DYNAMIC_CONTACT_PUBLIC = "086 155 2288 / properties.admin@dynamicauctioneers.co.
 # the SDK sends, and no property-specific fact is hardcoded here.
 SYSTEM_PROMPT = (
     "You are the extraction engine for Dynamic Auctioneers, a South African "
-    "property auction and sale house. You read up to three source documents "
+    "property auction and sale house. You read one or more source documents "
     "about a single property and return one structured section of its property "
     "record per request.\n"
     "\n"
@@ -150,6 +150,15 @@ SYSTEM_PROMPT = (
     "this order: valuation report > property report > Lightstone. This applies "
     "to physical facts ONLY; Lightstone still owns deeds, legal and market data "
     "outright.\n"
+    "- MULTIPLE PORTIONS: a property may span several separately-registered land "
+    "portions, each with its own Lightstone EVM (for example several PTNs of a "
+    "farm, or the two erven of a portfolio). They are ONE property. Record each "
+    "portion in physical.portions with its label, erf or description, extent in "
+    "square metres and title deed number exactly as stated. Do NOT add the "
+    "portion extents together yourself and do NOT merge them into a single erf "
+    "size; the system sums them in code. Two EVMs describing DIFFERENT portions "
+    "are additive, not a conflict; only record a physical.conflicts entry when "
+    "two sources describe the SAME portion and disagree on a fact.\n"
     "- Do NOT silently pick when a physical fact differs across sources. Add one "
     "entry to physical.conflicts naming the field, a short human label, and each "
     "source's value as it is stated (lightstone / property_report / valuation; "
@@ -210,7 +219,9 @@ SECTIONS: Tuple[Tuple[str, Type[_Base], str], ...] = (
         Physical,
         "the physical reality: unit and mother-erf sizes, zoning, bedrooms, "
         "bathrooms, separate toilet, garages, the flatlet, and the main-unit "
-        "and complex feature lists. When the sources disagree on ANY physical "
+        "and complex feature lists. If the property spans several land portions "
+        "(multiple EVMs), record each in portions (label, erf, extent m2, title "
+        "deed) and do not sum the extents yourself. When the sources disagree on ANY physical "
         "fact (garages, bedroom count, sizes, and so on), add one entry to "
         "conflicts giving the field name, a short label, and each source's "
         "value as stated (lightstone / property_report / valuation; null a "
@@ -336,6 +347,44 @@ def _all_section_tools() -> list:
     return _ALL_TOOLS
 
 
+def _as_list(value) -> list:
+    """Normalise a single path or a sequence of paths to a list of paths."""
+    if value is None:
+        return []
+    if isinstance(value, (str, Path)):
+        return [value]
+    return list(value)
+
+
+def _label(base: str, index: int, count: int) -> str:
+    """A source-block label; unadorned for a lone document, numbered for many."""
+    return base if count <= 1 else f"{base} - SOURCE {index + 1} OF {count}"
+
+
+def _docs_line(n_light: int, n_report: int, n_valuation: int) -> str:
+    """The sentence describing which documents precede the directive."""
+    if n_light == 1 and n_report == 1 and n_valuation <= 1:
+        line = (
+            "The documents above are the Lightstone EVM report (first) and the "
+            "Dynamic Property Report (second)."
+        )
+        if n_valuation:
+            line += " A registered valuer's valuation report follows (third)."
+        return line
+    counts = [f"{n_light} Lightstone EVM report(s)"]
+    if n_report:
+        counts.append(f"{n_report} Dynamic Property Report(s)")
+    if n_valuation:
+        counts.append(f"{n_valuation} registered valuer's valuation report(s)")
+    return (
+        "The documents above are this property's source reports (" + ", ".join(counts)
+        + "), the Lightstone EVM(s) first, then the Property Report(s), then any "
+        "valuation report(s). They may describe a single property that spans "
+        "several land portions; treat every document as describing ONE property "
+        "and synthesise a single record."
+    )
+
+
 def build_request(
     lightstone_pdf: str | Path,
     property_report_pdf: str | Path,
@@ -360,14 +409,15 @@ def build_request(
     """
     mode = mode or os.environ.get("EXTRACT_PDF_MODE", DEFAULT_PDF_MODE)
     model, focus = _SECTION_INDEX[section]
-    docs_line = (
-        "The documents above are the Lightstone EVM report (first) and the "
-        "Dynamic Property Report (second)."
-        if valuation_pdf is None
-        else "The documents above are the Lightstone EVM report (first), the "
-        "Dynamic Property Report (second) and a registered valuer's valuation "
-        "report (third)."
-    )
+
+    # Each of the three may be a single path (the common single-portion pair) or
+    # a list (a multi-portion property with several EVMs). All are sent, EVMs
+    # first, then Property Reports, then valuations.
+    lightstones = _as_list(lightstone_pdf)
+    reports = _as_list(property_report_pdf)
+    valuations = _as_list(valuation_pdf)
+
+    docs_line = _docs_line(len(lightstones), len(reports), len(valuations))
     text_block = {
         "type": "text",
         "text": (
@@ -378,18 +428,20 @@ def build_request(
             "the documents do not contain as null."
         ),
     }
-    source_blocks = [
-        _source_block(lightstone_pdf, mode, "LIGHTSTONE EVM REPORT"),
-        _source_block(property_report_pdf, mode, "DYNAMIC PROPERTY REPORT"),
-    ]
-    if valuation_pdf is not None:
-        source_blocks.append(_source_block(valuation_pdf, mode, "REGISTERED VALUER'S VALUATION REPORT"))
+    source_blocks: list = []
+    for i, path in enumerate(lightstones):
+        source_blocks.append(_source_block(path, mode, _label("LIGHTSTONE EVM REPORT", i, len(lightstones))))
+    for i, path in enumerate(reports):
+        source_blocks.append(_source_block(path, mode, _label("DYNAMIC PROPERTY REPORT", i, len(reports))))
+    for i, path in enumerate(valuations):
+        source_blocks.append(_source_block(path, mode, _label("REGISTERED VALUER'S VALUATION REPORT", i, len(valuations))))
     # The cached prefix ends after the LAST source block: system brief + every
     # document are identical for every section call of a property, past the
     # 4096-token minimum cacheable prefix on claude-opus-4-8 in either mode.
     # The first call writes the cache; the remaining sections read it at a tenth
     # of the input price.
-    source_blocks[-1]["cache_control"] = {"type": "ephemeral"}
+    if source_blocks:
+        source_blocks[-1]["cache_control"] = {"type": "ephemeral"}
     return {
         "model": MODEL,
         "max_tokens": MAX_TOKENS,
@@ -504,6 +556,13 @@ def extract_record(
             "before running Claude extraction."
         ) from exc
 
+    # A property may arrive as several EVMs (a multi-portion property); normalise
+    # every argument to a list of paths once, then feed all of them to each
+    # section call as ONE property.
+    lightstones = _as_list(lightstone_pdf)
+    reports = _as_list(property_report_pdf)
+    valuations = _as_list(valuation_pdf)
+
     parts: dict = {}
     for idx, (section, model, _focus) in enumerate(SECTIONS):
         # Pace between calls (not before the first) so each minute stays under
@@ -511,7 +570,7 @@ def extract_record(
         if pace_seconds and idx:
             time.sleep(pace_seconds)
         request = build_request(
-            lightstone_pdf, property_report_pdf, dp, section, mode, valuation_pdf=valuation_pdf
+            lightstones, reports, dp, section, mode, valuation_pdf=valuations
         )
         try:
             parts[section] = _extract_section(client, request, section, model)
@@ -523,17 +582,20 @@ def extract_record(
 
     # The real source paths always come from the caller; the model cannot know
     # them and was told to leave the file fields null.
+    # Stamp the primary source file of each kind (the first when several
+    # portions were supplied); every uploaded file is preserved on disk in the
+    # property's uploads folder, and each portion is recorded in physical.portions.
     sources = parts.get("sources") or Sources()
     if sources.lightstone_evm is None:
         sources.lightstone_evm = LightstoneSource()
-    sources.lightstone_evm.file = str(lightstone_pdf)
+    sources.lightstone_evm.file = str(lightstones[0]) if lightstones else None
     if sources.property_report is None:
         sources.property_report = PropertyReportSource()
-    sources.property_report.file = str(property_report_pdf)
-    if valuation_pdf is not None:
+    sources.property_report.file = str(reports[0]) if reports else None
+    if valuations:
         if sources.valuation_report is None:
             sources.valuation_report = ValuationReportSource()
-        sources.valuation_report.file = str(valuation_pdf)
+        sources.valuation_report.file = str(valuations[0])
     parts["sources"] = sources
 
     record = PropertyRecord(

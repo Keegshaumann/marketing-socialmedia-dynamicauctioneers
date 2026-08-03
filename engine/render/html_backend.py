@@ -204,6 +204,14 @@ class HtmlBackend(RenderBackend):
         flatlet_present = bool(flatlet.get("present"))
         flatlet_beds = _fmt_num(flatlet.get("bedrooms")) if flatlet_present else None
 
+        # Multi-portion property: the size shown is the SUM of the portions'
+        # extents, added in code (never the model's arithmetic, hard rule 3).
+        # A single-portion property has no portions and uses its unit size.
+        portions = [p for p in (physical.get("portions") or []) if isinstance(p, dict)]
+        portion_sizes = [p.get("size_m2") for p in portions if p.get("size_m2") is not None]
+        total_extent = sum(portion_sizes) if portion_sizes else None
+        size_value = total_extent if total_extent is not None else physical.get("unit_size_m2")
+
         photos = self._photo_refs(request, marketing)
 
         vm: dict = {
@@ -244,7 +252,17 @@ class HtmlBackend(RenderBackend):
             "auction_time": sale.get("auction_time"),
             "badge_label": badge_label,
             "price_display": marketing.get("price_display") or badge_label,
-            "size_str": _fmt_num(physical.get("unit_size_m2")),
+            "size_str": _fmt_num(size_value),
+            # Land portions of a multi-portion property, for templates that list
+            # them; empty for an ordinary single-portion property.
+            "portions": [
+                {
+                    "label": p.get("label"),
+                    "erf": p.get("erf"),
+                    "size_str": _fmt_num(p.get("size_m2")),
+                }
+                for p in portions
+            ],
             "beds": _fmt_num(physical.get("bedrooms")),
             "baths": _fmt_num(physical.get("bathrooms_main_unit")),
             "garages": _fmt_num(physical.get("garages")),

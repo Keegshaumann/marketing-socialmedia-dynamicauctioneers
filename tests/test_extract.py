@@ -294,6 +294,40 @@ def test_extract_record_assembles_sections_and_stamps_code_owned_fields(tmp_path
     assert "financials_internal" not in pv
 
 
+def test_build_request_sends_every_portion_evm(tmp_path):
+    """A multi-portion property sends all its EVMs, in order, cache on the last."""
+    evm1 = _fake_pdf(tmp_path, "evm1.pdf")
+    evm2 = _fake_pdf(tmp_path, "evm2.pdf")
+    report = _fake_pdf(tmp_path, "report.pdf")
+
+    req = build_request([evm1, evm2], [report], "2918", "physical", mode="native")
+    content = req["messages"][0]["content"]
+    # three document blocks (two EVMs then the report), then the directive text.
+    assert [b["type"] for b in content] == ["document", "document", "document", "text"]
+    # EVMs come first, in order.
+    assert base64.b64decode(content[0]["source"]["data"]) == evm1.read_bytes()
+    assert base64.b64decode(content[1]["source"]["data"]) == evm2.read_bytes()
+    assert base64.b64decode(content[2]["source"]["data"]) == report.read_bytes()
+    # The cache breakpoint sits on the LAST source block only (one prefix).
+    assert content[2]["cache_control"] == {"type": "ephemeral"}
+    assert "cache_control" not in content[0] and "cache_control" not in content[1]
+    assert "physical" in content[3]["text"]
+
+
+def test_extract_record_accepts_lists_and_stamps_first_source(tmp_path):
+    """Extraction over several EVMs assembles one record; the first file stamps."""
+    evm1 = _fake_pdf(tmp_path, "evm1.pdf")
+    evm2 = _fake_pdf(tmp_path, "evm2.pdf")
+    report = _fake_pdf(tmp_path, "report.pdf")
+
+    rec = extract_record([evm1, evm2], [report], "2918", client=_all_empty_client())
+
+    assert rec.dp == "2918"
+    # The primary EVM/report file paths are stamped from the first of each list.
+    assert rec.sources.lightstone_evm.file == str(evm1)
+    assert rec.sources.property_report.file == str(report)
+
+
 def test_extract_record_survives_all_empty_sections(tmp_path):
     """A property the model finds nothing for still assembles a valid record."""
     lightstone = _fake_pdf(tmp_path, "l.pdf")
