@@ -23,7 +23,7 @@ The complex offers a pool, playground, communal braai area, remote-controlled ac
 Viewing is strictly by appointment.
 
 Dynamic Auctioneers
-086 155 2288 | properties.admin@dynamicauctioneers.co.za
+086 155 2288 | properties@dynamicauctioneers.co.za
 Registered with the PPRA
 
 ---

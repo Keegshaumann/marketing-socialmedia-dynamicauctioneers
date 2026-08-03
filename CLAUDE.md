@@ -42,7 +42,7 @@ Property-marketing automation for Dynamic Auctioneers (SA liquidation-auction fi
 
 ## Hard rules (non-negotiable)
 
-1. **POPIA / PII:** owner name, ID number, occupant contact, bond, arrears live only in the record's internal layer. Public renderers receive a `public_view` projection that does not contain these fields. Enquiries route to Dynamic (086 155 2288 / properties.admin@dynamicauctioneers.co.za), never the occupant's cell.
+1. **POPIA / PII:** owner name, ID number, occupant contact, bond, arrears live only in the record's internal layer. Public renderers receive a `public_view` projection that does not contain these fields. Enquiries route to Dynamic (086 155 2288 / properties@dynamicauctioneers.co.za), never the occupant's cell.
 2. **Two human gates:** verification memo sign-off before drafting; artifact approval before distribution. Enforced in code (state machine), not convention.
 3. **No hallucinated facts:** every ad claim traces to a record field; every record field traces to a source doc or cited research. Missing data = `null` + `confidence: "missing"`.
 4. **Client-facing copy:** SA English, no em/en dashes, no AI-sounding constructions. Framing follows `sale_process.method` ("offers invited" vs auction).

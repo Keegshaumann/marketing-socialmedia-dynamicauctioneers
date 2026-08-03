@@ -16,7 +16,7 @@ Offers invited. 10% deposit on submission of offer.
 Viewing by appointment only.
 
 📞 086 155 2288
-📧 properties.admin@dynamicauctioneers.co.za
+📧 properties@dynamicauctioneers.co.za
 🔗 [listing link]
 
 Dynamic Auctioneers. Registered with the PPRA.

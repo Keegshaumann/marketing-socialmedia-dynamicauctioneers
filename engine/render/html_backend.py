@@ -40,7 +40,7 @@ from engine.render.base import FORMATS, Artifact, RenderBackend, RenderRequest
 BRAND: Dict[str, str] = {
     "name": "Dynamic Auctioneers",
     "phone": "086 155 2288",
-    "email": "properties.admin@dynamicauctioneers.co.za",
+    "email": "properties@dynamicauctioneers.co.za",
     "web": "dynamicauctioneers.co.za",
     "address": "187 Gouws Avenue, Raslouw AH, Centurion",
     "reg": (

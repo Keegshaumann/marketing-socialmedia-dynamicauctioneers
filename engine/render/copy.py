@@ -49,7 +49,7 @@ MAX_TOKENS = 4000
 # Dynamic's public enquiry line. Safe to render; used as a fallback when the
 # record does not carry a public viewing contact.
 DYNAMIC_CONTACT_PUBLIC = (
-    "Dynamic Auctioneers | 086 155 2288 | properties.admin@dynamicauctioneers.co.za"
+    "Dynamic Auctioneers | 086 155 2288 | properties@dynamicauctioneers.co.za"
 )
 
 

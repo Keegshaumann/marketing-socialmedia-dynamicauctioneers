@@ -19,4 +19,4 @@ Offers are invited. A 10% deposit is payable on submission of an offer, with occ
 
 Viewing strictly by appointment.
 
-**Dynamic Auctioneers** | 086 155 2288 | properties.admin@dynamicauctioneers.co.za
+**Dynamic Auctioneers** | 086 155 2288 | properties@dynamicauctioneers.co.za
