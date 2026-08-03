@@ -319,6 +319,62 @@ def test_collage_renders_auction_specifics(golden_record, tmp_path):
     assert 'class="ig-price"' not in html  # auction shows the auction line, not a price bar
 
 
+# --- info pack: playbook framing branches on auction vs sale ---------------
+
+_LEGAL_DISCLAIMER = (
+    "Whilst all reasonable care has been taken to provide accurate information, "
+    "neither Dynamic Solutions 1068 (Pty) LTD Trading As Dynamic Auctioneers"
+)
+
+
+def _info_pack_html(record, tmp_path):
+    store = _store_with(record)
+    try:
+        art = render_one(record.dp, store, "info_pack", backend="html", output_root=str(tmp_path))
+        return Path(art.path).read_text(encoding="utf-8")
+    finally:
+        store.close()
+
+
+def test_info_pack_sale_uses_offer_language_not_auction(golden_record, tmp_path):
+    """A normal listing (offers invited) never uses auction / bid wording."""
+    golden_record.sale_process.method = "offers_invited"
+    html = _info_pack_html(golden_record, tmp_path)
+
+    # Offer / expression-of-interest framing (playbook 5).
+    assert "How to proceed" in html
+    assert "Submit a written offer" in html
+    assert "Buyer information pack" in html
+    assert "Method of sale" in html and "Offers invited" in html
+    # No auction/bidding framing on a sale pack.
+    assert "How the auction works" not in html
+    assert "Register to bid" not in html
+    assert "On auction" not in html
+    # Disclaimers present verbatim.
+    assert _LEGAL_DISCLAIMER in html
+
+
+def test_info_pack_auction_uses_auction_language_and_details(golden_record, tmp_path):
+    """An auction record frames the pack as an auction with its specifics."""
+    golden_record.sale_process.method = "auction"
+    golden_record.sale_process.auction_type = "Insolvency"
+    golden_record.sale_process.auction_channel = "Online"
+    golden_record.sale_process.auction_date = "28 May 2026"
+    golden_record.sale_process.auction_time = "10:00"
+    html = _info_pack_html(golden_record, tmp_path)
+
+    assert "How the auction works" in html
+    assert "Register to bid" in html
+    assert "Auction information pack" in html
+    assert "Insolvency auction" in html          # the optbox headline
+    assert "28 May 2026" in html and "10:00" in html
+    # No sale-only "submit an offer" flow on an auction pack.
+    assert "How to proceed" not in html
+    assert "Submit a written offer" not in html
+    # Disclaimers present verbatim.
+    assert _LEGAL_DISCLAIMER in html
+
+
 @pytest.mark.parametrize("template", ["feature_list", "stats_first"])
 def test_new_ad_designs_render_place_and_descriptor(template, golden_record, tmp_path):
     # AD 2 / AD 3 lead with the locality + a concise descriptor and carry the
