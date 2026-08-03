@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import re
 import shutil
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -56,6 +57,26 @@ def _tray_dir(output_root: str, batch_id: str) -> Optional[Path]:
     if not _BATCH_RE.match(batch_id or ""):
         return None
     return Path(output_root) / "_intake_tray" / batch_id
+
+
+# A staged batch older than this is abandoned (the user closed the DP prompt) and
+# is swept on the next upload. Source PDFs carry POPIA-internal data (owner name,
+# ID number, bond, arrears), so they must not linger in the tray indefinitely.
+_TRAY_TTL_SECONDS = 24 * 60 * 60
+
+
+def _sweep_stale_trays(output_root: str) -> None:
+    """Delete staged batches older than the TTL. Never raises (best effort)."""
+    tray = Path(output_root) / "_intake_tray"
+    if not tray.is_dir():
+        return
+    cutoff = time.time() - _TRAY_TTL_SECONDS
+    for child in tray.iterdir():
+        try:
+            if child.is_dir() and child.stat().st_mtime < cutoff:
+                shutil.rmtree(child, ignore_errors=True)
+        except OSError:
+            continue
 
 
 def _view(request: Request, name: str, ctx: Optional[dict] = None, status_code: int = 200):
@@ -126,7 +147,7 @@ async def upload(
     files: List[UploadFile] = File(default=[]),
     user: dict = Depends(auth.require_role("marketing")),
 ):
-    from engine.intake import build_combined_job
+    from engine.intake import build_combined_job, dp_candidates
 
     db_path = auth.db_path_for(request)
 
@@ -142,14 +163,22 @@ async def upload(
     # (a multi-portion property with several EVMs) is kept together and cannot
     # collide with another user's concurrent upload.
     output_root = _output_root(db_path)
+    _sweep_stale_trays(output_root)  # drop abandoned batches (POPIA retention)
     batch_id = uuid.uuid4().hex
     batch_dir = _tray_dir(output_root, batch_id)
     batch_dir.mkdir(parents=True, exist_ok=True)
 
     saved: List[Path] = []
+    skipped: List[str] = []
     for upload_file in files:
         name = Path(upload_file.filename or "").name
         if not name:
+            continue
+        # Only PDFs are source documents. The dropzone's accept= filters the
+        # browse dialog but NOT a drag-drop, so property photos dragged in with
+        # the reports would otherwise be staged and fed to the PDF classifier.
+        if Path(name).suffix.lower() != ".pdf":
+            skipped.append(name)
             continue
         dest = batch_dir / name
         dest.write_bytes(await upload_file.read())
@@ -157,17 +186,52 @@ async def upload(
 
     if not saved:
         shutil.rmtree(batch_dir, ignore_errors=True)
+        message = "No readable files were received. Drop the source PDFs to begin."
+        if skipped:
+            message = (
+                "Only PDF documents can be used here (" + ", ".join(skipped[:4])
+                + (" and others" if len(skipped) > 4 else "")
+                + " were not PDFs). Drop the Lightstone EVM and the Property "
+                "Report; property photos are added later, on the photos step."
+            )
         return _view(
-            request,
-            "_intake_error.html",
-            {"message": "No readable files were received. Drop the source PDFs to begin."},
-            status_code=400,
+            request, "_intake_error.html", {"message": message}, status_code=400,
         )
 
-    # One combined property record from all the files. The DP is read from the
-    # filenames when they agree; when they do not (a farm portion named
-    # "PTN 6 of Farm 7.pdf" carries no DP), ask the user to type one rather than
-    # guess a wrong key.
+    # One combined property record from all the files. Three cases, and they must
+    # be kept apart: exactly one DP -> proceed; NO DP (a farm portion named
+    # "PTN 6 of Farm 7.pdf") -> ask the user to type one; SEVERAL DPs -> refuse,
+    # because filing one property's documents under the other's DP would make
+    # extraction synthesise the two into a single chimera record.
+    found = dp_candidates(saved)
+    if len(found) > 1:
+        # Ask rather than refuse. ``parse_dp`` reads any leading number, so more
+        # than one candidate does NOT prove more than one property: a valuer's
+        # report named for the street ("40 Topham Road.pdf"), a scanner's date
+        # stamp, or sub-lot files (3035 / 3035.1) all land here legitimately.
+        # Refusing outright would dead-end those drops with no way through, so
+        # name the numbers found and let the marketer say which property this is
+        # (and tell her to upload separately if they really are two).
+        return _view(
+            request,
+            "_intake_need_dp.html",
+            {
+                "batch_id": batch_id,
+                "files": [p.name for p in saved],
+                "count": len(saved),
+                "candidates": found,
+                "error": (
+                    "These files are named for "
+                    + str(len(found))
+                    + " different numbers ("
+                    + ", ".join("DP" + d for d in found)
+                    + "). If they are two separate properties, start over and "
+                    "upload one at a time. If they are all one property, enter "
+                    "its DP number below."
+                ),
+            },
+        )
+
     job = build_combined_job(saved)
     if not job.dp:
         return _view(
@@ -186,13 +250,16 @@ async def finalize(
     user: dict = Depends(auth.require_role("marketing")),
 ):
     """Second step of a no-DP upload: the user supplied the DP; proceed with it."""
-    from engine.intake import build_combined_job
+    from engine.intake import build_combined_job, dp_candidates
 
     db_path = auth.db_path_for(request)
     output_root = _output_root(db_path)
 
     batch_dir = _tray_dir(output_root, batch_id)
-    staged = sorted(batch_dir.glob("*.pdf")) if (batch_dir and batch_dir.is_dir()) else []
+    # Every staged file, not just lower-case ".pdf": upload stages whatever was
+    # dropped, so a scanner-named "3060 REPORT.PDF" must be found here too or it
+    # would be reported missing and then destroyed with the tray.
+    staged = sorted(p for p in batch_dir.iterdir() if p.is_file()) if (batch_dir and batch_dir.is_dir()) else []
     if not staged:
         return _view(
             request,
@@ -215,6 +282,12 @@ async def finalize(
             status_code=400,
         )
 
+    # The typed DP wins deliberately, even when a filename carries a different
+    # number: the prompt that sent the user here already listed every number it
+    # found and asked her to confirm which property this is (or to upload the
+    # properties separately). Blocking here as well would dead-end the legitimate
+    # cases - a street-numbered valuer's report, a scanner date stamp, sub-lots -
+    # with no way through.
     job = build_combined_job(staged, dp=clean)
     return _finalize_intake(request, db_path, output_root, job, batch_dir)
 
@@ -261,6 +334,9 @@ def _finalize_intake(request: Request, db_path, output_root: str, job, batch_dir
 
     payload = {
         "dp": dp,
+        # parent_dp travels with the job: extraction rebuilds the record from the
+        # sources and would otherwise null a sub-property's parent link (3035.1).
+        "parent_dp": job.parent_dp,
         "lightstones": lightstones,
         "property_reports": property_reports,
         "valuations": valuations,

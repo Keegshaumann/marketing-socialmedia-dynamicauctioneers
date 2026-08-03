@@ -34,6 +34,12 @@ from webapp.models import get_job  # re-exported: get_job(db_path, id)
 
 JOB_KINDS = ("extract", "verify", "render", "post")
 
+# Lifecycle states in which re-running extraction over an EXISTING record is
+# safe: nothing has been signed off, drafted or published yet, so rewriting the
+# sourced facts cannot contradict a human decision. Past these, _handle_extract
+# refuses (see the comment there).
+_RE_EXTRACT_STATES = frozenset({"intake", "extracted", "flags_raised"})
+
 _POLL_INTERVAL = 0.25  # seconds between queue polls when idle
 
 
@@ -138,16 +144,61 @@ def _handle_extract(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, s
     valuations = _paths("valuations", "valuation")  # optional 3rd source (D35)
     if not (dp and lightstones and reports):
         return (
-            "skipped: no API key",
+            "skipped: incomplete sources",
             "no source pair on the job payload; nothing to extract.",
         )
 
     from engine.extract import extract_record
+    from engine.schema import Marketing
     from engine.store import RecordStore
 
-    record = extract_record(lightstones, reports, dp=dp, valuation_pdf=valuations)
+    # Re-extraction REWRITES the sourced facts (identity, physical, valuation and
+    # the physical-conflict resolutions). Once a human has signed off gate 1 those
+    # facts underpin a verification memo, a drafted advert and possibly a live
+    # listing, none of which this job can honestly rebuild: the sign-off would
+    # still read as valid for facts nobody checked, and the rendered ads would
+    # assert the old ones (hard rules 2 and 3). The state machine has no backward
+    # move to send it through the gates again, so refuse instead. The new source
+    # files are already saved in the property's uploads folder; to genuinely
+    # re-extract, delete the property on the board and intake it afresh.
     store = RecordStore(models.resolve_db_path(db_path))
     try:
+        existing = store.get(dp)
+        state = store.get_state(dp)
+        if existing is not None and state not in _RE_EXTRACT_STATES:
+            return (
+                "skipped: already signed off",
+                f"DP {dp} is at '{state}', past gate 1, so re-extraction would "
+                "rewrite facts under a signed-off memo and an already-drafted "
+                "advert. The uploaded documents were saved to the property's "
+                "uploads folder. To re-extract from scratch, delete the property "
+                "on the board and intake it again.",
+            )
+    finally:
+        store.close()
+
+    record = extract_record(
+        lightstones, reports, dp=dp, parent_dp=payload.get("parent_dp"), valuation_pdf=valuations
+    )
+    store = RecordStore(models.resolve_db_path(db_path))
+    try:
+        # Before gate 1 a re-extraction is safe (a retry, or adding a valuation
+        # report). Extraction rebuilds only the source-derived sections, so carry
+        # over the human-owned layers that do not assert sourced facts: the photo
+        # picks and design choice, the explicit field corrections, and the parent
+        # link. The verification memo is deliberately NOT carried: it describes
+        # the previous facts and must be re-run against these.
+        existing = store.get(dp)
+        if existing is not None:
+            if existing.marketing is not None:
+                fresh = record.marketing or Marketing()
+                fresh.hero_photo = fresh.hero_photo or existing.marketing.hero_photo
+                fresh.gallery = fresh.gallery or existing.marketing.gallery
+                fresh.template_set = fresh.template_set or existing.marketing.template_set
+                record.marketing = fresh
+            record.human_overrides = record.human_overrides or existing.human_overrides
+            if record.parent_dp is None:
+                record.parent_dp = existing.parent_dp
         store.upsert(record, state="extracted")
         # upsert only sets state on the FIRST insert; the intake upload already
         # created this record at "intake", so the state arg above is ignored and

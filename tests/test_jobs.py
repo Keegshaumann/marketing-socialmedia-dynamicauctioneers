@@ -20,6 +20,108 @@ def _record(dp: str = "3024.3") -> PropertyRecord:
     )
 
 
+def test_re_extraction_is_refused_once_gate_1_is_signed_off(tmp_path, monkeypatch):
+    """Re-extracting a signed-off property must not rewrite its facts.
+
+    Extraction replaces the whole sourced layer (identity, physical, valuation
+    and the gate-1 conflict resolutions). Past gate 1 those facts underpin a
+    verification memo, a drafted advert and possibly a live listing, and the
+    state machine has no backward move to re-run the gates, so the job refuses
+    rather than leaving a sign-off that vouches for facts nobody checked.
+    """
+    from engine.schema import Verification
+
+    db_path = str(tmp_path / "engine.db")
+    dp = "3050.2"
+    models.init_db(db_path)
+
+    worked = PropertyRecord(
+        dp=dp, parent_dp="3050", status="drafted",
+        identity=Identity(title_type="sectional", suburb="Pelham North"),
+        marketing=Marketing(headline="A tidy unit", hero_photo="photos/front.png"),
+        verification=Verification(status="verified", human_signoff="nikki@example.com"),
+    )
+    store = RecordStore(db_path)
+    store.upsert(worked, state="drafted")
+    store.close()
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    called = []
+    monkeypatch.setattr(
+        "engine.extract.extract_record",
+        lambda *a, **k: called.append(1) or PropertyRecord(dp=dp, status="extracted"),
+    )
+
+    job_id = jobs.enqueue(db_path, "extract", dp, payload={
+        "dp": dp, "lightstones": ["evm.pdf"], "property_reports": ["report.pdf"],
+        "output_root": str(tmp_path),
+    })
+    assert jobs.drain(db_path) == 1
+
+    assert models.get_job(db_path, job_id)["state"] == "skipped: already signed off"
+    assert not called, "extraction must not run over a signed-off record"
+
+    store = RecordStore(db_path)
+    try:
+        after = store.get(dp)
+        assert after.marketing.headline == "A tidy unit"     # untouched
+        assert after.verification.human_signoff == "nikki@example.com"
+        assert store.get_state(dp) == "drafted"
+    finally:
+        store.close()
+
+
+def test_re_extraction_before_gate_1_keeps_photos_but_not_the_memo(tmp_path, monkeypatch):
+    """A retry before sign-off is safe: photo picks survive, the memo does not."""
+    from engine.schema import Verification
+
+    db_path = str(tmp_path / "engine.db")
+    dp = "3051.1"
+    models.init_db(db_path)
+
+    earlier = PropertyRecord(
+        dp=dp, parent_dp="3051", status="extracted",
+        identity=Identity(title_type="sectional", suburb="Pelham North"),
+        marketing=Marketing(hero_photo="photos/front.png", gallery=["photos/kitchen.png"],
+                            template_set="collage"),
+        verification=Verification(status="flags_raised", memo="old memo"),
+        human_overrides={"identity.suburb": "Pelham"},
+    )
+    store = RecordStore(db_path)
+    store.upsert(earlier, state="extracted")
+    store.close()
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    monkeypatch.setattr(
+        "engine.extract.extract_record",
+        lambda *a, **k: PropertyRecord(
+            dp=dp, status="extracted",
+            identity=Identity(title_type="sectional", suburb="Pelham North"),
+        ),
+    )
+
+    jobs.enqueue(db_path, "extract", dp, payload={
+        "dp": dp, "parent_dp": "3051",
+        "lightstones": ["evm.pdf"], "property_reports": ["report.pdf"],
+        "output_root": str(tmp_path),
+    })
+    assert jobs.drain(db_path) == 1
+
+    store = RecordStore(db_path)
+    try:
+        after = store.get(dp)
+        # Human-owned, fact-independent work survives.
+        assert after.marketing.hero_photo == "photos/front.png"
+        assert after.marketing.gallery == ["photos/kitchen.png"]
+        assert after.marketing.template_set == "collage"
+        assert after.human_overrides == {"identity.suburb": "Pelham"}
+        assert after.parent_dp == "3051"
+        # The memo described the OLD facts; it must be re-run, not inherited.
+        assert after.verification is None
+    finally:
+        store.close()
+
+
 def test_extract_job_advances_intake_to_extracted(tmp_path, monkeypatch):
     """Regression: the extract handler must move an existing ``intake`` record to
     ``extracted``.

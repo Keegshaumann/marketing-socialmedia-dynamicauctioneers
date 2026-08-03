@@ -450,12 +450,34 @@ def gate_photos_continue(dp: str, request: Request, user: dict = Depends(require
     without a photo and then re-rendered. The marketer either uploads a photo or
     uses the "pull from source documents" fallback first."""
     db_path = _db(request)
-    if not _photo_list(_load(db_path, dp)):
-        target = f"/gates/{dp}/photos"
+    # The photos step only belongs before the first draft. Reaching this URL on an
+    # already-drafted or live listing (back button, bookmark) must not re-render
+    # its artifacts or attempt an illegal backward advance - send it to gate 2,
+    # where photo edits go through the normal reopen/approval cycle.
+    if _state(db_path, dp) not in _PRE_DRAFT_STATES:
+        target = f"/gates/{dp}/ads"
         if request.headers.get("HX-Request"):
             return Response(status_code=204, headers={"HX-Redirect": target})
         return RedirectResponse(url=target, status_code=303)
-    _render(db_path, dp)
+    if not _photo_list(_load(db_path, dp)):
+        # Say why, rather than silently reloading an identical-looking page: to a
+        # marketer an unexplained no-op reads as a broken button.
+        toast = {
+            "tone": "note", "title": "A photo is needed first",
+            "text": "Add at least one photo (or use the images from the documents) "
+                    "before the advert is drafted.",
+        }
+        if request.headers.get("HX-Request"):
+            return _photo_result(request, db_path, dp, toast)
+        return RedirectResponse(url=f"/gates/{dp}/photos", status_code=303)
+    try:
+        _render(db_path, dp)
+    except Exception as exc:  # a render backend failure must not strand the step
+        return _photo_result(request, db_path, dp, {
+            "tone": "block", "title": "Advert could not be built",
+            "text": f"The photos are saved, but rendering failed ({type(exc).__name__}). "
+                    "Try Continue again in a moment.",
+        })
     _advance(db_path, dp, "drafted", note=f"photos step completed by {user['email']}")
     target = f"/gates/{dp}/ads"
     if request.headers.get("HX-Request"):
@@ -486,7 +508,10 @@ def gate_photos_from_source(dp: str, request: Request, user: dict = Depends(requ
     photos_dir = _photos_dir(db_path, dp)
     photos_dir.mkdir(parents=True, exist_ok=True)
     # Property Report first (it carries the on-site photos), then any other PDF.
-    pdfs = sorted(uploads.glob("*.pdf")) if uploads.is_dir() else []
+    # Case-insensitive: a scanner or Windows machine names files ".PDF", and a
+    # case-sensitive glob would report "no images" with the report sitting there.
+    pdfs = sorted(p for p in uploads.iterdir()
+                  if p.is_file() and p.suffix.lower() == ".pdf") if uploads.is_dir() else []
     pdfs.sort(key=lambda p: 0 if "report" in p.name.lower() else 1)
 
     tray = photos_dir / "_from_source"
@@ -517,6 +542,9 @@ def gate_photos_from_source(dp: str, request: Request, user: dict = Depends(requ
     shutil.rmtree(tray, ignore_errors=True)
 
     if added:
+        # Same reopen rule as a manual upload: changing the photos of a live
+        # listing is an edit, and must re-enter the approval cycle (hard rule 2).
+        _reopen_if_live(db_path, dp, user["email"])
         _save_photos(db_path, dp, full, user["email"])
         toast = {"tone": "ok", "title": "Images pulled from the documents",
                  "text": f"{added} image(s) taken from the source documents. Set the lead photo, then continue."}
@@ -848,7 +876,16 @@ async def gate2_photo_delete(dp: str, request: Request, user: dict = Depends(req
     name = Path(str(form.get("name", ""))).name
     current = _photo_list(_load(db_path, dp))
     full = [p for p in current if Path(p).name != name]
-    if len(full) != len(current):
+    if not full and current:
+        # The min-1 rule holds for the life of the listing, not just at the
+        # photos step: removing the last photo would silently re-render a
+        # photo-less advert that could then be approved and posted.
+        toast = {
+            "tone": "note", "title": "The last photo cannot be removed",
+            "text": "Every advert needs at least one photo. Upload a replacement "
+                    "first, then remove this one.",
+        }
+    elif len(full) != len(current):
         _reopen_if_live(db_path, dp, user["email"])
         _save_photos(db_path, dp, full, user["email"])
         toast = {"tone": "ok", "title": "Photo removed", "text": "Adverts re-rendered."}

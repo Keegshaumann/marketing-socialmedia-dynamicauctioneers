@@ -276,6 +276,70 @@ def test_upload_creates_a_job():
     assert any(j["kind"] == "extract" for j in jobs_for_dp)
 
 
+def test_mixed_dp_drop_asks_instead_of_merging_or_dead_ending():
+    """Several DP numbers in one drop must be surfaced, never silently merged.
+
+    It must also not hard-block: parse_dp reads any leading number, so a
+    street-numbered valuer's report or a scanner date stamp produces extra
+    candidates for a perfectly legitimate single-property drop. The screen names
+    the numbers it found and lets the marketer say which property this is.
+    """
+    client = _client()
+    _login_admin(client)
+
+    files = [
+        ("files", ("3060 - EVM lightstone.pdf", b"%PDF-a", "application/pdf")),
+        ("files", ("3060 - property report.pdf", b"%PDF-b", "application/pdf")),
+        ("files", ("3061 - EVM lightstone.pdf", b"%PDF-c", "application/pdf")),
+    ]
+    resp = client.post("/intake/upload", files=files)
+    assert resp.status_code == 200, resp.text
+    assert "DP3060" in resp.text and "DP3061" in resp.text
+    assert "upload one at a time" in resp.text
+    # Nothing filed until the marketer answers.
+    assert not models.list_jobs(DB_PATH, dp="3060")
+    assert not models.list_jobs(DB_PATH, dp="3061")
+    # And there IS a way through: the batch is still staged behind a prompt.
+    assert re.search(r'name="batch_id" value="([0-9a-f]{32})"', resp.text)
+
+
+def test_upload_rejects_non_pdf_files_without_crashing():
+    """Photos dragged in with the reports must not reach the PDF classifier.
+
+    PyMuPDF opens a mislabelled image and only raises when a page is read, which
+    used to 500 the intake screen in front of the user.
+    """
+    client = _client()
+    _login_admin(client)
+
+    resp = client.post("/intake/upload", files=[
+        ("files", ("front view.jpg", b"\x89PNG-not-really-an-image", "image/jpeg")),
+        ("files", ("kitchen.png", b"not-a-png-either", "image/png")),
+    ])
+    assert resp.status_code == 400, resp.text
+    assert "Only PDF documents" in resp.text
+
+
+def test_finalize_finds_uppercase_pdf_files():
+    """Staged ".PDF" files must be found, not reported missing and destroyed."""
+    client = _client()
+    _login_admin(client)
+
+    resp = client.post("/intake/upload", files=[
+        ("files", ("scanned lightstone EVM.PDF", b"%PDF-a", "application/pdf")),
+        ("files", ("scanned PROPERTY REPORT.PDF", b"%PDF-b", "application/pdf")),
+    ])
+    assert "DP number needed" in resp.text
+    batch_id = re.search(r'name="batch_id" value="([0-9a-f]{32})"', resp.text).group(1)
+
+    ok = client.post("/intake/finalize", data={"batch_id": batch_id, "dp": "4478"})
+    assert ok.status_code == 200, ok.text
+    extract = next((j for j in models.list_jobs(DB_PATH, dp="4478") if j["kind"] == "extract"), None)
+    assert extract is not None
+    payload = models.get_job(DB_PATH, extract["id"])["payload"]
+    assert payload["lightstones"] and payload["property_reports"]
+
+
 def test_upload_without_dp_prompts_then_finalizes():
     """Files with no DP in their names ask the user for one, then proceed."""
     client = _client()
@@ -1104,6 +1168,49 @@ def test_photos_step_requires_at_least_one_photo():
                 files=[("files", ("front.png", _PNG_1X1, "image/png"))])
     client.post(f"/gates/{dp}/photos/continue")
     assert _state(dp) == "drafted"
+
+
+def test_zero_photo_continue_explains_itself():
+    """The refusal must say why: a silent reload reads as a broken button."""
+    dp = "9403"
+    _needs_golden()
+    record = PropertyRecord.model_validate_json(GOLDEN_RECORD.read_text(encoding="utf-8"))
+    record.dp = dp
+    record.marketing.hero_photo = None
+    record.marketing.gallery = []
+    store = RecordStore(DB_PATH)
+    try:
+        store.upsert(record, state="photos")
+    finally:
+        store.close()
+    client = _client()
+    _login_admin(client)
+
+    resp = client.post(f"/gates/{dp}/photos/continue", headers={"HX-Request": "true"})
+    assert resp.status_code == 200, resp.text
+    assert "photo is needed first" in resp.text.lower()
+    assert _state(dp) == "photos"  # still not drafted
+
+
+def test_last_photo_cannot_be_removed():
+    """The min-1 rule holds after drafting too: Remove must not empty the ad."""
+    dp = "9404"
+    _seed_live_no_photos(dp)
+    client = _client()
+    _login_admin(client)
+
+    client.post(f"/gates/{dp}/ads/photos/upload",
+                files=[("files", ("only.png", _PNG_1X1, "image/png"))])
+    resp = client.post(f"/gates/{dp}/ads/photos/delete", data={"name": "only.png"})
+    assert resp.status_code == 200
+    assert "last photo cannot be removed" in resp.text.lower()
+
+    from webapp.routes.gates import _photo_list
+    store = RecordStore(DB_PATH)
+    try:
+        assert len(_photo_list(store.get(dp))) == 1  # still there
+    finally:
+        store.close()
 
 
 def test_photo_upload_capped_at_max_total():

@@ -114,7 +114,13 @@ def _read_text(path: Path) -> str:
     except Exception:  # pragma: no cover - unreadable file
         return ""
     try:
+        # Reading the pages must be guarded too, not just the open: PyMuPDF opens
+        # a mislabelled or truncated image happily and only raises when a page is
+        # read (FzErrorFormat / FzErrorLibrary). A marketer dragging the property
+        # photos in with the PDFs would otherwise 500 the intake screen.
         return " ".join(page.get_text() for page in doc).lower()
+    except Exception:  # pragma: no cover - corrupt/mislabelled file
+        return ""
     finally:
         doc.close()
 
@@ -252,14 +258,15 @@ def build_jobs(paths: List[PathLike]) -> List[IntakeJob]:
     return [jobs[dp] for dp in sorted(jobs)]
 
 
-def find_dp(paths: List[PathLike]) -> Optional[str]:
-    """The single DP number shared by every named file, or ``None`` if unclear.
+def dp_candidates(paths: List[PathLike]) -> List[str]:
+    """Every distinct DP number the filenames carry, sorted.
 
-    Returns a DP only when all parseable filenames agree on exactly one value.
-    Multiple distinct DPs, or names with no DP at all (a farm portion like
-    "PTN 6 of Farm 7.pdf"), return ``None`` so the caller prompts the user to
-    type one rather than guessing. Erring toward a prompt is deliberate: a wrong
-    key names the wrong folder and URL for the whole property.
+    Empty when no name carries one (farm portions like "PTN 6 of Farm 7.pdf");
+    more than one when the drop mixes properties. The caller needs the two cases
+    kept apart: "no DP" is answered by asking the user to type one, but
+    "several DPs" must be refused outright, because typing one DP would file the
+    other property's documents under it and extraction would synthesise the two
+    into a single chimera record.
     """
     dps: set[str] = set()
     for raw in paths:
@@ -268,7 +275,21 @@ def find_dp(paths: List[PathLike]) -> Optional[str]:
         except ValueError:
             continue
         dps.add(dp)
-    return next(iter(dps)) if len(dps) == 1 else None
+    return sorted(dps)
+
+
+def find_dp(paths: List[PathLike]) -> Optional[str]:
+    """The single DP number shared by every named file, or ``None`` if unclear.
+
+    Returns a DP only when all parseable filenames agree on exactly one value.
+    Multiple distinct DPs, or names with no DP at all (a farm portion like
+    "PTN 6 of Farm 7.pdf"), return ``None`` so the caller prompts the user to
+    type one rather than guessing. Erring toward a prompt is deliberate: a wrong
+    key names the wrong folder and URL for the whole property. Use
+    ``dp_candidates`` when the two "unclear" cases must be told apart.
+    """
+    found = dp_candidates(paths)
+    return found[0] if len(found) == 1 else None
 
 
 def build_combined_job(paths: List[PathLike], dp: Optional[str] = None) -> IntakeJob:

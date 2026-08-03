@@ -38,6 +38,6 @@
     {{ ui.button('Use images from the documents', variant='ghost', icon_name='file', type='button',
         attrs='hx-post="/gates/' ~ dp ~ '/photos/from-source" hx-target="#photos" hx-swap="outerHTML"') }}
     {{ ui.button('Continue to ad review', variant='gold', icon_name='check', type='button',
-        attrs='hx-post="/gates/' ~ dp ~ '/photos/continue"') }}
+        attrs='hx-post="/gates/' ~ dp ~ '/photos/continue" hx-target="#photos" hx-swap="outerHTML"') }}
   </div>
 {% endblock %}
