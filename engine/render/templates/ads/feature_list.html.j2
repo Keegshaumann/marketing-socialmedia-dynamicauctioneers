@@ -59,14 +59,15 @@
   /* Two-column body fills the space between header and contact bar */
   .fl-body { flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1.18fr .88fr;
              gap:20px; padding:16px 44px 8px; }
-  .fl-left  { display:flex; flex-direction:column; gap:16px; min-height:0; }
-  .fl-right { display:flex; flex-direction:column; gap:14px; min-height:0; }
+  .fl-left  { display:flex; flex-direction:column; gap:16px; min-height:0; min-width:0; }
+  .fl-right { display:flex; flex-direction:column; gap:14px; min-height:0; min-width:0; }
 
-  .fl-featbox { flex:1 1 auto; min-height:0; border:2.5px solid var(--gline); border-radius:20px;
+  .fl-featbox { flex:1 1 auto; min-height:0; min-width:0; border:2.5px solid var(--gline); border-radius:20px;
                 background:rgba(14,11,8,.42); padding:22px 30px; display:flex; flex-direction:column;
                 justify-content:space-around; }
   .fl-item { display:flex; align-items:center; gap:16px; font-size:25px; font-weight:800; color:#fff;
-             text-transform:uppercase; letter-spacing:0; line-height:1.02; white-space:nowrap; }
+             text-transform:uppercase; letter-spacing:0; line-height:1.02; min-width:0; }
+  .fl-item span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
   .fl-item svg { width:44px; height:44px; stroke:#fff; fill:none; stroke-width:1.5;
                  stroke-linecap:round; stroke-linejoin:round; flex:none; }
 
@@ -133,7 +134,9 @@
 
       <div class="fl-right">
         {% if stack %}
-        {% for src in stack[:3] %}<img src="{{ src }}" alt="Property photo"/>{% endfor %}
+        <div class="fl-photos">
+          {% for src in stack[:3] %}<img src="{{ src }}" alt="Property photo"/>{% endfor %}
+        </div>
         {% endif %}
       </div>
     </div>
