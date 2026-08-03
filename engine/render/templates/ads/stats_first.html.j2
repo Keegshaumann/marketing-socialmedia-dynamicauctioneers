@@ -14,7 +14,8 @@
   {{ brand.tokens_css() }}
   :root { --g1:#8C6D33; --g2:#E8CE92; --g3:#B08D4A; }
   body { background:#0c0a08; }
-  .ig { width:1080px; margin:0 auto; background:#100d09; color:#F2ECE0; position:relative; overflow:hidden; }
+  .ig { width:1080px; height:1350px; margin:0 auto; background:#100d09; color:#F2ECE0; position:relative; overflow:hidden;
+        display:flex; flex-direction:column; }
   .gold { background:linear-gradient(120deg,var(--g1),var(--g2) 42%,var(--g3) 70%,var(--g1)); }
   .ig-ref { display:flex; justify-content:space-between; padding:14px 40px; font-size:16px; font-weight:800;
             letter-spacing:.06em; color:#1c1811; text-transform:uppercase; }
@@ -42,7 +43,7 @@
   .sf-strip img { width:100%; height:100%; object-fit:cover; display:block; border-radius:6px; min-height:0; }
   .ig-terms { margin:8px 40px 0; border:1.5px solid var(--g3); border-radius:999px; padding:12px 20px; text-align:center;
               font-size:17px; font-weight:800; letter-spacing:.04em; color:#e9dcc0; text-transform:uppercase; }
-  .ig-contact { margin-top:18px; padding:18px 40px; display:flex; align-items:center; gap:40px; font-size:22px; font-weight:800; color:#1c1811; }
+  .ig-contact { margin-top:auto; padding:18px 40px; display:flex; align-items:center; gap:40px; font-size:22px; font-weight:800; color:#1c1811; }
   .ig-contact span { display:flex; align-items:center; gap:12px; }
   .ig-contact svg { width:26px; height:26px; fill:#1c1811; }
 </style>

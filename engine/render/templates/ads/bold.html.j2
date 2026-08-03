@@ -10,9 +10,10 @@
 
   body { background: #0E0C0A; }
   .card {
-    max-width: 860px; margin: 28px auto 48px; background: var(--ink);
-    color: #EDE7DB; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.5);
+    width: 1080px; height: 1350px; margin: 0 auto; background: var(--ink);
+    color: #EDE7DB; overflow: hidden; display: flex; flex-direction: column;
   }
+  .card .spacer { flex: 1 1 0; min-height: 0; }
   .top { display: flex; justify-content: space-between; align-items: center; padding: 22px 40px; border-bottom: 1px solid rgba(176,141,74,.35); }
   .brand { display: flex; align-items: center; gap: 14px; }
   .brand .mark { font-weight: 800; font-size: 26px; letter-spacing: -.04em; color: #fff; border: 2px solid var(--gold); padding: 2px 9px; line-height: 1; }
@@ -21,7 +22,8 @@
   .top .sale { font-size: 11px; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); }
 
   .hero-wrap { position: relative; }
-  .hero-wrap img { width: 100%; height: 420px; object-fit: cover; display: block; filter: brightness(.78); }
+  .hero-wrap img { width: 100%; height: 360px; object-fit: cover; display: block; filter: brightness(.78); }
+  .strip img { max-height: 260px; }
   .hero-wrap .overlay { position: absolute; left: 0; right: 0; bottom: 0; padding: 40px; background: linear-gradient(to top, rgba(14,12,10,.96), rgba(14,12,10,.15) 70%, transparent); }
   .badge { display: inline-block; background: var(--gold); color: var(--ink); font-weight: 800; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; padding: 8px 16px; margin-bottom: 14px; }
   h1 { font-size: clamp(28px, 5vw, 46px); font-weight: 800; line-height: 1.08; letter-spacing: -.01em; margin: 0; color: #fff; text-wrap: balance; }
@@ -82,17 +84,18 @@
 
   {% if vm.features_main or vm.features_complex %}
   <div class="body">
-    {% if vm.features_main %}<h2>The residence</h2><ul class="feat">{% for f in vm.features_main %}<li>{{ f }}</li>{% endfor %}</ul>{% endif %}
-    {% if vm.features_complex %}<h2>Estate &amp; complex</h2><ul class="feat">{% for f in vm.features_complex %}<li>{{ f }}</li>{% endfor %}</ul>{% endif %}
+    {% if vm.features_main %}<h2>The residence</h2><ul class="feat">{% for f in vm.features_main[:6] %}<li>{{ f }}</li>{% endfor %}</ul>{% endif %}
+    {% if vm.features_complex %}<h2>Estate &amp; complex</h2><ul class="feat">{% for f in vm.features_complex[:4] %}<li>{{ f }}</li>{% endfor %}</ul>{% endif %}
   </div>
   {% endif %}
 
   {% if vm.stack_photos or vm.gallery_photos %}
   <div class="strip">
-    {% for src in (vm.stack_photos or []) + (vm.gallery_photos or []) %}<img src="{{ src }}" alt="Property photo" />{% endfor %}
+    {% for src in ((vm.stack_photos or []) + (vm.gallery_photos or []))[:3] %}<img src="{{ src }}" alt="Property photo" />{% endfor %}
   </div>
   {% endif %}
 
+  <div class="spacer"></div>
   <div class="cta">
     <div><div class="call">Enquiries and viewings</div><div class="num">{{ vm.brand_phone }}</div></div>
     <div style="text-align:right"><div class="call">{{ vm.brand_email }}</div><div class="call">{{ vm.brand_web }}</div></div>

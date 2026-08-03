@@ -235,6 +235,31 @@ def test_logo_matches_its_background_in_every_design(golden_record, tmp_path):
         assert other not in html, f"{design}: a logo for the wrong background leaked in"
 
 
+def test_every_ad_design_exports_at_instagram_4x5(golden_record, tmp_path):
+    # Hard guarantee for the client's requirement: every ad design rasterises to
+    # the Instagram post canvas, exactly 1080x1350 (4:5), captured at 2x device
+    # scale -> 2160x2700. A design that drifts off-ratio would be cropped when
+    # posted, so this fails the moment any canvas changes size.
+    import pytest
+
+    from engine.render import ad_templates, rasterize
+
+    if not rasterize.available():
+        pytest.skip("Playwright not installed; rasteriser unavailable")
+    from PIL import Image
+
+    for design in ad_templates.template_ids():
+        golden_record.marketing.template_set = "" if design == "classic" else design
+        store = _store_with(golden_record)
+        try:
+            art = render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path))
+        finally:
+            store.close()
+        png = tmp_path / f"{design}.png"
+        rasterize.html_to_png(str(art.path), str(png))
+        assert Image.open(png).size == (2160, 2700), f"{design} is not 1080x1350 (4:5)"
+
+
 def test_collage_renders_auction_specifics(golden_record, tmp_path):
     # An auction record renders the type badge, the channel/date/time line
     # (instead of a price), and the terms strip (D42).

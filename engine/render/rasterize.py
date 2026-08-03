@@ -16,14 +16,17 @@ from __future__ import annotations
 
 from pathlib import Path
 
-# The ad card element to capture. Ad templates wrap their design in one of these
-# root classes (.sheet on Classic, .card on Bold Dark, .ad reserved); a template
-# with none falls back to a full-page screenshot.
-_AD_SELECTOR = ".sheet, .card, .ad"
-# Viewport wide enough for both the A4-ish cards (max-width 860) and the
-# Instagram-format ad designs (fixed 1080 wide); the element screenshot then
-# captures each card at its own rendered size.
-_DEFAULT_WIDTH = 1120
+# The ad card element to capture. Every ad design wraps its layout in one of
+# these root classes (.sheet on Classic, .card on Bold Dark, .ig on the social
+# designs, .ad reserved). Each root is a fixed 1080x1350 (Instagram 4:5) box, so
+# the element screenshot below is exactly that size. A template with none falls
+# back to a full-page screenshot.
+_AD_SELECTOR = ".sheet, .card, .ig, .ad"
+# The Instagram post canvas every ad renders at: 1080x1350 CSS px (4:5). The
+# viewport matches so the fixed-size root lays out at its true size; the element
+# screenshot at 2x device scale then yields a crisp 2160x2700 PNG.
+_AD_W, _AD_H = 1080, 1350
+_DEFAULT_WIDTH = _AD_W
 
 
 class RasterizeUnavailable(RuntimeError):
@@ -64,7 +67,7 @@ def html_to_png(html_path, png_path, width: int = _DEFAULT_WIDTH, timeout_ms: in
             browser = p.chromium.launch(args=["--no-sandbox", "--disable-gpu"])
             try:
                 page = browser.new_page(
-                    viewport={"width": width, "height": 1200}, device_scale_factor=2
+                    viewport={"width": width, "height": _AD_H}, device_scale_factor=2
                 )
                 page.goto(html_path.as_uri(), wait_until="load", timeout=timeout_ms)
                 page.wait_for_timeout(200)  # let images paint

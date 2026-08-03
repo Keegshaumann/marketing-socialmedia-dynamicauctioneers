@@ -19,8 +19,8 @@
   :root { --g1:#8C6D33; --g2:#E8CE92; --g3:#B08D4A; }
   body { background:#0c0a08; }
   .ig {
-    width:1080px; margin:0 auto; background:#17130E; color:#F2ECE0;
-    position:relative; overflow:hidden;
+    width:1080px; height:1350px; margin:0 auto; background:#17130E; color:#F2ECE0;
+    position:relative; overflow:hidden; display:flex; flex-direction:column;
     background-image:radial-gradient(120% 80% at 80% 0%, #241d15 0%, #17130E 55%, #100d09 100%);
   }
   .gold { background:linear-gradient(120deg,var(--g1),var(--g2) 42%,var(--g3) 70%,var(--g1)); }
@@ -54,7 +54,7 @@
   .ig-stat { display:flex; align-items:center; gap:10px; font-size:24px; font-weight:800; color:#fff; letter-spacing:.02em; }
   .ig-stat svg { width:34px; height:34px; stroke:#fff; fill:none; stroke-width:1.7; flex:none; }
   .ig-stat .u { font-size:15px; font-weight:700; color:#d9cfb8; letter-spacing:.12em; text-transform:uppercase; }
-  .ig-contact { margin-top:22px; padding:18px 40px; display:flex; align-items:center; gap:40px;
+  .ig-contact { margin-top:auto; padding:18px 40px; display:flex; align-items:center; gap:40px;
                 font-size:22px; font-weight:800; color:#1c1811; }
   .ig-contact span { display:flex; align-items:center; gap:12px; }
   .ig-contact svg { width:26px; height:26px; fill:#1c1811; }

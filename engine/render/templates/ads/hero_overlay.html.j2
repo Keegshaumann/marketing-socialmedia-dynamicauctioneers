@@ -15,7 +15,8 @@
   {{ brand.tokens_css() }}
   :root { --g1:#8C6D33; --g2:#E8CE92; --g3:#B08D4A; }
   body { background:#0c0a08; }
-  .ig { width:1080px; margin:0 auto; background:#100d09; color:#F2ECE0; position:relative; overflow:hidden; }
+  .ig { width:1080px; height:1350px; margin:0 auto; background:#100d09; color:#F2ECE0; position:relative; overflow:hidden;
+        display:flex; flex-direction:column; }
   {% if photos %}
   .ig::before { content:''; position:absolute; inset:0; z-index:0;
                 background:linear-gradient(180deg, rgba(16,13,9,.86), rgba(16,13,9,.97)), url('{{ photos[0] }}');
@@ -48,7 +49,7 @@
   .ho-addr { margin:8px 40px 0; border:2px solid var(--g3); border-radius:999px; padding:12px 22px; display:flex;
              align-items:center; gap:12px; justify-content:center; font-size:19px; font-weight:800; color:#fff; text-transform:uppercase; }
   .ho-addr svg { width:24px; height:24px; fill:var(--g2); flex:none; }
-  .ig-contact { margin-top:16px; padding:18px 40px; display:flex; align-items:center; gap:40px; font-size:22px; font-weight:800; color:#1c1811; }
+  .ig-contact { margin-top:auto; padding:18px 40px; display:flex; align-items:center; gap:40px; font-size:22px; font-weight:800; color:#1c1811; }
   .ig-contact span { display:flex; align-items:center; gap:12px; }
   .ig-contact svg { width:26px; height:26px; fill:#1c1811; }
 </style>
