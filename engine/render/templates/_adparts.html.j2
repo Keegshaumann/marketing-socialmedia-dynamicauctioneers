@@ -38,9 +38,44 @@
   <img src="{{ asset_uri('ads/_assets/logo-' ~ which ~ '-on-' ~ on ~ '.png') }}" alt="{{ vm.brand_name }}"/>
 {%- endmacro %}
 
+{# Garage count as the real ads word it: Single / Double / Triple, then numeric. #}
+{% macro garage_word(n) -%}
+  {%- if n == '1' -%}Single Garage
+  {%- elif n == '2' -%}Double Garage
+  {%- elif n == '3' -%}Triple Garage
+  {%- else -%}{{ n }} Garages
+  {%- endif -%}
+{%- endmacro %}
+
 {# Stat icons (24x24, no fill so the template's CSS colours them). #}
 {% macro icon_bed() %}<svg viewBox="0 0 24 24"><path d="M3 7v11m0-4h18m0 4v-7a2 2 0 0 0-2-2h-7v5"/><circle cx="7" cy="10" r="1.6"/></svg>{% endmacro %}
 {% macro icon_bath() %}<svg viewBox="0 0 24 24"><path d="M4 12h16v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M6 12V6a2 2 0 0 1 2-2 1.5 1.5 0 0 1 1.5 1.5"/></svg>{% endmacro %}
 {% macro icon_garage() %}<svg viewBox="0 0 24 24"><path d="M3 20v-8l9-5 9 5v8"/><path d="M6 20v-5h12v5"/><path d="M6 15h12"/></svg>{% endmacro %}
-{% macro icon_size() %}<svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 15v5h-5M4 4l7 7M20 20l-7-7"/></svg>{% endmacro %}
-{% macro icon_feature() %}<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>{% endmacro %}
+{% macro icon_size() %}<svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="1.5"/><path d="M20 8l-4-4M20 5v3h-3M4 16l4 4M4 19v-3h3"/></svg>{% endmacro %}
+{% macro icon_feature() %}<svg viewBox="0 0 24 24"><path d="M12 3l2.4 6.2L21 11l-6.6 1.8L12 19l-2.4-6.2L3 11l6.6-1.8z"/></svg>{% endmacro %}
+
+{# Feature icons keyed off the free-text feature name so each row of the
+   feature-list ad gets a fitting mark (matches the real designs, which use a
+   distinct icon per line). Unknown features fall back to the sparkle mark. #}
+{% macro icon_kitchen() %}<svg viewBox="0 0 24 24"><path d="M3 15h18v2a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M3 15h18"/><path d="M7 15v-3a2 2 0 0 1 2-2h1"/><path d="M10 10V6h4"/></svg>{% endmacro %}
+{% macro icon_study() %}<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="10" rx="1"/><path d="M9 18h6M12 14v4"/></svg>{% endmacro %}
+{% macro icon_garden() %}<svg viewBox="0 0 24 24"><path d="M12 21v-7"/><path d="M12 14c-3.2 0-5.2-2-5.2-5.2C10 8.8 12 10.8 12 14z"/><path d="M12 14c3.2 0 5.2-2 5.2-5.2C14 8.8 12 10.8 12 14z"/><path d="M4 21h16"/></svg>{% endmacro %}
+{% macro icon_bar() %}<svg viewBox="0 0 24 24"><path d="M5 4h14l-7 8z"/><path d="M12 12v6M8 21h8"/></svg>{% endmacro %}
+{% macro icon_pool() %}<svg viewBox="0 0 24 24"><path d="M3 13c1.4 0 1.4 1.4 2.8 1.4S7.2 13 8.6 13 10 14.4 11.4 14.4 12.8 13 14.2 13s1.4 1.4 2.8 1.4S18.4 13 19.8 13 21 14.4 21 14.4"/><path d="M3 18c1.4 0 1.4 1.4 2.8 1.4S7.2 18 8.6 18 10 19.4 11.4 19.4 12.8 18 14.2 18s1.4 1.4 2.8 1.4S18.4 18 19.8 18"/><path d="M8 13V5a2 2 0 0 1 4 0"/></svg>{% endmacro %}
+{% macro icon_sofa() %}<svg viewBox="0 0 24 24"><path d="M5 11V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3"/><rect x="3" y="11" width="18" height="6" rx="2"/><path d="M6 17v2M18 17v2"/></svg>{% endmacro %}
+{% macro icon_dining() %}<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/></svg>{% endmacro %}
+{% macro icon_patio() %}<svg viewBox="0 0 24 24"><path d="M12 4v16"/><path d="M4 11a8 8 0 0 1 16 0z"/></svg>{% endmacro %}
+
+{% macro feature_icon(text) -%}
+  {%- set t = (text or '') | lower -%}
+  {%- if 'kitchen' in t or 'scullery' in t or 'pantry' in t -%}{{ icon_kitchen() }}
+  {%- elif 'study' in t or 'office' in t -%}{{ icon_study() }}
+  {%- elif 'garden' in t or 'lawn' in t or 'yard' in t -%}{{ icon_garden() }}
+  {%- elif 'bar' in t or 'bbq' in t or 'braai' in t or 'entertain' in t -%}{{ icon_bar() }}
+  {%- elif 'pool' in t -%}{{ icon_pool() }}
+  {%- elif 'lounge' in t or 'living' in t or 'tv room' in t or 'family room' in t -%}{{ icon_sofa() }}
+  {%- elif 'dining' in t -%}{{ icon_dining() }}
+  {%- elif 'patio' in t or 'balcony' in t or 'veranda' in t or 'deck' in t or 'stoep' in t -%}{{ icon_patio() }}
+  {%- else -%}{{ icon_feature() }}
+  {%- endif -%}
+{%- endmacro %}
