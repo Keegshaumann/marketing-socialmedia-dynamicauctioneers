@@ -5191,7 +5191,7 @@
         "kind": 5,
         "importPath": "engine.render.rasterize",
         "description": "engine.render.rasterize",
-        "peekOfCode": "_AD_SELECTOR = \".sheet, .card, .ad\"\n# Viewport wide enough for both the A4-ish cards (max-width 860) and the\n# Instagram-format ad designs (fixed 1080 wide); the element screenshot then\n# captures each card at its own rendered size.\n_DEFAULT_WIDTH = 1120\nclass RasterizeUnavailable(RuntimeError):\n    \"\"\"Playwright or its Chromium browser is not installed on this host.\"\"\"\ndef available() -> bool:\n    \"\"\"True if the Playwright Python package is importable. (Chromium presence is\n    only known at launch; a missing browser surfaces as RasterizeUnavailable.)\"\"\"",
+        "peekOfCode": "_AD_SELECTOR = \".sheet, .card, .ig, .ad\"\n# The Instagram post canvas every ad renders at: 1080x1350 CSS px (4:5). The\n# viewport matches so the fixed-size root lays out at its true size; the element\n# screenshot at 2x device scale then yields a crisp 2160x2700 PNG.\n_AD_W, _AD_H = 1080, 1350\n_DEFAULT_WIDTH = _AD_W\nclass RasterizeUnavailable(RuntimeError):\n    \"\"\"Playwright or its Chromium browser is not installed on this host.\"\"\"\ndef available() -> bool:\n    \"\"\"True if the Playwright Python package is importable. (Chromium presence is",
         "detail": "engine.render.rasterize",
         "documentation": {}
     },
@@ -5200,7 +5200,7 @@
         "kind": 5,
         "importPath": "engine.render.rasterize",
         "description": "engine.render.rasterize",
-        "peekOfCode": "_DEFAULT_WIDTH = 1120\nclass RasterizeUnavailable(RuntimeError):\n    \"\"\"Playwright or its Chromium browser is not installed on this host.\"\"\"\ndef available() -> bool:\n    \"\"\"True if the Playwright Python package is importable. (Chromium presence is\n    only known at launch; a missing browser surfaces as RasterizeUnavailable.)\"\"\"\n    try:\n        import playwright.sync_api  # noqa: F401\n        return True\n    except Exception:",
+        "peekOfCode": "_DEFAULT_WIDTH = _AD_W\nclass RasterizeUnavailable(RuntimeError):\n    \"\"\"Playwright or its Chromium browser is not installed on this host.\"\"\"\ndef available() -> bool:\n    \"\"\"True if the Playwright Python package is importable. (Chromium presence is\n    only known at launch; a missing browser surfaces as RasterizeUnavailable.)\"\"\"\n    try:\n        import playwright.sync_api  # noqa: F401\n        return True\n    except Exception:",
         "detail": "engine.render.rasterize",
         "documentation": {}
     },
@@ -7757,6 +7757,15 @@
         "importPath": "tests.test_render",
         "description": "tests.test_render",
         "peekOfCode": "def test_logo_matches_its_background_in_every_design(golden_record, tmp_path):\n    # Guard against the \"you can't see half the logo\" bug: every placement must\n    # use the logo built for the surface it sits on. on-light = the full\n    # black+gold \"DS DYNAMIC\" lockup (legible on white); on-dark = the gold-only\n    # mark (legible on a dark canvas; the black lockup would vanish there).\n    # Renders each design and asserts the right variant is embedded and the wrong\n    # one is not, so a future edit that swaps them fails here.\n    from engine.render.html_backend import _asset_data_uri\n    # The golden record is offers_invited -> Real Estate brand.\n    on_light = _asset_data_uri(\"ads/_assets/logo-realestate-on-light.png\")",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_every_ad_design_exports_at_instagram_4x5",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_every_ad_design_exports_at_instagram_4x5(golden_record, tmp_path):\n    # Hard guarantee for the client's requirement: every ad design rasterises to\n    # the Instagram post canvas, exactly 1080x1350 (4:5), captured at 2x device\n    # scale -> 2160x2700. A design that drifts off-ratio would be cropped when\n    # posted, so this fails the moment any canvas changes size.\n    import pytest\n    from engine.render import ad_templates, rasterize\n    if not rasterize.available():\n        pytest.skip(\"Playwright not installed; rasteriser unavailable\")\n    from PIL import Image",
         "detail": "tests.test_render",
         "documentation": {}
     },
