@@ -4759,7 +4759,7 @@
         "kind": 2,
         "importPath": "engine.render.ad_templates",
         "description": "engine.render.ad_templates",
-        "peekOfCode": "def list_templates() -> List[Dict[str, str]]:\n    \"\"\"Every selectable ad design as ``{\"id\", \"name\", \"template\"}``, Classic first.\"\"\"\n    out: List[Dict[str, str]] = [\n        {\"id\": DEFAULT_ID, \"name\": \"Classic\", \"template\": _DEFAULT_TEMPLATE}\n    ]\n    for path in _library_paths():\n        tid = _template_id(path)\n        if tid == DEFAULT_ID:\n            continue  # never shadow the built-in default\n        out.append({\"id\": tid, \"name\": _display_name(path), \"template\": f\"ads/{path.name}\"})",
+        "peekOfCode": "def list_templates() -> List[Dict[str, str]]:\n    \"\"\"Every selectable ad design as ``{\"id\", \"name\", \"template\"}``, default first.\"\"\"\n    out: List[Dict[str, str]] = []\n    for path in _library_paths():\n        tid = _template_id(path)\n        out.append({\"id\": tid, \"name\": _display_name(path), \"template\": f\"ads/{path.name}\"})\n    # Offer the default design first; the rest follow alphabetically by name.\n    out.sort(key=lambda t: (t[\"id\"] != DEFAULT_ID, t[\"name\"].lower()))\n    return out\ndef template_ids() -> set:",
         "detail": "engine.render.ad_templates",
         "documentation": {}
     },
@@ -4768,7 +4768,7 @@
         "kind": 2,
         "importPath": "engine.render.ad_templates",
         "description": "engine.render.ad_templates",
-        "peekOfCode": "def template_ids() -> set:\n    return {t[\"id\"] for t in list_templates()}\ndef resolve(template_id: Optional[str]) -> str:\n    \"\"\"Return the Jinja template name for a pick, falling back to Classic.\n    An unknown or empty pick (e.g. a design later removed from the library)\n    degrades to the default rather than failing the render.\n    \"\"\"\n    if not template_id or template_id == DEFAULT_ID:\n        return _DEFAULT_TEMPLATE\n    path = _ADS_DIR / f\"{template_id}.html.j2\"",
+        "peekOfCode": "def template_ids() -> set:\n    return {t[\"id\"] for t in list_templates()}\ndef resolve(template_id: Optional[str]) -> str:\n    \"\"\"Return the Jinja template name for a pick, falling back to Classic.\n    An unknown or empty pick (e.g. a design later removed from the library)\n    degrades to the default rather than failing the render.\n    \"\"\"\n    if not template_id:\n        return _DEFAULT_TEMPLATE\n    path = _ADS_DIR / f\"{template_id}.html.j2\"",
         "detail": "engine.render.ad_templates",
         "documentation": {}
     },
@@ -4777,7 +4777,7 @@
         "kind": 2,
         "importPath": "engine.render.ad_templates",
         "description": "engine.render.ad_templates",
-        "peekOfCode": "def resolve(template_id: Optional[str]) -> str:\n    \"\"\"Return the Jinja template name for a pick, falling back to Classic.\n    An unknown or empty pick (e.g. a design later removed from the library)\n    degrades to the default rather than failing the render.\n    \"\"\"\n    if not template_id or template_id == DEFAULT_ID:\n        return _DEFAULT_TEMPLATE\n    path = _ADS_DIR / f\"{template_id}.html.j2\"\n    return f\"ads/{path.name}\" if path.is_file() else _DEFAULT_TEMPLATE",
+        "peekOfCode": "def resolve(template_id: Optional[str]) -> str:\n    \"\"\"Return the Jinja template name for a pick, falling back to Classic.\n    An unknown or empty pick (e.g. a design later removed from the library)\n    degrades to the default rather than failing the render.\n    \"\"\"\n    if not template_id:\n        return _DEFAULT_TEMPLATE\n    path = _ADS_DIR / f\"{template_id}.html.j2\"\n    return f\"ads/{path.name}\" if path.is_file() else _DEFAULT_TEMPLATE",
         "detail": "engine.render.ad_templates",
         "documentation": {}
     },
@@ -4786,7 +4786,7 @@
         "kind": 5,
         "importPath": "engine.render.ad_templates",
         "description": "engine.render.ad_templates",
-        "peekOfCode": "_TEMPLATE_DIR = Path(__file__).parent / \"templates\"\n_ADS_DIR = _TEMPLATE_DIR / \"ads\"\n# The built-in default design: the original one-pager, kept in place (not moved\n# into ads/) so nothing that references it breaks. It is always offered as\n# \"Classic\" and is what an empty/unknown pick falls back to.\nDEFAULT_ID = \"classic\"\n_DEFAULT_TEMPLATE = \"demo_ad.html.j2\"\n_SUFFIX = \".html.j2\"\ndef _template_id(path: Path) -> str:\n    \"\"\"The clean id from a template filename (Path.stem only strips .j2).\"\"\"",
+        "peekOfCode": "_TEMPLATE_DIR = Path(__file__).parent / \"templates\"\n_ADS_DIR = _TEMPLATE_DIR / \"ads\"\n# The default design an empty/unknown pick falls back to (D49). It is a real\n# dark social ad from the library: the previous white \"Classic\" one-pager did\n# not match the team's Canva ads, so an un-picked property now renders the\n# Hero-overlay design. Legacy picks (\"classic\", \"bold\", or any removed design)\n# degrade here too rather than failing the render.\nDEFAULT_ID = \"hero_overlay\"\n_DEFAULT_TEMPLATE = \"ads/hero_overlay.html.j2\"\n_SUFFIX = \".html.j2\"",
         "detail": "engine.render.ad_templates",
         "documentation": {}
     },
@@ -4795,7 +4795,7 @@
         "kind": 5,
         "importPath": "engine.render.ad_templates",
         "description": "engine.render.ad_templates",
-        "peekOfCode": "_ADS_DIR = _TEMPLATE_DIR / \"ads\"\n# The built-in default design: the original one-pager, kept in place (not moved\n# into ads/) so nothing that references it breaks. It is always offered as\n# \"Classic\" and is what an empty/unknown pick falls back to.\nDEFAULT_ID = \"classic\"\n_DEFAULT_TEMPLATE = \"demo_ad.html.j2\"\n_SUFFIX = \".html.j2\"\ndef _template_id(path: Path) -> str:\n    \"\"\"The clean id from a template filename (Path.stem only strips .j2).\"\"\"\n    name = path.name",
+        "peekOfCode": "_ADS_DIR = _TEMPLATE_DIR / \"ads\"\n# The default design an empty/unknown pick falls back to (D49). It is a real\n# dark social ad from the library: the previous white \"Classic\" one-pager did\n# not match the team's Canva ads, so an un-picked property now renders the\n# Hero-overlay design. Legacy picks (\"classic\", \"bold\", or any removed design)\n# degrade here too rather than failing the render.\nDEFAULT_ID = \"hero_overlay\"\n_DEFAULT_TEMPLATE = \"ads/hero_overlay.html.j2\"\n_SUFFIX = \".html.j2\"\ndef _template_id(path: Path) -> str:",
         "detail": "engine.render.ad_templates",
         "documentation": {}
     },
@@ -4804,7 +4804,7 @@
         "kind": 5,
         "importPath": "engine.render.ad_templates",
         "description": "engine.render.ad_templates",
-        "peekOfCode": "DEFAULT_ID = \"classic\"\n_DEFAULT_TEMPLATE = \"demo_ad.html.j2\"\n_SUFFIX = \".html.j2\"\ndef _template_id(path: Path) -> str:\n    \"\"\"The clean id from a template filename (Path.stem only strips .j2).\"\"\"\n    name = path.name\n    return name[: -len(_SUFFIX)] if name.endswith(_SUFFIX) else path.stem\ndef _pretty(stem: str) -> str:\n    return stem.replace(\"_\", \" \").replace(\"-\", \" \").strip().title()\ndef _display_name(path: Path) -> str:",
+        "peekOfCode": "DEFAULT_ID = \"hero_overlay\"\n_DEFAULT_TEMPLATE = \"ads/hero_overlay.html.j2\"\n_SUFFIX = \".html.j2\"\ndef _template_id(path: Path) -> str:\n    \"\"\"The clean id from a template filename (Path.stem only strips .j2).\"\"\"\n    name = path.name\n    return name[: -len(_SUFFIX)] if name.endswith(_SUFFIX) else path.stem\ndef _pretty(stem: str) -> str:\n    return stem.replace(\"_\", \" \").replace(\"-\", \" \").strip().title()\ndef _display_name(path: Path) -> str:",
         "detail": "engine.render.ad_templates",
         "documentation": {}
     },
@@ -4813,7 +4813,7 @@
         "kind": 5,
         "importPath": "engine.render.ad_templates",
         "description": "engine.render.ad_templates",
-        "peekOfCode": "_DEFAULT_TEMPLATE = \"demo_ad.html.j2\"\n_SUFFIX = \".html.j2\"\ndef _template_id(path: Path) -> str:\n    \"\"\"The clean id from a template filename (Path.stem only strips .j2).\"\"\"\n    name = path.name\n    return name[: -len(_SUFFIX)] if name.endswith(_SUFFIX) else path.stem\ndef _pretty(stem: str) -> str:\n    return stem.replace(\"_\", \" \").replace(\"-\", \" \").strip().title()\ndef _display_name(path: Path) -> str:\n    \"\"\"A ``{# name: ... #}`` first line overrides the prettified filename.\"\"\"",
+        "peekOfCode": "_DEFAULT_TEMPLATE = \"ads/hero_overlay.html.j2\"\n_SUFFIX = \".html.j2\"\ndef _template_id(path: Path) -> str:\n    \"\"\"The clean id from a template filename (Path.stem only strips .j2).\"\"\"\n    name = path.name\n    return name[: -len(_SUFFIX)] if name.endswith(_SUFFIX) else path.stem\ndef _pretty(stem: str) -> str:\n    return stem.replace(\"_\", \" \").replace(\"-\", \" \").strip().title()\ndef _display_name(path: Path) -> str:\n    \"\"\"A ``{# name: ... #}`` first line overrides the prettified filename.\"\"\"",
         "detail": "engine.render.ad_templates",
         "documentation": {}
     },
@@ -5263,7 +5263,7 @@
         "kind": 2,
         "importPath": "engine.render.service",
         "description": "engine.render.service",
-        "peekOfCode": "def apply_photos(\n    dp: str,\n    store: RecordStore,\n    hero: Optional[str],\n    gallery: List[str],\n    user: str,\n    backend: Optional[str] = None,\n    output_root: str = \".\",\n    client=None,\n) -> EditChange:",
+        "peekOfCode": "def apply_photos(\n    dp: str,\n    store: RecordStore,\n    hero: Optional[str],\n    gallery: List[str],\n    user: str,\n    backend: Optional[str] = None,\n    output_root: str = \".\",\n    client=None,\n    formats: Optional[List[str]] = None,",
         "detail": "engine.render.service",
         "documentation": {}
     },
@@ -6456,11 +6456,11 @@
         "documentation": {}
     },
     {
-        "label": "test_registry_lists_classic_first_and_variants",
+        "label": "test_registry_lists_the_default_design_first_and_only_faithful_designs",
         "kind": 2,
         "importPath": "tests.test_ad_templates",
         "description": "tests.test_ad_templates",
-        "peekOfCode": "def test_registry_lists_classic_first_and_variants():\n    tpls = ad_templates.list_templates()\n    ids = [t[\"id\"] for t in tpls]\n    assert ids[0] == \"classic\"  # the built-in default is always offered first\n    assert \"bold\" in ids  # the starter variant is auto-discovered\n    names = {t[\"id\"]: t[\"name\"] for t in tpls}\n    assert names[\"classic\"] == \"Classic\"\n    assert names[\"bold\"] == \"Bold Dark\"  # from the {# name: #} comment\ndef test_ids_round_trip_through_resolve():\n    for t in ad_templates.list_templates():",
+        "peekOfCode": "def test_registry_lists_the_default_design_first_and_only_faithful_designs():\n    tpls = ad_templates.list_templates()\n    ids = [t[\"id\"] for t in tpls]\n    assert ids[0] == ad_templates.DEFAULT_ID == \"hero_overlay\"  # default offered first\n    # The off-brand starter designs were retired (D49): only the real dark\n    # social-ad designs remain in the picker.\n    assert \"classic\" not in ids\n    assert \"bold\" not in ids\n    assert set(ids) == {\"hero_overlay\", \"collage\", \"feature_list\", \"stats_first\"}\n    names = {t[\"id\"]: t[\"name\"] for t in tpls}",
         "detail": "tests.test_ad_templates",
         "documentation": {}
     },
@@ -6469,16 +6469,16 @@
         "kind": 2,
         "importPath": "tests.test_ad_templates",
         "description": "tests.test_ad_templates",
-        "peekOfCode": "def test_ids_round_trip_through_resolve():\n    for t in ad_templates.list_templates():\n        assert ad_templates.resolve(t[\"id\"]) == t[\"template\"]\ndef test_resolve_default_and_unknown_fall_back_to_classic():\n    assert ad_templates.resolve(None) == \"demo_ad.html.j2\"\n    assert ad_templates.resolve(\"\") == \"demo_ad.html.j2\"\n    assert ad_templates.resolve(\"classic\") == \"demo_ad.html.j2\"\n    assert ad_templates.resolve(\"bold\") == \"ads/bold.html.j2\"\n    assert ad_templates.resolve(\"was-removed\") == \"demo_ad.html.j2\"\ndef test_template_ids_matches_list():",
+        "peekOfCode": "def test_ids_round_trip_through_resolve():\n    for t in ad_templates.list_templates():\n        assert ad_templates.resolve(t[\"id\"]) == t[\"template\"]\ndef test_resolve_default_and_legacy_picks_fall_back_to_hero_overlay():\n    default = \"ads/hero_overlay.html.j2\"\n    assert ad_templates.resolve(None) == default\n    assert ad_templates.resolve(\"\") == default\n    assert ad_templates.resolve(\"hero_overlay\") == default\n    # Legacy / removed picks degrade to the default rather than failing.\n    assert ad_templates.resolve(\"classic\") == default",
         "detail": "tests.test_ad_templates",
         "documentation": {}
     },
     {
-        "label": "test_resolve_default_and_unknown_fall_back_to_classic",
+        "label": "test_resolve_default_and_legacy_picks_fall_back_to_hero_overlay",
         "kind": 2,
         "importPath": "tests.test_ad_templates",
         "description": "tests.test_ad_templates",
-        "peekOfCode": "def test_resolve_default_and_unknown_fall_back_to_classic():\n    assert ad_templates.resolve(None) == \"demo_ad.html.j2\"\n    assert ad_templates.resolve(\"\") == \"demo_ad.html.j2\"\n    assert ad_templates.resolve(\"classic\") == \"demo_ad.html.j2\"\n    assert ad_templates.resolve(\"bold\") == \"ads/bold.html.j2\"\n    assert ad_templates.resolve(\"was-removed\") == \"demo_ad.html.j2\"\ndef test_template_ids_matches_list():\n    assert ad_templates.template_ids() == {t[\"id\"] for t in ad_templates.list_templates()}",
+        "peekOfCode": "def test_resolve_default_and_legacy_picks_fall_back_to_hero_overlay():\n    default = \"ads/hero_overlay.html.j2\"\n    assert ad_templates.resolve(None) == default\n    assert ad_templates.resolve(\"\") == default\n    assert ad_templates.resolve(\"hero_overlay\") == default\n    # Legacy / removed picks degrade to the default rather than failing.\n    assert ad_templates.resolve(\"classic\") == default\n    assert ad_templates.resolve(\"bold\") == default\n    assert ad_templates.resolve(\"was-removed\") == default\ndef test_template_ids_matches_list():",
         "detail": "tests.test_ad_templates",
         "documentation": {}
     },
@@ -7738,7 +7738,7 @@
         "kind": 2,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "def test_demo_ad_renders_the_picked_template(golden_record, tmp_path):\n    golden_record.marketing.template_set = \"bold\"\n    store = _store_with(golden_record)\n    try:\n        art = render_one(\"3060\", store, \"demo_ad\", backend=\"html\", output_root=str(tmp_path))\n        html = Path(art.path).read_text(encoding=\"utf-8\")\n    finally:\n        store.close()\n    assert \"#0E0C0A\" in html  # the Bold Dark design's dark background\n    assert \"Pelham North\" in html  # still fills the real property facts",
+        "peekOfCode": "def test_demo_ad_renders_the_picked_template(golden_record, tmp_path):\n    # A pick other than the default is honoured: Stats-first renders its own\n    # chrome, not the default Hero-overlay design.\n    golden_record.marketing.template_set = \"stats_first\"\n    store = _store_with(golden_record)\n    try:\n        art = render_one(\"3060\", store, \"demo_ad\", backend=\"html\", output_root=str(tmp_path))\n        html = Path(art.path).read_text(encoding=\"utf-8\")\n    finally:\n        store.close()",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -7838,15 +7838,6 @@
         "importPath": "tests.test_render",
         "description": "tests.test_render",
         "peekOfCode": "def test_badge_defaults_without_a_callout_type(golden_record, tmp_path):\n    # No callout type -> the plain badge, method-aware.\n    golden_record.marketing.template_set = \"collage\"\n    golden_record.sale_process.auction_type = None\n    for method, expect in [(\"auction\", \"ON AUCTION!\"), (\"offers_invited\", \"FOR SALE!\")]:\n        golden_record.sale_process.method = method\n        store = _store_with(golden_record)\n        try:\n            art = render_one(\"3060\", store, \"demo_ad\", backend=\"html\", output_root=str(tmp_path))\n            html = Path(art.path).read_text(encoding=\"utf-8\")",
-        "detail": "tests.test_render",
-        "documentation": {}
-    },
-    {
-        "label": "test_bold_never_fabricates_a_flatlet_bed_count",
-        "kind": 2,
-        "importPath": "tests.test_render",
-        "description": "tests.test_render",
-        "peekOfCode": "def test_bold_never_fabricates_a_flatlet_bed_count(golden_record, tmp_path):\n    # A flatlet present with an unknown bedroom count must NOT render \"1 Bed\n    # flatlet\" (hard rule 3: no invented facts, D44 review).\n    from engine.schema import Flatlet\n    if golden_record.physical.flatlet is None:\n        golden_record.physical.flatlet = Flatlet()\n    golden_record.physical.flatlet.present = True\n    golden_record.physical.flatlet.bedrooms = None\n    golden_record.marketing.template_set = \"bold\"\n    store = _store_with(golden_record)",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -8449,7 +8440,7 @@
         "kind": 2,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "def test_gate2_pick_template_applies_and_re_renders():\n    _needs_golden()\n    dp = \"9030\"\n    _golden_clone(dp)\n    client = _client()\n    _login_admin(client)\n    resp = client.post(f\"/gates/{dp}/ads/template\", data={\"template\": \"bold\"})\n    assert resp.status_code == 200\n    store = RecordStore(DB_PATH)\n    try:",
+        "peekOfCode": "def test_gate2_pick_template_applies_and_re_renders():\n    _needs_golden()\n    dp = \"9030\"\n    _golden_clone(dp)\n    client = _client()\n    _login_admin(client)\n    resp = client.post(f\"/gates/{dp}/ads/template\", data={\"template\": \"stats_first\"})\n    assert resp.status_code == 200\n    store = RecordStore(DB_PATH)\n    try:",
         "detail": "tests.test_webapp",
         "documentation": {}
     },

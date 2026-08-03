@@ -8,8 +8,8 @@ terms, contact), so a design uses whatever slots it has and ignores the rest.
 Adding a design is just dropping a ``<name>.html.j2`` file into
 ``templates/ads/`` (optionally with a ``{# name: Nice Name #}`` first line for
 the display label); it is auto-discovered here, appears in the gate-2 picker,
-and gets a thumbnail. The current one-pager (``demo_ad.html.j2``) is the built-in
-default, shown as "Classic".
+and gets a thumbnail. An empty/unknown pick falls back to the ``DEFAULT_ID``
+design (the Hero-overlay social ad, D49).
 
 The pick is stored on ``marketing.template_set`` (the same field the Canva
 template sets used, D33) and flows to the backend on ``RenderRequest.template_set``.
@@ -23,11 +23,13 @@ from typing import Dict, List, Optional
 _TEMPLATE_DIR = Path(__file__).parent / "templates"
 _ADS_DIR = _TEMPLATE_DIR / "ads"
 
-# The built-in default design: the original one-pager, kept in place (not moved
-# into ads/) so nothing that references it breaks. It is always offered as
-# "Classic" and is what an empty/unknown pick falls back to.
-DEFAULT_ID = "classic"
-_DEFAULT_TEMPLATE = "demo_ad.html.j2"
+# The default design an empty/unknown pick falls back to (D49). It is a real
+# dark social ad from the library: the previous white "Classic" one-pager did
+# not match the team's Canva ads, so an un-picked property now renders the
+# Hero-overlay design. Legacy picks ("classic", "bold", or any removed design)
+# degrade here too rather than failing the render.
+DEFAULT_ID = "hero_overlay"
+_DEFAULT_TEMPLATE = "ads/hero_overlay.html.j2"
 
 
 _SUFFIX = ".html.j2"
@@ -63,15 +65,13 @@ def _library_paths() -> List[Path]:
 
 
 def list_templates() -> List[Dict[str, str]]:
-    """Every selectable ad design as ``{"id", "name", "template"}``, Classic first."""
-    out: List[Dict[str, str]] = [
-        {"id": DEFAULT_ID, "name": "Classic", "template": _DEFAULT_TEMPLATE}
-    ]
+    """Every selectable ad design as ``{"id", "name", "template"}``, default first."""
+    out: List[Dict[str, str]] = []
     for path in _library_paths():
         tid = _template_id(path)
-        if tid == DEFAULT_ID:
-            continue  # never shadow the built-in default
         out.append({"id": tid, "name": _display_name(path), "template": f"ads/{path.name}"})
+    # Offer the default design first; the rest follow alphabetically by name.
+    out.sort(key=lambda t: (t["id"] != DEFAULT_ID, t["name"].lower()))
     return out
 
 
@@ -85,7 +85,7 @@ def resolve(template_id: Optional[str]) -> str:
     An unknown or empty pick (e.g. a design later removed from the library)
     degrades to the default rather than failing the render.
     """
-    if not template_id or template_id == DEFAULT_ID:
+    if not template_id:
         return _DEFAULT_TEMPLATE
     path = _ADS_DIR / f"{template_id}.html.j2"
     return f"ads/{path.name}" if path.is_file() else _DEFAULT_TEMPLATE

@@ -499,7 +499,7 @@ def test_gate2_pick_template_applies_and_re_renders():
     client = _client()
     _login_admin(client)
 
-    resp = client.post(f"/gates/{dp}/ads/template", data={"template": "bold"})
+    resp = client.post(f"/gates/{dp}/ads/template", data={"template": "stats_first"})
     assert resp.status_code == 200
 
     store = RecordStore(DB_PATH)
@@ -507,9 +507,9 @@ def test_gate2_pick_template_applies_and_re_renders():
         rec = store.get(dp)
     finally:
         store.close()
-    assert rec.marketing.template_set == "bold"  # pick stored on the record
+    assert rec.marketing.template_set == "stats_first"  # pick stored on the record
     html = (_TMP / f"DP{dp}" / "artifacts" / "demo_ad.html").read_text(encoding="utf-8")
-    assert "#0E0C0A" in html  # ad re-rendered with the Bold Dark design
+    assert "sf-hero" in html  # ad re-rendered with the picked Stats-first design
 
 
 def test_ad_template_thumb_route(monkeypatch):
@@ -528,7 +528,7 @@ def test_ad_template_thumb_route(monkeypatch):
 
     client = _client()
     _login_admin(client)
-    ok = client.get("/gates/ad-template/bold/thumb.png")
+    ok = client.get("/gates/ad-template/stats_first/thumb.png")
     assert ok.status_code == 200 and ok.headers["content-type"] == "image/png"
     assert client.get("/gates/ad-template/nope/thumb.png").status_code == 404  # unknown design
 

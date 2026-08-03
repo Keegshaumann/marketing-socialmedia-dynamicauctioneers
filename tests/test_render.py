@@ -125,7 +125,7 @@ def test_demo_ad_renders_real_facts_and_brand_tokens(golden_record, tmp_path):
     # Real brand tokens / chrome.
     assert "086 155 2288" in html  # brand phone
     assert "Montserrat" in html  # brand font stack
-    assert "lh-logo" in html  # brand letterhead now carries the real logo image
+    assert "ho-hero" in html  # the default Hero-overlay design's branded chrome (D49)
 
 
 # --- the DP shows as PROPERTY REF on ads (D42), never on the board tile ---
@@ -162,14 +162,17 @@ def test_dp_shown_on_ads_but_never_on_the_board_tile(golden_record, tmp_path):
 # --- ad-template library (D41) -------------------------------------------
 
 def test_demo_ad_renders_the_picked_template(golden_record, tmp_path):
-    golden_record.marketing.template_set = "bold"
+    # A pick other than the default is honoured: Stats-first renders its own
+    # chrome, not the default Hero-overlay design.
+    golden_record.marketing.template_set = "stats_first"
     store = _store_with(golden_record)
     try:
         art = render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path))
         html = Path(art.path).read_text(encoding="utf-8")
     finally:
         store.close()
-    assert "#0E0C0A" in html  # the Bold Dark design's dark background
+    assert "sf-hero" in html  # the Stats-first design's hero banner
+    assert "ho-hero" not in html  # and not the default Hero-overlay design
     assert "Pelham North" in html  # still fills the real property facts
 
 
@@ -216,11 +219,10 @@ def test_logo_matches_its_background_in_every_design(golden_record, tmp_path):
 
     # design -> the surface colour its logo sits on
     surface = {
-        "classic": "light",       # the white letterhead sheet
         "collage": "dark",        # the dark canvas, logo direct on it
-        "feature_list": "light",  # logo sits in a white box
-        "stats_first": "light",   # logo sits in a white box
-        "hero_overlay": "light",  # logo sits in a white box
+        "feature_list": "light",  # logo sits in a white shield
+        "stats_first": "light",   # logo sits in a white shield
+        "hero_overlay": "light",  # logo sits in a white shield
     }
     for design, bg in surface.items():
         golden_record.marketing.template_set = design
@@ -397,38 +399,6 @@ def test_badge_defaults_without_a_callout_type(golden_record, tmp_path):
         finally:
             store.close()
         assert expect in html
-
-
-def test_bold_never_fabricates_a_flatlet_bed_count(golden_record, tmp_path):
-    # A flatlet present with an unknown bedroom count must NOT render "1 Bed
-    # flatlet" (hard rule 3: no invented facts, D44 review).
-    from engine.schema import Flatlet
-
-    if golden_record.physical.flatlet is None:
-        golden_record.physical.flatlet = Flatlet()
-    golden_record.physical.flatlet.present = True
-    golden_record.physical.flatlet.bedrooms = None
-    golden_record.marketing.template_set = "bold"
-    store = _store_with(golden_record)
-    try:
-        html = Path(
-            render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path)).path
-        ).read_text(encoding="utf-8")
-    finally:
-        store.close()
-    assert "Bed flatlet" not in html  # the stat is dropped, not defaulted to 1
-
-    # With a real count it shows honestly.
-    golden_record.physical.flatlet.bedrooms = 2
-    store = _store_with(golden_record)
-    try:
-        html = Path(
-            render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path)).path
-        ).read_text(encoding="utf-8")
-    finally:
-        store.close()
-    assert "Bed flatlet" in html
-    assert ">2</div><div class=\"l\">Bed flatlet" in html
 
 
 def test_collage_stat_bar_shows_the_garage_count(golden_record, tmp_path):

@@ -57,7 +57,7 @@ _FORMAT_SPEC: Dict[str, Tuple[str, str, str]] = {
     "portal_listing": ("portal_listing.md.j2", "md", "text/markdown"),
     "facebook_post": ("facebook_post.md.j2", "md", "text/markdown"),
     "email_blast": ("email_blast.md.j2", "md", "text/markdown"),
-    "demo_ad": ("demo_ad.html.j2", "html", "text/html"),
+    "demo_ad": ("ads/hero_overlay.html.j2", "html", "text/html"),
     "info_pack": ("info_pack.html.j2", "html", "text/html"),
     "webapp_icon": ("webapp_icon.svg.j2", "svg", "image/svg+xml"),
     "saia_banner": ("saia_banner.html.j2", "html", "text/html"),
