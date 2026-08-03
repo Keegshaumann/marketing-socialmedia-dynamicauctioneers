@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 from datetime import date
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -144,6 +145,10 @@ def _signoff(db_path: str, dp: str, gate: str, user: str, note: str) -> None:
 # (owner directive D39). These are the pre-approval states, where only the ad
 # exists; from "approved" onward the full set renders.
 _AD_ONLY_STATES = frozenset({"extracted", "flags_raised", "verified", "photos", "drafted"})
+# States BEFORE the photos step is finished: the advert is not rendered yet, so a
+# stray gallery/artifacts view must not lazily build a no-photo ad (D-log: photos
+# are mandatory before the first render, to avoid re-rendering and wasted tokens).
+_PRE_DRAFT_STATES = frozenset({"intake", "extracted", "flags_raised", "verified", "photos"})
 AD_FORMAT = "demo_ad"
 
 
@@ -193,6 +198,12 @@ def _gallery(db_path: str, dp: str) -> List[Dict[str, Any]]:
     """
     manifest = _manifest(db_path, dp)
     if not manifest:
+        # The advert is built only once the photos step is complete (drafted
+        # onward). A stray view of an earlier-state record must NOT lazily render
+        # a no-photo ad - that is exactly the wasted render the photos gate
+        # exists to prevent. Photos are mandatory before drafting.
+        if _state(db_path, dp) in _PRE_DRAFT_STATES:
+            return []
         try:
             _render(db_path, dp)
         except Exception:
@@ -424,22 +435,95 @@ def gate_photos_page(dp: str, request: Request, user: dict = Depends(require_rol
             "state": _state(db_path, dp),
             "headline": (record.marketing.headline if record.marketing else None),
             "photos": _photo_view(db_path, dp, record),
+            "max_photos": _MAX_PHOTOS_TOTAL,
         },
     )
 
 
 @router.post("/{dp}/photos/continue")
 def gate_photos_continue(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
-    """Leave the photos step: make sure the ad is rendered, then advance to gate
-    2. Both "Continue to ad review" and "Skip for now" post here (skip just means
-    no photos were added)."""
+    """Leave the photos step: render the ad ONCE (now that photos exist) and
+    advance to gate 2.
+
+    At least one photo is required (the min-1 rule): a zero-photo continue is
+    refused and bounces back to the photos step, so the advert is never built
+    without a photo and then re-rendered. The marketer either uploads a photo or
+    uses the "pull from source documents" fallback first."""
     db_path = _db(request)
+    if not _photo_list(_load(db_path, dp)):
+        target = f"/gates/{dp}/photos"
+        if request.headers.get("HX-Request"):
+            return Response(status_code=204, headers={"HX-Redirect": target})
+        return RedirectResponse(url=target, status_code=303)
     _render(db_path, dp)
     _advance(db_path, dp, "drafted", note=f"photos step completed by {user['email']}")
     target = f"/gates/{dp}/ads"
     if request.headers.get("HX-Request"):
         return Response(status_code=204, headers={"HX-Redirect": target})
     return RedirectResponse(url=target, status_code=303)
+
+
+@router.post("/{dp}/photos/from-source", response_class=HTMLResponse)
+def gate_photos_from_source(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
+    """No-photo fallback: pull property images straight from the source PDFs.
+
+    The Property Report (and EVM) usually embed real photos of the property; when
+    the marketer has none of their own, this extracts those images at source
+    quality (``engine.photos``), keeps the best few by area, and adds them to the
+    record. Truthful (the images come from the property's own documents) and
+    needs no external service. If the documents carry no usable image, the panel
+    just reports that and the marketer must upload one."""
+    from engine.photos import extract_photos, rank_photos
+
+    db_path = _db(request)
+    full = _photo_list(_load(db_path, dp))
+    if len(full) >= _MAX_PHOTOS_TOTAL:
+        return _photo_result(request, db_path, dp, {
+            "tone": "note", "title": "Photo limit reached",
+            "text": f"This property already has {_MAX_PHOTOS_TOTAL} photos."})
+
+    uploads = Path(_output_root(db_path)) / f"DP{dp}" / "uploads"
+    photos_dir = _photos_dir(db_path, dp)
+    photos_dir.mkdir(parents=True, exist_ok=True)
+    # Property Report first (it carries the on-site photos), then any other PDF.
+    pdfs = sorted(uploads.glob("*.pdf")) if uploads.is_dir() else []
+    pdfs.sort(key=lambda p: 0 if "report" in p.name.lower() else 1)
+
+    tray = photos_dir / "_from_source"
+    extracted: List[Path] = []
+    for i, pdf in enumerate(pdfs):
+        try:  # per-PDF subfolder so same-named images across docs don't overwrite
+            extracted.extend(extract_photos(pdf, tray / f"src{i}"))
+        except Exception:
+            continue
+    # rank_photos orders by area and drops the cover page (letterhead + map), so
+    # the picks are the actual on-site inspection photos, largest first.
+    picks = rank_photos(extracted).get("gallery") or [] if extracted else []
+
+    added = 0
+    for src in picks:
+        if len(full) >= _MAX_PHOTOS_TOTAL:
+            break
+        dest = photos_dir / src.name
+        stem, suffix, n = dest.stem, dest.suffix, 1
+        while dest.exists():
+            dest = photos_dir / f"{stem}_{n}{suffix}"
+            n += 1
+        dest.write_bytes(src.read_bytes())
+        rel = f"photos/{dest.name}"
+        if rel not in full:
+            full.append(rel)
+            added += 1
+    shutil.rmtree(tray, ignore_errors=True)
+
+    if added:
+        _save_photos(db_path, dp, full, user["email"])
+        toast = {"tone": "ok", "title": "Images pulled from the documents",
+                 "text": f"{added} image(s) taken from the source documents. Set the lead photo, then continue."}
+    else:
+        toast = {"tone": "note", "title": "No images found",
+                 "text": "The source documents carry no usable image. Please upload at least one photo."}
+    return _photo_result(request, db_path, dp, toast)
 
 
 # --- gate 2: ad review ----------------------------------------------------
@@ -545,6 +629,10 @@ _IMAGE_MIME = {
 _CTYPE_EXT = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/gif": ".gif"}
 _MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image
 _MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected
+# The most photos a property may carry. An advert uses one lead photo plus up to
+# six more (2 stacked + 4 gallery = 7 used); 8 leaves a small buffer and keeps
+# the panel tidy. Uploads past this are rejected with a clear message.
+_MAX_PHOTOS_TOTAL = 8
 # A photo is flagged low-res (a non-blocking warning) when its shorter side is
 # under this. Social feeds render around 1080px wide, so smaller images upscale
 # and look soft. The photos extracted from a Property Report PDF are often tiny
@@ -681,6 +769,9 @@ async def gate2_photo_upload(
     added = rejected = 0
     rejected += max(0, len(files) - _MAX_PHOTOS_PER_UPLOAD)  # cap files per request
     for upload in files[:_MAX_PHOTOS_PER_UPLOAD]:
+        if len(full) >= _MAX_PHOTOS_TOTAL:  # already at the per-property limit
+            rejected += 1
+            continue
         # Reject an oversized part before pulling it into memory (Starlette sets
         # upload.size as the part spools); the len(raw) check below is the belt
         # for clients that send no size header.
@@ -716,13 +807,16 @@ async def gate2_photo_upload(
         _reopen_if_live(db_path, dp, user["email"])
         try:
             _save_photos(db_path, dp, full, user["email"])
-            text = f"{added} photo(s) uploaded and re-rendered."
+            text = f"{added} photo(s) added."
             if rejected:
-                text += f" {rejected} skipped (not an image or too large)."
+                text += f" {rejected} skipped (limit is {_MAX_PHOTOS_TOTAL}, or not an image / too large)."
             toast = {"tone": "ok", "title": "Photos added", "text": text}
         except Exception as exc:  # a render backend failure (e.g. Canva quota)
             toast = {"tone": "block", "title": "Re-render failed",
                      "text": f"Photos saved, but the adverts could not be re-rendered ({type(exc).__name__})."}
+    elif len(full) >= _MAX_PHOTOS_TOTAL:
+        toast = {"tone": "note", "title": "Photo limit reached",
+                 "text": f"This property already has the maximum of {_MAX_PHOTOS_TOTAL} photos. Remove one to add another."}
     else:
         toast = {"tone": "note", "title": "No photos added",
                  "text": "Only image files (jpg, png, webp, gif) up to 12 MB are accepted."}

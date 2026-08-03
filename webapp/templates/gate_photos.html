@@ -15,16 +15,17 @@
   <div class="banner banner--note">
     {{ ui.icon('photo') }}
     <div class="banner__body">
-      <div class="banner__title">Add photos before the advert is drafted</div>
-      <div>Upload photos of the property so the first advert already shows them.
-        No photos yet? Skip for now and add them later on the ad-review screen.</div>
+      <div class="banner__title">At least one photo is required before the advert is drafted</div>
+      <div>The advert is built once, here, so it is right the first time (no re-rendering).
+        Upload up to {{ max_photos }} photos of the property. No photos of your own?
+        Pull them from the source documents with the button below.</div>
     </div>
   </div>
 
   <div class="panel" style="margin-top:18px">
     <div class="panel__head">
       <div class="panel__title">Property photos</div>
-      <div class="panel__actions"><span class="hint">The lead photo is the main image on every advert.</span></div>
+      <div class="panel__actions"><span class="hint">The lead photo is the main image on every advert. Maximum {{ max_photos }}.</span></div>
     </div>
     <div class="panel__body">
       {% include 'partials/_gate2_photos.html' %}
@@ -32,10 +33,10 @@
   </div>
 
   <div class="actionbar">
-    <div class="actionbar__note">Both options take you to ad review, where you can still add or change photos.</div>
+    <div class="actionbar__note">Continue is available once there is at least one photo. The advert renders now, with the photos.</div>
     <div class="spacer"></div>
-    {{ ui.button('Skip for now', variant='ghost', icon_name='arrow', type='button',
-        attrs='hx-post="/gates/' ~ dp ~ '/photos/continue"') }}
+    {{ ui.button('Use images from the documents', variant='ghost', icon_name='file', type='button',
+        attrs='hx-post="/gates/' ~ dp ~ '/photos/from-source" hx-target="#photos" hx-swap="outerHTML"') }}
     {{ ui.button('Continue to ad review', variant='gold', icon_name='check', type='button',
         attrs='hx-post="/gates/' ~ dp ~ '/photos/continue"') }}
   </div>

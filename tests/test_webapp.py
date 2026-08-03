@@ -129,7 +129,7 @@ def _seed_minimal(dp: str, state: str) -> None:
         store.close()
 
 
-def _golden_clone(dp: str, poison: bool = False) -> None:
+def _golden_clone(dp: str, poison: bool = False, state: str = "extracted") -> None:
     """Seed a clone of the golden DP3060 record under a fresh DP number.
 
     The golden record carries the garage block flag (gate 1) and renders cleanly
@@ -150,7 +150,7 @@ def _golden_clone(dp: str, poison: bool = False) -> None:
         record.sale_process.viewing.contact_internal_only = POISON_CELL
     store = RecordStore(DB_PATH)
     try:
-        store.upsert(record, state="extracted")
+        store.upsert(record, state=state)
     finally:
         store.close()
 
@@ -664,7 +664,10 @@ def test_expired_token_is_rejected():
 def test_poison_pii_absent_from_gate2_view_and_board():
     _needs_golden()
     dp = "9006"
-    _golden_clone(dp, poison=True)
+    # Seed at "drafted" (the state where gate 2 is the next action): the ad is
+    # only rendered once the photos step is complete, so an earlier state now
+    # correctly renders nothing on a gate-2 view.
+    _golden_clone(dp, poison=True, state="drafted")
     client = _client()
     _login_admin(client)
 
@@ -1071,6 +1074,53 @@ def _seed_live_no_photos(dp: str) -> None:
     store = RecordStore(DB_PATH)
     try:
         store.upsert(record, state="live")
+    finally:
+        store.close()
+
+
+def test_photos_step_requires_at_least_one_photo():
+    """The advert is never drafted with zero photos (min-1 rule): a zero-photo
+    continue bounces back to the step; once a photo exists it drafts."""
+    dp = "9401"
+    _needs_golden()
+    record = PropertyRecord.model_validate_json(GOLDEN_RECORD.read_text(encoding="utf-8"))
+    record.dp = dp
+    record.marketing.hero_photo = None
+    record.marketing.gallery = []
+    store = RecordStore(DB_PATH)
+    try:
+        store.upsert(record, state="photos")
+    finally:
+        store.close()
+    client = _client()
+    _login_admin(client)
+
+    # Continue with no photos must NOT advance the record.
+    client.post(f"/gates/{dp}/photos/continue")
+    assert _state(dp) == "photos"
+
+    # Add one photo, then continue drafts the ad (single render, with the photo).
+    client.post(f"/gates/{dp}/ads/photos/upload",
+                files=[("files", ("front.png", _PNG_1X1, "image/png"))])
+    client.post(f"/gates/{dp}/photos/continue")
+    assert _state(dp) == "drafted"
+
+
+def test_photo_upload_capped_at_max_total():
+    """No more than the per-property maximum is accepted, however many are sent."""
+    from webapp.routes.gates import _MAX_PHOTOS_TOTAL, _photo_list
+
+    dp = "9402"
+    _seed_live_no_photos(dp)  # starts with zero photos
+    client = _client()
+    _login_admin(client)
+
+    files = [("files", (f"p{i}.png", _png_of(1200, 1000), "image/png")) for i in range(_MAX_PHOTOS_TOTAL + 3)]
+    client.post(f"/gates/{dp}/ads/photos/upload", files=files)
+
+    store = RecordStore(DB_PATH)
+    try:
+        assert len(_photo_list(store.get(dp))) == _MAX_PHOTOS_TOTAL
     finally:
         store.close()
 
