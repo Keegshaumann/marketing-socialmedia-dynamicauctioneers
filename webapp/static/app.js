@@ -213,6 +213,47 @@
     });
   }
 
+  // ---- Photo picker: show what was chosen but not yet uploaded ----------
+  // The browser's file input only reports "N files", and nothing has reached the
+  // server until Upload is pressed - so the panel below would still read "No
+  // photos yet" while 9 files sat in the picker. Surface the pending selection
+  // (names via textContent, never innerHTML) and hide the contradicting empty
+  // state until the upload actually happens.
+  function wirePhotoPicker(root) {
+    (root || document).querySelectorAll('[data-photo-input]').forEach(function (input) {
+      if (input.__photopick) return;
+      input.__photopick = true;
+      var panel = input.closest('#photos') || document;
+      var pending = panel.querySelector('[data-photo-pending]');
+      var title = panel.querySelector('[data-photo-pending-title]');
+      var names = panel.querySelector('[data-photo-pending-names]');
+      var empty = panel.querySelector('[data-photo-empty]');
+      var submit = panel.querySelector('[data-photo-submit]');
+      if (!pending || !title || !names) return;
+
+      input.addEventListener('change', function () {
+        var files = input.files || [];
+        var n = files.length;
+        if (!n) {
+          pending.hidden = true;
+          if (empty) empty.hidden = false;
+          if (submit) submit.classList.remove('is-ready');
+          return;
+        }
+        title.textContent = n === 1
+          ? '1 photo chosen, not uploaded yet'
+          : n + ' photos chosen, not uploaded yet';
+        var list = [];
+        Array.prototype.forEach.call(files, function (f) { list.push(f.name); });
+        names.textContent = list.join(', ');
+        pending.hidden = false;
+        // The empty state would otherwise say "No photos yet" beside this.
+        if (empty) empty.hidden = true;
+        if (submit) submit.classList.add('is-ready');
+      });
+    });
+  }
+
   // Show the auction-details panel only when the sale method is Auction.
   function wireAuctionPanel(root) {
     (root || document).querySelectorAll('[data-method-select]').forEach(function (sel) {
@@ -226,7 +267,7 @@
     });
   }
 
-  function init(root) { wireDropzones(root); armToasts(root); wireSweeps(root); wireEmailAd(root); wireAdtpl(root); wireAuctionPanel(root); }
+  function init(root) { wireDropzones(root); armToasts(root); wireSweeps(root); wireEmailAd(root); wireAdtpl(root); wireAuctionPanel(root); wirePhotoPicker(root); }
 
   // A plain (non-HTMX) form submit does a full-page nav; swap the submit
   // button's label for its spinner so the click has immediate feedback. HTMX

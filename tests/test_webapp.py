@@ -1170,6 +1170,27 @@ def test_photos_step_requires_at_least_one_photo():
     assert _state(dp) == "drafted"
 
 
+def test_photos_panel_can_show_a_pending_selection():
+    """The panel must not say "No photos yet" beside a chosen-but-unuploaded set.
+
+    The file input only reports "N files" and nothing reaches the server until
+    Upload is pressed, so the panel carries the hooks the client uses to show
+    what was chosen and hide the contradicting empty state.
+    """
+    dp = "9405"
+    _seed_live_no_photos(dp)
+    client = _client()
+    _login_admin(client)
+
+    page = client.get(f"/gates/{dp}/ads")
+    assert page.status_code == 200
+    for hook in ("data-photo-input", "data-photo-pending", "data-photo-submit"):
+        assert hook in page.text, f"{hook} missing from the photos panel"
+    # The empty state exists (no photos on this record) and points at the button.
+    assert "data-photo-empty" in page.text
+    assert "Choose photos above" in page.text
+
+
 def test_zero_photo_continue_explains_itself():
     """The refusal must say why: a silent reload reads as a broken button."""
     dp = "9403"

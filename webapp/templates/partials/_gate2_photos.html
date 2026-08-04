@@ -1,14 +1,27 @@
 {% import '_macros.html' as ui %}
 <div id="photos" class="stack"{% if oob %} hx-swap-oob="true"{% endif %}>
   <form hx-post="/gates/{{ dp }}/ads/photos/upload" hx-encoding="multipart/form-data"
-        hx-target="#photos" hx-swap="outerHTML" class="stack">
+        hx-target="#photos" hx-swap="outerHTML" class="stack" data-photo-form>
     <div class="field">
       <label class="label" for="photo-files">Add photos</label>
-      <input class="input" type="file" id="photo-files" name="files" accept="image/*" multiple>
+      <input class="input" type="file" id="photo-files" name="files" accept="image/*" multiple
+             data-photo-input>
       <div class="hint">JPG, PNG, WebP or GIF, up to 12 MB each. Use large photos (about 1080px on the shorter side or bigger); small photos from the report look soft when posted. The lead photo is the main image on every advert.</div>
     </div>
-    {{ ui.button('Upload and re-render', variant='primary', icon_name='photo', type='submit') }}
+    {{ ui.button('Upload and re-render', variant='primary', icon_name='photo', type='submit', attrs='data-photo-submit') }}
   </form>
+
+  {# Chosen-but-not-yet-uploaded files. The browser's file input only says
+     "N files" and nothing has reached the server yet, so without this the panel
+     below still reads "No photos yet" and the two contradict each other. #}
+  <div class="banner banner--note" data-photo-pending hidden>
+    {{ ui.icon('photo') }}
+    <div class="banner__body">
+      <div class="banner__title" data-photo-pending-title></div>
+      <div data-photo-pending-names></div>
+      <div class="hint mt-1">These are not saved yet. Press <strong>Upload and re-render</strong> above to add them.</div>
+    </div>
+  </div>
 
   {% if photos %}
   <div class="gallery-grid">
@@ -40,9 +53,9 @@
     {% endfor %}
   </div>
   {% else %}
-  <div class="empty">
+  <div class="empty" data-photo-empty>
     <div class="empty__title">No photos yet</div>
-    <div class="empty__text">Upload photos so the adverts aren't text-only.</div>
+    <div class="empty__text">Choose photos above, then press Upload and re-render.</div>
   </div>
   {% endif %}
 </div>
