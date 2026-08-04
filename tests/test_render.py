@@ -382,6 +382,98 @@ def test_info_pack_auction_uses_auction_language_and_details(golden_record, tmp_
     assert _LEGAL_DISCLAIMER in html
 
 
+def test_info_pack_conditions_page_states_its_heading_once(golden_record, tmp_path):
+    """A dedicated conditions page must not print its own title twice.
+
+    The page's section head already reads "Conditions of sale"; the list macro
+    used to add a sub head saying the same words directly underneath it.
+    """
+    golden_record.sale_process.terms = [
+        f"Condition {i}: the purchaser accepts the property voetstoots and "
+        f"acknowledges that all measurements are approximate."
+        for i in range(1, 13)
+    ]
+    html = _info_pack_html(golden_record, tmp_path)
+
+    # The list runs long enough to take pages of its own.
+    assert "Conditions of sale continued" in html
+    # Titled by the section head only, never also by a sub head.
+    assert "<h3>Conditions of sale</h3>" not in html
+    assert "<h3>Conditions of sale continued</h3>" not in html
+
+
+def _with_portions(record, n: int):
+    """Give a record ``n`` land portions (the multi-portion intake case)."""
+    from engine.schema import Portion
+
+    record.physical.portions = [
+        Portion(
+            label=f"Portion {i} of Farm 7 Slagboom",
+            erf=str(2000 + i),
+            size_m2=53434.0 + i * 137,
+            title_deed_no=f"T{10000 + i}/2019",
+        )
+        for i in range(1, n + 1)
+    ]
+    return record
+
+
+def test_info_pack_schedule_pages_split_evenly(golden_record, tmp_path):
+    """A long schedule is split into even pages, never a page holding two rows.
+
+    23 portions used to render five rows beside the cards on page 2, sixteen on
+    the next sheet and a whole A4 holding the last two plus the total.
+    """
+    html = _info_pack_html(_with_portions(golden_record, 23), tmp_path)
+
+    # The whole schedule moved off page 2 rather than leaving a head table there.
+    assert "<h3>Schedule of portions</h3>" not in html
+    chunks = html.split('<table class="sched"')[1:]
+    assert len(chunks) == 2                       # two schedule pages
+    rows = [c.count("of Farm 7 Slagboom") for c in chunks]
+    assert sum(rows) == 23
+    assert min(rows) >= 11                        # no ragged tail
+
+
+def test_info_pack_schedule_shares_page_two_when_it_fits(golden_record, tmp_path):
+    """A short schedule stays on page 2 with the cards (playbook 4.2)."""
+    html = _info_pack_html(_with_portions(golden_record, 3), tmp_path)
+    assert "<h3>Schedule of portions</h3>" in html
+    assert "Schedule of portions continued" not in html
+
+
+def test_info_pack_groups_large_extents_and_adds_hectares(golden_record, tmp_path):
+    """A farm sized extent is grouped and given a hectare equivalent.
+
+    An ungrouped seven digit run cannot be read at a glance in a buyer document.
+    """
+    html = _info_pack_html(_with_portions(golden_record, 23), tmp_path)
+
+    assert "1 266 794 m2" in html
+    assert "1266794" not in html
+    assert "126.7 ha" in html
+    # Per portion extents are grouped too.
+    assert "53 571 m2" in html
+
+
+def test_info_pack_names_one_brand_on_a_sale_pack(golden_record, tmp_path):
+    """The pack is issued as Dynamic Auctioneers whatever the sale method.
+
+    The cover and contact lockup used to switch to the Dynamic Real Estate mark
+    on a non-auction pack while the running head and contact block still read
+    "Dynamic Auctioneers": two brands on one document.
+    """
+    from engine.render.html_backend import _asset_data_uri
+
+    golden_record.sale_process.method = "offers_invited"
+    html = _info_pack_html(golden_record, tmp_path)
+
+    auctioneers = _asset_data_uri("ads/_assets/logo-auctioneers-on-light.png")
+    realestate = _asset_data_uri("ads/_assets/logo-realestate-on-light.png")
+    assert auctioneers and auctioneers in html
+    assert realestate not in html
+
+
 @pytest.mark.parametrize("template", ["feature_list", "stats_first"])
 def test_new_ad_designs_render_place_and_descriptor(template, golden_record, tmp_path):
     # AD 2 / AD 3 lead with the locality + a concise descriptor and carry the
@@ -698,3 +790,59 @@ def test_badge_never_doubles_the_sale_or_auction_word():
     assert text("auction", "") == "ON AUCTION!"
     # Whole-word comparison: "Wholesale" is not the word "sale".
     assert text("offers_invited", "Wholesale") == "WHOLESALE SALE!"
+
+
+def test_info_pack_exports_a_real_pdf(golden_record, tmp_path, monkeypatch):
+    """The buyer receives a PDF, not a web page.
+
+    The suite disables the export for speed (conftest), so this test turns it
+    back on to cover the real Chromium print path.
+    """
+    from engine.render import rasterize
+
+    if not rasterize.available():
+        pytest.skip("Playwright not installed; PDF export unavailable")
+    monkeypatch.setenv("ENGINE_PDF_EXPORT", "1")
+
+    store = _store_with(golden_record)
+    try:
+        art = render_one("3060", store, "info_pack", backend="html", output_root=str(tmp_path))
+    finally:
+        store.close()
+
+    path = Path(art.path)
+    assert path.suffix == ".pdf"
+    assert art.mime == "application/pdf"
+    assert path.read_bytes()[:5] == b"%PDF-"      # a real PDF, not renamed HTML
+    # A4 portrait, and the pack runs to more than one page.
+    import fitz
+
+    doc = fitz.open(path)
+    try:
+        assert doc.page_count >= 2
+        assert 580 < doc[0].rect.width < 610      # A4 width in points
+        assert 820 < doc[0].rect.height < 860
+    finally:
+        doc.close()
+    # The HTML print source is kept beside it.
+    assert (path.parent / "info_pack.html").exists()
+
+
+def test_info_pack_falls_back_to_html_without_chromium(golden_record, tmp_path, monkeypatch):
+    """A host with no Chromium still gets the pack, as HTML - never a failed render."""
+    from engine.render import rasterize
+
+    monkeypatch.setenv("ENGINE_PDF_EXPORT", "1")
+
+    def _boom(*a, **k):
+        raise rasterize.RasterizeUnavailable("no chromium here")
+
+    monkeypatch.setattr(rasterize, "html_to_pdf", _boom)
+    store = _store_with(golden_record)
+    try:
+        art = render_one("3060", store, "info_pack", backend="html", output_root=str(tmp_path))
+    finally:
+        store.close()
+    assert Path(art.path).suffix == ".html"
+    assert art.mime == "text/html"
+    assert "Buyer information pack" in Path(art.path).read_text(encoding="utf-8")

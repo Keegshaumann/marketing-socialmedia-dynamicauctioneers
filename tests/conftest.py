@@ -24,6 +24,12 @@ import pytest
 # before any test module, so a module-level setenv here is early enough.
 os.environ.setdefault("ENGINE_ALLOW_INSECURE_COOKIE", "1")
 
+# Printing the info pack to PDF costs a Chromium launch (~2-3s) per render, and
+# dozens of tests render the pack: with it on the suite went from 33s to nearly
+# nine minutes. Off by default here; the tests that specifically cover the PDF
+# export re-enable it for themselves (see test_render.py).
+os.environ.setdefault("ENGINE_PDF_EXPORT", "0")
+
 # Make the repo root importable so ``import engine`` works no matter where
 # pytest is invoked from.
 REPO_ROOT = Path(__file__).resolve().parent.parent

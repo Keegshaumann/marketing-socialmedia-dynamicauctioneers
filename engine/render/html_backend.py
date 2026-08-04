@@ -62,12 +62,32 @@ _FORMAT_SPEC: Dict[str, Tuple[str, str, str]] = {
     "facebook_post": ("facebook_post.md.j2", "md", "text/markdown"),
     "email_blast": ("email_blast.md.j2", "md", "text/markdown"),
     "demo_ad": ("ads/hero_overlay.html.j2", "html", "text/html"),
+    # Rendered to HTML first, then printed to PDF (see _PDF_FORMATS below): the
+    # buyer receives a PDF, so the artifact this backend returns is the PDF.
     "info_pack": ("info_pack.html.j2", "html", "text/html"),
     "webapp_icon": ("webapp_icon.svg.j2", "svg", "image/svg+xml"),
     "saia_banner": ("saia_banner.html.j2", "html", "text/html"),
     "alert_mailer": ("alert_mailer.html.j2", "html", "text/html"),
     "auction_board": ("auction_board.html.j2", "html", "text/html"),
 }
+
+# Formats delivered as a PDF. These are documents a buyer or client receives as
+# an attachment, not web pages: the HTML is rendered first (and kept as the print
+# source) and Chromium then prints it to A4. A host without Chromium keeps the
+# HTML artifact, so the pack still renders everywhere.
+_PDF_FORMATS = frozenset({"info_pack"})
+
+
+def _pdf_export_enabled() -> bool:
+    """Whether to print the PDF formats. On by default; ``ENGINE_PDF_EXPORT=0``
+    turns it off.
+
+    Each PDF costs a Chromium launch (~2-3s). That is fine once per approval in
+    production, but the test suite renders the pack in dozens of tests and went
+    from 33s to nearly nine minutes, so the suite disables it and a couple of
+    dedicated tests turn it back on to cover the real export.
+    """
+    return (os.getenv("ENGINE_PDF_EXPORT") or "1").strip() != "0"
 
 _TEMPLATE_DIR = Path(__file__).parent / "templates"
 
@@ -125,6 +145,40 @@ def _fmt_num(value: object) -> Optional[str]:
     return str(value)
 
 
+def _fmt_size(value: object) -> Optional[str]:
+    """An extent in m2 with space-grouped thousands (``1228995`` -> ``1 228 995``).
+
+    A farm or land assembly runs to seven digits, and an ungrouped digit run
+    cannot be read at a glance in a document a buyer studies. Grouped the same
+    way the engine formats rands (``_rand`` in engine/render/service.py, SA
+    style). A non-numeric value is passed through untouched.
+    """
+    text = _fmt_num(value)
+    if text is None:
+        return None
+    try:
+        whole = int(round(float(text)))
+    except (TypeError, ValueError):
+        return text
+    return format(whole, ",").replace(",", " ")
+
+
+def _fmt_ha(value: object) -> Optional[str]:
+    """The same extent in hectares, one decimal, for land big enough to warrant
+    it (over a hectare). ``None`` for an ordinary residential erf, so the pack
+    simply says nothing rather than printing "0.0 ha"."""
+    text = _fmt_num(value)
+    if text is None:
+        return None
+    try:
+        area = float(text)
+    except (TypeError, ValueError):
+        return None
+    if area < 10000:
+        return None
+    return f"{area / 10000:.1f}"
+
+
 class HtmlBackend(RenderBackend):
     """Render each format from bundled Jinja2 templates. Always available."""
 
@@ -175,6 +229,20 @@ class HtmlBackend(RenderBackend):
         art_dir.mkdir(parents=True, exist_ok=True)
         path = art_dir / f"{request.fmt}.{ext}"
         path.write_text(rendered, encoding="utf-8")
+
+        # The information pack is a DOCUMENT a buyer is emailed, so it ships as a
+        # real PDF rather than a web page. The HTML above stays on disk as the
+        # print source. If Chromium is unavailable the HTML artifact is served as
+        # before - a missing browser must degrade, never fail the render.
+        if request.fmt in _PDF_FORMATS and _pdf_export_enabled():
+            from engine.render import rasterize
+
+            pdf_path = art_dir / f"{request.fmt}.pdf"
+            try:
+                rasterize.html_to_pdf(path, pdf_path)
+                path, mime = pdf_path, "application/pdf"
+            except Exception:
+                pass
 
         return Artifact(
             dp=request.dp,
@@ -247,6 +315,12 @@ class HtmlBackend(RenderBackend):
             "erf": identity.get("erf"),
             "title_type": identity.get("title_type"),
             "title_type_label": self._title_type_label(identity.get("title_type")),
+            # Deeds identity of the PROPERTY, for the info pack's title card.
+            # Never a person: the owner's name and ID live in the POPIA internal
+            # layer, which public_view() has already removed (SPEC 4.4).
+            "legal_description": identity.get("legal_description"),
+            "title_deed_no": identity.get("title_deed_no"),
+            "gps_str": self._gps_str(identity.get("gps")),
             "location_line": self._location_line(identity),
             "method": method,
             # Auction specifics (D42), rendered on auction ads only.
@@ -257,6 +331,11 @@ class HtmlBackend(RenderBackend):
             "badge_label": badge_label,
             "price_display": marketing.get("price_display") or badge_label,
             "size_str": _fmt_num(size_value),
+            # The same extent formatted for a DOCUMENT the buyer reads rather
+            # than an ad tile: thousands grouped, plus a hectare equivalent once
+            # the land is big enough for m2 to stop meaning anything.
+            "size_display": _fmt_size(size_value),
+            "size_ha": _fmt_ha(size_value),
             # Land portions of a multi-portion property, for templates that list
             # them; empty for an ordinary single-portion property.
             "portions": [
@@ -264,6 +343,9 @@ class HtmlBackend(RenderBackend):
                     "label": p.get("label"),
                     "erf": p.get("erf"),
                     "size_str": _fmt_num(p.get("size_m2")),
+                    "size_display": _fmt_size(p.get("size_m2")),
+                    # Deed number per portion, for the info pack's schedule table.
+                    "deed": p.get("title_deed_no"),
                 }
                 for p in portions
             ],
@@ -274,6 +356,9 @@ class HtmlBackend(RenderBackend):
             "zoning": physical.get("zoning"),
             "flatlet_present": flatlet_present,
             "flatlet_beds": flatlet_beds,
+            # The flatlet's own rooms, spelled out from the record's booleans so
+            # the info pack can describe it without inventing anything.
+            "flatlet_features": self._flatlet_features(flatlet) if flatlet_present else [],
             "features_main": list(physical.get("features_main") or []),
             "features_complex": list(physical.get("features_complex") or []),
             "terms": list(sale.get("terms") or []),
@@ -321,6 +406,32 @@ class HtmlBackend(RenderBackend):
             "sectional": "Sectional title",
             "freehold": "Freehold",
         }.get(title_type or "", title_type)
+
+    @staticmethod
+    def _gps_str(gps: object) -> Optional[str]:
+        """Coordinates as ``"lat, lon"`` for the info pack's title card.
+
+        Deeds/public data, never PII. Returns None for anything that is not a
+        clean numeric pair, so a malformed value simply drops the row.
+        """
+        if not isinstance(gps, (list, tuple)) or len(gps) != 2:
+            return None
+        try:
+            lat, lon = float(gps[0]), float(gps[1])
+        except (TypeError, ValueError):
+            return None
+        return f"{lat:.5f}, {lon:.5f}"
+
+    @staticmethod
+    def _flatlet_features(flatlet: dict) -> List[str]:
+        """Name the flatlet's rooms from the record's booleans (no invention)."""
+        labels = [
+            ("ensuite", "En-suite bathroom"),
+            ("kitchen", "Own kitchen"),
+            ("lounge", "Lounge"),
+            ("patio", "Patio"),
+        ]
+        return [label for key, label in labels if flatlet.get(key)]
 
     @staticmethod
     def _location_line(identity: dict) -> str:

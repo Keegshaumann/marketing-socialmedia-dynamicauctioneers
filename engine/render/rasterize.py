@@ -102,3 +102,56 @@ def html_to_png(
     if not png_path.exists():
         raise RuntimeError("ad rasterisation produced no file")
     return png_path
+
+
+def html_to_pdf(html_path, pdf_path, timeout_ms: int = 60000) -> Path:
+    """Print a local HTML document to a real A4 PDF and return its path.
+
+    For the buyer information pack, which is a multi-page DOCUMENT rather than a
+    fixed-canvas ad: a buyer is emailed a PDF, not a web page. Chromium's own
+    print pipeline is used, so the template's ``@media print`` rules apply and
+    backgrounds are kept (``print_background``), which the pack's ivory paper and
+    gold rules depend on.
+
+    Raises ``RasterizeUnavailable`` when Playwright/Chromium is missing, so the
+    caller can fall back to serving the HTML rather than failing the render.
+    """
+    html_path = Path(html_path).resolve()  # as_uri() needs an absolute path
+    pdf_path = Path(pdf_path)
+    try:
+        from playwright.sync_api import sync_playwright
+    except Exception as exc:
+        raise RasterizeUnavailable(
+            "Playwright is not installed. Run `pip install playwright` and "
+            "`playwright install chromium` to enable the PDF export."
+        ) from exc
+
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(args=["--no-sandbox", "--disable-gpu"])
+            try:
+                page = browser.new_page()
+                page.goto(html_path.as_uri(), wait_until="load", timeout=timeout_ms)
+                page.wait_for_timeout(250)  # let photos paint before printing
+                page.pdf(
+                    path=str(pdf_path),
+                    format="A4",
+                    print_background=True,
+                    margin={"top": "12mm", "bottom": "14mm", "left": "10mm", "right": "10mm"},
+                )
+            finally:
+                browser.close()
+    except RasterizeUnavailable:
+        raise
+    except Exception as exc:
+        msg = str(exc)
+        if "Executable doesn't exist" in msg or "playwright install" in msg.lower():
+            raise RasterizeUnavailable(
+                "Chromium is not installed for Playwright. Run "
+                "`playwright install chromium` on the server."
+            ) from exc
+        raise RuntimeError(f"PDF export failed: {msg[:300]}") from exc
+
+    if not pdf_path.exists():
+        raise RuntimeError("PDF export produced no file")
+    return pdf_path
