@@ -332,7 +332,7 @@ def artifact_thumb(
     fmt: str,
     user: dict = Depends(auth.require_login),
 ):
-    """Serve the cached PNG thumbnail of an html/pdf artifact (auth-gated).
+    """Serve the cached thumbnail image of an html/pdf artifact (auth-gated).
 
     Generated on first request and cached on disk next to the artifact, so a
     given artifact version is rasterised once. Answers 503 (not 500, never a
@@ -361,7 +361,11 @@ def artifact_thumb(
 
     # no-cache so a re-rendered artifact's new thumbnail is revalidated rather
     # than served stale from the browser cache (same rule as the ad preview).
-    return FileResponse(str(png), media_type="image/png", headers={"Cache-Control": "no-cache"})
+    return FileResponse(
+        str(png),
+        media_type=artifact_thumbs.MEDIA_TYPE,
+        headers={"Cache-Control": "no-cache"},
+    )
 
 
 @router.get("/artifacts/{dp}/download")
