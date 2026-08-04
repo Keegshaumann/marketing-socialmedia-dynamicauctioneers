@@ -45,7 +45,8 @@ from engine.distribute.ghl import DELETE_CAVEAT
 from engine.render import DEFAULT_BACKEND, FORMATS, get_backend
 from engine.render.html_backend import BRAND
 from engine.render.canva_backend import template_set_names
-from engine.render.service import apply_edits, apply_photos, render_all
+from engine.render.copy import _template_copy
+from engine.render.service import apply_edits, apply_photos, copy_cache_key, render_all
 from engine.schema import (
     PHYSICAL_SOURCE_PRECEDENCE,
     SOURCE_LABELS,
@@ -286,6 +287,64 @@ def _memo_view(record: PropertyRecord) -> Dict[str, Any]:
     }
 
 
+def _resolved_copy(record: PropertyRecord) -> Dict[str, Any]:
+    """The copy the advert actually renders from, resolved offline.
+
+    Gate 2 used to prefill its Headline and Price inputs from
+    ``marketing.headline`` / ``marketing.price_display``, which are set only
+    once a human has typed them. The renderer meanwhile always resolves a copy
+    bundle (``service._resolve_copy``), so a fresh record showed "OFFERS
+    INVITED" on the advert while the Price box on the form sat empty. This
+    mirrors that resolution so the form is prefilled with what the advert says.
+
+    It never makes a model call: the cached bundle on ``marketing.generated_copy``
+    is reused while its fingerprint still matches the facts it was written from,
+    otherwise the deterministic template copy is built (offline, free, and the
+    same words the renderer would fall back to without a key). Human edits on
+    ``record.marketing`` win last, exactly as they do at render time.
+
+    Derived from ``public_view`` only, so no PII and no sale-strategy valuation
+    can reach the form. The money line stays the offers/auction framing: it is
+    either a human-typed asking price or ``_framing``'s label, never a municipal
+    or professional valuation figure.
+    """
+    try:
+        marketing = record.marketing
+        cached = None
+        if (
+            marketing is not None
+            and marketing.generated_copy
+            and marketing.generated_copy_key == copy_cache_key(record)
+        ):
+            cached = dict(marketing.generated_copy)
+        copy = cached if cached is not None else dict(_template_copy(record))
+        if marketing is not None:
+            if marketing.headline:
+                copy["headline"] = marketing.headline
+            if marketing.price_display:
+                copy["price_display"] = marketing.price_display
+        return copy
+    except Exception:
+        # A prefill is a convenience: a sparse or odd record must still open
+        # gate 2. Fall back to the record's own values below.
+        return {}
+
+
+def _gate2_prefill(record: PropertyRecord) -> Dict[str, str]:
+    """What the gate-2 Headline and Price inputs are filled with.
+
+    One helper for both the page and the save handler: the page shows these, and
+    the save handler needs to know them to tell a real edit from an untouched
+    prefill. Human value first, else the advert's own resolved copy.
+    """
+    marketing = record.public_view().get("marketing") or {}
+    copy = _resolved_copy(record)
+    return {
+        "headline": marketing.get("headline") or copy.get("headline") or "",
+        "price_display": marketing.get("price_display") or copy.get("price_display") or "",
+    }
+
+
 def _email_view(record: PropertyRecord) -> Dict[str, Any]:
     """View-model for both gate emails, from public_view only (no PII)."""
     public = record.public_view()
@@ -293,10 +352,13 @@ def _email_view(record: PropertyRecord) -> Dict[str, Any]:
     marketing = public.get("marketing") or {}
     sale = public.get("sale_process") or {}
     viewing = sale.get("viewing") or {}
+    # Same source of truth as the advert and the gate-2 form: the resolved copy,
+    # so the approval email never quotes a price the ad does not carry.
+    copy = _resolved_copy(record)
     return {
         "dp": record.dp,
-        "headline": marketing.get("headline") or f"Property DP{record.dp}",
-        "price_display": marketing.get("price_display") or "Price on application",
+        "headline": marketing.get("headline") or copy.get("headline") or f"Property DP{record.dp}",
+        "price_display": marketing.get("price_display") or copy.get("price_display") or "Price on application",
         "address": identity.get("street_address") or identity.get("legal_description") or "",
         "suburb": identity.get("suburb") or "",
         "method": sale.get("method") or "offers_invited",
@@ -572,6 +634,12 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
     identity = pv.get("identity") or {}
     sale = pv.get("sale_process") or {}
     marketing_pv = pv.get("marketing") or {}
+    # Headline and Price come from the RESOLVED copy, which is what the advert
+    # is rendered with: the record's own values are only ever set once a human
+    # has typed them, so prefilling from the record alone left Price blank on a
+    # fresh listing while the ad already read "OFFERS INVITED". Offline and free
+    # (cached bundle or deterministic template copy), so the page stays fast.
+    prefill = _gate2_prefill(record)
     # A client-ready email draft for the "email the ad" action (no PII, no DP).
     _where = identity.get("street_address") or identity.get("suburb") or "the property"
     email_subject = f"Property advert for approval: {identity.get('suburb') or _where}"
@@ -590,8 +658,8 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
             "state": state,
             "record": record,
             "tiles": tiles,
-            "headline": marketing_pv.get("headline") or "",
-            "price_display": marketing_pv.get("price_display") or "",
+            "headline": prefill["headline"],
+            "price_display": prefill["price_display"],
             "street_address": identity.get("street_address") or "",
             "suburb": identity.get("suburb") or "",
             "method": sale.get("method") or "",
@@ -951,7 +1019,11 @@ def _ad_templates_list() -> list:
     return tpls if len(tpls) > 1 else []
 
 
-def _collect_edit_fields(form, current_template_set: "str | None" = None) -> dict:
+def _collect_edit_fields(
+    form,
+    current_template_set: "str | None" = None,
+    prefill: "Dict[str, str] | None" = None,
+) -> dict:
     """Build the public-view edit map from a submitted form (non-empty only).
 
     A blank text input is skipped so it never wipes an existing value. ``terms``
@@ -961,11 +1033,17 @@ def _collect_edit_fields(form, current_template_set: "str | None" = None) -> dic
     default set's name onto a record that never chose one (a false audit row,
     and the record would stop following a future default change). A submitted
     blank ("follow the default") clears an existing pick back to None.
+
+    ``prefill`` carries the values the form was filled with (Headline / Price,
+    see ``_gate2_prefill``). A value returned exactly as it was shown is not an
+    edit, so it is skipped: storing it would pin derived copy onto the record as
+    a human override, and the listing would stop following its own facts.
     """
     fields: dict = {}
+    prefill = prefill or {}
     for name, path in _EDIT_TEXT_FIELDS.items():
         value = str(form.get(name, "")).strip()
-        if value:
+        if value and value != (prefill.get(name) or "").strip():
             fields[path] = value
     method = str(form.get("method", "")).strip()
     if method in _SALE_METHODS:
@@ -1029,7 +1107,9 @@ async def gate2_copy(dp: str, request: Request, user: dict = Depends(require_rol
     form = await request.form()
     record = _load(db_path, dp)
     current_pick = record.marketing.template_set if record.marketing else None
-    fields = _collect_edit_fields(form, current_template_set=current_pick)
+    fields = _collect_edit_fields(
+        form, current_template_set=current_pick, prefill=_gate2_prefill(record)
+    )
     if fields:
         # Only a real edit reopens a live listing into the update cycle.
         _reopen_if_live(db_path, dp, user["email"])

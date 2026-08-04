@@ -27,8 +27,18 @@
         {% for art in artifacts %}
         <div style="display:flex;flex-direction:column;gap:.4rem">
           <a class="tile" href="{{ art.url }}" target="_blank" rel="noopener">
-            {% if art.kind == 'image' %}
-              <img class="tile__img" src="{{ art.url }}" alt="{{ art.label }} for DP{{ dp }}">
+            {# Every tile shows the artifact itself: images as they are, html and
+               pdf as a cached rasterised thumbnail, text as its first lines. The
+               icon sits behind the picture, so an image that cannot load removes
+               itself and the icon shows through instead of a broken tile. #}
+            {% if art.kind == 'image' or art.thumb_url %}
+              <div class="tile__shot">
+                {{ ui.icon('photo', 'icon--lg') }}
+                <img src="{{ art.thumb_url or art.url }}" loading="lazy" onerror="this.remove()"
+                     alt="{{ art.label }} for DP{{ dp }}">
+              </div>
+            {% elif art.kind == 'text' and art.preview %}
+              <pre class="tile__text">{{ art.preview }}</pre>
             {% else %}
               <div class="tile__img" style="display:flex;align-items:center;justify-content:center;">
                 {{ ui.icon(('file' if art.kind == 'text' else 'photo'), 'icon--lg') }}

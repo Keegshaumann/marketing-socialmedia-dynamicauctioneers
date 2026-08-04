@@ -94,13 +94,59 @@ def _load_manifest(db_path: str, dp: str) -> List[Dict[str, Any]]:
     return data if isinstance(data, list) else []
 
 
+def _resolve_artifact(db_path: str, dp: str, entry: Dict[str, Any]) -> Optional[Path]:
+    """Resolve a manifest entry to a path inside this DP's artifacts folder.
+
+    Returns None when the entry points outside that folder (no traversal). The
+    file is not required to exist: callers decide what a missing file means.
+    """
+    raw = entry.get("path") or ""
+    if not raw:
+        return None
+    candidate = Path(raw)
+    if not candidate.is_absolute():
+        candidate = Path(_output_root(db_path)) / raw
+    candidate = candidate.resolve()
+    art_dir = _artifacts_dir(db_path, dp).resolve()
+    if art_dir not in candidate.parents and candidate.parent != art_dir:
+        return None
+    return candidate
+
+
+def _text_preview(path: Optional[Path], lines: int = 10, limit: int = 900) -> str:
+    """The first few lines of a text artifact, for the tile preview.
+
+    Safe to show: every text artifact is rendered from ``public_view``, so it
+    carries no owner or occupant PII. Reads only the head of the file.
+    """
+    if path is None or not path.exists():
+        return ""
+    try:
+        with path.open("r", encoding="utf-8", errors="replace") as handle:
+            head = [next(handle, "") for _ in range(lines)]
+    except OSError:
+        return ""
+    return "".join(head).strip()[:limit]
+
+
 def _artifact_view(db_path: str, dp: str) -> List[Dict[str, Any]]:
     """Shape the manifest entries for the gallery (label, kind, view url).
 
     ``kind`` prefers the artifact's actual mime over the static per-format
     table: with mixed rendering the same format can be html one pass and a
     Canva-exported PNG the next, and an image must tile as an image.
+
+    Every tile carries a real preview: images show themselves, text artifacts
+    carry their first lines inline, and page artifacts (html/pdf) get a
+    ``thumb_url`` pointing at the cached rasterised thumbnail. ``thumb_url`` is
+    only set when a thumbnail exists or can plausibly be made, so a host with no
+    Playwright falls straight back to the icon tile instead of firing requests
+    that can only fail. Nothing is rasterised here - generation happens in the
+    thumbnail route, off the page's critical path.
     """
+    from engine.render import artifact_thumbs
+
+    art_dir = _artifacts_dir(db_path, dp)
     out: List[Dict[str, Any]] = []
     for art in _load_manifest(db_path, dp):
         fmt = art.get("fmt", "artifact")
@@ -112,6 +158,17 @@ def _artifact_view(db_path: str, dp: str) -> List[Dict[str, Any]]:
             kind = "page"
         else:
             kind = meta["kind"]
+
+        path = _resolve_artifact(db_path, dp, art)
+        preview = _text_preview(path) if kind == "text" else ""
+        thumb_url = None
+        if kind == "page" and path is not None:
+            try:
+                if artifact_thumbs.possible(art_dir, fmt, path, mime):
+                    thumb_url = f"/artifacts/{dp}/thumb/{fmt}"
+            except Exception:
+                thumb_url = None  # a preview must never break the page
+
         out.append(
             {
                 "fmt": fmt,
@@ -120,6 +177,8 @@ def _artifact_view(db_path: str, dp: str) -> List[Dict[str, Any]]:
                 "mime": mime,
                 "version": art.get("version", 1),
                 "url": f"/artifacts/{dp}/file/{fmt}",
+                "thumb_url": thumb_url,
+                "preview": preview,
                 "edit_url": art.get("edit_url"),
             }
         )
@@ -251,25 +310,58 @@ def artifact_file(
 ):
     """Serve one rendered artifact file (inline where the browser can show it)."""
     db_path = auth.db_path_for(request)
-    art_dir = _artifacts_dir(db_path, dp).resolve()
 
     entry = next((a for a in _load_manifest(db_path, dp) if a.get("fmt") == fmt), None)
     if entry is None:
         raise HTTPException(status_code=404, detail="No such artifact for this DP.")
 
-    raw = entry.get("path") or ""
-    candidate = Path(raw)
-    if not candidate.is_absolute():
-        candidate = Path(_output_root(db_path)) / raw
-    candidate = candidate.resolve()
-
     # Contain the served file to this DP's artifacts folder (no traversal).
-    if art_dir not in candidate.parents and candidate.parent != art_dir:
+    candidate = _resolve_artifact(db_path, dp, entry)
+    if candidate is None:
         raise HTTPException(status_code=404, detail="Artifact path is out of bounds.")
     if not candidate.exists():
         raise HTTPException(status_code=404, detail="Artifact file is missing on disk.")
 
     return FileResponse(str(candidate), media_type=entry.get("mime") or "application/octet-stream")
+
+
+@router.get("/artifacts/{dp}/thumb/{fmt}")
+def artifact_thumb(
+    request: Request,
+    dp: str,
+    fmt: str,
+    user: dict = Depends(auth.require_login),
+):
+    """Serve the cached PNG thumbnail of an html/pdf artifact (auth-gated).
+
+    Generated on first request and cached on disk next to the artifact, so a
+    given artifact version is rasterised once. Answers 503 (not 500, never a
+    hang) when the rasteriser is unavailable or the render fails; the tile then
+    shows its icon fallback.
+    """
+    from engine.render import artifact_thumbs
+
+    db_path = auth.db_path_for(request)
+    entry = next((a for a in _load_manifest(db_path, dp) if a.get("fmt") == fmt), None)
+    if entry is None:
+        raise HTTPException(status_code=404, detail="No such artifact for this DP.")
+
+    source = _resolve_artifact(db_path, dp, entry)
+    if source is None or not source.exists():
+        raise HTTPException(status_code=404, detail="Artifact file is missing on disk.")
+
+    try:
+        png = artifact_thumbs.thumbnail(
+            _artifacts_dir(db_path, dp), fmt, source, entry.get("mime") or ""
+        )
+    except Exception:  # belt and braces: the module already swallows failures
+        png = None
+    if png is None:
+        raise HTTPException(status_code=503, detail="Preview unavailable.")
+
+    # no-cache so a re-rendered artifact's new thumbnail is revalidated rather
+    # than served stale from the browser cache (same rule as the ad preview).
+    return FileResponse(str(png), media_type="image/png", headers={"Cache-Control": "no-cache"})
 
 
 @router.get("/artifacts/{dp}/download")

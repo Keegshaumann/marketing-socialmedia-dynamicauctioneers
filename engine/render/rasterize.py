@@ -44,13 +44,23 @@ def available() -> bool:
         return False
 
 
-def html_to_png(html_path, png_path, width: int = _DEFAULT_WIDTH, timeout_ms: int = 30000) -> Path:
+def html_to_png(
+    html_path,
+    png_path,
+    width: int = _DEFAULT_WIDTH,
+    timeout_ms: int = 30000,
+    selector: str = _AD_SELECTOR,
+) -> Path:
     """Rasterise a local ad HTML file to a PNG and return the PNG path.
 
     Loads the file (so the ad's relative photo paths resolve), waits for it to
     settle, and screenshots the ``.sheet`` card at 2x for a crisp image. Raises
     ``RasterizeUnavailable`` when Playwright/Chromium is missing and
     ``RuntimeError`` on any other render failure.
+
+    ``selector`` overrides the element captured, for non-ad documents whose root
+    class differs (the artifact-pack thumbnails pass a wider list). Anything that
+    matches nothing still falls back to a full-page screenshot.
     """
     html_path = Path(html_path).resolve()  # as_uri() needs an absolute path
     png_path = Path(png_path)
@@ -71,7 +81,7 @@ def html_to_png(html_path, png_path, width: int = _DEFAULT_WIDTH, timeout_ms: in
                 )
                 page.goto(html_path.as_uri(), wait_until="load", timeout=timeout_ms)
                 page.wait_for_timeout(200)  # let images paint
-                target = page.locator(_AD_SELECTOR)
+                target = page.locator(selector or _AD_SELECTOR)
                 if target.count() > 0:
                     target.first.screenshot(path=str(png_path))
                 else:  # no .sheet wrapper -> full page fallback

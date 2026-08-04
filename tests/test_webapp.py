@@ -627,6 +627,29 @@ def test_gate2_pick_template_applies_and_re_renders():
     assert "sf-hero" in html  # ad re-rendered with the picked Stats-first design
 
 
+def test_gate2_design_picker_carries_the_progress_hooks():
+    """Picking a design re-renders the advert, which takes seconds.
+
+    The click must not look like nothing happened, so the picker carries the
+    work-indicator hooks app.js drives: a host to raise the bar in, and a label
+    per design naming what is being built (plus the honest wait hint).
+    """
+    _needs_golden()
+    dp = "9031"
+    _golden_clone(dp)
+    client = _client()
+    _login_admin(client)
+
+    page = client.get(f"/gates/{dp}/ads")
+    assert page.status_code == 200
+    assert "data-work-host" in page.text  # where the progress bar is raised
+    buttons = page.text.count('class="adtpl ')
+    assert buttons >= 2, "expected the ad-design picker to render its buttons"
+    # every design button announces its own work, so the bar names the design
+    assert page.text.count('data-work="Building the advert with the ') == buttons
+    assert page.text.count("data-work-eta=") == buttons
+
+
 def test_ad_template_thumb_route(monkeypatch):
     from pathlib import Path as _Path
 
@@ -1061,6 +1084,57 @@ def test_blank_fields_do_not_overwrite():
     assert pv1["marketing"]["price_display"] == "R900 000"
     assert pv1["marketing"]["headline"] == orig_headline
     assert pv1["identity"]["suburb"] == orig_suburb
+
+
+def _input_tag(html: str, name: str) -> str:
+    """The single <input> tag carrying ``name`` (attribute-order agnostic)."""
+    match = re.search(r'<input[^>]*name="%s"[^>]*>' % re.escape(name), html)
+    assert match, f"no input named {name} on the page"
+    return match.group(0)
+
+
+def test_gate2_prefills_headline_and_price_from_the_resolved_copy():
+    """Gate 2 fills Headline and Price with what the advert actually says.
+
+    ``marketing.price_display`` is only set once a human types one, so the Price
+    box used to sit empty while the rendered ad already read "OFFERS INVITED".
+    Both boxes now prefill from the resolved copy (offline, no API call).
+    """
+    dp = "7212"
+    _needs_golden()
+    record = PropertyRecord.model_validate_json(GOLDEN_RECORD.read_text(encoding="utf-8"))
+    record.dp = dp
+    record.marketing.headline = None     # nothing typed by a human yet
+    record.marketing.price_display = None
+    store = RecordStore(DB_PATH)
+    try:
+        store.upsert(record, state="live")
+    finally:
+        store.close()
+    client = _client()
+    _login_admin(client)
+
+    page = client.get(f"/gates/{dp}/ads")
+    assert page.status_code == 200, page.text
+    # The offers framing, never a municipal or professional valuation figure.
+    assert 'value="Offers invited"' in _input_tag(page.text, "price_display")
+    assert 'value=""' not in _input_tag(page.text, "headline")
+
+    # Returning the prefill untouched is not an edit: it must not pin derived
+    # copy onto the record as a human override.
+    client.post(
+        f"/gates/{dp}/ads/copy",
+        data={"price_display": "Offers invited", "headline": ""},
+    )
+    assert _public_view(dp)["marketing"]["price_display"] is None
+    assert _state(dp) == "live"  # no edit, so no reopen into the update cycle
+
+    # A real change still saves (and formats).
+    client.post(f"/gates/{dp}/ads/copy", data={"price_display": "900000"})
+    assert _public_view(dp)["marketing"]["price_display"] == "R900 000"
+    assert 'value="R900 000"' in _input_tag(
+        client.get(f"/gates/{dp}/ads").text, "price_display"
+    )
 
 
 def test_open_in_canva_link_only_when_edit_url_present():

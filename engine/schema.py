@@ -285,6 +285,14 @@ class Marketing(_Base):
     # The named design/template set the render backends use (the marketing
     # team's pick on gate 2, D33). None = the default (first-configured) set.
     template_set: Optional[str] = None
+    # Cached model-written copy + the fingerprint of the facts it was written
+    # from. Copy generation is a live API call (~20s); without this cache EVERY
+    # re-render paid it again, so picking a design or setting a lead photo -
+    # neither of which changes a single word - cost 20 seconds and a request.
+    # ``generated_copy_key`` fingerprints the copy-relevant public facts, so the
+    # copy is reused while they hold and regenerated the moment they change.
+    generated_copy: Optional[Dict[str, Any]] = None
+    generated_copy_key: Optional[str] = None
 
 
 # --- compliance / verification -------------------------------------------

@@ -213,6 +213,135 @@
     });
   }
 
+  // ---- Work indicator: "it is running, and here is how long" ------------
+  // A slow action (re-rendering an advert) used to look like nothing happened.
+  // Any element carrying data-work now raises a labelled progress bar for the
+  // life of its HTMX request. Attach it to any other slow action with attributes
+  // alone - no extra markup, no extra JS:
+  //   data-work       the label, e.g. "Building the advert with the Bold design"
+  //   data-work-eta   optional honest hint printed under the bar
+  //   data-work-into  optional selector for where the bar is placed
+  // The real percentage is unknowable, so the bar creeps toward 90% on a
+  // half-life curve (the shape intake's _progress() uses server side) and only
+  // reaches 100% when the response lands; the elapsed counter beside the label
+  // is the honest measure. Clicking twice is safe (requests are counted), and
+  // the bar clears on error, on abort and on a watchdog, so it cannot stick.
+  var WORK_CEIL = 90;          // % the bar approaches but never claims to pass
+  var WORK_HALFLIFE = 6;       // seconds to close half the remaining distance
+  var WORK_WATCHDOG = 180000;  // ms: clear even if no end event ever arrives
+  var _workLive = [];          // bars with at least one request in flight
+
+  function _workPct(secs) {
+    return Math.max(4, Math.round(WORK_CEIL * (1 - Math.pow(0.5, secs / WORK_HALFLIFE))));
+  }
+  function _workElapsed(secs) {
+    if (secs < 60) return secs + 's';
+    return Math.floor(secs / 60) + ':' + ('0' + (secs % 60)).slice(-2);
+  }
+
+  // Where the bar goes: an explicit target, else the nearest declared host,
+  // else the panel body the trigger sits in, else right beside the trigger.
+  function _workHost(el) {
+    var sel = el.getAttribute('data-work-into');
+    var into = sel ? document.querySelector(sel) : null;
+    return into || el.closest('[data-work-host]') || el.closest('.panel__body') || el.parentNode;
+  }
+
+  function _workBar(host) {
+    if (host.__workbar && host.__workbar.parentNode === host) return host.__workbar;
+    var bar = document.createElement('div');
+    bar.className = 'workbar';
+    bar.setAttribute('role', 'status');  // reads the label out when it appears
+    bar.hidden = true;
+    bar.innerHTML =
+      '<div class="workbar__head">' +
+        '<span class="spinner workbar__spinner" aria-hidden="true"></span>' +
+        '<span class="workbar__label"></span>' +
+        '<span class="workbar__elapsed" aria-hidden="true">0s</span>' +
+      '</div>' +
+      '<div class="progress" aria-hidden="true"><div class="progress__bar"></div></div>' +
+      '<div class="hint workbar__eta" hidden></div>';
+    host.appendChild(bar);
+    bar.__work = { xhrs: [], tick: null, hide: null, dog: null, t0: 0, host: host };
+    host.__workbar = bar;
+    return bar;
+  }
+
+  function workStart(el, xhr) {
+    var host = _workHost(el);
+    if (!host || !host.appendChild) return;
+    var bar = _workBar(host);
+    var st = bar.__work;
+    var fill = bar.querySelector('.progress__bar');
+    var eta = bar.querySelector('.workbar__eta');
+    var etaText = el.getAttribute('data-work-eta') || '';
+
+    if (st.hide) { clearTimeout(st.hide); st.hide = null; }
+    bar.classList.remove('is-done');
+    // labels come from markup, so textContent (never innerHTML)
+    bar.querySelector('.workbar__label').textContent = el.getAttribute('data-work') || 'Working';
+    eta.textContent = etaText;
+    eta.hidden = !etaText;
+
+    if (!st.tick) {  // a fresh run, not a second click landing on a live one
+      st.t0 = Date.now();
+      // rewind without animating backwards from a just-finished 100%: drop the
+      // transition for one frame. (CSS still owns every duration.)
+      fill.style.transition = 'none';
+      fill.style.width = '4%';
+      void fill.offsetWidth;
+      fill.style.transition = '';
+      var step = function () {
+        var secs = Math.max(0, Math.round((Date.now() - st.t0) / 1000));
+        fill.style.width = _workPct(secs) + '%';
+        bar.querySelector('.workbar__elapsed').textContent = _workElapsed(secs);
+      };
+      step();
+      st.tick = setInterval(step, 1000);
+      if (_workLive.indexOf(bar) === -1) _workLive.push(bar);
+    }
+    if (xhr && st.xhrs.indexOf(xhr) === -1) st.xhrs.push(xhr);
+    else if (!xhr) st.xhrs.push({});
+    bar.hidden = false;
+    if (host.classList) host.classList.add('is-working');
+    if (st.dog) clearTimeout(st.dog);
+    st.dog = setTimeout(function () { workFinish(bar); }, WORK_WATCHDOG);
+  }
+
+  // One request ended. The bar only clears when the LAST in-flight request
+  // ends, so a double click cannot hide it while work is still running. htmx
+  // fires several end events per request (afterRequest, then responseError or
+  // sendError or timeout), so matching on the xhr makes the repeats no-ops.
+  function workEnd(xhr) {
+    for (var i = _workLive.length - 1; i >= 0; i--) {
+      var bar = _workLive[i], st = bar.__work;
+      var at = xhr ? st.xhrs.indexOf(xhr) : st.xhrs.length - 1;
+      if (at < 0) continue;
+      st.xhrs.splice(at, 1);
+      if (!st.xhrs.length) workFinish(bar);
+      if (!xhr) break;  // no identity to match: end one request, newest bar only
+    }
+  }
+
+  function workFinish(bar) {
+    var st = bar.__work;
+    var fill = bar.querySelector('.progress__bar');
+    if (st.tick) { clearInterval(st.tick); st.tick = null; }
+    if (st.dog) { clearTimeout(st.dog); st.dog = null; }
+    st.xhrs.length = 0;
+    var at = _workLive.indexOf(bar);
+    if (at !== -1) _workLive.splice(at, 1);
+    if (st.host && st.host.classList) st.host.classList.remove('is-working');
+    bar.classList.add('is-done');  // CSS rushes the bar to full, then fades it
+    fill.style.width = '100%';
+    st.hide = setTimeout(function () {
+      st.hide = null;
+      bar.hidden = true;
+      bar.classList.remove('is-done');
+      fill.style.width = '4%';
+    }, 560);
+  }
+
   // ---- Photo picker: show what was chosen but not yet uploaded ----------
   // The browser's file input only reports "N files", and nothing has reached the
   // server until Upload is pressed - so the panel below would still read "No
@@ -280,6 +409,19 @@
     var btn = form.querySelector('[type="submit"]');
     if (btn) btn.classList.add('is-submitting');
   });
+
+  // Work indicator. htmx events bubble to document, so one delegated pair covers
+  // every [data-work] trigger - including any that get swapped away mid-flight,
+  // whose end event would never reach a listener bound to the element itself.
+  document.addEventListener('htmx:beforeRequest', function (e) {
+    var el = (e.detail && e.detail.elt) || e.target;
+    var trigger = (el && el.closest) ? el.closest('[data-work]') : null;
+    if (trigger) workStart(trigger, e.detail && e.detail.xhr);
+  });
+  ['htmx:afterRequest', 'htmx:responseError', 'htmx:sendError', 'htmx:timeout', 'htmx:sendAbort']
+    .forEach(function (ev) {
+      document.addEventListener(ev, function (e) { workEnd(e.detail && e.detail.xhr); });
+    });
 
   document.addEventListener('DOMContentLoaded', function () { configHtmx(); init(document); });
   // re-wire content swapped in by HTMX

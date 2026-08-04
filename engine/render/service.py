@@ -31,6 +31,7 @@ Design rules baked in here:
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -107,22 +108,54 @@ def _format_price(amount: Union[int, float, str]) -> str:
 
 # --- copy + photo resolution ---------------------------------------------
 
-def _resolve_copy(record: PropertyRecord, client=None) -> dict:
-    """Generate copy, then overlay human edits stored on ``record.marketing``.
+def copy_cache_key(record: PropertyRecord) -> str:
+    """Fingerprint the public facts the copy is written from.
+
+    Deliberately excludes ``marketing`` (headline/price edits, photo picks and
+    the design choice) and the photo set: none of those change what the model
+    would write, and they are exactly the things a marketer changes repeatedly
+    on gate 2. Two records with the same fingerprint can share generated copy.
+    """
+    pub = record.public_view()
+    facts = {k: pub.get(k) for k in ("identity", "physical", "sale_process", "valuation")}
+    blob = json.dumps(facts, sort_keys=True, default=str)
+    return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:32]
+
+
+def _resolve_copy(record: PropertyRecord, client=None) -> Tuple[dict, bool]:
+    """Return ``(copy, generated)`` for a render pass.
+
+    Copy generation is a live API call taking around twenty seconds, and every
+    re-render used to pay it again - so picking a design or setting a lead photo,
+    neither of which changes a word of copy, cost twenty seconds and a request.
+    The copy is therefore cached on the record against a fingerprint of the facts
+    it was written from (``copy_cache_key``): while those hold it is reused, and
+    the moment a fact changes it is rewritten. ``generated`` tells the caller a
+    fresh bundle needs persisting.
 
     ``generate_copy`` is key-gated and returns the deterministic template dict
     offline. Any human-authored ``headline`` or ``price_display`` on
-    ``record.marketing`` then wins, so re-rendering preserves the edit.
+    ``record.marketing`` still wins last, so an edit survives every re-render.
     """
-    copy = generate_copy(record, client=client)
-
     marketing = record.marketing
+    key = copy_cache_key(record)
+    cached = None
+    if marketing is not None and marketing.generated_copy and marketing.generated_copy_key == key:
+        cached = marketing.generated_copy
+
+    generated = cached is None
+    # The RAW bundle is what gets cached: the human overlay below must never be
+    # baked into it, or clearing an edited headline would leave the old wording
+    # cached forever.
+    raw = cached if cached is not None else generate_copy(record, client=client)
+    copy = dict(raw)
+
     if marketing is not None:
         if marketing.headline:
             copy["headline"] = marketing.headline
         if marketing.price_display:
             copy["price_display"] = marketing.price_display
-    return copy
+    return copy, (raw if generated else None)
 
 
 def _resolve_photos(record: PropertyRecord, output_root: str) -> List[str]:
@@ -199,12 +232,35 @@ def _read_public_path(record: PropertyRecord, path: str):
     return node
 
 
-def _prepare(record: PropertyRecord, output_root: str, client=None) -> Tuple[dict, dict, List[str]]:
-    """Resolve the public view, the copy and the photo set for a render pass."""
+def _prepare(record: PropertyRecord, output_root: str, client=None) -> Tuple[dict, dict, List[str], Optional[dict]]:
+    """Resolve the public view, the copy and the photo set for a render pass.
+
+    The fourth element is a freshly generated copy bundle that the caller should
+    persist (``None`` when the cached bundle was reused), so the next render of
+    this property does not pay the ~20s generation call again.
+    """
     public = record.public_view()
-    copy = _resolve_copy(record, client=client)
+    copy, fresh = _resolve_copy(record, client=client)
     photos = _resolve_photos(record, output_root)
-    return public, copy, photos
+    return public, copy, photos, fresh
+
+
+def _persist_generated_copy(record: PropertyRecord, fresh: Optional[dict], store) -> None:
+    """Cache a freshly generated copy bundle on the record. Best effort.
+
+    Never raises: failing to cache only costs the next render its generation
+    time, so it must not break a render that already succeeded.
+    """
+    if not fresh or store is None:
+        return
+    try:
+        if record.marketing is None:
+            record.marketing = Marketing()
+        record.marketing.generated_copy = fresh
+        record.marketing.generated_copy_key = copy_cache_key(record)
+        store.upsert(record)
+    except Exception:  # pragma: no cover - caching must never break rendering
+        pass
 
 
 def _resolve_template_set(record: PropertyRecord) -> Optional[str]:
@@ -325,7 +381,8 @@ def render_all(
 
     record = _load_record(dp, store)
     resolve = _format_backends(backend)
-    public, copy, photos = _prepare(record, output_root, client=client)
+    public, copy, photos, _fresh_copy = _prepare(record, output_root, client=client)
+    _persist_generated_copy(record, _fresh_copy, store)
     template_set = _resolve_template_set(record)
 
     artifacts: List[Artifact] = []
@@ -370,7 +427,8 @@ def render_one(
     if not candidates:
         raise ValueError(f"No configured render backend can render {fmt!r}.")
 
-    public, copy, photos = _prepare(record, output_root, client=client)
+    public, copy, photos, _fresh_copy = _prepare(record, output_root, client=client)
+    _persist_generated_copy(record, _fresh_copy, store)
     request = RenderRequest(
         dp=dp,
         fmt=fmt,

@@ -1,48 +1,169 @@
-{# Print-ready auction board (SPEC 12 step 6d). Portrait board sized for print;
-   large legible type, brand chrome, hero image, headline, ref and contact. #}
+{# Print-ready on-site auction / sale board (SPEC 12 step 6d), rebuilt in the
+   D54 brand language: dark canvas, metallic gold chrome, the white shield
+   lockup, huge type meant to be read from the pavement.
+
+   CANVAS: 1620 x 1080 px = 3:2 LANDSCAPE, the usual SA on-site signboard
+   proportion (900 x 600 mm at 1.8 px per mm; the same artwork scales to a
+   1200 x 800 mm board without reflowing). The print block below fits that 3:2
+   canvas onto A3 landscape for an office proof; the sign printer works from the
+   same fixed-ratio artwork at whatever size the board is ordered in.
+
+   Method-aware through the shared macros: an auction shows the Dynamic
+   Auctioneers lockup and the channel / date / time line, anything else shows
+   Dynamic Real Estate and the price line. Every value comes from the POPIA-safe
+   view model and a missing field simply drops its block. #}
 {% import "_brand.html.j2" as brand %}
-<title>Auction Board {{ vm.headline }} | {{ vm.brand_name }}</title>
+{% import "_adparts.html.j2" as parts %}
+{% set is_auction = (vm.method == 'auction') %}
+{% set hero = vm.hero_src %}
+{% set place = vm.place_line or vm.suburb or vm.municipality or vm.province %}
+{# Board type is set once, so the huge locality line never wraps past two lines
+   and never runs under the shield: shrink the type as the name gets longer. #}
+{% set n = (place or '') | length %}
+{% set place_px = 116 if n <= 16 else (94 if n <= 24 else (78 if n <= 34 else 62)) %}
+{% set addr = vm.address or vm.location_line %}
+{# The money line is the other block that has to stay on the board: an auction
+   channel/date/time line or a wordy price runs far longer than "R1 250 000",
+   so step its type down by length instead of letting it push the layout. #}
+{% set money = parts.money_text(vm) %}
+{% set m = money | length %}
+{% if is_auction %}
+{% set money_px = 62 if m <= 36 else (50 if m <= 46 else 40) %}
+{% else %}
+{% set money_px = 88 if m <= 18 else (68 if m <= 28 else 50) %}
+{% endif %}
+<title>Board {{ place or vm.headline }} | {{ vm.brand_name }}</title>
 <style>
   {{ brand.tokens_css() }}
-  body { background: var(--ground); }
+  :root { --g2:#ddc689; --g3:#ac874a; --gline:#ac874a; }
+  body { background:#0d0b08; }
+
   .board {
-    width: 600px; max-width: 92vw; margin: 24px auto; background: var(--sheet);
-    box-shadow: 0 2px 6px rgba(25,22,19,.08), 0 18px 44px rgba(25,22,19,.13); overflow: hidden;
+    width:1620px; height:1080px; margin:0 auto; background:#17130E; color:#ffffff;
+    position:relative; overflow:hidden; display:flex; flex-direction:column;
+    font-family:'Montserrat',system-ui,sans-serif;
+    background-image:radial-gradient(130% 90% at 78% 0%, #17130E 0%, #0d0b08 100%);
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  .board .head { background: var(--ink); color: #F3E7CB; text-align: center; padding: 26px 24px 20px; }
-  .board .mark { font-weight: 800; font-size: 30px; letter-spacing: -.04em; border: 3px solid var(--gold); display: inline-block; padding: 2px 12px; color: #fff; }
-  .board .name { font-size: 20px; font-weight: 800; letter-spacing: .18em; margin-top: 10px; }
-  .board .name b { color: var(--gold); }
-  .board .hero img { width: 100%; height: auto; display: block; }
-  .board .body { padding: 30px 34px; text-align: center; }
-  .board .badge { display: inline-block; background: var(--gold); color: var(--ink); font-weight: 800; font-size: 18px; letter-spacing: .16em; text-transform: uppercase; padding: 12px 24px; border-radius: 3px; }
-  .board h1 { font-size: 34px; font-weight: 800; line-height: 1.12; color: var(--ink); margin: 20px 0 10px; }
-  .board .addr { font-size: 17px; color: var(--muted); margin: 0 0 18px; }
-  .board .facts { font-size: 18px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; margin: 8px 0 4px; }
-  .board .ref { font-size: 13px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--gold-deep); }
-  .board .call { background: var(--ink); color: #fff; text-align: center; padding: 22px; }
-  .board .call .num { font-size: 40px; font-weight: 800; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
-  .board .call .web { font-size: 15px; color: var(--gold); margin-top: 6px; }
-  @media print { body { background: #fff; } .board { margin: 0; box-shadow: none; width: 100%; max-width: none; } }
+  .gold { background:linear-gradient(180deg,#8a6a38 0%,#ac874a 22%,#ddc689 50%,#ac874a 78%,#8a6a38 100%); }
+
+  /* Top chrome: metallic gold ref bar, same wording as the social ads. */
+  .bd-ref { flex:none; display:flex; justify-content:space-between; padding:15px 44px; font-size:26px;
+            font-weight:800; letter-spacing:.04em; color:#191613; text-transform:uppercase; }
+
+  .bd-main { flex:1 1 auto; min-height:0; display:flex; align-items:stretch; gap:34px; }
+
+  .bd-left { flex:1 1 auto; min-width:0; overflow:hidden; display:flex; flex-direction:column;
+             justify-content:center; padding:26px 0 26px 46px; }
+  .bd-place { margin:0; font-size:{{ place_px }}px; font-weight:900; line-height:.92; color:#ffffff;
+              text-transform:uppercase; letter-spacing:-.015em; overflow-wrap:break-word; }
+  .bd-desc { margin:10px 0 0; font-size:54px; font-weight:900; line-height:1; color:var(--g2);
+             text-transform:uppercase; letter-spacing:-.01em; }
+  .bd-badge { align-self:flex-start; margin-top:26px; padding:14px 34px; font-size:44px; font-weight:900;
+              letter-spacing:.02em; text-transform:uppercase; color:#191613; border-radius:8px;
+              box-shadow:0 4px 16px rgba(0,0,0,.45); }
+
+  .bd-stats { margin-top:30px; display:grid; grid-template-columns:1fr 1fr; gap:22px 34px; overflow:hidden; }
+  .bd-stat { display:flex; align-items:center; gap:20px; font-size:36px; font-weight:800; color:#ffffff;
+             text-transform:uppercase; line-height:1.06; min-width:0; }
+  .bd-stat span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .bd-stat svg { width:62px; height:62px; stroke:#ffffff; fill:none; stroke-width:1.7;
+                 stroke-linecap:round; stroke-linejoin:round; flex:none; }
+  .bd-stat.wide { grid-column:1 / -1; }
+
+  /* Media column: hero photo in a gold frame with the white shield lockup over
+     its top corner. With no photo the column narrows to just the shield. */
+  .bd-right { flex:none; width:600px; padding:0 46px 0 0; position:relative; }
+  .bd-right.nophoto { width:306px; }
+  .bd-right img.photo { width:100%; height:100%; object-fit:cover; display:block;
+                        border:4px solid var(--gline); border-radius:14px; }
+  .bd-shield { position:absolute; top:-8px; right:46px; z-index:2; width:250px; height:282px; background:#ffffff;
+               display:flex; align-items:center; justify-content:center; padding:21px 26px 60px;
+               clip-path:path('M10,0 H240 Q250,0 250,10 V179 Q250,235 125,282 Q0,235 0,179 V10 Q0,0 10,0 Z'); }
+  .bd-shield img { width:100%; height:auto; display:block; }
+
+  .bd-addr { flex:none; margin:14px 46px 0; border:3px solid var(--gline); border-radius:999px;
+             padding:12px 28px; display:flex; align-items:center; justify-content:center; gap:14px;
+             font-size:30px; font-weight:800; color:#ffffff; text-transform:uppercase; text-align:center; }
+  .bd-addr svg { width:32px; height:32px; fill:var(--g2); flex:none; }
+
+  .bd-money { flex:none; margin:16px 46px 0; border:4px solid var(--gline); border-radius:14px;
+              padding:16px 20px; text-align:center; font-weight:900; color:#ffffff;
+              text-transform:uppercase; letter-spacing:.01em; line-height:1.04;
+              font-size:{{ money_px }}px; }
+
+  /* Bottom chrome: the call to action. The phone is the biggest thing on the
+     board after the locality, which is what a passing motorist needs. */
+  .bd-contact { flex:none; margin-top:auto; padding:22px 46px; display:flex; align-items:center;
+                gap:56px; color:#191613; }
+  .bd-contact .tel { display:flex; align-items:center; gap:22px; font-size:78px; font-weight:900;
+                     letter-spacing:.01em; flex:none; }
+  .bd-contact .dot { width:100px; height:100px; border-radius:50%; background:#191613; display:flex;
+                     align-items:center; justify-content:center; flex:none; }
+  .bd-contact .dot svg { width:54px; height:54px; fill:#ddc689; }
+  .bd-contact .mailto { display:flex; align-items:center; gap:18px; font-size:32px; font-weight:800;
+                        min-width:0; overflow:hidden; }
+  .bd-contact .mailto span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .bd-contact svg.mail { width:46px; height:36px; fill:none; stroke:#191613; stroke-width:1.8; flex:none; }
+
+  /* On-screen preview only: step the fixed board down so it fits a browser or
+     the platform's preview frame. Print and rasterising are unaffected. */
+  @media screen and (max-width:1600px) { .board { zoom:.82; } }
+  @media screen and (max-width:1300px) { .board { zoom:.66; } }
+  @media screen and (max-width:1040px) { .board { zoom:.50; } }
+  @media screen and (max-width:780px)  { .board { zoom:.36; } }
+
+  @media print {
+    @page { size:A3 landscape; margin:0; }
+    body { background:#ffffff; }
+    /* 1620px = 428.6mm at 96dpi; 0.979 fits the 3:2 board across A3 landscape
+       (280mm tall), and the top margin centres it on the 297mm sheet. */
+    .board { zoom:.979; margin:8mm auto; }
+  }
 </style>
 
-<div class="board">
-  <div class="head">
-    <span class="mark">DS</span>
-    <div class="name">DYNAMIC <b>AUCTIONEERS</b></div>
+<div class="board ad">
+  <div class="bd-ref gold">
+    <span>{% if vm.public_ref %}MASTER REF: {{ vm.public_ref }}{% endif %}</span>
+    <span>PROPERTY REF: {{ vm.property_ref }}</span>
   </div>
-  {% if vm.hero_src %}<div class="hero"><img src="{{ vm.hero_src }}" alt="{{ vm.headline }}" /></div>{% endif %}
-  <div class="body">
-    <span class="badge">{{ vm.badge_label }}</span>
-    <h1>{{ vm.headline }}</h1>
-    {% if vm.address %}<p class="addr">{{ vm.address }}</p>{% endif %}
-    <div class="facts">
-      {% if vm.beds %}{{ vm.beds }} bed{% endif %}{% if vm.baths %} &middot; {{ vm.baths }} bath{% endif %}{% if vm.size_str %} &middot; {{ vm.size_str }} m2{% endif %}{% if vm.flatlet_present %} &middot; flatlet{% endif %}
+
+  <div class="bd-main">
+    <div class="bd-left">
+      {% if place %}<h1 class="bd-place">{{ place }}</h1>{% endif %}
+      {% if vm.descriptor_line %}<div class="bd-desc">{{ vm.descriptor_line }}</div>{% endif %}
+      <span class="bd-badge gold">{{ parts.badge_text(vm) }}</span>
+
+      <div class="bd-stats">
+        {% if vm.size_str %}<div class="bd-stat">{{ parts.icon_size() }}<span>&plusmn;{{ vm.size_str }}m&sup2; Property</span></div>{% endif %}
+        {% if vm.beds %}<div class="bd-stat">{{ parts.icon_bed() }}<span>{{ vm.beds }} Bedroom{{ 's' if vm.beds != '1' }}</span></div>{% endif %}
+        {% if vm.baths %}<div class="bd-stat">{{ parts.icon_bath() }}<span>{{ vm.baths }} Bathroom{{ 's' if vm.baths != '1' }}</span></div>{% endif %}
+        {% if vm.garages and vm.garages != '0' %}<div class="bd-stat">{{ parts.icon_garage() }}<span>{{ parts.garage_word(vm.garages) }}</span></div>{% endif %}
+        {% if vm.flatlet_present %}<div class="bd-stat wide">{{ parts.icon_feature() }}<span>Separate Flatlet</span></div>{% endif %}
+      </div>
     </div>
-    {% if vm.public_ref %}<div class="ref">Ref {{ vm.public_ref }}</div>{% endif %}
+
+    <div class="bd-right{{ '' if hero else ' nophoto' }}">
+      {% if hero %}<img class="photo" src="{{ hero }}" alt="{{ place or vm.headline }}"/>{% endif %}
+      <div class="bd-shield">{{ parts.brand_logo(vm, 'light') }}</div>
+    </div>
   </div>
-  <div class="call">
-    <div class="num">{{ vm.brand_phone }}</div>
-    <div class="web">{{ vm.brand_web }}</div>
+
+  {% if addr %}
+  <div class="bd-addr">
+    <svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+    {{ addr }}
+  </div>
+  {% endif %}
+
+  <div class="bd-money">{{ money }}</div>
+
+  <div class="bd-contact gold">
+    <span class="tel">
+      <span class="dot"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11 11 0 0 0 3.4.55 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.3a1 1 0 0 1 1 1 11 11 0 0 0 .55 3.4 1 1 0 0 1-.24 1z"/></svg></span>{{ vm.brand_phone }}
+    </span>
+    <span class="mailto">
+      <svg class="mail" viewBox="0 0 24 24"><path d="M3 5h18v14H3z"/><path d="M3 6l9 6 9-6"/></svg><span>{{ vm.brand_email }}</span>
+    </span>
   </div>
 </div>

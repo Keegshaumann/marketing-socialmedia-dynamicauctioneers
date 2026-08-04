@@ -1,39 +1,163 @@
-{# SAIA alert banner (SPEC 12 step 6b). Wide banner strip, brand tokens. #}
+{# SAIA alert banner (SPEC 12 step 6b), rebuilt in the real Dynamic ad language
+   (D49 / D54): a compressed version of the social ads on one wide strip.
+   1200x400 dark canvas with the darkened hero photo behind it, a metallic gold
+   MASTER / PROPERTY ref bar on top, the method-aware DS lockup in a white
+   shield, the gold place line + white descriptor, the gold method badge and an
+   address pill, the gold-outlined money / auction line, a gold-bordered photo on
+   the right, then the metallic gold contact bar and the SAIA membership strip.
+   Method-aware (Auctioneers vs Real Estate) and DP-ref'd; every value comes off
+   the view model, and a missing one simply drops out. Email-safe: fixed 1200px
+   canvas that shrinks to full width and stacks under 760px. #}
 {% import "_brand.html.j2" as brand %}
-<title>SAIA Banner {{ vm.headline }} | {{ vm.brand_name }}</title>
+{% import "_adparts.html.j2" as parts %}
+{% set is_auction = (vm.method == 'auction') %}
+{% set photos = ([vm.hero_src] if vm.hero_src else []) + (vm.stack_photos or []) + (vm.gallery_photos or []) %}
+<title>SAIA banner {{ vm.place_line or vm.suburb }} | {{ vm.brand_name }}</title>
 <style>
   {{ brand.tokens_css() }}
-  .banner {
-    max-width: 1200px; margin: 24px auto; background: var(--ink); color: #EFE9DD;
-    display: grid; grid-template-columns: 1.4fr 1fr; min-height: 300px;
-    box-shadow: 0 2px 6px rgba(25,22,19,.08), 0 18px 44px rgba(25,22,19,.13);
+  :root { --g2:#ddc689; --g3:#ac874a; --gline:#ac874a; }
+  body { background:#0c0a08; }
+  .bn { width:1200px; max-width:100%; margin:0 auto; background:#17130E; color:#ffffff;
+        position:relative; overflow:hidden; font-family:'Montserrat',system-ui,sans-serif; }
+  .gold { background:linear-gradient(180deg,#8a6a38 0%,#ac874a 22%,#ddc689 50%,#ac874a 78%,#8a6a38 100%); }
+
+  /* Full-bleed darkened property photo behind the strip (plain gold-black
+     gradient when the property has no photos yet). */
+  .bn-bg { position:absolute; inset:0; z-index:0; }
+  .bn-bg img { width:100%; height:100%; object-fit:cover; display:block; }
+  .bn-bg::after { content:""; position:absolute; inset:0;
+                  background:linear-gradient(90deg, rgba(10,8,6,.92) 45%, rgba(10,8,6,.78)); }
+  .bn-bg.plain { background:radial-gradient(120% 90% at 82% 0%, #241d15 0%, #17130E 55%, #100d09 100%); }
+  .bn-in { position:relative; z-index:1; display:flex; flex-direction:column; }
+
+  .bn-ref { display:flex; justify-content:space-between; gap:18px; padding:11px 28px; font-size:15px;
+            font-weight:800; letter-spacing:.04em; color:#191613; text-transform:uppercase; }
+
+  /* min-height, not height: a long place line or auction line grows the strip
+     rather than being cut off. */
+  .bn-main { display:grid; grid-template-columns:1.45fr .82fr; gap:26px; padding:22px 28px 18px;
+             min-height:262px; }
+  .bn-main.nophoto { grid-template-columns:1fr; }
+  .bn-copy { display:flex; align-items:center; gap:22px; min-width:0; }
+
+  .bn-shield { flex:none; width:128px; height:144px; background:#fff; display:flex; align-items:center;
+               justify-content:center; padding:12px 15px 34px;
+               clip-path:path('M6,0 H122 Q128,0 128,6 V92 Q128,120 64,144 Q0,120 0,92 V6 Q0,0 6,0 Z'); }
+  .bn-shield img { width:100%; height:auto; display:block; }
+
+  .bn-text { flex:1; min-width:0; }
+  .bn-place { margin:0; font-size:38px; font-weight:900; line-height:.98; color:var(--g2);
+              text-transform:uppercase; letter-spacing:-.01em; text-shadow:0 2px 8px rgba(0,0,0,.55); }
+  .bn-desc { margin:3px 0 0; font-size:28px; font-weight:900; line-height:1; color:#fff;
+             text-transform:uppercase; letter-spacing:-.01em; text-shadow:0 2px 8px rgba(0,0,0,.55); }
+  .bn-estate { margin:7px 0 0; font-size:15px; font-weight:800; color:#fff; text-transform:uppercase;
+               letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  .bn-row { display:flex; align-items:center; gap:12px; margin-top:14px; min-width:0; flex-wrap:wrap; }
+  .bn-badge { flex:none; display:inline-block; padding:8px 18px; font-size:19px; font-weight:900;
+              letter-spacing:.02em; text-transform:uppercase; color:#191613; border-radius:6px;
+              box-shadow:0 3px 10px rgba(0,0,0,.4); }
+  /* The address pill spans the whole strip under the copy and the photo (as on
+     the real ads), so a long street address reads without truncating. */
+  .bn-addr { display:flex; margin:0 28px 18px; }
+  .bn-pin { display:inline-flex; align-items:center; gap:10px; flex:1 1 auto; min-width:0;
+            border:2px solid var(--gline); border-radius:999px; padding:8px 20px; font-size:15px;
+            font-weight:800; color:#fff; text-transform:uppercase; }
+  .bn-pin span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+  .bn-pin svg { width:17px; height:17px; fill:var(--g2); flex:none; }
+
+  .bn-money { margin-top:14px; max-width:760px; border:2.5px solid var(--gline); border-radius:10px;
+              padding:12px 14px; text-align:center; font-weight:900; color:#fff; text-transform:uppercase;
+              letter-spacing:.01em; line-height:1.05; }
+  .bn-money.price { font-size:29px; }
+  .bn-money.auction { font-size:21px; }
+
+  /* The photo fills the height the copy sets (absolute, so its own proportions
+     never stretch the strip). */
+  .bn-photo { position:relative; min-width:0; min-height:220px; }
+  .bn-photo img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;
+                  border:3px solid var(--gline); border-radius:12px; }
+
+  .bn-contact { display:flex; align-items:center; gap:38px; padding:14px 28px; font-size:19px;
+                font-weight:800; color:#191613; }
+  .bn-contact span { display:flex; align-items:center; gap:12px; min-width:0; }
+  .bn-contact .dot { width:32px; height:32px; border-radius:50%; background:#191613; display:flex;
+                     align-items:center; justify-content:center; flex:none; }
+  .bn-contact .dot svg { width:17px; height:17px; fill:#ddc689; }
+  .bn-contact svg.mail { width:26px; height:20px; fill:none; stroke:#191613; stroke-width:1.8; flex:none; }
+
+  .bn-saia { display:flex; justify-content:space-between; gap:18px; padding:9px 28px; background:#191613;
+             color:#ddc689; font-size:12px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
+
+  @media (max-width: 760px) {
+    .bn-ref { padding:9px 18px; font-size:12px; }
+    .bn-main { grid-template-columns:1fr; gap:16px; height:auto; padding:18px; }
+    .bn-copy { gap:16px; }
+    .bn-shield { width:96px; height:108px; padding:9px 11px 26px;
+                 clip-path:path('M5,0 H91 Q96,0 96,5 V69 Q96,90 48,108 Q0,90 0,69 V5 Q0,0 5,0 Z'); }
+    .bn-place { font-size:29px; }
+    .bn-desc { font-size:21px; }
+    .bn-money { max-width:none; }
+    .bn-money.price { font-size:24px; }
+    .bn-money.auction { font-size:19px; }
+    .bn-addr { margin:0 18px 16px; }
+    .bn-pin { font-size:13px; padding:7px 14px; }
+    .bn-photo { min-height:0; height:190px; }
+    .bn-contact { flex-wrap:wrap; gap:12px 24px; padding:12px 18px; font-size:15px; }
+    .bn-saia { flex-wrap:wrap; gap:6px 14px; padding:8px 18px; font-size:10px; }
   }
-  .banner .copy { padding: 40px 44px; display: flex; flex-direction: column; justify-content: center; }
-  .kicker { font-size: 12px; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); }
-  .banner h1 { font-size: clamp(24px, 3.4vw, 34px); font-weight: 800; line-height: 1.14; color: #FFFFFF; margin: 14px 0 10px; }
-  .banner .meta { font-size: 14px; color: #C9C1B2; line-height: 1.6; }
-  .banner .badge {
-    align-self: flex-start; margin-top: 18px; background: var(--gold); color: var(--ink);
-    font-weight: 800; font-size: 13px; letter-spacing: .16em; text-transform: uppercase; padding: 9px 16px; border-radius: 3px;
-  }
-  .banner .art { background: var(--gold-deep) center/cover no-repeat; position: relative; }
-  .banner .art .goldedge { position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--gold); }
-  .saia { padding: 14px 44px; background: var(--gold-pale); color: var(--gold-deep); font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
-  @media (max-width: 640px) { .banner { grid-template-columns: 1fr; } .banner .copy { padding: 28px 20px; } .banner .art { min-height: 180px; } .saia { padding-left: 20px; padding-right: 20px; } }
 </style>
 
-<div class="banner">
-  <div class="copy">
-    <div class="kicker">Auction alert{% if vm.public_ref %} | {{ vm.public_ref }}{% endif %}</div>
-    <h1>{{ vm.headline }}</h1>
-    <div class="meta">
-      {% if vm.location_line %}{{ vm.location_line }}<br/>{% endif %}
-      {% if vm.size_str %}{{ vm.size_str }} m2{% endif %}{% if vm.beds %} &middot; {{ vm.beds }} bed{% endif %}{% if vm.baths %} &middot; {{ vm.baths }} bath{% endif %}{% if vm.flatlet_present %} &middot; flatlet{% endif %}
-    </div>
-    <span class="badge">{{ vm.badge_label }}</span>
+<div class="bn ad">
+  {# The lead photo goes in the gold-bordered panel; a second photo (when there
+     is one) becomes the darkened backdrop, so the strip never shows the same
+     image twice. #}
+  <div class="bn-bg{{ '' if photos else ' plain' }}">
+    {% if photos %}<img src="{{ photos[1] if photos[1:] else photos[0] }}" alt=""/>{% endif %}
   </div>
-  <div class="art" {% if vm.hero_src %}style="background-image:url('{{ vm.hero_src }}')"{% endif %}>
-    <span class="goldedge"></span>
+
+  <div class="bn-in">
+    <div class="bn-ref gold">
+      <span>{% if vm.public_ref %}MASTER REF: {{ vm.public_ref }}{% endif %}</span>
+      <span>PROPERTY REF: {{ vm.property_ref }}</span>
+    </div>
+
+    <div class="bn-main{{ '' if photos else ' nophoto' }}">
+      <div class="bn-copy">
+        <div class="bn-shield">{{ parts.brand_logo(vm, 'light') }}</div>
+        <div class="bn-text">
+          {% if vm.place_line %}<h1 class="bn-place">{{ vm.place_line }}</h1>{% endif %}
+          {% if vm.descriptor_line %}<div class="bn-desc">{{ vm.descriptor_line }}</div>{% endif %}
+          {% if vm.scheme %}<div class="bn-estate">In {{ vm.scheme }}</div>{% endif %}
+
+          <div class="bn-row">
+            <span class="bn-badge gold">{{ parts.badge_text(vm) }}</span>
+          </div>
+
+          <div class="bn-money {{ 'auction' if is_auction else 'price' }}">{{ parts.money_text(vm) }}</div>
+        </div>
+      </div>
+
+      {% if photos %}
+      <div class="bn-photo"><img src="{{ photos[0] }}" alt="{{ vm.place_line or vm.suburb }}"/></div>
+      {% endif %}
+    </div>
+
+    {% set pin = vm.address or vm.location_line %}
+    {% if pin %}
+    <div class="bn-addr">
+      <span class="bn-pin"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><span>{{ pin }}</span></span>
+    </div>
+    {% endif %}
+
+    <div class="bn-contact gold">
+      <span><span class="dot"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11 11 0 0 0 3.4.55 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.3a1 1 0 0 1 1 1 11 11 0 0 0 .55 3.4 1 1 0 0 1-.24 1z"/></svg></span>{{ vm.brand_phone }}</span>
+      <span><svg class="mail" viewBox="0 0 24 24"><path d="M3 5h18v14H3z"/><path d="M3 6l9 6 9-6"/></svg>{{ vm.brand_email }}</span>
+    </div>
+
+    <div class="bn-saia">
+      <span>Member: SA Institute of Auctioneers</span>
+      <span>{{ vm.brand_web }}</span>
+    </div>
   </div>
 </div>
-<div class="saia">Member: SA Institute of Auctioneers &middot; {{ vm.brand_phone }} &middot; {{ vm.brand_web }}</div>

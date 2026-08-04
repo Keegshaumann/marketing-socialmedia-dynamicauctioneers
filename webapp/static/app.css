@@ -619,6 +619,59 @@ form.htmx-request button[type="submit"] .spinner { display: inline-block; }
 .btn.htmx-request > span:not(.spinner), .btn.is-submitting > span:not(.spinner) { display: none; }
 .btn.htmx-request .spinner, .btn.is-submitting .spinner { display: inline-block; }
 
+/* ---- Work indicator: honest progress for a slow action ----------------- */
+/* Reusable: any element carrying data-work="<what is happening>" raises this
+   bar while its HTMX request is in flight (app.js drives the numbers). The real
+   percentage is unknowable, so the bar creeps toward 90% on a half-life curve
+   and only reaches 100% when the response lands - it never counts down a figure
+   it invented. The elapsed seconds beside the label are the honest measure. */
+.workbar {
+  margin-top: 14px; padding: 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--accent-bd); border-radius: 10px;
+  box-shadow: var(--glow-soft);
+  opacity: 1;
+}
+.workbar__head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.workbar__spinner {
+  display: inline-block;
+  border-color: rgba(var(--accent-rgb), .25); border-top-color: var(--accent);
+}
+/* label and elapsed read as one sentence, so keep them together on the left */
+.workbar__label {
+  flex: 0 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 13px; font-weight: 700; color: var(--text-strong);
+}
+.workbar__elapsed {
+  flex: none; margin-left: -2px;
+  font-size: 12px; font-weight: 800;
+  color: var(--accent-bright); font-variant-numeric: tabular-nums;
+}
+.workbar__eta { margin-top: 8px; }
+.workbar .progress { position: relative; }
+/* app.js ticks once a second; glide between ticks so the bar never looks stuck */
+.workbar .progress__bar { transition: width 1s linear; }
+/* finished: rush the bar to full, then fade the whole thing out behind it */
+.workbar.is-done .progress__bar { transition: width 180ms var(--ease); }
+.workbar.is-done { opacity: 0; transition: opacity var(--dur-3) var(--ease) 240ms; }
+
+/* indeterminate sheen: this is work in progress, not a measured percentage */
+@media (prefers-reduced-motion: no-preference) {
+  .workbar .progress::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(var(--accent-bright-rgb), .30), transparent);
+    transform: translateX(-100%);
+    animation: work-sheen 1.6s var(--ease) infinite;
+  }
+  @keyframes work-sheen { to { transform: translateX(100%); } }
+  .workbar.is-done .progress::after { animation: none; }
+}
+
+/* while the work runs its own triggers are locked, so it cannot be fired twice */
+.is-working [data-work] { pointer-events: none; }
+.is-working [data-work]:not(.is-active) { opacity: .45; }
+
 /* a field label with an inline action on the right (Auto-generate) */
 .label-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
 .label-row .label { margin-bottom: 0; }
@@ -680,7 +733,28 @@ form.htmx-request button[type="submit"] .spinner { display: inline-block; }
 @media (prefers-reduced-motion: no-preference) {
   .tile:hover { transform: translateY(-3px); }
 }
-.tile__img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; background: var(--ground-2); }
+.tile__img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; background: var(--ground-2); }
+/* Rasterised preview of an html/pdf artifact. The icon sits underneath as the
+   fallback: if the thumbnail request fails the <img> removes itself and the
+   icon shows through, so a tile is never a broken image. */
+.tile__shot {
+  position: relative; width: 100%; aspect-ratio: 1 / 1; background: var(--ground-2);
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.tile__shot img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: contain; object-position: center; display: block;
+}
+/* First lines of a text artifact (portal listing, Facebook post, email blast).
+   The tail fades out rather than being cut mid-letter. */
+.tile__text {
+  width: 100%; aspect-ratio: 1 / 1; margin: 0; overflow: hidden;
+  padding: 11px 12px; background: var(--ground-2); border-bottom: 1px solid var(--hairline);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px; line-height: 1.5; color: var(--text); white-space: pre-wrap; word-break: break-word;
+  -webkit-mask-image: linear-gradient(180deg, #000 78%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 78%, transparent 100%);
+}
 .tile__body { padding: 11px 13px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .tile__cap {
   font-size: 10.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text-strong);

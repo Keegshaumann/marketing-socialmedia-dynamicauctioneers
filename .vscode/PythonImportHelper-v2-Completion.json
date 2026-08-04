@@ -424,6 +424,14 @@
         "documentation": {}
     },
     {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
         "label": "json",
         "kind": 6,
         "isExtraImport": true,
@@ -545,6 +553,14 @@
         "isExtraImport": true,
         "importPath": "pathlib",
         "description": "pathlib",
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
         "detail": "pathlib",
         "documentation": {}
     },
@@ -886,6 +902,14 @@
     },
     {
         "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
         "importPath": "typing",
         "description": "typing",
         "isExtraImport": true,
@@ -2481,6 +2505,14 @@
         "documentation": {}
     },
     {
+        "label": "rasterize",
+        "importPath": "engine.render",
+        "description": "engine.render",
+        "isExtraImport": true,
+        "detail": "engine.render",
+        "documentation": {}
+    },
+    {
         "label": "DEFAULT_BACKEND",
         "importPath": "engine.render",
         "description": "engine.render",
@@ -2614,6 +2646,15 @@
         "description": "engine.render.rasterize",
         "isExtraImport": true,
         "detail": "engine.render.rasterize",
+        "documentation": {}
+    },
+    {
+        "label": "threading",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "threading",
+        "description": "threading",
+        "detail": "threading",
         "documentation": {}
     },
     {
@@ -2991,6 +3032,15 @@
         "documentation": {}
     },
     {
+        "label": "hashlib",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "hashlib",
+        "description": "hashlib",
+        "detail": "hashlib",
+        "documentation": {}
+    },
+    {
         "label": "generate_copy",
         "importPath": "engine.render.copy",
         "description": "engine.render.copy",
@@ -3024,6 +3074,14 @@
     },
     {
         "label": "generate_headline",
+        "importPath": "engine.render.copy",
+        "description": "engine.render.copy",
+        "isExtraImport": true,
+        "detail": "engine.render.copy",
+        "documentation": {}
+    },
+    {
+        "label": "_template_copy",
         "importPath": "engine.render.copy",
         "description": "engine.render.copy",
         "isExtraImport": true,
@@ -3289,15 +3347,6 @@
         "documentation": {}
     },
     {
-        "label": "hashlib",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "hashlib",
-        "description": "hashlib",
-        "detail": "hashlib",
-        "documentation": {}
-    },
-    {
         "label": "http.server",
         "kind": 6,
         "isExtraImport": true,
@@ -3313,15 +3362,6 @@
         "importPath": "secrets",
         "description": "secrets",
         "detail": "secrets",
-        "documentation": {}
-    },
-    {
-        "label": "threading",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "threading",
-        "description": "threading",
-        "detail": "threading",
         "documentation": {}
     },
     {
@@ -3464,6 +3504,14 @@
     },
     {
         "label": "apply_photos",
+        "importPath": "engine.render.service",
+        "description": "engine.render.service",
+        "isExtraImport": true,
+        "detail": "engine.render.service",
+        "documentation": {}
+    },
+    {
+        "label": "copy_cache_key",
         "importPath": "engine.render.service",
         "description": "engine.render.service",
         "isExtraImport": true,
@@ -4905,6 +4953,114 @@
         "documentation": {}
     },
     {
+        "label": "cache_dir",
+        "kind": 2,
+        "importPath": "engine.render.artifact_thumbs",
+        "description": "engine.render.artifact_thumbs",
+        "peekOfCode": "def cache_dir(artifacts_dir) -> Path:\n    \"\"\"The thumbnail cache folder for one DP's artifacts directory.\"\"\"\n    return Path(artifacts_dir) / CACHE_DIRNAME\ndef _paths(artifacts_dir, name: str):\n    cache = cache_dir(artifacts_dir)\n    return cache, cache / f\"{name}.png\", cache / f\"{name}.fail\"\ndef _fresh(target: Path, source: Path) -> bool:\n    \"\"\"True when ``target`` exists and is not older than ``source``.\"\"\"\n    try:\n        return target.exists() and target.stat().st_mtime >= source.stat().st_mtime",
+        "detail": "engine.render.artifact_thumbs",
+        "documentation": {}
+    },
+    {
+        "label": "cached",
+        "kind": 2,
+        "importPath": "engine.render.artifact_thumbs",
+        "description": "engine.render.artifact_thumbs",
+        "peekOfCode": "def cached(artifacts_dir, name: str, source) -> Optional[Path]:\n    \"\"\"Return an already-generated, still-current thumbnail, or None.\n    Cheap: pure stat calls, no rendering. Used by the page so it can decide\n    whether a tile has a preview without ever blocking on a rasteriser.\n    \"\"\"\n    source = Path(source)\n    _cache, out, _fail = _paths(artifacts_dir, name)\n    return out if _fresh(out, source) else None\ndef possible(artifacts_dir, name: str, source, mime: str = \"\") -> bool:\n    \"\"\"True when a tile can show a thumbnail: one is cached, or one can be made.",
+        "detail": "engine.render.artifact_thumbs",
+        "documentation": {}
+    },
+    {
+        "label": "possible",
+        "kind": 2,
+        "importPath": "engine.render.artifact_thumbs",
+        "description": "engine.render.artifact_thumbs",
+        "peekOfCode": "def possible(artifacts_dir, name: str, source, mime: str = \"\") -> bool:\n    \"\"\"True when a tile can show a thumbnail: one is cached, or one can be made.\n    Answers without generating anything, so the artifacts page stays fast. A\n    version that already failed to rasterise, and a host with no Playwright,\n    both answer False, which keeps the tile on its icon fallback instead of\n    firing a request that can only 503.\n    \"\"\"\n    source = Path(source)\n    if not source.exists():\n        return False",
+        "detail": "engine.render.artifact_thumbs",
+        "documentation": {}
+    },
+    {
+        "label": "thumbnail",
+        "kind": 2,
+        "importPath": "engine.render.artifact_thumbs",
+        "description": "engine.render.artifact_thumbs",
+        "peekOfCode": "def thumbnail(artifacts_dir, name: str, source, mime: str = \"\") -> Optional[Path]:\n    \"\"\"Return a current thumbnail PNG for ``source``, generating it if needed.\n    Returns None (never raises) when the rasteriser is unavailable or the\n    artifact cannot be previewed, so callers can fall back to an icon.\n    \"\"\"\n    source = Path(source)\n    if not source.exists():\n        return None\n    cache, out, fail = _paths(artifacts_dir, name)\n    if _fresh(out, source):",
+        "detail": "engine.render.artifact_thumbs",
+        "documentation": {}
+    },
+    {
+        "label": "CACHE_DIRNAME",
+        "kind": 5,
+        "importPath": "engine.render.artifact_thumbs",
+        "description": "engine.render.artifact_thumbs",
+        "peekOfCode": "CACHE_DIRNAME = \".thumbs\"\n# Thumbnails are JPEGs: a nine-tile gallery of screenshots is ~280kB this way\n# against ~1.3MB as PNG, at a size where the difference is invisible.\nMEDIA_TYPE = \"image/jpeg\"\n_SUFFIX = \".jpg\"\n_QUALITY = 85\n# Thumbnail ceiling. A tile is ~260 CSS px wide, so 600 stays crisp on a 2x\n# screen while keeping a nine-tile gallery light on the wire.\n_MAX_W, _MAX_H = 600, 800\n# A document that rasterises much taller than it is wide (the info pack is one",
+        "detail": "engine.render.artifact_thumbs",
+        "documentation": {}
+    },
+    {
+        "label": "MEDIA_TYPE",
+        "kind": 5,
+        "importPath": "engine.render.artifact_thumbs",
+        "description": "engine.render.artifact_thumbs",
+        "peekOfCode": "MEDIA_TYPE = \"image/jpeg\"\n_SUFFIX = \".jpg\"\n_QUALITY = 85\n# Thumbnail ceiling. A tile is ~260 CSS px wide, so 600 stays crisp on a 2x\n# screen while keeping a nine-tile gallery light on the wire.\n_MAX_W, _MAX_H = 600, 800\n# A document that rasterises much taller than it is wide (the info pack is one\n# long sheet) is cropped to its top so the tile shows a readable document head\n# rather than an unreadable sliver.\n_TALL_RATIO = 1.6",
+        "detail": "engine.render.artifact_thumbs",
+        "documentation": {}
+    },
+    {
+        "label": "_SUFFIX",
+        "kind": 5,
+        "importPath": "engine.render.artifact_thumbs",
+        "description": "engine.render.artifact_thumbs",
+        "peekOfCode": "_SUFFIX = \".jpg\"\n_QUALITY = 85\n# Thumbnail ceiling. A tile is ~260 CSS px wide, so 600 stays crisp on a 2x\n# screen while keeping a nine-tile gallery light on the wire.\n_MAX_W, _MAX_H = 600, 800\n# A document that rasterises much taller than it is wide (the info pack is one\n# long sheet) is cropped to its top so the tile shows a readable document head\n# rather than an unreadable sliver.\n_TALL_RATIO = 1.6\n_CROP_RATIO = 1.4",
+        "detail": "engine.render.artifact_thumbs",
+        "documentation": {}
+    },
+    {
+        "label": "_QUALITY",
+        "kind": 5,
+        "importPath": "engine.render.artifact_thumbs",
+        "description": "engine.render.artifact_thumbs",
+        "peekOfCode": "_QUALITY = 85\n# Thumbnail ceiling. A tile is ~260 CSS px wide, so 600 stays crisp on a 2x\n# screen while keeping a nine-tile gallery light on the wire.\n_MAX_W, _MAX_H = 600, 800\n# A document that rasterises much taller than it is wide (the info pack is one\n# long sheet) is cropped to its top so the tile shows a readable document head\n# rather than an unreadable sliver.\n_TALL_RATIO = 1.6\n_CROP_RATIO = 1.4\n_lock = threading.Lock()",
+        "detail": "engine.render.artifact_thumbs",
+        "documentation": {}
+    },
+    {
+        "label": "_TALL_RATIO",
+        "kind": 5,
+        "importPath": "engine.render.artifact_thumbs",
+        "description": "engine.render.artifact_thumbs",
+        "peekOfCode": "_TALL_RATIO = 1.6\n_CROP_RATIO = 1.4\n_lock = threading.Lock()\ndef cache_dir(artifacts_dir) -> Path:\n    \"\"\"The thumbnail cache folder for one DP's artifacts directory.\"\"\"\n    return Path(artifacts_dir) / CACHE_DIRNAME\ndef _paths(artifacts_dir, name: str):\n    cache = cache_dir(artifacts_dir)\n    return cache, cache / f\"{name}.png\", cache / f\"{name}.fail\"\ndef _fresh(target: Path, source: Path) -> bool:",
+        "detail": "engine.render.artifact_thumbs",
+        "documentation": {}
+    },
+    {
+        "label": "_CROP_RATIO",
+        "kind": 5,
+        "importPath": "engine.render.artifact_thumbs",
+        "description": "engine.render.artifact_thumbs",
+        "peekOfCode": "_CROP_RATIO = 1.4\n_lock = threading.Lock()\ndef cache_dir(artifacts_dir) -> Path:\n    \"\"\"The thumbnail cache folder for one DP's artifacts directory.\"\"\"\n    return Path(artifacts_dir) / CACHE_DIRNAME\ndef _paths(artifacts_dir, name: str):\n    cache = cache_dir(artifacts_dir)\n    return cache, cache / f\"{name}.png\", cache / f\"{name}.fail\"\ndef _fresh(target: Path, source: Path) -> bool:\n    \"\"\"True when ``target`` exists and is not older than ``source``.\"\"\"",
+        "detail": "engine.render.artifact_thumbs",
+        "documentation": {}
+    },
+    {
+        "label": "_lock",
+        "kind": 5,
+        "importPath": "engine.render.artifact_thumbs",
+        "description": "engine.render.artifact_thumbs",
+        "peekOfCode": "_lock = threading.Lock()\ndef cache_dir(artifacts_dir) -> Path:\n    \"\"\"The thumbnail cache folder for one DP's artifacts directory.\"\"\"\n    return Path(artifacts_dir) / CACHE_DIRNAME\ndef _paths(artifacts_dir, name: str):\n    cache = cache_dir(artifacts_dir)\n    return cache, cache / f\"{name}.png\", cache / f\"{name}.fail\"\ndef _fresh(target: Path, source: Path) -> bool:\n    \"\"\"True when ``target`` exists and is not older than ``source``.\"\"\"\n    try:",
+        "detail": "engine.render.artifact_thumbs",
+        "documentation": {}
+    },
+    {
+        "label": "_DOC_SELECTOR",
+        "kind": 5,
+        "importPath": "engine.render.artifact_thumbs",
+        "description": "engine.render.artifact_thumbs",
+        "peekOfCode": "_DOC_SELECTOR = \".sheet, .card, .ig, .ad, .banner, .mail, .board\"\ndef _html_to_png(source: Path, out: Path) -> None:\n    rasterize.html_to_png(source, out, timeout_ms=20000, selector=_DOC_SELECTOR)\ndef _pdf_to_png(source: Path, out: Path) -> None:\n    \"\"\"First page of a PDF as a PNG, via PyMuPDF (no browser needed).\"\"\"\n    import fitz\n    doc = fitz.open(str(source))\n    try:\n        if doc.page_count < 1:\n            raise RuntimeError(\"empty pdf\")",
+        "detail": "engine.render.artifact_thumbs",
+        "documentation": {}
+    },
+    {
         "label": "RenderRequest",
         "kind": 6,
         "importPath": "engine.render.base",
@@ -5206,7 +5362,7 @@
         "kind": 2,
         "importPath": "engine.render.rasterize",
         "description": "engine.render.rasterize",
-        "peekOfCode": "def available() -> bool:\n    \"\"\"True if the Playwright Python package is importable. (Chromium presence is\n    only known at launch; a missing browser surfaces as RasterizeUnavailable.)\"\"\"\n    try:\n        import playwright.sync_api  # noqa: F401\n        return True\n    except Exception:\n        return False\ndef html_to_png(html_path, png_path, width: int = _DEFAULT_WIDTH, timeout_ms: int = 30000) -> Path:\n    \"\"\"Rasterise a local ad HTML file to a PNG and return the PNG path.",
+        "peekOfCode": "def available() -> bool:\n    \"\"\"True if the Playwright Python package is importable. (Chromium presence is\n    only known at launch; a missing browser surfaces as RasterizeUnavailable.)\"\"\"\n    try:\n        import playwright.sync_api  # noqa: F401\n        return True\n    except Exception:\n        return False\ndef html_to_png(\n    html_path,",
         "detail": "engine.render.rasterize",
         "documentation": {}
     },
@@ -5215,7 +5371,7 @@
         "kind": 2,
         "importPath": "engine.render.rasterize",
         "description": "engine.render.rasterize",
-        "peekOfCode": "def html_to_png(html_path, png_path, width: int = _DEFAULT_WIDTH, timeout_ms: int = 30000) -> Path:\n    \"\"\"Rasterise a local ad HTML file to a PNG and return the PNG path.\n    Loads the file (so the ad's relative photo paths resolve), waits for it to\n    settle, and screenshots the ``.sheet`` card at 2x for a crisp image. Raises\n    ``RasterizeUnavailable`` when Playwright/Chromium is missing and\n    ``RuntimeError`` on any other render failure.\n    \"\"\"\n    html_path = Path(html_path).resolve()  # as_uri() needs an absolute path\n    png_path = Path(png_path)\n    try:",
+        "peekOfCode": "def html_to_png(\n    html_path,\n    png_path,\n    width: int = _DEFAULT_WIDTH,\n    timeout_ms: int = 30000,\n    selector: str = _AD_SELECTOR,\n) -> Path:\n    \"\"\"Rasterise a local ad HTML file to a PNG and return the PNG path.\n    Loads the file (so the ad's relative photo paths resolve), waits for it to\n    settle, and screenshots the ``.sheet`` card at 2x for a crisp image. Raises",
         "detail": "engine.render.rasterize",
         "documentation": {}
     },
@@ -5252,6 +5408,15 @@
         "importPath": "engine.render.service",
         "description": "engine.render.service",
         "peekOfCode": "class EditChange:\n    \"\"\"The outcome of ``apply_edits``: the fields changed plus the re-rendered set.\"\"\"\n    dp: str\n    changes: dict  # public-view path -> value actually applied\n    state: Optional[str]\n    artifacts: List[Artifact] = field(default_factory=list)\n# --- price formatting ----------------------------------------------------\ndef _rand(amount: float) -> str:\n    \"\"\"Format a rand figure as ``R2 500 000`` (thin-space thousands, SA style).\"\"\"\n    return \"R\" + format(int(round(amount)), \",\").replace(\",\", \" \")",
+        "detail": "engine.render.service",
+        "documentation": {}
+    },
+    {
+        "label": "copy_cache_key",
+        "kind": 2,
+        "importPath": "engine.render.service",
+        "description": "engine.render.service",
+        "peekOfCode": "def copy_cache_key(record: PropertyRecord) -> str:\n    \"\"\"Fingerprint the public facts the copy is written from.\n    Deliberately excludes ``marketing`` (headline/price edits, photo picks and\n    the design choice) and the photo set: none of those change what the model\n    would write, and they are exactly the things a marketer changes repeatedly\n    on gate 2. Two records with the same fingerprint can share generated copy.\n    \"\"\"\n    pub = record.public_view()\n    facts = {k: pub.get(k) for k in (\"identity\", \"physical\", \"sale_process\", \"valuation\")}\n    blob = json.dumps(facts, sort_keys=True, default=str)",
         "detail": "engine.render.service",
         "documentation": {}
     },
@@ -5971,7 +6136,7 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class Marketing(_Base):\n    headline: Optional[str] = None\n    price_display: Optional[str] = None\n    channel_routing: Optional[ChannelRouting] = None\n    hero_photo: Optional[str] = None\n    gallery: Optional[List[str]] = None\n    # The named design/template set the render backends use (the marketing\n    # team's pick on gate 2, D33). None = the default (first-configured) set.\n    template_set: Optional[str] = None\n# --- compliance / verification -------------------------------------------",
+        "peekOfCode": "class Marketing(_Base):\n    headline: Optional[str] = None\n    price_display: Optional[str] = None\n    channel_routing: Optional[ChannelRouting] = None\n    hero_photo: Optional[str] = None\n    gallery: Optional[List[str]] = None\n    # The named design/template set the render backends use (the marketing\n    # team's pick on gate 2, D33). None = the default (first-configured) set.\n    template_set: Optional[str] = None\n    # Cached model-written copy + the fingerprint of the facts it was written",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -8703,6 +8868,15 @@
         "documentation": {}
     },
     {
+        "label": "test_gate2_design_picker_carries_the_progress_hooks",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_gate2_design_picker_carries_the_progress_hooks():\n    \"\"\"Picking a design re-renders the advert, which takes seconds.\n    The click must not look like nothing happened, so the picker carries the\n    work-indicator hooks app.js drives: a host to raise the bar in, and a label\n    per design naming what is being built (plus the honest wait hint).\n    \"\"\"\n    _needs_golden()\n    dp = \"9031\"\n    _golden_clone(dp)\n    client = _client()",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
         "label": "test_ad_template_thumb_route",
         "kind": 2,
         "importPath": "tests.test_webapp",
@@ -8910,6 +9084,15 @@
         "documentation": {}
     },
     {
+        "label": "test_gate2_prefills_headline_and_price_from_the_resolved_copy",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_gate2_prefills_headline_and_price_from_the_resolved_copy():\n    \"\"\"Gate 2 fills Headline and Price with what the advert actually says.\n    ``marketing.price_display`` is only set once a human types one, so the Price\n    box used to sit empty while the rendered ad already read \"OFFERS INVITED\".\n    Both boxes now prefill from the resolved copy (offline, no API call).\n    \"\"\"\n    dp = \"7212\"\n    _needs_golden()\n    record = PropertyRecord.model_validate_json(GOLDEN_RECORD.read_text(encoding=\"utf-8\"))\n    record.dp = dp",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
         "label": "test_open_in_canva_link_only_when_edit_url_present",
         "kind": 2,
         "importPath": "tests.test_webapp",
@@ -8933,6 +9116,15 @@
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
         "peekOfCode": "def test_photos_step_requires_at_least_one_photo():\n    \"\"\"The advert is never drafted with zero photos (min-1 rule): a zero-photo\n    continue bounces back to the step; once a photo exists it drafts.\"\"\"\n    dp = \"9401\"\n    _needs_golden()\n    record = PropertyRecord.model_validate_json(GOLDEN_RECORD.read_text(encoding=\"utf-8\"))\n    record.dp = dp\n    record.marketing.hero_photo = None\n    record.marketing.gallery = []\n    store = RecordStore(DB_PATH)",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_photos_panel_can_show_a_pending_selection",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_photos_panel_can_show_a_pending_selection():\n    \"\"\"The panel must not say \"No photos yet\" beside a chosen-but-unuploaded set.\n    The file input only reports \"N files\" and nothing reaches the server until\n    Upload is pressed, so the panel carries the hooks the client uses to show\n    what was chosen and hide the contradicting empty state.\n    \"\"\"\n    dp = \"9405\"\n    _seed_live_no_photos(dp)\n    client = _client()\n    _login_admin(client)",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -9328,7 +9520,16 @@
         "kind": 2,
         "importPath": "webapp.routes.artifacts",
         "description": "webapp.routes.artifacts",
-        "peekOfCode": "def artifact_file(\n    request: Request,\n    dp: str,\n    fmt: str,\n    user: dict = Depends(auth.require_login),\n):\n    \"\"\"Serve one rendered artifact file (inline where the browser can show it).\"\"\"\n    db_path = auth.db_path_for(request)\n    art_dir = _artifacts_dir(db_path, dp).resolve()\n    entry = next((a for a in _load_manifest(db_path, dp) if a.get(\"fmt\") == fmt), None)",
+        "peekOfCode": "def artifact_file(\n    request: Request,\n    dp: str,\n    fmt: str,\n    user: dict = Depends(auth.require_login),\n):\n    \"\"\"Serve one rendered artifact file (inline where the browser can show it).\"\"\"\n    db_path = auth.db_path_for(request)\n    entry = next((a for a in _load_manifest(db_path, dp) if a.get(\"fmt\") == fmt), None)\n    if entry is None:",
+        "detail": "webapp.routes.artifacts",
+        "documentation": {}
+    },
+    {
+        "label": "artifact_thumb",
+        "kind": 2,
+        "importPath": "webapp.routes.artifacts",
+        "description": "webapp.routes.artifacts",
+        "peekOfCode": "def artifact_thumb(\n    request: Request,\n    dp: str,\n    fmt: str,\n    user: dict = Depends(auth.require_login),\n):\n    \"\"\"Serve the cached PNG thumbnail of an html/pdf artifact (auth-gated).\n    Generated on first request and cached on disk next to the artifact, so a\n    given artifact version is rasterised once. Answers 503 (not 500, never a\n    hang) when the rasteriser is unavailable or the render fails; the tile then",
         "detail": "webapp.routes.artifacts",
         "documentation": {}
     },

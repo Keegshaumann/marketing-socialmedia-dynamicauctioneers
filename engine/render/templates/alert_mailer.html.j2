@@ -1,46 +1,296 @@
-{# Alert-mailer HTML (SPEC 12 step 6b): a single-column email body with the
-   letterhead chrome, hero, facts, and a CTA. Inline-ish layout for email clients. #}
-{% import "_brand.html.j2" as brand %}
-<title>Alert Mailer {{ vm.headline }} | {{ vm.brand_name }}</title>
+{# Alert-mailer HTML (SPEC 12 step 6b), rebuilt to the Dynamic ad brand language
+   (D54): a metallic gold MASTER/PROPERTY ref bar, a gold header band carrying the
+   DS lockup in a white shield, the hero photo, the gold place line over a white
+   descriptor, the method badge, a gold-framed money/auction line, a compact stat
+   grid, a gold-framed feature box, a strip of gold-bordered photos, the address
+   pill and a metallic gold contact bar. Method-aware (Auctioneers vs Real
+   Estate) and DP-ref'd, exactly like the social ads.
+
+   EMAIL RULES (why this file looks different to the ad templates):
+   - This artifact is sent as an email body, so the layout is nested tables with
+     inline styles only. No flexbox, no grid, no CSS custom properties: Outlook
+     on Windows renders through Word and drops all three, which is what collapsed
+     the previous letterhead-based version.
+   - Every gold bar carries a bgcolor attribute alongside the metallic
+     linear-gradient, so a client that ignores gradients still shows flat gold.
+   - Every image has width/height attributes and alt text and sits on a coloured
+     cell, so a blocked-image client keeps the layout and still reads the ad.
+   - _adparts.html.j2 is imported for the text-only helpers (badge wording, money
+     line, garage wording) which are perfectly email-safe. _brand.html.j2's
+     letterhead/tokens are deliberately NOT used: they are flexbox plus custom
+     properties. The equivalent brand styling is inlined below, in this file only.
+   - No SVG icons: Gmail and Outlook strip inline SVG, so the ads' icon set is
+     replaced by gold square markers and text-presentation phone/envelope glyphs. #}
+{% import "_adparts.html.j2" as parts %}
+{% set is_auction = (vm.method == 'auction') %}
+{% set F = 'Montserrat, Helvetica, Arial, sans-serif' %}
+{% set GOLD = 'background-color:#ac874a;background-image:linear-gradient(180deg,#8a6a38 0%,#ac874a 22%,#ddc689 50%,#ac874a 78%,#8a6a38 100%);' %}
+{% set photos = ([vm.hero_src] if vm.hero_src else []) + (vm.stack_photos or []) + (vm.gallery_photos or []) %}
+{% set strip = photos[1:4] %}
+{% set n = strip | length %}
+{% set iw = (((592 - (n - 1) * 12) / (n if n else 1)) | int) - 6 %}
+{% set logo_src = asset_uri('ads/_assets/logo-' ~ ('auctioneers' if is_auction else 'realestate') ~ '-on-light.png') %}
+{# Stat lines: derived from record numbers only, so they are safe to mark |safe
+   (needed for the &plusmn; / &sup2; entities). Free record text goes in `feats`
+   below and is always escaped. #}
+{% set stats = [] %}
+{% if vm.size_str %}{% set _ = stats.append('&plusmn;' ~ vm.size_str ~ 'm&sup2; Property') %}{% endif %}
+{% if vm.beds %}{% set _ = stats.append(vm.beds ~ ' Bedroom' ~ ('s' if vm.beds != '1' else '')) %}{% endif %}
+{% if vm.baths %}{% set _ = stats.append(vm.baths ~ ' Bathroom' ~ ('s' if vm.baths != '1' else '')) %}{% endif %}
+{% if vm.garages and vm.garages != '0' %}{% set _ = stats.append(parts.garage_word(vm.garages)) %}{% endif %}
+{% if vm.flatlet_present %}{% set _ = stats.append((vm.flatlet_beds ~ ' Bedroom Flatlet') if vm.flatlet_beds else 'Separate Flatlet') %}{% endif %}
+{% set feats = ((vm.features_main or []) + (vm.features_complex or []))[:4] %}
+{% set addr = vm.address or vm.location_line or vm.suburb %}
+<title>{{ vm.place_line or vm.suburb }} | {{ vm.brand_name }}</title>
 <style>
-  {{ brand.tokens_css() }}
-  .mail { max-width: 640px; margin: 24px auto; background: var(--sheet); box-shadow: 0 2px 6px rgba(25,22,19,.08), 0 18px 44px rgba(25,22,19,.13); }
-  .mail .hero img { width: 100%; height: auto; display: block; }
-  .mail .body { padding: 28px 36px; }
-  .mail .kicker { font-size: 11px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--gold-deep); }
-  .mail h1 { font-size: 26px; font-weight: 800; line-height: 1.15; color: var(--ink); margin: 10px 0 6px; }
-  .mail .addr { font-size: 14px; color: var(--muted); margin: 0 0 18px; }
-  .mail .facts { display: flex; gap: 24px; flex-wrap: wrap; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--hairline); padding: 14px 0; margin-bottom: 20px; }
-  .mail .facts div { font-variant-numeric: tabular-nums; }
-  .mail .facts .n { font-size: 20px; font-weight: 800; color: var(--ink); }
-  .mail .facts .l { font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-  .mail p { font-size: 14px; line-height: 1.6; color: var(--body); }
-  .mail .cta-btn { display: inline-block; margin: 12px 0; background: var(--ink); color: #F3E7CB; text-decoration: none; font-weight: 800; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; padding: 13px 22px; border-left: 4px solid var(--gold); }
-  @media (max-width: 640px) { .mail .body { padding: 22px 20px; } }
+  body { margin: 0; padding: 0; background: #0d0b08; }
+  img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
+  table { border-collapse: collapse; }
+  a { color: #ddc689; }
+  @media only screen and (max-width: 640px) {
+    .wrap { width: 100% !important; }
+    .px { padding-left: 18px !important; padding-right: 18px !important; }
+    .place { font-size: 26px !important; }
+    .desc { font-size: 19px !important; }
+    .money { font-size: 19px !important; }
+    .stk { display: block !important; width: 100% !important; text-align: left !important; padding: 0 0 8px 0 !important; }
+  }
 </style>
 
-<div class="mail">
-  {{ brand.letterhead(vm) }}
-  {% if vm.hero_src %}<div class="hero"><img src="{{ vm.hero_src }}" alt="{{ vm.headline }}" /></div>{% endif %}
-  <div class="body">
-    <div class="kicker">New listing{% if vm.public_ref %} | {{ vm.public_ref }}{% endif %}</div>
-    <h1>{{ vm.headline }}</h1>
-    {% if vm.address %}<p class="addr">{{ vm.address }}</p>{% endif %}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0d0b08" style="background-color:#0d0b08;">
+<tr><td align="center" style="padding:24px 10px;">
 
-    <div class="facts">
-      {% if vm.size_str %}<div><div class="n">{{ vm.size_str }} m2</div><div class="l">Unit size</div></div>{% endif %}
-      {% if vm.beds %}<div><div class="n">{{ vm.beds }}</div><div class="l">Bedrooms</div></div>{% endif %}
-      {% if vm.baths %}<div><div class="n">{{ vm.baths }}</div><div class="l">Bathrooms</div></div>{% endif %}
-      {% if vm.flatlet_present and vm.flatlet_beds %}<div><div class="n">{{ vm.flatlet_beds }}</div><div class="l">Bed flatlet</div></div>{% endif %}
-    </div>
+<table role="presentation" class="wrap" width="640" cellpadding="0" cellspacing="0" border="0" bgcolor="#17130E" style="width:640px;max-width:640px;background-color:#17130E;">
 
-    {% if vm.features_main %}<p>{{ vm.features_main | join('; ') }}.</p>{% endif %}
-    {% if vm.flatlet_present %}<p>Includes a separate {% if vm.flatlet_beds %}{{ vm.flatlet_beds }} bedroom {% endif %}flatlet with income potential.</p>{% endif %}
+  {# --- metallic gold header plate: refs on top, lockup + contact below.
+         One td carries the gradient so the sheen runs unbroken across the whole
+         plate; the tables inside stay transparent. ------------------------- #}
+  <tr>
+    <td bgcolor="#ac874a" style="{{ GOLD }}">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="px" style="padding:9px 24px 0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td class="stk" align="left" style="font-family:{{ F }};font-size:12px;font-weight:bold;line-height:16px;letter-spacing:0.04em;color:#191613;text-transform:uppercase;">{% if vm.public_ref %}MASTER REF: {{ vm.public_ref }}{% endif %}</td>
+                <td class="stk" align="right" style="font-family:{{ F }};font-size:12px;font-weight:bold;line-height:16px;letter-spacing:0.04em;color:#191613;text-transform:uppercase;">PROPERTY REF: {{ vm.property_ref }}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td class="px" style="padding:6px 24px 14px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="88" valign="middle" style="width:88px;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="background-color:#ffffff;border-radius:10px;">
+                    <tr>
+                      <td align="center" style="padding:8px 9px;">
+                        <img src="{{ logo_src }}" width="70" height="70" alt="{{ vm.brand_name }}" style="display:block;width:70px;height:70px;border:0;" />
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+                <td valign="middle" align="right" style="font-family:{{ F }};font-size:13px;font-weight:bold;line-height:20px;color:#191613;">
+                  {{ vm.brand_phone }}<br />{{ vm.brand_web }}
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
 
-    <p><strong>{{ vm.badge_label }}.</strong>{% if vm.viewing_by_appt %} Viewing strictly by appointment.{% endif %}</p>
+  {# --- hero photo, closed off by the brand gold rule --------------------- #}
+  {% if photos %}
+  <tr>
+    <td bgcolor="#0d0b08" align="center" style="background-color:#0d0b08;font-size:0;line-height:0;">
+      <img src="{{ photos[0] }}" width="640" alt="{{ vm.place_line or vm.suburb or 'Property photo' }}" style="display:block;width:100%;max-width:640px;height:auto;border:0;" />
+    </td>
+  </tr>
+  <tr><td bgcolor="#ac874a" height="6" style="{{ GOLD }}height:6px;line-height:6px;font-size:0;">&nbsp;</td></tr>
+  {% endif %}
 
-    <a class="cta-btn" href="?dp={{ vm.dp }}">View the listing</a>
-    <p style="font-size:13px;color:var(--muted)">Enquiries: {{ vm.brand_phone }} &middot; {{ vm.brand_email }}{% if vm.brand_email_admin %} &middot; {{ vm.brand_email_admin }}{% endif %}</p>
-  </div>
-  {{ brand.footer(vm) }}
-</div>
+  {# --- headline: place line, descriptor, scheme, method badge ----------- #}
+  <tr>
+    <td class="px" style="padding:26px 24px 0;">
+      {% if vm.place_line %}
+      <div class="place" style="font-family:{{ F }};font-size:34px;font-weight:bold;line-height:36px;letter-spacing:-0.01em;color:#ddc689;text-transform:uppercase;">{{ vm.place_line }}</div>
+      {% endif %}
+      {% if vm.descriptor_line %}
+      <div class="desc" style="font-family:{{ F }};font-size:25px;font-weight:bold;line-height:29px;letter-spacing:-0.01em;color:#ffffff;text-transform:uppercase;padding-top:2px;">{{ vm.descriptor_line }}</div>
+      {% endif %}
+      {% if vm.scheme %}
+      <div style="font-family:{{ F }};font-size:14px;font-weight:bold;line-height:20px;letter-spacing:0.02em;color:#ffffff;text-transform:uppercase;padding-top:6px;">In {{ vm.scheme }}</div>
+      {% endif %}
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px;">
+        <tr>
+          <td bgcolor="#ac874a" style="{{ GOLD }}padding:10px 20px;border-radius:6px;font-family:{{ F }};font-size:17px;font-weight:bold;line-height:20px;letter-spacing:0.02em;color:#191613;text-transform:uppercase;">{{ parts.badge_text(vm) }}</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  {# --- money / auction line, gold-framed (nested tables, not a border) --- #}
+  <tr>
+    <td class="px" style="padding:18px 24px 0;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#ac874a" style="background-color:#ac874a;border-radius:10px;">
+        <tr>
+          <td style="padding:2px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#17130E" style="background-color:#17130E;border-radius:8px;">
+              <tr>
+                <td align="center" class="money" style="padding:16px 12px;font-family:{{ F }};font-size:{{ 21 if is_auction else 26 }}px;font-weight:bold;line-height:30px;letter-spacing:0.01em;color:#ffffff;text-transform:uppercase;">{{ parts.money_text(vm) }}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  {# --- stat grid (two columns) ------------------------------------------ #}
+  {% if stats %}
+  <tr>
+    <td class="px" style="padding:20px 24px 0;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        {% for row in stats | batch(2) %}
+        <tr>
+          {% for item in row %}
+          <td width="50%" valign="top" style="width:50%;padding:0 8px 10px 0;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td valign="top" width="16" style="width:16px;font-family:{{ F }};font-size:15px;line-height:20px;color:#ddc689;">&#9642;&#xFE0E;</td>
+                <td valign="top" style="font-family:{{ F }};font-size:14px;font-weight:bold;line-height:20px;letter-spacing:0.02em;color:#ffffff;text-transform:uppercase;">{{ item | safe }}</td>
+              </tr>
+            </table>
+          </td>
+          {% endfor %}
+          {% if row | length == 1 %}<td width="50%" style="width:50%;">&nbsp;</td>{% endif %}
+        </tr>
+        {% endfor %}
+      </table>
+    </td>
+  </tr>
+  {% endif %}
+
+  {# --- gold-framed feature box ------------------------------------------ #}
+  {% if feats %}
+  <tr>
+    <td class="px" style="padding:8px 24px 0;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#ac874a" style="background-color:#ac874a;border-radius:14px;">
+        <tr>
+          <td style="padding:2px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#17130E" style="background-color:#17130E;border-radius:12px;">
+              <tr>
+                <td style="padding:16px 20px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    {% for f in feats %}
+                    <tr>
+                      <td valign="top" width="16" style="width:16px;font-family:{{ F }};font-size:14px;line-height:20px;color:#ddc689;padding:4px 0;">&#9642;&#xFE0E;</td>
+                      <td valign="top" style="font-family:{{ F }};font-size:13px;font-weight:bold;line-height:20px;letter-spacing:0.02em;color:#ffffff;text-transform:uppercase;padding:4px 0;">{{ f }}</td>
+                    </tr>
+                    {% endfor %}
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  {% endif %}
+
+  {# --- gold-bordered photo strip ---------------------------------------- #}
+  {% if strip %}
+  <tr>
+    <td class="px" style="padding:18px 24px 0;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          {% for src in strip %}
+          <td valign="top" align="center" style="padding:0 {{ 0 if loop.last else 6 }}px 0 {{ 0 if loop.first else 6 }}px;">
+            <img src="{{ src }}" width="{{ iw }}" alt="Property photo" style="display:block;width:100%;max-width:{{ iw }}px;height:auto;border:3px solid #ac874a;border-radius:8px;" />
+          </td>
+          {% endfor %}
+        </tr>
+      </table>
+    </td>
+  </tr>
+  {% endif %}
+
+  {# --- address pill + viewing note --------------------------------------- #}
+  {% if addr %}
+  <tr>
+    <td class="px" align="center" style="padding:20px 24px 0;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" bgcolor="#ac874a" style="background-color:#ac874a;border-radius:999px;">
+        <tr>
+          <td style="padding:2px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" bgcolor="#17130E" style="background-color:#17130E;border-radius:999px;">
+              <tr>
+                <td align="center" style="padding:10px 22px;font-family:{{ F }};font-size:13px;font-weight:bold;line-height:18px;letter-spacing:0.04em;color:#ffffff;text-transform:uppercase;">{{ addr }}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  {% endif %}
+  {% if vm.viewing_by_appt %}
+  <tr>
+    <td class="px" align="center" style="padding:12px 24px 0;font-family:{{ F }};font-size:12px;font-weight:bold;line-height:18px;letter-spacing:0.06em;color:#ddc689;text-transform:uppercase;">Viewing strictly by appointment</td>
+  </tr>
+  {% endif %}
+
+  {# --- call to action ---------------------------------------------------- #}
+  <tr>
+    <td class="px" align="center" style="padding:22px 24px 28px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td bgcolor="#ac874a" align="center" style="{{ GOLD }}border-radius:6px;">
+            <a href="?dp={{ vm.dp }}" style="display:inline-block;padding:14px 30px;font-family:{{ F }};font-size:14px;font-weight:bold;line-height:18px;letter-spacing:0.12em;color:#191613;text-transform:uppercase;text-decoration:none;">View the listing</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  {# --- metallic gold contact bar ----------------------------------------- #}
+  <tr>
+    <td bgcolor="#ac874a" class="px" style="{{ GOLD }}padding:16px 24px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="stk" valign="middle" align="left">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="28" height="28" align="center" valign="middle" bgcolor="#191613" style="width:28px;height:28px;background-color:#191613;border-radius:14px;font-family:{{ F }};font-size:16px;line-height:28px;color:#ddc689;">&#9742;&#xFE0E;</td>
+                <td valign="middle" style="padding-left:10px;font-family:{{ F }};font-size:14px;font-weight:bold;line-height:20px;color:#191613;">{{ vm.brand_phone }}</td>
+              </tr>
+            </table>
+          </td>
+          <td class="stk" valign="middle" align="right">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="right">
+              <tr>
+                <td valign="middle" style="font-family:{{ F }};font-size:21px;line-height:22px;color:#191613;">&#9993;&#xFE0E;</td>
+                <td valign="middle" style="padding-left:9px;font-family:{{ F }};font-size:14px;font-weight:bold;line-height:20px;color:#191613;">{{ vm.brand_email }}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  {# --- regulatory footer -------------------------------------------------- #}
+  <tr>
+    <td bgcolor="#0d0b08" class="px" style="background-color:#0d0b08;padding:16px 24px 20px;font-family:{{ F }};font-size:10px;line-height:17px;letter-spacing:0.02em;color:#ac874a;">
+      {{ vm.brand_reg }}
+      <div style="color:#8a6a38;padding-top:4px;">{{ vm.generated_note }}</div>
+    </td>
+  </tr>
+
+</table>
+
+</td></tr>
+</table>
