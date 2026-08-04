@@ -30,6 +30,12 @@ os.environ.setdefault("ENGINE_ALLOW_INSECURE_COOKIE", "1")
 # export re-enable it for themselves (see test_render.py).
 os.environ.setdefault("ENGINE_PDF_EXPORT", "0")
 
+# The extraction / research cache (engine.aicache) is content-addressed, so two
+# tests that build the same request would share a cached result and the second
+# would assert against the first one's data. Off by default here; the tests that
+# cover the cache turn it on for themselves.
+os.environ.setdefault("ENGINE_AI_CACHE", "0")
+
 # Make the repo root importable so ``import engine`` works no matter where
 # pytest is invoked from.
 REPO_ROOT = Path(__file__).resolve().parent.parent

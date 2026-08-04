@@ -102,6 +102,23 @@ TOOL_PREFIX = "record_"
 def _tool_name(section: str) -> str:
     return TOOL_PREFIX + section
 
+
+def prompt_version() -> str:
+    """Fingerprint of everything that shapes an extraction's output.
+
+    Used as part of the extraction cache key (``engine.aicache``): if the model,
+    the brief, the section list or the PDF mode changes, every cached record is
+    invalidated automatically rather than the cache quietly serving output this
+    code would no longer produce.
+    """
+    import hashlib
+
+    blob = "\x1f".join(
+        [MODEL, os.environ.get("EXTRACT_PDF_MODE", DEFAULT_PDF_MODE), SYSTEM_PROMPT]
+        + [f"{name}:{focus}" for name, _model, focus in SECTIONS]
+    )
+    return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:16]
+
 # How the two source PDFs are sent to Claude:
 # - "native" (default, per SPEC tech conventions): base64 PDF document blocks,
 #   which preserve page layout, tables and chart images at full fidelity.

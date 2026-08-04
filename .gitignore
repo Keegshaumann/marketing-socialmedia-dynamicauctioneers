@@ -20,3 +20,6 @@ DP*/packs/
 # Ad-design source exports (inputs; I rebuild them into templates/ads/*.html.j2).
 designs/incoming/*
 !designs/incoming/README.md
+
+# Cached Claude results (extraction / market research), regenerable
+.ai-cache/

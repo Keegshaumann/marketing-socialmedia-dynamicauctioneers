@@ -185,3 +185,55 @@ def test_extract_job_without_key_is_skipped(tmp_path, monkeypatch):
     store = RecordStore(db_path)
     assert store.get_state(dp) == "intake"
     store.close()
+
+
+def test_identical_documents_reuse_the_cached_extraction(tmp_path, monkeypatch):
+    """Re-intaking the same PDFs must not pay for extraction twice.
+
+    Extraction is the most expensive call in the system (six calls carrying both
+    source PDFs). Deleting a property and dropping the same documents again - a
+    marketer fixing a mistake, or a tester repeating the flow - used to re-run
+    all six. It is a pure function of the documents, so the second run is served
+    from cache.
+    """
+    db_path = str(tmp_path / "engine.db")
+    models.init_db(db_path)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    monkeypatch.setenv("ENGINE_AI_CACHE", "1")
+
+    evm = tmp_path / "3070 - evm.pdf"; evm.write_bytes(b"%PDF-evm-bytes")
+    rep = tmp_path / "3070 - report.pdf"; rep.write_bytes(b"%PDF-report-bytes")
+
+    calls = []
+    monkeypatch.setattr(
+        "engine.extract.extract_record",
+        lambda *a, **k: calls.append(1) or _record("3070"),
+    )
+
+    def run(dp):
+        jobs.enqueue(db_path, "extract", dp, payload={
+            "dp": dp, "lightstones": [str(evm)], "property_reports": [str(rep)],
+            "output_root": str(tmp_path),
+        })
+        jobs.drain(db_path)
+
+    run("3070")
+    assert len(calls) == 1                       # first property: extracted
+
+    # Same documents again (the delete-and-re-intake cycle) -> served from cache.
+    run("3070")
+    assert len(calls) == 1, "identical documents must not re-run extraction"
+
+    # The same documents under a DIFFERENT DP also hit, and are re-stamped.
+    run("3071")
+    assert len(calls) == 1
+    store = RecordStore(db_path)
+    try:
+        assert store.get("3071").dp == "3071"
+    finally:
+        store.close()
+
+    # Different bytes -> a genuinely new property still extracts.
+    evm.write_bytes(b"%PDF-a-different-property")
+    run("3072")
+    assert len(calls) == 2

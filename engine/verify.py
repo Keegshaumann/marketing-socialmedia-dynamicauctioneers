@@ -29,6 +29,7 @@ Design rules baked in here (mirroring ``engine/schema.py`` and the contract):
 
 from __future__ import annotations
 
+import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
@@ -513,7 +514,7 @@ def build_research_request(record: PropertyRecord) -> dict:
     }
 
 
-def research_market(record: PropertyRecord, client=None) -> Optional[dict]:
+def research_market(record: PropertyRecord, client=None, output_root: str = ".") -> Optional[dict]:
     """Return a market-context dict, or ``None`` when no key/client is available.
 
     Key-gated: with neither a passed ``client`` nor ``ANTHROPIC_API_KEY`` this
@@ -531,8 +532,24 @@ def research_market(record: PropertyRecord, client=None) -> Optional[dict]:
         except Exception:
             return None
 
+    # The research is one call that fans out to roughly a dozen billed web
+    # searches, and it is a pure function of the property's public facts. Serve
+    # an identical property from cache rather than re-running the searches every
+    # time verification is re-run (a re-intake, a retry, a repeated test).
+    from engine import aicache
+
+    request = build_research_request(record)
+    cache_key = aicache.key(
+        "research",
+        MODEL,
+        json.dumps(request.get("messages"), sort_keys=True, default=str),
+    )
+    cached = aicache.load("research", cache_key, output_root)
+    if cached is not None:
+        return cached
+
     try:  # pragma: no cover - requires a live key / network
-        response = client.messages.create(**build_research_request(record))
+        response = client.messages.create(**request)
     except Exception:
         return None
 
@@ -566,7 +583,9 @@ def research_market(record: PropertyRecord, client=None) -> Optional[dict]:
     summary = "\n\n".join(p for p in summary_parts if p).strip()
     if not summary and not sources:
         return None
-    return {"summary": summary, "sources": sources}
+    result = {"summary": summary, "sources": sources}
+    aicache.save("research", cache_key, result, output_root)
+    return result
 
 
 # --- verify + sign-off (the gate) ----------------------------------------
@@ -596,7 +615,7 @@ def verify(
         )
 
     flags = deterministic_checks(record)
-    research = research_market(record, client)
+    research = research_market(record, client, output_root=output_root)
     memo = build_memo(record, flags, research)
 
     memo_dir = Path(output_root) / f"DP{dp}"

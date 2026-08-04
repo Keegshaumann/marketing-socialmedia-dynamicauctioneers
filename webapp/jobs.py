@@ -148,9 +148,10 @@ def _handle_extract(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, s
             "no source pair on the job payload; nothing to extract.",
         )
 
-    from engine.extract import extract_record
-    from engine.schema import Marketing
+    from engine.extract import extract_record, prompt_version
+    from engine.schema import Marketing, PropertyRecord
     from engine.store import RecordStore
+    from engine import aicache
 
     # Re-extraction REWRITES the sourced facts (identity, physical, valuation and
     # the physical-conflict resolutions). Once a human has signed off gate 1 those
@@ -177,9 +178,38 @@ def _handle_extract(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, s
     finally:
         store.close()
 
-    record = extract_record(
-        lightstones, reports, dp=dp, parent_dp=payload.get("parent_dp"), valuation_pdf=valuations
+    # Extraction is the single most expensive call in the system (six calls, both
+    # source PDFs on each). It is a pure function of the documents, so an
+    # identical set of files is served from cache instead of paid for again -
+    # which is exactly what a delete-and-re-intake does, whether that is a
+    # marketer fixing a mistake or a tester running the flow repeatedly.
+    output_root = _output_root(job, db_path)
+    cache_key = aicache.key(
+        "extract",
+        prompt_version(),
+        aicache.file_digest(lightstones + reports + valuations),
     )
+    cached = aicache.load("extract", cache_key, output_root)
+    record = None
+    if cached is not None:
+        try:
+            record = PropertyRecord.model_validate(cached)
+        except Exception:  # a stale/incompatible entry must never block a render
+            record = None
+
+    from_cache = record is not None
+    if record is None:
+        record = extract_record(
+            lightstones, reports, dp=dp, parent_dp=payload.get("parent_dp"), valuation_pdf=valuations
+        )
+        aicache.save("extract", cache_key, record.model_dump(mode="json"), output_root)
+
+    # The identity fields are stamped by code, never by the model, so a cached
+    # record is re-stamped for THIS property: the same documents filed under a
+    # different DP still hit the cache.
+    record.dp = dp
+    record.parent_dp = payload.get("parent_dp") or record.parent_dp
+
     store = RecordStore(models.resolve_db_path(db_path))
     try:
         # Before gate 1 a re-extraction is safe (a retry, or adding a valuation
@@ -209,6 +239,8 @@ def _handle_extract(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, s
             store.transition(dp, "extracted", note="extraction complete")
     finally:
         store.close()
+    if from_cache:
+        return "done", f"extracted record for DP {dp} (reused the cached extraction of these documents; no API cost)"
     return "done", f"extracted record for DP {dp}"
 
 
