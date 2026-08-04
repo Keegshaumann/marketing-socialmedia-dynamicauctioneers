@@ -1041,10 +1041,24 @@ def _collect_edit_fields(
     """
     fields: dict = {}
     prefill = prefill or {}
+    # The gate-2 form posts every field and marks itself complete, so an empty
+    # box in it is a deliberate CLEAR - emptying the Sale callout has to actually
+    # remove the callout, or the badge keeps rendering the old word. A partial
+    # POST (no marker) keeps the safer rule that blank never wipes, so a
+    # half-built or crafted request cannot empty a live listing.
+    full = str(form.get("_full_form", "")).strip() == "1"
     for name, path in _EDIT_TEXT_FIELDS.items():
+        if name not in form:
+            continue
         value = str(form.get(name, "")).strip()
-        if value and value != (prefill.get(name) or "").strip():
-            fields[path] = value
+        # A value returned exactly as it was shown is not an edit (see above).
+        if value and value == (prefill.get(name) or "").strip():
+            continue
+        if not value and not full:
+            continue
+        # apply_edits compares against the current public value and skips genuine
+        # no-ops, so clearing an already-empty field writes nothing.
+        fields[path] = value or None
     method = str(form.get("method", "")).strip()
     if method in _SALE_METHODS:
         fields["sale_process.method"] = method
@@ -1053,6 +1067,8 @@ def _collect_edit_fields(
     channel = str(form.get("auction_channel", "")).strip()
     if channel in _AUCTION_CHANNELS:
         fields["sale_process.auction_channel"] = channel
+    elif full and "auction_channel" in form and not channel:
+        fields["sale_process.auction_channel"] = None
     # The design pick (D33). Only names the picker actually offers are
     # accepted, so a crafted value cannot land on the record.
     if "template_set" in form:
@@ -1061,11 +1077,12 @@ def _collect_edit_fields(
         offered = _design_sets()
         if posted != current and offered and (not posted or posted in offered):
             fields["marketing.template_set"] = posted
-    terms_raw = str(form.get("terms", "")).strip()
-    if terms_raw:
-        fields["sale_process.terms"] = [
-            line.strip() for line in terms_raw.splitlines() if line.strip()
-        ]
+    if "terms" in form:
+        terms_raw = str(form.get("terms", "")).strip()
+        lines = [line.strip() for line in terms_raw.splitlines() if line.strip()]
+        # Emptying the terms box clears the strip, same rule as the text fields.
+        if lines or full:
+            fields["sale_process.terms"] = lines or None
     return fields
 
 

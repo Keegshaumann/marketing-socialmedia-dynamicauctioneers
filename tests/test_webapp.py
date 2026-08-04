@@ -1789,3 +1789,36 @@ def test_settings_link_hidden_for_marketing_shown_for_admin():
     assert 'href="/settings"' not in m.get("/board").text
     a = _client(); _login_admin(a)
     assert 'href="/settings"' in a.get("/board").text
+
+
+def test_clearing_a_gate2_field_actually_clears_it():
+    """Blank must mean CLEAR, not "leave alone".
+
+    Reported live: a "for sale" callout rendered "FOR SALE SALE!", and emptying
+    the box did not remove it - the badge kept the old word - because blank
+    inputs were skipped so they could never wipe a value.
+    """
+    dp = "9406"
+    _golden_clone(dp, state="drafted")
+    client = _client()
+    _login_admin(client)
+    client.get(f"/gates/{dp}/ads")
+
+    def save(callout):
+        client.post(f"/gates/{dp}/ads/copy", data={
+            "headline": "A tidy unit", "price_display": "Offers invited",
+            "street_address": "40 Topham Road", "suburb": "Pelham North",
+            "method": "offers_invited", "auction_type": callout,
+            "auction_date": "", "auction_time": "", "terms": "",
+            "_full_form": "1",   # the real form marks itself complete
+        })
+        store = RecordStore(DB_PATH)
+        try:
+            return (store.get(dp).public_view().get("sale_process") or {}).get("auction_type")
+        finally:
+            store.close()
+
+    assert save("Insolvency") == "Insolvency"
+    assert save("") is None          # cleared, not stuck on the old value
+    assert save("Liquidation") == "Liquidation"
+    assert save("   ") is None       # whitespace counts as blank

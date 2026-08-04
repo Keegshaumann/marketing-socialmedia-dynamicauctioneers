@@ -668,3 +668,33 @@ def test_build_copy_request_shape_offline(golden_record):
     payload = json.dumps(req2["messages"]) + json.dumps(req2["system"])
     for marker in POISON_MARKERS:
         assert marker not in payload
+
+
+def test_badge_never_doubles_the_sale_or_auction_word():
+    """The callout box takes a REASON, but a marketer may type "for sale" in it.
+
+    The badge appends SALE!/AUCTION! itself, so a callout that already ends in
+    that word must be used as written - reported live as "FOR SALE SALE!".
+    """
+    from jinja2 import Environment, FileSystemLoader
+
+    env = Environment(loader=FileSystemLoader("engine/render/templates"))
+    badge = env.get_template("_adparts.html.j2").module.badge_text
+
+    def text(method, callout):
+        return str(badge({"method": method, "auction_type": callout})).strip()
+
+    # The reported bug, in both methods and any casing.
+    assert text("offers_invited", "for sale") == "FOR SALE!"
+    assert text("offers_invited", "For Sale") == "FOR SALE!"
+    assert text("offers_invited", "Insolvency Sale!") == "INSOLVENCY SALE!"
+    assert text("auction", "auction") == "AUCTION!"
+    assert text("auction", "Insolvency Auction") == "INSOLVENCY AUCTION!"
+    # A real reason still gets its suffix.
+    assert text("offers_invited", "Insolvency") == "INSOLVENCY SALE!"
+    assert text("auction", "Liquidation") == "LIQUIDATION AUCTION!"
+    # Blank keeps the plain badge.
+    assert text("offers_invited", None) == "FOR SALE!"
+    assert text("auction", "") == "ON AUCTION!"
+    # Whole-word comparison: "Wholesale" is not the word "sale".
+    assert text("offers_invited", "Wholesale") == "WHOLESALE SALE!"

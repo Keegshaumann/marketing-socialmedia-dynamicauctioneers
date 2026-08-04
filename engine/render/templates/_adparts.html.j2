@@ -3,15 +3,25 @@
    means the Collage / Feature-list / Stats-first designs stay consistent - the
    badge wording, the auction-vs-price rule and the brand switch live once. #}
 
-{# Badge: "<TYPE> AUCTION!" / "ON AUCTION!" on an auction, "<TYPE> SALE!" /
-   "FOR SALE!" otherwise. The type (Insolvency, Liquidation, ...) applies to both
-   methods; only the SALE/AUCTION word flips (matches the real ads). #}
+{# Badge: "<CALLOUT> AUCTION!" / "ON AUCTION!" on an auction, "<CALLOUT> SALE!" /
+   "FOR SALE!" otherwise. The callout (Insolvency, Liquidation, ...) applies to
+   both methods; only the SALE/AUCTION word flips (matches the real ads).
+
+   The callout is meant to be the REASON, but a marketer can reasonably type
+   "For sale" or "Insolvency auction" into that box. If it already ends in the
+   word we would append, take it as written rather than printing the reported
+   "FOR SALE SALE!". Compared as a whole last word, so "Wholesale" is still
+   given its suffix. #}
 {% macro badge_text(vm) -%}
-  {%- set t = vm.auction_type -%}
-  {%- if vm.method == 'auction' -%}
-    {%- if t %}{{ t|upper }} AUCTION{% else %}ON AUCTION{% endif -%}
+  {%- set word = 'AUCTION' if vm.method == 'auction' else 'SALE' -%}
+  {%- set callout = ((vm.auction_type or '') | replace('!', '') | trim | upper) -%}
+  {%- set parts = callout.split() -%}
+  {%- if not parts -%}
+    {{- 'ON AUCTION' if vm.method == 'auction' else 'FOR SALE' -}}
+  {%- elif parts[-1] == word -%}
+    {{- callout -}}
   {%- else -%}
-    {%- if t %}{{ t|upper }} SALE{% else %}FOR SALE{% endif -%}
+    {{- callout }} {{ word -}}
   {%- endif -%}!
 {%- endmacro %}
 

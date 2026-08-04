@@ -78,6 +78,11 @@
         <div class="panel__head"><div class="panel__title">Edit ad details</div></div>
         <div class="panel__body">
           <form hx-post="/gates/{{ dp }}/ads/copy" hx-target="#gallery" hx-swap="outerHTML" class="stack">
+            {# Marks a COMPLETE edit submission. This form always posts every
+               field, so an empty box here is a deliberate clear; a partial POST
+               without this marker keeps the safer "blank never wipes" rule, so a
+               crafted or half-built request can never empty a live listing. #}
+            <input type="hidden" name="_full_form" value="1">
             <div class="field">
               <div class="label-row">
                 <label class="label" for="headline">Headline</label>
