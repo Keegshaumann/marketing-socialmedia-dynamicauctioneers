@@ -3192,6 +3192,14 @@
         "documentation": {}
     },
     {
+        "label": "build_combined_job",
+        "importPath": "engine.intake",
+        "description": "engine.intake",
+        "isExtraImport": true,
+        "detail": "engine.intake",
+        "documentation": {}
+    },
+    {
         "label": "build_jobs",
         "importPath": "engine.intake",
         "description": "engine.intake",
@@ -3201,6 +3209,14 @@
     },
     {
         "label": "classify_pdf",
+        "importPath": "engine.intake",
+        "description": "engine.intake",
+        "isExtraImport": true,
+        "detail": "engine.intake",
+        "documentation": {}
+    },
+    {
+        "label": "find_dp",
         "importPath": "engine.intake",
         "description": "engine.intake",
         "isExtraImport": true,
@@ -4089,6 +4105,14 @@
         "documentation": {}
     },
     {
+        "label": "Form",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
         "label": "Request",
         "importPath": "fastapi",
         "description": "fastapi",
@@ -4422,6 +4446,15 @@
         "description": "webapp.auth",
         "isExtraImport": true,
         "detail": "webapp.auth",
+        "documentation": {}
+    },
+    {
+        "label": "uuid",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "uuid",
+        "description": "uuid",
+        "detail": "uuid",
         "documentation": {}
     },
     {
@@ -5101,7 +5134,7 @@
         "kind": 5,
         "importPath": "engine.render.copy",
         "description": "engine.render.copy",
-        "peekOfCode": "MAX_TOKENS = 4000\n# Dynamic's public enquiry line. Safe to render; used as a fallback when the\n# record does not carry a public viewing contact.\nDYNAMIC_CONTACT_PUBLIC = (\n    \"Dynamic Auctioneers | 086 155 2288 | properties.admin@dynamicauctioneers.co.za\"\n)\n# --- copy schema (structured output) -------------------------------------\nclass _Base(BaseModel):\n    model_config = ConfigDict(extra=\"forbid\")\nclass FormatCopy(_Base):",
+        "peekOfCode": "MAX_TOKENS = 4000\n# Dynamic's public enquiry line. Safe to render; used as a fallback when the\n# record does not carry a public viewing contact.\nDYNAMIC_CONTACT_PUBLIC = (\n    \"Dynamic Auctioneers | 086 155 2288 | properties@dynamicauctioneers.co.za \"\n    \"| properties.admin@dynamicauctioneers.co.za\"\n)\n# --- copy schema (structured output) -------------------------------------\nclass _Base(BaseModel):\n    model_config = ConfigDict(extra=\"forbid\")",
         "detail": "engine.render.copy",
         "documentation": {}
     },
@@ -5110,7 +5143,7 @@
         "kind": 5,
         "importPath": "engine.render.copy",
         "description": "engine.render.copy",
-        "peekOfCode": "DYNAMIC_CONTACT_PUBLIC = (\n    \"Dynamic Auctioneers | 086 155 2288 | properties.admin@dynamicauctioneers.co.za\"\n)\n# --- copy schema (structured output) -------------------------------------\nclass _Base(BaseModel):\n    model_config = ConfigDict(extra=\"forbid\")\nclass FormatCopy(_Base):\n    \"\"\"Copy for a single text channel (portal, Facebook).\"\"\"\n    headline: Optional[str] = None\n    body: Optional[str] = None",
+        "peekOfCode": "DYNAMIC_CONTACT_PUBLIC = (\n    \"Dynamic Auctioneers | 086 155 2288 | properties@dynamicauctioneers.co.za \"\n    \"| properties.admin@dynamicauctioneers.co.za\"\n)\n# --- copy schema (structured output) -------------------------------------\nclass _Base(BaseModel):\n    model_config = ConfigDict(extra=\"forbid\")\nclass FormatCopy(_Base):\n    \"\"\"Copy for a single text channel (portal, Facebook).\"\"\"\n    headline: Optional[str] = None",
         "detail": "engine.render.copy",
         "documentation": {}
     },
@@ -5551,7 +5584,7 @@
         "kind": 5,
         "importPath": "engine.extract",
         "description": "engine.extract",
-        "peekOfCode": "DEFAULT_PDF_MODE = \"native\"\n# Optional seconds to wait between the per-section calls, to respect a\n# tokens-per-minute rate limit (each DP3060 section call is ~6.4k input tokens;\n# a 10k/min tier only fits one such call per minute). 0 disables pacing. Set\n# with EXTRACT_PACE_SECONDS.\nDEFAULT_PACE_SECONDS = 0.0\n# Dynamic's public viewing line. Safe to render; the occupant's own cell is\n# POPIA-internal and must never land here.\nDYNAMIC_CONTACT_PUBLIC = \"086 155 2288 / properties.admin@dynamicauctioneers.co.za\"\n# The extraction brief. Stable and self-contained so the prefix caches across",
+        "peekOfCode": "DEFAULT_PDF_MODE = \"native\"\n# Optional seconds to wait between the per-section calls, to respect a\n# tokens-per-minute rate limit (each DP3060 section call is ~6.4k input tokens;\n# a 10k/min tier only fits one such call per minute). 0 disables pacing. Set\n# with EXTRACT_PACE_SECONDS.\nDEFAULT_PACE_SECONDS = 0.0\n# Dynamic's public viewing line. Safe to render; the occupant's own cell is\n# POPIA-internal and must never land here.\nDYNAMIC_CONTACT_PUBLIC = (\n    \"086 155 2288 / properties@dynamicauctioneers.co.za / \"",
         "detail": "engine.extract",
         "documentation": {}
     },
@@ -5560,7 +5593,7 @@
         "kind": 5,
         "importPath": "engine.extract",
         "description": "engine.extract",
-        "peekOfCode": "DEFAULT_PACE_SECONDS = 0.0\n# Dynamic's public viewing line. Safe to render; the occupant's own cell is\n# POPIA-internal and must never land here.\nDYNAMIC_CONTACT_PUBLIC = \"086 155 2288 / properties.admin@dynamicauctioneers.co.za\"\n# The extraction brief. Stable and self-contained so the prefix caches across\n# runs. It encodes the rules only; the field docs travel with the Pydantic model\n# the SDK sends, and no property-specific fact is hardcoded here.\nSYSTEM_PROMPT = (\n    \"You are the extraction engine for Dynamic Auctioneers, a South African \"\n    \"property auction and sale house. You read up to three source documents \"",
+        "peekOfCode": "DEFAULT_PACE_SECONDS = 0.0\n# Dynamic's public viewing line. Safe to render; the occupant's own cell is\n# POPIA-internal and must never land here.\nDYNAMIC_CONTACT_PUBLIC = (\n    \"086 155 2288 / properties@dynamicauctioneers.co.za / \"\n    \"properties.admin@dynamicauctioneers.co.za\"\n)\n# The extraction brief. Stable and self-contained so the prefix caches across\n# runs. It encodes the rules only; the field docs travel with the Pydantic model\n# the SDK sends, and no property-specific fact is hardcoded here.",
         "detail": "engine.extract",
         "documentation": {}
     },
@@ -5569,7 +5602,7 @@
         "kind": 5,
         "importPath": "engine.extract",
         "description": "engine.extract",
-        "peekOfCode": "DYNAMIC_CONTACT_PUBLIC = \"086 155 2288 / properties.admin@dynamicauctioneers.co.za\"\n# The extraction brief. Stable and self-contained so the prefix caches across\n# runs. It encodes the rules only; the field docs travel with the Pydantic model\n# the SDK sends, and no property-specific fact is hardcoded here.\nSYSTEM_PROMPT = (\n    \"You are the extraction engine for Dynamic Auctioneers, a South African \"\n    \"property auction and sale house. You read up to three source documents \"\n    \"about a single property and return one structured section of its property \"\n    \"record per request.\\n\"\n    \"\\n\"",
+        "peekOfCode": "DYNAMIC_CONTACT_PUBLIC = (\n    \"086 155 2288 / properties@dynamicauctioneers.co.za / \"\n    \"properties.admin@dynamicauctioneers.co.za\"\n)\n# The extraction brief. Stable and self-contained so the prefix caches across\n# runs. It encodes the rules only; the field docs travel with the Pydantic model\n# the SDK sends, and no property-specific fact is hardcoded here.\nSYSTEM_PROMPT = (\n    \"You are the extraction engine for Dynamic Auctioneers, a South African \"\n    \"property auction and sale house. You read one or more source documents \"",
         "detail": "engine.extract",
         "documentation": {}
     },
@@ -5578,7 +5611,7 @@
         "kind": 5,
         "importPath": "engine.extract",
         "description": "engine.extract",
-        "peekOfCode": "SYSTEM_PROMPT = (\n    \"You are the extraction engine for Dynamic Auctioneers, a South African \"\n    \"property auction and sale house. You read up to three source documents \"\n    \"about a single property and return one structured section of its property \"\n    \"record per request.\\n\"\n    \"\\n\"\n    \"The sources and how to merge them (this is the authoritative rule):\\n\"\n    \"- The Lightstone EVM report carries the deeds, market and valuation data. \"\n    \"It wins for identity (title type, scheme, unit, erf, legal description, \"\n    \"title deed number, GPS), for valuation (EVM range, suburb bands, municipal \"",
+        "peekOfCode": "SYSTEM_PROMPT = (\n    \"You are the extraction engine for Dynamic Auctioneers, a South African \"\n    \"property auction and sale house. You read one or more source documents \"\n    \"about a single property and return one structured section of its property \"\n    \"record per request.\\n\"\n    \"\\n\"\n    \"The sources and how to merge them (this is the authoritative rule):\\n\"\n    \"- The Lightstone EVM report carries the deeds, market and valuation data. \"\n    \"It wins for identity (title type, scheme, unit, erf, legal description, \"\n    \"title deed number, GPS), for valuation (EVM range, suburb bands, municipal \"",
         "detail": "engine.extract",
         "documentation": {}
     },
@@ -5605,7 +5638,7 @@
         "kind": 6,
         "importPath": "engine.intake",
         "description": "engine.intake",
-        "peekOfCode": "class IntakeJob:\n    \"\"\"One property's paired-document state, keyed by DP number.\"\"\"\n    dp: str\n    parent_dp: Optional[str] = None\n    lot: Optional[int] = None\n    lightstone_evm: Optional[Path] = None\n    property_report: Optional[Path] = None\n    # Optional third source (a registered valuer's report). Not required for\n    # completeness - marketing is not always given it (D35).\n    valuation_report: Optional[Path] = None",
+        "peekOfCode": "class IntakeJob:\n    \"\"\"One property's source-document state, keyed by DP number.\n    A property may span several land portions, each with its own Lightstone EVM\n    (multi-file intake), so every slot is a LIST. The singular ``lightstone_evm``\n    / ``property_report`` / ``valuation_report`` properties return the first of\n    each for the common single-portion case and for back-compatible callers.\n    \"\"\"\n    dp: str\n    parent_dp: Optional[str] = None\n    lot: Optional[int] = None",
         "detail": "engine.intake",
         "documentation": {}
     },
@@ -5632,7 +5665,34 @@
         "kind": 2,
         "importPath": "engine.intake",
         "description": "engine.intake",
-        "peekOfCode": "def build_jobs(paths: List[PathLike]) -> List[IntakeJob]:\n    \"\"\"Group PDFs by DP number, classify each, and build an ``IntakeJob`` per DP.\n    Files whose name carries no DP number are skipped. A file that classifies\n    as ``unknown``, or that would overwrite an already-filled slot, is parked\n    in the job's ``unknown`` list rather than silently dropped. Jobs are\n    returned in DP order.\n    \"\"\"\n    jobs: dict[str, IntakeJob] = {}\n    for raw in paths:\n        path = Path(raw)",
+        "peekOfCode": "def build_jobs(paths: List[PathLike]) -> List[IntakeJob]:\n    \"\"\"Group PDFs by DP number, classify each, and build an ``IntakeJob`` per DP.\n    Files whose name carries no DP number are skipped. Each classified file is\n    appended to its list slot, so several EVMs under one DP all land (a\n    multi-portion property); an ``unknown`` file is parked rather than dropped.\n    Jobs are returned in DP order.\n    \"\"\"\n    jobs: dict[str, IntakeJob] = {}\n    for raw in paths:\n        path = Path(raw)",
+        "detail": "engine.intake",
+        "documentation": {}
+    },
+    {
+        "label": "dp_candidates",
+        "kind": 2,
+        "importPath": "engine.intake",
+        "description": "engine.intake",
+        "peekOfCode": "def dp_candidates(paths: List[PathLike]) -> List[str]:\n    \"\"\"Every distinct DP number the filenames carry, sorted.\n    Empty when no name carries one (farm portions like \"PTN 6 of Farm 7.pdf\");\n    more than one when the drop mixes properties. The caller needs the two cases\n    kept apart: \"no DP\" is answered by asking the user to type one, but\n    \"several DPs\" must be refused outright, because typing one DP would file the\n    other property's documents under it and extraction would synthesise the two\n    into a single chimera record.\n    \"\"\"\n    dps: set[str] = set()",
+        "detail": "engine.intake",
+        "documentation": {}
+    },
+    {
+        "label": "find_dp",
+        "kind": 2,
+        "importPath": "engine.intake",
+        "description": "engine.intake",
+        "peekOfCode": "def find_dp(paths: List[PathLike]) -> Optional[str]:\n    \"\"\"The single DP number shared by every named file, or ``None`` if unclear.\n    Returns a DP only when all parseable filenames agree on exactly one value.\n    Multiple distinct DPs, or names with no DP at all (a farm portion like\n    \"PTN 6 of Farm 7.pdf\"), return ``None`` so the caller prompts the user to\n    type one rather than guessing. Erring toward a prompt is deliberate: a wrong\n    key names the wrong folder and URL for the whole property. Use\n    ``dp_candidates`` when the two \"unclear\" cases must be told apart.\n    \"\"\"\n    found = dp_candidates(paths)",
+        "detail": "engine.intake",
+        "documentation": {}
+    },
+    {
+        "label": "build_combined_job",
+        "kind": 2,
+        "importPath": "engine.intake",
+        "description": "engine.intake",
+        "peekOfCode": "def build_combined_job(paths: List[PathLike], dp: Optional[str] = None) -> IntakeJob:\n    \"\"\"Build ONE ``IntakeJob`` from every file, for the multi-file intake screen.\n    Unlike ``build_jobs`` (which groups by DP), this treats the whole drop as a\n    single property that may span several portions and returns one job holding\n    all of its EVMs, reports and valuations. ``dp`` is taken as given, else read\n    from the filenames via ``find_dp``; when neither yields one the job's ``dp``\n    is empty and the caller must ask the user for it.\n    \"\"\"\n    dp = dp or find_dp(paths) or \"\"\n    parent_dp: Optional[str] = None",
         "detail": "engine.intake",
         "documentation": {}
     },
@@ -5776,7 +5836,16 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class Flatlet(_Base):\n    present: Optional[bool] = None\n    bedrooms: Optional[int] = None\n    ensuite: Optional[bool] = None\n    kitchen: Optional[bool] = None\n    lounge: Optional[bool] = None\n    patio: Optional[bool] = None\n    note: Optional[str] = None\nclass PhysicalConflict(_Base):\n    \"\"\"One physical fact the source documents disagree on (D35).",
+        "peekOfCode": "class Flatlet(_Base):\n    present: Optional[bool] = None\n    bedrooms: Optional[int] = None\n    ensuite: Optional[bool] = None\n    kitchen: Optional[bool] = None\n    lounge: Optional[bool] = None\n    patio: Optional[bool] = None\n    note: Optional[str] = None\nclass Portion(_Base):\n    \"\"\"One land portion of a multi-portion property (multi-file intake).",
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "Portion",
+        "kind": 6,
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "peekOfCode": "class Portion(_Base):\n    \"\"\"One land portion of a multi-portion property (multi-file intake).\n    A single marketing instruction can span several separately-registered land\n    portions, each described by its own Lightstone EVM (e.g. several PTNs of a\n    farm, or the two erven of a portfolio). They are ONE property record; each\n    portion is recorded here so the ad can list them and the system can sum\n    their extents in code (deterministic, never a model's arithmetic). A plain\n    single-portion property leaves ``portions`` null.\n    \"\"\"\n    label: Optional[str] = None  # e.g. \"Portion 6 of Farm 7 Slagboom\" / \"Erf 15\"",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -5939,6 +6008,15 @@
         "importPath": "engine.schema",
         "description": "engine.schema",
         "peekOfCode": "def override_key_allowed(path: str) -> bool:\n    \"\"\"Whether ``path`` may be set as a ``human_overrides`` key (POPIA guard).\n    Rejects the whole ``financials_internal`` group and the occupant's private\n    cell, so an override can never resurrect a field ``public_view()`` strips.\n    A key is refused when it is a forbidden path, an **ancestor** of one (a\n    whole-dict override that would carry the stripped field back in), or a\n    **descendant** under one.\n    \"\"\"\n    if not path:\n        return False",
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "portions_total_m2",
+        "kind": 2,
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "peekOfCode": "def portions_total_m2(physical: Optional[Physical]) -> Optional[float]:\n    \"\"\"Sum the extents of a multi-portion property's land portions, in code.\n    Returns the total of every portion that states a ``size_m2``; ``None`` when\n    there are no portions or none carries a size. Deterministic on purpose: the\n    combined extent an ad prints is arithmetic the system owns, never a value\n    the extraction model is asked to add up (hard rule 3, no invented facts).\n    \"\"\"\n    if physical is None or not physical.portions:\n        return None\n    sizes = [p.size_m2 for p in physical.portions if p.size_m2 is not None]",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -7302,6 +7380,24 @@
         "documentation": {}
     },
     {
+        "label": "test_build_request_sends_every_portion_evm",
+        "kind": 2,
+        "importPath": "tests.test_extract",
+        "description": "tests.test_extract",
+        "peekOfCode": "def test_build_request_sends_every_portion_evm(tmp_path):\n    \"\"\"A multi-portion property sends all its EVMs, in order, cache on the last.\"\"\"\n    evm1 = _fake_pdf(tmp_path, \"evm1.pdf\")\n    evm2 = _fake_pdf(tmp_path, \"evm2.pdf\")\n    report = _fake_pdf(tmp_path, \"report.pdf\")\n    req = build_request([evm1, evm2], [report], \"2918\", \"physical\", mode=\"native\")\n    content = req[\"messages\"][0][\"content\"]\n    # three document blocks (two EVMs then the report), then the directive text.\n    assert [b[\"type\"] for b in content] == [\"document\", \"document\", \"document\", \"text\"]\n    # EVMs come first, in order.",
+        "detail": "tests.test_extract",
+        "documentation": {}
+    },
+    {
+        "label": "test_extract_record_accepts_lists_and_stamps_first_source",
+        "kind": 2,
+        "importPath": "tests.test_extract",
+        "description": "tests.test_extract",
+        "peekOfCode": "def test_extract_record_accepts_lists_and_stamps_first_source(tmp_path):\n    \"\"\"Extraction over several EVMs assembles one record; the first file stamps.\"\"\"\n    evm1 = _fake_pdf(tmp_path, \"evm1.pdf\")\n    evm2 = _fake_pdf(tmp_path, \"evm2.pdf\")\n    report = _fake_pdf(tmp_path, \"report.pdf\")\n    rec = extract_record([evm1, evm2], [report], \"2918\", client=_all_empty_client())\n    assert rec.dp == \"2918\"\n    # The primary EVM/report file paths are stamped from the first of each list.\n    assert rec.sources.lightstone_evm.file == str(evm1)\n    assert rec.sources.property_report.file == str(report)",
+        "detail": "tests.test_extract",
+        "documentation": {}
+    },
+    {
         "label": "test_extract_record_survives_all_empty_sections",
         "kind": 2,
         "importPath": "tests.test_extract",
@@ -7479,6 +7575,51 @@
         "description": "tests.test_intake",
         "peekOfCode": "def test_build_jobs_groups_distinct_dps(\n    lightstone_3060, property_report_3060, lightstone_3035_1\n):\n    \"\"\"Files for different DP numbers land in separate jobs, DP-ordered.\"\"\"\n    jobs = build_jobs([property_report_3060, lightstone_3035_1, lightstone_3060])\n    by_dp = {job.dp: job for job in jobs}\n    assert set(by_dp) == {\"3060\", \"3035.1\"}\n    assert by_dp[\"3060\"].is_complete is True\n    # 3035.1 has only its Lightstone doc here, so it waits and flags.\n    assert by_dp[\"3035.1\"].is_complete is False",
         "detail": "tests.test_intake",
+        "documentation": {}
+    },
+    {
+        "label": "test_find_dp_agrees_or_prompts",
+        "kind": 2,
+        "importPath": "tests.test_intake",
+        "description": "tests.test_intake",
+        "peekOfCode": "def test_find_dp_agrees_or_prompts(tmp_path):\n    evm = _fake_pdf(tmp_path, \"2918 - EVM lightstone.pdf\")\n    report = _fake_pdf(tmp_path, \"2918 - property report.pdf\")\n    # All files agree on one DP -> that DP.\n    assert find_dp([evm, report]) == \"2918\"\n    # Different DPs -> None (ask the user, never guess).\n    other = _fake_pdf(tmp_path, \"3060 - EVM lightstone.pdf\")\n    assert find_dp([evm, other]) is None\n    # No DP in any name (farm portions) -> None.\n    a = _fake_pdf(tmp_path, \"PTN 6 of Farm 7 lightstone evm.pdf\")",
+        "detail": "tests.test_intake",
+        "documentation": {}
+    },
+    {
+        "label": "test_build_combined_job_keeps_every_evm_as_one_property",
+        "kind": 2,
+        "importPath": "tests.test_intake",
+        "description": "tests.test_intake",
+        "peekOfCode": "def test_build_combined_job_keeps_every_evm_as_one_property(tmp_path):\n    \"\"\"Several EVMs under one DP become ONE job holding all of them.\"\"\"\n    evm1 = _fake_pdf(tmp_path, \"2918 - EVM lightstone portion 1.pdf\")\n    evm2 = _fake_pdf(tmp_path, \"2918 - EVM lightstone portion 2.pdf\")\n    report = _fake_pdf(tmp_path, \"2918 - property report.pdf\")\n    job = build_combined_job([evm1, evm2, report])\n    assert job.dp == \"2918\"\n    assert job.lightstone_evms == [evm1, evm2]\n    assert job.property_reports == [report]\n    assert job.is_complete is True",
+        "detail": "tests.test_intake",
+        "documentation": {}
+    },
+    {
+        "label": "test_build_combined_job_without_dp_leaves_key_blank",
+        "kind": 2,
+        "importPath": "tests.test_intake",
+        "description": "tests.test_intake",
+        "peekOfCode": "def test_build_combined_job_without_dp_leaves_key_blank(tmp_path):\n    \"\"\"Farm-portion files with no DP -> job.dp is empty; the caller must prompt.\"\"\"\n    a = _fake_pdf(tmp_path, \"PTN 6 of Farm 7 lightstone evm.pdf\")\n    b = _fake_pdf(tmp_path, \"PTN 7 of Farm 7 lightstone evm.pdf\")\n    job = build_combined_job([a, b])\n    assert job.dp == \"\"\n    assert job.lightstone_evms == [a, b]\n    # Supplying the DP explicitly (the user typed it) fills the key + parentage.\n    job2 = build_combined_job([a, b], dp=\"2918.1\")\n    assert job2.dp == \"2918.1\"",
+        "detail": "tests.test_intake",
+        "documentation": {}
+    },
+    {
+        "label": "test_re_extraction_is_refused_once_gate_1_is_signed_off",
+        "kind": 2,
+        "importPath": "tests.test_jobs",
+        "description": "tests.test_jobs",
+        "peekOfCode": "def test_re_extraction_is_refused_once_gate_1_is_signed_off(tmp_path, monkeypatch):\n    \"\"\"Re-extracting a signed-off property must not rewrite its facts.\n    Extraction replaces the whole sourced layer (identity, physical, valuation\n    and the gate-1 conflict resolutions). Past gate 1 those facts underpin a\n    verification memo, a drafted advert and possibly a live listing, and the\n    state machine has no backward move to re-run the gates, so the job refuses\n    rather than leaving a sign-off that vouches for facts nobody checked.\n    \"\"\"\n    from engine.schema import Verification\n    db_path = str(tmp_path / \"engine.db\")",
+        "detail": "tests.test_jobs",
+        "documentation": {}
+    },
+    {
+        "label": "test_re_extraction_before_gate_1_keeps_photos_but_not_the_memo",
+        "kind": 2,
+        "importPath": "tests.test_jobs",
+        "description": "tests.test_jobs",
+        "peekOfCode": "def test_re_extraction_before_gate_1_keeps_photos_but_not_the_memo(tmp_path, monkeypatch):\n    \"\"\"A retry before sign-off is safe: photo picks survive, the memo does not.\"\"\"\n    from engine.schema import Verification\n    db_path = str(tmp_path / \"engine.db\")\n    dp = \"3051.1\"\n    models.init_db(db_path)\n    earlier = PropertyRecord(\n        dp=dp, parent_dp=\"3051\", status=\"extracted\",\n        identity=Identity(title_type=\"sectional\", suburb=\"Pelham North\"),\n        marketing=Marketing(hero_photo=\"photos/front.png\", gallery=[\"photos/kitchen.png\"],",
+        "detail": "tests.test_jobs",
         "documentation": {}
     },
     {
@@ -7725,6 +7866,24 @@
         "documentation": {}
     },
     {
+        "label": "test_view_model_sums_portion_extents",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_view_model_sums_portion_extents():\n    \"\"\"A multi-portion property's size is the SUM of its portions (code, D-multi).\"\"\"\n    from engine.render.base import RenderRequest\n    from engine.render.html_backend import HtmlBackend, _fmt_num\n    pub = {\n        \"physical\": {\n            \"unit_size_m2\": 185.0,  # ignored once portions are present\n            \"portions\": [\n                {\"label\": \"Portion 6\", \"size_m2\": 21000.0},\n                {\"label\": \"Portion 7\", \"size_m2\": 18500.0},",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_view_model_size_falls_back_to_unit_size_without_portions",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_view_model_size_falls_back_to_unit_size_without_portions():\n    from engine.render.base import RenderRequest\n    from engine.render.html_backend import HtmlBackend, _fmt_num\n    pub = {\"physical\": {\"unit_size_m2\": 185.0}}\n    vm = HtmlBackend()._view_model(\n        RenderRequest(dp=\"3060\", fmt=\"demo_ad\", public_record=pub)\n    )\n    assert vm[\"size_str\"] == _fmt_num(185.0)\n    assert vm[\"portions\"] == []\n# --- the DP shows as PROPERTY REF on ads (D42), never on the board tile ---",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
         "label": "test_dp_shown_on_ads_but_never_on_the_board_tile",
         "kind": 2,
         "importPath": "tests.test_render",
@@ -7775,6 +7934,24 @@
         "importPath": "tests.test_render",
         "description": "tests.test_render",
         "peekOfCode": "def test_collage_renders_auction_specifics(golden_record, tmp_path):\n    # An auction record renders the type badge, the channel/date/time line\n    # (instead of a price), and the terms strip (D42).\n    golden_record.marketing.template_set = \"collage\"\n    golden_record.sale_process.method = \"auction\"\n    golden_record.sale_process.auction_type = \"Insolvency\"\n    golden_record.sale_process.auction_channel = \"Online\"\n    golden_record.sale_process.auction_date = \"28 May 2026\"\n    golden_record.sale_process.auction_time = \"10:00\"\n    golden_record.sale_process.terms = [\"Vacant occupation cannot be guaranteed\"]",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_info_pack_sale_uses_offer_language_not_auction",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_info_pack_sale_uses_offer_language_not_auction(golden_record, tmp_path):\n    \"\"\"A normal listing (offers invited) never uses auction / bid wording.\"\"\"\n    golden_record.sale_process.method = \"offers_invited\"\n    html = _info_pack_html(golden_record, tmp_path)\n    # Offer / expression-of-interest framing (playbook 5).\n    assert \"How to proceed\" in html\n    assert \"Submit a written offer\" in html\n    assert \"Buyer information pack\" in html\n    assert \"Method of sale\" in html and \"Offers invited\" in html\n    # No auction/bidding framing on a sale pack.",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_info_pack_auction_uses_auction_language_and_details",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_info_pack_auction_uses_auction_language_and_details(golden_record, tmp_path):\n    \"\"\"An auction record frames the pack as an auction with its specifics.\"\"\"\n    golden_record.sale_process.method = \"auction\"\n    golden_record.sale_process.auction_type = \"Insolvency\"\n    golden_record.sale_process.auction_channel = \"Online\"\n    golden_record.sale_process.auction_date = \"28 May 2026\"\n    golden_record.sale_process.auction_time = \"10:00\"\n    html = _info_pack_html(golden_record, tmp_path)\n    assert \"How the auction works\" in html\n    assert \"Register to bid\" in html",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -7968,6 +8145,15 @@
         "documentation": {}
     },
     {
+        "label": "_LEGAL_DISCLAIMER",
+        "kind": 5,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "_LEGAL_DISCLAIMER = (\n    \"Whilst all reasonable care has been taken to provide accurate information, \"\n    \"neither Dynamic Solutions 1068 (Pty) LTD Trading As Dynamic Auctioneers\"\n)\ndef _info_pack_html(record, tmp_path):\n    store = _store_with(record)\n    try:\n        art = render_one(record.dp, store, \"info_pack\", backend=\"html\", output_root=str(tmp_path))\n        return Path(art.path).read_text(encoding=\"utf-8\")\n    finally:",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
         "label": "test_golden_record_validates",
         "kind": 2,
         "importPath": "tests.test_schema",
@@ -8000,6 +8186,33 @@
         "importPath": "tests.test_schema",
         "description": "tests.test_schema",
         "peekOfCode": "def test_public_view_strips_professional_valuation():\n    \"\"\"Sale-strategy figures never reach a renderer or the copy model (D32).\n    The valuer's market and forced-sale values would anchor buyers or undercut\n    the sale if they appeared in an ad, so the whole ``valuation.professional``\n    block is structurally absent from the public projection while the rest of\n    the valuation section survives.\n    \"\"\"\n    from engine.schema import ProfessionalValuation, Valuation\n    record = PropertyRecord(\n        dp=\"2035\",",
+        "detail": "tests.test_schema",
+        "documentation": {}
+    },
+    {
+        "label": "test_portions_total_m2_sums_in_code",
+        "kind": 2,
+        "importPath": "tests.test_schema",
+        "description": "tests.test_schema",
+        "peekOfCode": "def test_portions_total_m2_sums_in_code():\n    \"\"\"A multi-portion property's extent is the sum of its portions, in code.\"\"\"\n    from engine.schema import Physical, Portion, portions_total_m2\n    physical = Physical(\n        portions=[\n            Portion(label=\"Portion 6 of Farm 7\", size_m2=21000.0),\n            Portion(label=\"Portion 7 of Farm 7\", size_m2=18500.5),\n            Portion(label=\"Remainder\", size_m2=None),  # a portion with no stated size\n        ]\n    )",
+        "detail": "tests.test_schema",
+        "documentation": {}
+    },
+    {
+        "label": "test_portions_total_m2_none_without_portions",
+        "kind": 2,
+        "importPath": "tests.test_schema",
+        "description": "tests.test_schema",
+        "peekOfCode": "def test_portions_total_m2_none_without_portions():\n    \"\"\"No portions (an ordinary property) or none with a size -> None, not 0.\"\"\"\n    from engine.schema import Physical, Portion, portions_total_m2\n    assert portions_total_m2(None) is None\n    assert portions_total_m2(Physical()) is None\n    assert portions_total_m2(Physical(portions=[Portion(label=\"A\", size_m2=None)])) is None\ndef test_public_view_carries_portions():\n    \"\"\"Portions are public marketing facts and survive the projection.\"\"\"\n    from engine.schema import Physical, Portion\n    record = PropertyRecord(",
+        "detail": "tests.test_schema",
+        "documentation": {}
+    },
+    {
+        "label": "test_public_view_carries_portions",
+        "kind": 2,
+        "importPath": "tests.test_schema",
+        "description": "tests.test_schema",
+        "peekOfCode": "def test_public_view_carries_portions():\n    \"\"\"Portions are public marketing facts and survive the projection.\"\"\"\n    from engine.schema import Physical, Portion\n    record = PropertyRecord(\n        dp=\"2918.1\",\n        physical=Physical(portions=[Portion(label=\"Erf 15\", size_m2=744.0)]),\n    )\n    public = record.public_view()\n    assert public[\"physical\"][\"portions\"][0][\"label\"] == \"Erf 15\"",
         "detail": "tests.test_schema",
         "documentation": {}
     },
@@ -8364,6 +8577,51 @@
         "documentation": {}
     },
     {
+        "label": "test_mixed_dp_drop_asks_instead_of_merging_or_dead_ending",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_mixed_dp_drop_asks_instead_of_merging_or_dead_ending():\n    \"\"\"Several DP numbers in one drop must be surfaced, never silently merged.\n    It must also not hard-block: parse_dp reads any leading number, so a\n    street-numbered valuer's report or a scanner date stamp produces extra\n    candidates for a perfectly legitimate single-property drop. The screen names\n    the numbers it found and lets the marketer say which property this is.\n    \"\"\"\n    client = _client()\n    _login_admin(client)\n    files = [",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_upload_rejects_non_pdf_files_without_crashing",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_upload_rejects_non_pdf_files_without_crashing():\n    \"\"\"Photos dragged in with the reports must not reach the PDF classifier.\n    PyMuPDF opens a mislabelled image and only raises when a page is read, which\n    used to 500 the intake screen in front of the user.\n    \"\"\"\n    client = _client()\n    _login_admin(client)\n    resp = client.post(\"/intake/upload\", files=[\n        (\"files\", (\"front view.jpg\", b\"\\x89PNG-not-really-an-image\", \"image/jpeg\")),\n        (\"files\", (\"kitchen.png\", b\"not-a-png-either\", \"image/png\")),",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_finalize_finds_uppercase_pdf_files",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_finalize_finds_uppercase_pdf_files():\n    \"\"\"Staged \".PDF\" files must be found, not reported missing and destroyed.\"\"\"\n    client = _client()\n    _login_admin(client)\n    resp = client.post(\"/intake/upload\", files=[\n        (\"files\", (\"scanned lightstone EVM.PDF\", b\"%PDF-a\", \"application/pdf\")),\n        (\"files\", (\"scanned PROPERTY REPORT.PDF\", b\"%PDF-b\", \"application/pdf\")),\n    ])\n    assert \"DP number needed\" in resp.text\n    batch_id = re.search(r'name=\"batch_id\" value=\"([0-9a-f]{32})\"', resp.text).group(1)",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_upload_without_dp_prompts_then_finalizes",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_upload_without_dp_prompts_then_finalizes():\n    \"\"\"Files with no DP in their names ask the user for one, then proceed.\"\"\"\n    client = _client()\n    _login_admin(client)\n    # Farm-portion files: the names carry no DP, so classification works off the\n    # hint but ``find_dp`` returns nothing and the screen must ask for a DP.\n    files = [\n        (\"files\", (\"portion 6 lightstone evm.pdf\", b\"%PDF-a\", \"application/pdf\")),\n        (\"files\", (\"portion 6 property report.pdf\", b\"%PDF-b\", \"application/pdf\")),\n    ]",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_finalize_rejects_a_non_dp_and_re_prompts",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_finalize_rejects_a_non_dp_and_re_prompts():\n    \"\"\"A junk DP re-shows the prompt with an error rather than filing garbage.\"\"\"\n    client = _client()\n    _login_admin(client)\n    files = [\n        (\"files\", (\"portion 9 lightstone evm.pdf\", b\"%PDF-a\", \"application/pdf\")),\n        (\"files\", (\"portion 9 property report.pdf\", b\"%PDF-b\", \"application/pdf\")),\n    ]\n    resp = client.post(\"/intake/upload\", files=files)\n    batch_id = re.search(r'name=\"batch_id\" value=\"([0-9a-f]{32})\"', resp.text).group(1)",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
         "label": "test_gate2_approve_before_gate1_does_not_advance",
         "kind": 2,
         "importPath": "tests.test_webapp",
@@ -8494,7 +8752,7 @@
         "kind": 2,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "def test_poison_pii_absent_from_gate2_view_and_board():\n    _needs_golden()\n    dp = \"9006\"\n    _golden_clone(dp, poison=True)\n    client = _client()\n    _login_admin(client)\n    # Gate 2 renders the artifact gallery + the internal approval email, all from\n    # public_view(). No poison marker may appear in the response.\n    ads = client.get(f\"/gates/{dp}/ads\")\n    assert ads.status_code == 200, ads.text",
+        "peekOfCode": "def test_poison_pii_absent_from_gate2_view_and_board():\n    _needs_golden()\n    dp = \"9006\"\n    # Seed at \"drafted\" (the state where gate 2 is the next action): the ad is\n    # only rendered once the photos step is complete, so an earlier state now\n    # correctly renders nothing on a gate-2 view.\n    _golden_clone(dp, poison=True, state=\"drafted\")\n    client = _client()\n    _login_admin(client)\n    # Gate 2 renders the artifact gallery + the internal approval email, all from",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -8666,6 +8924,42 @@
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
         "peekOfCode": "def test_edit_render_failure_is_graceful(monkeypatch):\n    dp = \"7209\"\n    _seed_golden_live(dp)\n    client = _client()\n    _login_admin(client)\n    from webapp.routes import gates as gates_mod\n    def _boom(*a, **k):\n        raise RuntimeError(\"Canva quota exceeded\")\n    monkeypatch.setattr(gates_mod, \"_save_edits\", _boom)\n    resp = client.post(f\"/gates/{dp}/ads/copy\", data={\"suburb\": \"Riverbend\"})",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_photos_step_requires_at_least_one_photo",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_photos_step_requires_at_least_one_photo():\n    \"\"\"The advert is never drafted with zero photos (min-1 rule): a zero-photo\n    continue bounces back to the step; once a photo exists it drafts.\"\"\"\n    dp = \"9401\"\n    _needs_golden()\n    record = PropertyRecord.model_validate_json(GOLDEN_RECORD.read_text(encoding=\"utf-8\"))\n    record.dp = dp\n    record.marketing.hero_photo = None\n    record.marketing.gallery = []\n    store = RecordStore(DB_PATH)",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_zero_photo_continue_explains_itself",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_zero_photo_continue_explains_itself():\n    \"\"\"The refusal must say why: a silent reload reads as a broken button.\"\"\"\n    dp = \"9403\"\n    _needs_golden()\n    record = PropertyRecord.model_validate_json(GOLDEN_RECORD.read_text(encoding=\"utf-8\"))\n    record.dp = dp\n    record.marketing.hero_photo = None\n    record.marketing.gallery = []\n    store = RecordStore(DB_PATH)\n    try:",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_last_photo_cannot_be_removed",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_last_photo_cannot_be_removed():\n    \"\"\"The min-1 rule holds after drafting too: Remove must not empty the ad.\"\"\"\n    dp = \"9404\"\n    _seed_live_no_photos(dp)\n    client = _client()\n    _login_admin(client)\n    client.post(f\"/gates/{dp}/ads/photos/upload\",\n                files=[(\"files\", (\"only.png\", _PNG_1X1, \"image/png\"))])\n    resp = client.post(f\"/gates/{dp}/ads/photos/delete\", data={\"name\": \"only.png\"})\n    assert resp.status_code == 200",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_photo_upload_capped_at_max_total",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_photo_upload_capped_at_max_total():\n    \"\"\"No more than the per-property maximum is accepted, however many are sent.\"\"\"\n    from webapp.routes.gates import _MAX_PHOTOS_TOTAL, _photo_list\n    dp = \"9402\"\n    _seed_live_no_photos(dp)  # starts with zero photos\n    client = _client()\n    _login_admin(client)\n    files = [(\"files\", (f\"p{i}.png\", _png_of(1200, 1000), \"image/png\")) for i in range(_MAX_PHOTOS_TOTAL + 3)]\n    client.post(f\"/gates/{dp}/ads/photos/upload\", files=files)\n    store = RecordStore(DB_PATH)",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -9268,7 +9562,16 @@
         "kind": 2,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "def gate_photos_continue(dp: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"Leave the photos step: make sure the ad is rendered, then advance to gate\n    2. Both \"Continue to ad review\" and \"Skip for now\" post here (skip just means\n    no photos were added).\"\"\"\n    db_path = _db(request)\n    _render(db_path, dp)\n    _advance(db_path, dp, \"drafted\", note=f\"photos step completed by {user['email']}\")\n    target = f\"/gates/{dp}/ads\"\n    if request.headers.get(\"HX-Request\"):\n        return Response(status_code=204, headers={\"HX-Redirect\": target})",
+        "peekOfCode": "def gate_photos_continue(dp: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"Leave the photos step: render the ad ONCE (now that photos exist) and\n    advance to gate 2.\n    At least one photo is required (the min-1 rule): a zero-photo continue is\n    refused and bounces back to the photos step, so the advert is never built\n    without a photo and then re-rendered. The marketer either uploads a photo or\n    uses the \"pull from source documents\" fallback first.\"\"\"\n    db_path = _db(request)\n    # The photos step only belongs before the first draft. Reaching this URL on an\n    # already-drafted or live listing (back button, bookmark) must not re-render",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "gate_photos_from_source",
+        "kind": 2,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "def gate_photos_from_source(dp: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"No-photo fallback: pull property images straight from the source PDFs.\n    The Property Report (and EVM) usually embed real photos of the property; when\n    the marketer has none of their own, this extracts those images at source\n    quality (``engine.photos``), keeps the best few by area, and adds them to the\n    record. Truthful (the images come from the property's own documents) and\n    needs no external service. If the documents carry no usable image, the panel\n    just reports that and the marketer must upload one.\"\"\"\n    from engine.photos import extract_photos, rank_photos\n    db_path = _db(request)",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -9403,7 +9706,16 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_AD_ONLY_STATES = frozenset({\"extracted\", \"flags_raised\", \"verified\", \"photos\", \"drafted\"})\nAD_FORMAT = \"demo_ad\"\ndef _formats_for_state(state: Optional[str]) -> Optional[List[str]]:\n    \"\"\"Which formats to render in ``state``: the ad only before approval, the\n    full set (None) once approved (D39).\"\"\"\n    return [AD_FORMAT] if state in _AD_ONLY_STATES else None\ndef _render(db_path: str, dp: str, formats: Any = \"auto\") -> List[Any]:\n    \"\"\"Render the artifacts for ``dp`` from public_view. Never raises upward.\n    ``formats=\"auto\"`` (default) picks the set from the current lifecycle state\n    (ad-only before approval, full after, D39); pass an explicit list/None to",
+        "peekOfCode": "_AD_ONLY_STATES = frozenset({\"extracted\", \"flags_raised\", \"verified\", \"photos\", \"drafted\"})\n# States BEFORE the photos step is finished: the advert is not rendered yet, so a\n# stray gallery/artifacts view must not lazily build a no-photo ad (D-log: photos\n# are mandatory before the first render, to avoid re-rendering and wasted tokens).\n_PRE_DRAFT_STATES = frozenset({\"intake\", \"extracted\", \"flags_raised\", \"verified\", \"photos\"})\nAD_FORMAT = \"demo_ad\"\ndef _formats_for_state(state: Optional[str]) -> Optional[List[str]]:\n    \"\"\"Which formats to render in ``state``: the ad only before approval, the\n    full set (None) once approved (D39).\"\"\"\n    return [AD_FORMAT] if state in _AD_ONLY_STATES else None",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_PRE_DRAFT_STATES",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "_PRE_DRAFT_STATES = frozenset({\"intake\", \"extracted\", \"flags_raised\", \"verified\", \"photos\"})\nAD_FORMAT = \"demo_ad\"\ndef _formats_for_state(state: Optional[str]) -> Optional[List[str]]:\n    \"\"\"Which formats to render in ``state``: the ad only before approval, the\n    full set (None) once approved (D39).\"\"\"\n    return [AD_FORMAT] if state in _AD_ONLY_STATES else None\ndef _render(db_path: str, dp: str, formats: Any = \"auto\") -> List[Any]:\n    \"\"\"Render the artifacts for ``dp`` from public_view. Never raises upward.\n    ``formats=\"auto\"`` (default) picks the set from the current lifecycle state\n    (ad-only before approval, full after, D39); pass an explicit list/None to",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -9421,7 +9733,7 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_IMAGE_MIME = {\n    \".jpg\": \"image/jpeg\", \".jpeg\": \"image/jpeg\", \".png\": \"image/png\",\n    \".webp\": \"image/webp\", \".gif\": \"image/gif\",\n}\n_CTYPE_EXT = {\"image/jpeg\": \".jpg\", \"image/png\": \".png\", \"image/webp\": \".webp\", \"image/gif\": \".gif\"}\n_MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image\n_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\n# A photo is flagged low-res (a non-blocking warning) when its shorter side is\n# under this. Social feeds render around 1080px wide, so smaller images upscale\n# and look soft. The photos extracted from a Property Report PDF are often tiny",
+        "peekOfCode": "_IMAGE_MIME = {\n    \".jpg\": \"image/jpeg\", \".jpeg\": \"image/jpeg\", \".png\": \"image/png\",\n    \".webp\": \"image/webp\", \".gif\": \"image/gif\",\n}\n_CTYPE_EXT = {\"image/jpeg\": \".jpg\", \"image/png\": \".png\", \"image/webp\": \".webp\", \"image/gif\": \".gif\"}\n_MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image\n_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\n# The most photos a property may carry. An advert uses one lead photo plus up to\n# six more (2 stacked + 4 gallery = 7 used); 8 leaves a small buffer and keeps\n# the panel tidy. Uploads past this are rejected with a clear message.",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -9430,7 +9742,7 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_CTYPE_EXT = {\"image/jpeg\": \".jpg\", \"image/png\": \".png\", \"image/webp\": \".webp\", \"image/gif\": \".gif\"}\n_MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image\n_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\n# A photo is flagged low-res (a non-blocking warning) when its shorter side is\n# under this. Social feeds render around 1080px wide, so smaller images upscale\n# and look soft. The photos extracted from a Property Report PDF are often tiny\n# thumbnails (DP3060: ~276x207), which is exactly what this warns about.\n_MIN_PHOTO_PX = 1080\ndef _image_dimensions(path: Path) -> Optional[Tuple[int, int]]:\n    \"\"\"Return (width, height) of an image file, or None if it cannot be read.",
+        "peekOfCode": "_CTYPE_EXT = {\"image/jpeg\": \".jpg\", \"image/png\": \".png\", \"image/webp\": \".webp\", \"image/gif\": \".gif\"}\n_MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image\n_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\n# The most photos a property may carry. An advert uses one lead photo plus up to\n# six more (2 stacked + 4 gallery = 7 used); 8 leaves a small buffer and keeps\n# the panel tidy. Uploads past this are rejected with a clear message.\n_MAX_PHOTOS_TOTAL = 8\n# A photo is flagged low-res (a non-blocking warning) when its shorter side is\n# under this. Social feeds render around 1080px wide, so smaller images upscale\n# and look soft. The photos extracted from a Property Report PDF are often tiny",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -9439,7 +9751,7 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image\n_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\n# A photo is flagged low-res (a non-blocking warning) when its shorter side is\n# under this. Social feeds render around 1080px wide, so smaller images upscale\n# and look soft. The photos extracted from a Property Report PDF are often tiny\n# thumbnails (DP3060: ~276x207), which is exactly what this warns about.\n_MIN_PHOTO_PX = 1080\ndef _image_dimensions(path: Path) -> Optional[Tuple[int, int]]:\n    \"\"\"Return (width, height) of an image file, or None if it cannot be read.\n    Uses Pillow's lazy header read (no full decode). Any failure (missing file,",
+        "peekOfCode": "_MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image\n_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\n# The most photos a property may carry. An advert uses one lead photo plus up to\n# six more (2 stacked + 4 gallery = 7 used); 8 leaves a small buffer and keeps\n# the panel tidy. Uploads past this are rejected with a clear message.\n_MAX_PHOTOS_TOTAL = 8\n# A photo is flagged low-res (a non-blocking warning) when its shorter side is\n# under this. Social feeds render around 1080px wide, so smaller images upscale\n# and look soft. The photos extracted from a Property Report PDF are often tiny\n# thumbnails (DP3060: ~276x207), which is exactly what this warns about.",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -9448,7 +9760,16 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\n# A photo is flagged low-res (a non-blocking warning) when its shorter side is\n# under this. Social feeds render around 1080px wide, so smaller images upscale\n# and look soft. The photos extracted from a Property Report PDF are often tiny\n# thumbnails (DP3060: ~276x207), which is exactly what this warns about.\n_MIN_PHOTO_PX = 1080\ndef _image_dimensions(path: Path) -> Optional[Tuple[int, int]]:\n    \"\"\"Return (width, height) of an image file, or None if it cannot be read.\n    Uses Pillow's lazy header read (no full decode). Any failure (missing file,\n    unreadable/corrupt image) returns None so the caller simply shows no warning",
+        "peekOfCode": "_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\n# The most photos a property may carry. An advert uses one lead photo plus up to\n# six more (2 stacked + 4 gallery = 7 used); 8 leaves a small buffer and keeps\n# the panel tidy. Uploads past this are rejected with a clear message.\n_MAX_PHOTOS_TOTAL = 8\n# A photo is flagged low-res (a non-blocking warning) when its shorter side is\n# under this. Social feeds render around 1080px wide, so smaller images upscale\n# and look soft. The photos extracted from a Property Report PDF are often tiny\n# thumbnails (DP3060: ~276x207), which is exactly what this warns about.\n_MIN_PHOTO_PX = 1080",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_MAX_PHOTOS_TOTAL",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "_MAX_PHOTOS_TOTAL = 8\n# A photo is flagged low-res (a non-blocking warning) when its shorter side is\n# under this. Social feeds render around 1080px wide, so smaller images upscale\n# and look soft. The photos extracted from a Property Report PDF are often tiny\n# thumbnails (DP3060: ~276x207), which is exactly what this warns about.\n_MIN_PHOTO_PX = 1080\ndef _image_dimensions(path: Path) -> Optional[Tuple[int, int]]:\n    \"\"\"Return (width, height) of an image file, or None if it cannot be read.\n    Uses Pillow's lazy header read (no full decode). Any failure (missing file,\n    unreadable/corrupt image) returns None so the caller simply shows no warning",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -9511,7 +9832,7 @@
         "kind": 5,
         "importPath": "webapp.routes.intake",
         "description": "webapp.routes.intake",
-        "peekOfCode": "router = APIRouter(prefix=\"/intake\")\n# Job states the worker uses that mean \"still working\" (keep polling).\n_ACTIVE = {\"queued\", \"running\"}\ndef _view(request: Request, name: str, ctx: Optional[dict] = None, status_code: int = 200):\n    templates = request.app.state.templates\n    data: Dict[str, Any] = {\"user\": auth.current_user(request)}\n    if ctx:\n        data.update(ctx)\n    return templates.TemplateResponse(request, name, data, status_code=status_code)\ndef _output_root(db_path: str) -> str:",
+        "peekOfCode": "router = APIRouter(prefix=\"/intake\")\n# Job states the worker uses that mean \"still working\" (keep polling).\n_ACTIVE = {\"queued\", \"running\"}\n# A DP typed by a human: digits, optional \".<lot>\", an optional \"DP\" prefix.\n_DP_INPUT_RE = re.compile(r\"^\\s*(?:DP)?\\s*(\\d+(?:\\.\\d+)?)\\s*$\", re.IGNORECASE)\n# A batch id is our own uuid4 hex; validate before using it as a path segment.\n_BATCH_RE = re.compile(r\"^[0-9a-f]{32}$\")\ndef _normalize_dp_input(raw: str) -> Optional[str]:\n    \"\"\"A human-typed DP -> canonical ``3060`` / ``3035.1``, or None if unusable.\"\"\"\n    match = _DP_INPUT_RE.match(raw or \"\")",
         "detail": "webapp.routes.intake",
         "documentation": {}
     },
@@ -9520,7 +9841,34 @@
         "kind": 5,
         "importPath": "webapp.routes.intake",
         "description": "webapp.routes.intake",
-        "peekOfCode": "_ACTIVE = {\"queued\", \"running\"}\ndef _view(request: Request, name: str, ctx: Optional[dict] = None, status_code: int = 200):\n    templates = request.app.state.templates\n    data: Dict[str, Any] = {\"user\": auth.current_user(request)}\n    if ctx:\n        data.update(ctx)\n    return templates.TemplateResponse(request, name, data, status_code=status_code)\ndef _output_root(db_path: str) -> str:\n    return models.get_setting(db_path, \"output_root\") or \".\"\n# The progress bar is elapsed-driven: extraction has no mid-run signal, so the",
+        "peekOfCode": "_ACTIVE = {\"queued\", \"running\"}\n# A DP typed by a human: digits, optional \".<lot>\", an optional \"DP\" prefix.\n_DP_INPUT_RE = re.compile(r\"^\\s*(?:DP)?\\s*(\\d+(?:\\.\\d+)?)\\s*$\", re.IGNORECASE)\n# A batch id is our own uuid4 hex; validate before using it as a path segment.\n_BATCH_RE = re.compile(r\"^[0-9a-f]{32}$\")\ndef _normalize_dp_input(raw: str) -> Optional[str]:\n    \"\"\"A human-typed DP -> canonical ``3060`` / ``3035.1``, or None if unusable.\"\"\"\n    match = _DP_INPUT_RE.match(raw or \"\")\n    return match.group(1) if match else None\ndef _tray_dir(output_root: str, batch_id: str) -> Optional[Path]:",
+        "detail": "webapp.routes.intake",
+        "documentation": {}
+    },
+    {
+        "label": "_DP_INPUT_RE",
+        "kind": 5,
+        "importPath": "webapp.routes.intake",
+        "description": "webapp.routes.intake",
+        "peekOfCode": "_DP_INPUT_RE = re.compile(r\"^\\s*(?:DP)?\\s*(\\d+(?:\\.\\d+)?)\\s*$\", re.IGNORECASE)\n# A batch id is our own uuid4 hex; validate before using it as a path segment.\n_BATCH_RE = re.compile(r\"^[0-9a-f]{32}$\")\ndef _normalize_dp_input(raw: str) -> Optional[str]:\n    \"\"\"A human-typed DP -> canonical ``3060`` / ``3035.1``, or None if unusable.\"\"\"\n    match = _DP_INPUT_RE.match(raw or \"\")\n    return match.group(1) if match else None\ndef _tray_dir(output_root: str, batch_id: str) -> Optional[Path]:\n    \"\"\"The staged-uploads folder for ``batch_id``, or None if the id is malformed.\"\"\"\n    if not _BATCH_RE.match(batch_id or \"\"):",
+        "detail": "webapp.routes.intake",
+        "documentation": {}
+    },
+    {
+        "label": "_BATCH_RE",
+        "kind": 5,
+        "importPath": "webapp.routes.intake",
+        "description": "webapp.routes.intake",
+        "peekOfCode": "_BATCH_RE = re.compile(r\"^[0-9a-f]{32}$\")\ndef _normalize_dp_input(raw: str) -> Optional[str]:\n    \"\"\"A human-typed DP -> canonical ``3060`` / ``3035.1``, or None if unusable.\"\"\"\n    match = _DP_INPUT_RE.match(raw or \"\")\n    return match.group(1) if match else None\ndef _tray_dir(output_root: str, batch_id: str) -> Optional[Path]:\n    \"\"\"The staged-uploads folder for ``batch_id``, or None if the id is malformed.\"\"\"\n    if not _BATCH_RE.match(batch_id or \"\"):\n        return None\n    return Path(output_root) / \"_intake_tray\" / batch_id",
+        "detail": "webapp.routes.intake",
+        "documentation": {}
+    },
+    {
+        "label": "_TRAY_TTL_SECONDS",
+        "kind": 5,
+        "importPath": "webapp.routes.intake",
+        "description": "webapp.routes.intake",
+        "peekOfCode": "_TRAY_TTL_SECONDS = 24 * 60 * 60\ndef _sweep_stale_trays(output_root: str) -> None:\n    \"\"\"Delete staged batches older than the TTL. Never raises (best effort).\"\"\"\n    tray = Path(output_root) / \"_intake_tray\"\n    if not tray.is_dir():\n        return\n    cutoff = time.time() - _TRAY_TTL_SECONDS\n    for child in tray.iterdir():\n        try:\n            if child.is_dir() and child.stat().st_mtime < cutoff:",
         "detail": "webapp.routes.intake",
         "documentation": {}
     },
@@ -9817,7 +10165,16 @@
         "kind": 5,
         "importPath": "webapp.jobs",
         "description": "webapp.jobs",
-        "peekOfCode": "JOB_KINDS = (\"extract\", \"verify\", \"render\", \"post\")\n_POLL_INTERVAL = 0.25  # seconds between queue polls when idle\n# --- enqueue --------------------------------------------------------------\ndef enqueue(\n    db_path: Optional[str],\n    kind: str,\n    dp: Optional[str],\n    payload: Optional[dict] = None,\n) -> int:\n    \"\"\"Queue a job of ``kind`` for ``dp`` and return its id.",
+        "peekOfCode": "JOB_KINDS = (\"extract\", \"verify\", \"render\", \"post\")\n# Lifecycle states in which re-running extraction over an EXISTING record is\n# safe: nothing has been signed off, drafted or published yet, so rewriting the\n# sourced facts cannot contradict a human decision. Past these, _handle_extract\n# refuses (see the comment there).\n_RE_EXTRACT_STATES = frozenset({\"intake\", \"extracted\", \"flags_raised\"})\n_POLL_INTERVAL = 0.25  # seconds between queue polls when idle\n# --- enqueue --------------------------------------------------------------\ndef enqueue(\n    db_path: Optional[str],",
+        "detail": "webapp.jobs",
+        "documentation": {}
+    },
+    {
+        "label": "_RE_EXTRACT_STATES",
+        "kind": 5,
+        "importPath": "webapp.jobs",
+        "description": "webapp.jobs",
+        "peekOfCode": "_RE_EXTRACT_STATES = frozenset({\"intake\", \"extracted\", \"flags_raised\"})\n_POLL_INTERVAL = 0.25  # seconds between queue polls when idle\n# --- enqueue --------------------------------------------------------------\ndef enqueue(\n    db_path: Optional[str],\n    kind: str,\n    dp: Optional[str],\n    payload: Optional[dict] = None,\n) -> int:\n    \"\"\"Queue a job of ``kind`` for ``dp`` and return its id.",
         "detail": "webapp.jobs",
         "documentation": {}
     },
