@@ -755,6 +755,23 @@ form.htmx-request button[type="submit"] .spinner { display: inline-block; }
   -webkit-mask-image: linear-gradient(180deg, #000 78%, transparent 100%);
   mask-image: linear-gradient(180deg, #000 78%, transparent 100%);
 }
+/* Live scaled preview of an html artifact (the advert). The iframe is laid out
+   at the design's TRUE pixel size (e.g. 1080x1350) and scaled down to the
+   container by JS, so the whole design is visible and stays vector-crisp -
+   rather than showing the top-left corner of a full-size page clipped to a
+   short box, which is what a plain height-limited iframe does. */
+.adframe {
+  position: relative; width: 100%; overflow: hidden; background: #fff;
+  border-bottom: 1px solid var(--hairline);
+}
+.adframe iframe {
+  position: absolute; top: 0; left: 0; border: 0; display: block;
+  transform-origin: top left; pointer-events: none;
+}
+/* Gate 2 reviews one advert at a time, so give it room: a single tile spans the
+   panel instead of sitting in a 200px grid cell. */
+.gallery-grid--review { grid-template-columns: 1fr; }
+
 .tile__body { padding: 11px 13px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .tile__cap {
   font-size: 10.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text-strong);

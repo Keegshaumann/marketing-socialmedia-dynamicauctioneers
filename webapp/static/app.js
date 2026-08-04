@@ -396,7 +396,42 @@
     });
   }
 
-  function init(root) { wireDropzones(root); armToasts(root); wireSweeps(root); wireEmailAd(root); wireAdtpl(root); wireAuctionPanel(root); wirePhotoPicker(root); }
+  // ---- Scaled advert preview --------------------------------------------
+  // An advert is a fixed 1080x1350 page. Dropped into a short iframe you see its
+  // top-left corner and nothing else, so the marketer had to open every render
+  // in a new tab to judge a change. Lay the iframe out at true size and scale it
+  // down to the container, keeping the whole design visible and crisp.
+  function fitPreview(box) {
+    var frame = box.querySelector('iframe');
+    if (!frame) return;
+    var w = parseFloat(box.getAttribute('data-w')) || 1080;
+    var h = parseFloat(box.getAttribute('data-h')) || 1350;
+    var avail = box.clientWidth;
+    if (!avail) return;                       // hidden or not laid out yet
+    var scale = avail / w;
+    frame.style.transform = 'scale(' + scale + ')';
+    box.style.height = Math.round(h * scale) + 'px';
+  }
+
+  function wirePreviewScale(root) {
+    (root || document).querySelectorAll('[data-adframe]').forEach(function (box) {
+      fitPreview(box);
+      if (box.__fit) return;
+      box.__fit = true;
+      // Re-fit when the column width changes (window resize, panel reflow).
+      if (window.ResizeObserver) {
+        new ResizeObserver(function () { fitPreview(box); }).observe(box);
+      } else {
+        window.addEventListener('resize', function () { fitPreview(box); });
+      }
+      // The iframe reports its own load; re-fit then too, in case the design
+      // swapped to a different canvas size.
+      var frame = box.querySelector('iframe');
+      if (frame) frame.addEventListener('load', function () { fitPreview(box); });
+    });
+  }
+
+  function init(root) { wireDropzones(root); armToasts(root); wireSweeps(root); wireEmailAd(root); wireAdtpl(root); wireAuctionPanel(root); wirePhotoPicker(root); wirePreviewScale(root); }
 
   // A plain (non-HTMX) form submit does a full-page nav; swap the submit
   // button's label for its spinner so the click has immediate feedback. HTMX

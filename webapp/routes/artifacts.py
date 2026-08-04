@@ -123,10 +123,10 @@ def _text_preview(path: Optional[Path], lines: int = 10, limit: int = 900) -> st
         return ""
     try:
         with path.open("r", encoding="utf-8", errors="replace") as handle:
-            head = [next(handle, "") for _ in range(lines)]
+            head = handle.read(4000)  # bounded: never pull a whole file into the page
     except OSError:
         return ""
-    return "".join(head).strip()[:limit]
+    return "\n".join(head.splitlines()[:lines]).strip()[:limit]
 
 
 def _artifact_view(db_path: str, dp: str) -> List[Dict[str, Any]]:
