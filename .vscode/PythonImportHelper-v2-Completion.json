@@ -432,6 +432,14 @@
         "documentation": {}
     },
     {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
         "label": "json",
         "kind": 6,
         "isExtraImport": true,
@@ -614,6 +622,14 @@
     },
     {
         "label": "PurePosixPath",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
         "importPath": "pathlib",
         "description": "pathlib",
         "isExtraImport": true,
@@ -1078,6 +1094,30 @@
     },
     {
         "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Any",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Iterable",
         "importPath": "typing",
         "description": "typing",
         "isExtraImport": true,
@@ -4962,15 +5002,6 @@
         "documentation": {}
     },
     {
-        "label": "cached",
-        "kind": 2,
-        "importPath": "engine.render.artifact_thumbs",
-        "description": "engine.render.artifact_thumbs",
-        "peekOfCode": "def cached(artifacts_dir, name: str, source) -> Optional[Path]:\n    \"\"\"Return an already-generated, still-current thumbnail, or None.\n    Cheap: pure stat calls, no rendering. Used by the page so it can decide\n    whether a tile has a preview without ever blocking on a rasteriser.\n    \"\"\"\n    source = Path(source)\n    _cache, out, _fail = _paths(artifacts_dir, name)\n    return out if _fresh(out, source) else None\ndef possible(artifacts_dir, name: str, source, mime: str = \"\") -> bool:\n    \"\"\"True when a tile can show a thumbnail: one is cached, or one can be made.",
-        "detail": "engine.render.artifact_thumbs",
-        "documentation": {}
-    },
-    {
         "label": "possible",
         "kind": 2,
         "importPath": "engine.render.artifact_thumbs",
@@ -5313,6 +5344,15 @@
         "documentation": {}
     },
     {
+        "label": "_FORBIDDEN_PHRASE",
+        "kind": 5,
+        "importPath": "engine.render.copy",
+        "description": "engine.render.copy",
+        "peekOfCode": "_FORBIDDEN_PHRASE = re.compile(\n    r\"\\s*[.|;-]?\\s*municipal\\s+valuation[^.|]*[.|]?\", re.IGNORECASE\n)\ndef _scrub_forbidden(bundle: dict) -> dict:\n    \"\"\"Remove any municipal-valuation mention from every string in the bundle.\"\"\"\n    for key, value in list(bundle.items()):\n        if isinstance(value, str) and \"municipal\" in value.lower():\n            cleaned = _FORBIDDEN_PHRASE.sub(\"\", value).strip(\" .|;-\")\n            bundle[key] = cleaned or None\n    return bundle",
+        "detail": "engine.render.copy",
+        "documentation": {}
+    },
+    {
         "label": "HEADLINE_SYSTEM_PROMPT",
         "kind": 5,
         "importPath": "engine.render.copy",
@@ -5327,6 +5367,15 @@
         "importPath": "engine.render.html_backend",
         "description": "engine.render.html_backend",
         "peekOfCode": "class HtmlBackend(RenderBackend):\n    \"\"\"Render each format from bundled Jinja2 templates. Always available.\"\"\"\n    name = \"html\"\n    def __init__(self) -> None:\n        self._env = Environment(\n            loader=FileSystemLoader(str(_TEMPLATE_DIR)),\n            autoescape=_should_autoescape,\n            trim_blocks=True,\n            lstrip_blocks=True,\n            keep_trailing_newline=True,",
+        "detail": "engine.render.html_backend",
+        "documentation": {}
+    },
+    {
+        "label": "_PDF_FORMATS",
+        "kind": 5,
+        "importPath": "engine.render.html_backend",
+        "description": "engine.render.html_backend",
+        "peekOfCode": "_PDF_FORMATS = frozenset({\"info_pack\"})\ndef _pdf_export_enabled() -> bool:\n    \"\"\"Whether to print the PDF formats. On by default; ``ENGINE_PDF_EXPORT=0``\n    turns it off.\n    Each PDF costs a Chromium launch (~2-3s). That is fine once per approval in\n    production, but the test suite renders the pack in dozens of tests and went\n    from 33s to nearly nine minutes, so the suite disables it and a couple of\n    dedicated tests turn it back on to cover the real export.\n    \"\"\"\n    return (os.getenv(\"ENGINE_PDF_EXPORT\") or \"1\").strip() != \"0\"",
         "detail": "engine.render.html_backend",
         "documentation": {}
     },
@@ -5376,6 +5425,15 @@
         "documentation": {}
     },
     {
+        "label": "html_to_pdf",
+        "kind": 2,
+        "importPath": "engine.render.rasterize",
+        "description": "engine.render.rasterize",
+        "peekOfCode": "def html_to_pdf(html_path, pdf_path, timeout_ms: int = 60000) -> Path:\n    \"\"\"Print a local HTML document to a real A4 PDF and return its path.\n    For the buyer information pack, which is a multi-page DOCUMENT rather than a\n    fixed-canvas ad: a buyer is emailed a PDF, not a web page. Chromium's own\n    print pipeline is used, so the template's ``@media print`` rules apply and\n    backgrounds are kept (``print_background``), which the pack's ivory paper and\n    gold rules depend on.\n    Raises ``RasterizeUnavailable`` when Playwright/Chromium is missing, so the\n    caller can fall back to serving the HTML rather than failing the render.\n    \"\"\"",
+        "detail": "engine.render.rasterize",
+        "documentation": {}
+    },
+    {
         "label": "_AD_SELECTOR",
         "kind": 5,
         "importPath": "engine.render.rasterize",
@@ -5416,7 +5474,7 @@
         "kind": 2,
         "importPath": "engine.render.service",
         "description": "engine.render.service",
-        "peekOfCode": "def copy_cache_key(record: PropertyRecord) -> str:\n    \"\"\"Fingerprint the public facts the copy is written from.\n    Deliberately excludes ``marketing`` (headline/price edits, photo picks and\n    the design choice) and the photo set: none of those change what the model\n    would write, and they are exactly the things a marketer changes repeatedly\n    on gate 2. Two records with the same fingerprint can share generated copy.\n    \"\"\"\n    pub = record.public_view()\n    facts = {k: pub.get(k) for k in (\"identity\", \"physical\", \"sale_process\", \"valuation\")}\n    blob = json.dumps(facts, sort_keys=True, default=str)",
+        "peekOfCode": "def copy_cache_key(record: PropertyRecord) -> str:\n    \"\"\"Fingerprint the SOURCED facts the copy was written from.\n    Deliberately excludes ``marketing`` (headline/price edits, photo picks and\n    the design choice), the photo set, and ``human_overrides`` - which is why it\n    reads the raw record rather than ``public_view()``. A marketer correcting a\n    suburb or an address on gate 2 is authoring the advert herself; asking the\n    model to rewrite the copy underneath her would cost twenty seconds and a\n    request, and would fight her edit. Only a change to the sourced layer (a\n    re-extraction) invalidates the cache.\n    \"\"\"",
         "detail": "engine.render.service",
         "documentation": {}
     },
@@ -5535,6 +5593,69 @@
         "description": "engine.watch.graph",
         "peekOfCode": "def poll_once() -> List[ChangedItem]:\n    \"\"\"Module-level convenience: build a watcher from env and poll once.\n    Returns ``[]`` until the MS_GRAPH_* app registration exists (Q12). Safe to\n    call on a schedule: it performs no network I/O, never raises, never hangs.\n    \"\"\"\n    return GraphWatcher.from_env().poll_once()",
         "detail": "engine.watch.graph",
+        "documentation": {}
+    },
+    {
+        "label": "enabled",
+        "kind": 2,
+        "importPath": "engine.aicache",
+        "description": "engine.aicache",
+        "peekOfCode": "def enabled() -> bool:\n    \"\"\"Whether caching is on. ``ENGINE_AI_CACHE=0`` turns it off.\"\"\"\n    return (os.getenv(\"ENGINE_AI_CACHE\") or \"1\").strip() != \"0\"\ndef cache_dir(output_root: Optional[str] = None) -> Path:\n    \"\"\"Where entries live: ``<output_root>/.ai-cache``.\n    Deliberately OUTSIDE the per-property ``DP<dp>/`` folder, so deleting a\n    property from the board (which removes that folder) does not throw away the\n    cached extraction - deleting and re-intaking is the exact case this exists\n    to make free.\n    \"\"\"",
+        "detail": "engine.aicache",
+        "documentation": {}
+    },
+    {
+        "label": "cache_dir",
+        "kind": 2,
+        "importPath": "engine.aicache",
+        "description": "engine.aicache",
+        "peekOfCode": "def cache_dir(output_root: Optional[str] = None) -> Path:\n    \"\"\"Where entries live: ``<output_root>/.ai-cache``.\n    Deliberately OUTSIDE the per-property ``DP<dp>/`` folder, so deleting a\n    property from the board (which removes that folder) does not throw away the\n    cached extraction - deleting and re-intaking is the exact case this exists\n    to make free.\n    \"\"\"\n    return Path(output_root or \".\") / _DIR_NAME\ndef file_digest(paths: Iterable) -> str:\n    \"\"\"Hash the CONTENT of the given files, order-independent.",
+        "detail": "engine.aicache",
+        "documentation": {}
+    },
+    {
+        "label": "file_digest",
+        "kind": 2,
+        "importPath": "engine.aicache",
+        "description": "engine.aicache",
+        "peekOfCode": "def file_digest(paths: Iterable) -> str:\n    \"\"\"Hash the CONTENT of the given files, order-independent.\n    Content, not path or mtime: the intake flow copies uploads into a new\n    per-property folder, so the same document arrives under a different path\n    every time and a path-based key would never hit.\n    \"\"\"\n    digests = []\n    for p in paths:\n        try:\n            digests.append(hashlib.sha256(Path(p).read_bytes()).hexdigest())",
+        "detail": "engine.aicache",
+        "documentation": {}
+    },
+    {
+        "label": "key",
+        "kind": 2,
+        "importPath": "engine.aicache",
+        "description": "engine.aicache",
+        "peekOfCode": "def key(kind: str, version: str, *parts: str) -> str:\n    \"\"\"Build a cache key from the call kind, a prompt/model version and inputs.\"\"\"\n    blob = \"\\x1f\".join([kind, version, *parts])\n    return hashlib.sha256(blob.encode(\"utf-8\")).hexdigest()[:40]\ndef load(kind: str, cache_key: str, output_root: Optional[str] = None) -> Optional[Any]:\n    \"\"\"Return the cached JSON value, or ``None`` on miss/disabled/unreadable.\"\"\"\n    if not enabled():\n        return None\n    path = cache_dir(output_root) / kind / f\"{cache_key}.json\"\n    try:",
+        "detail": "engine.aicache",
+        "documentation": {}
+    },
+    {
+        "label": "load",
+        "kind": 2,
+        "importPath": "engine.aicache",
+        "description": "engine.aicache",
+        "peekOfCode": "def load(kind: str, cache_key: str, output_root: Optional[str] = None) -> Optional[Any]:\n    \"\"\"Return the cached JSON value, or ``None`` on miss/disabled/unreadable.\"\"\"\n    if not enabled():\n        return None\n    path = cache_dir(output_root) / kind / f\"{cache_key}.json\"\n    try:\n        return json.loads(path.read_text(encoding=\"utf-8\"))\n    except (OSError, ValueError):\n        return None\ndef save(kind: str, cache_key: str, value: Any, output_root: Optional[str] = None) -> None:",
+        "detail": "engine.aicache",
+        "documentation": {}
+    },
+    {
+        "label": "save",
+        "kind": 2,
+        "importPath": "engine.aicache",
+        "description": "engine.aicache",
+        "peekOfCode": "def save(kind: str, cache_key: str, value: Any, output_root: Optional[str] = None) -> None:\n    \"\"\"Store a JSON-serialisable value. Never raises: caching is best effort.\"\"\"\n    if not enabled():\n        return\n    path = cache_dir(output_root) / kind / f\"{cache_key}.json\"\n    try:\n        path.parent.mkdir(parents=True, exist_ok=True)\n        # Write via a temp file so a crash mid-write cannot leave a truncated\n        # entry that would later be served as a valid result.\n        tmp = path.with_suffix(\".tmp\")",
+        "detail": "engine.aicache",
+        "documentation": {}
+    },
+    {
+        "label": "_DIR_NAME",
+        "kind": 5,
+        "importPath": "engine.aicache",
+        "description": "engine.aicache",
+        "peekOfCode": "_DIR_NAME = \".ai-cache\"\ndef enabled() -> bool:\n    \"\"\"Whether caching is on. ``ENGINE_AI_CACHE=0`` turns it off.\"\"\"\n    return (os.getenv(\"ENGINE_AI_CACHE\") or \"1\").strip() != \"0\"\ndef cache_dir(output_root: Optional[str] = None) -> Path:\n    \"\"\"Where entries live: ``<output_root>/.ai-cache``.\n    Deliberately OUTSIDE the per-property ``DP<dp>/`` folder, so deleting a\n    property from the board (which removes that folder) does not throw away the\n    cached extraction - deleting and re-intaking is the exact case this exists\n    to make free.",
+        "detail": "engine.aicache",
         "documentation": {}
     },
     {
@@ -5700,6 +5821,15 @@
         "documentation": {}
     },
     {
+        "label": "prompt_version",
+        "kind": 2,
+        "importPath": "engine.extract",
+        "description": "engine.extract",
+        "peekOfCode": "def prompt_version() -> str:\n    \"\"\"Fingerprint of everything that shapes an extraction's output.\n    Used as part of the extraction cache key (``engine.aicache``): if the model,\n    the brief, the section list or the PDF mode changes, every cached record is\n    invalidated automatically rather than the cache quietly serving output this\n    code would no longer produce.\n    \"\"\"\n    import hashlib\n    blob = \"\\x1f\".join(\n        [MODEL, os.environ.get(\"EXTRACT_PDF_MODE\", DEFAULT_PDF_MODE), SYSTEM_PROMPT]",
+        "detail": "engine.extract",
+        "documentation": {}
+    },
+    {
         "label": "build_request",
         "kind": 2,
         "importPath": "engine.extract",
@@ -5740,7 +5870,7 @@
         "kind": 5,
         "importPath": "engine.extract",
         "description": "engine.extract",
-        "peekOfCode": "TOOL_PREFIX = \"record_\"\ndef _tool_name(section: str) -> str:\n    return TOOL_PREFIX + section\n# How the two source PDFs are sent to Claude:\n# - \"native\" (default, per SPEC tech conventions): base64 PDF document blocks,\n#   which preserve page layout, tables and chart images at full fidelity.\n# - \"text\": text extracted locally with PyMuPDF and sent as text blocks. Far\n#   cheaper in tokens (DP3060: ~5.7k vs ~26k for both docs together), which lets\n#   extraction run under a low per-minute rate-limit tier, at the cost of any\n#   fact that lives only in a page image and not the text layer.",
+        "peekOfCode": "TOOL_PREFIX = \"record_\"\ndef _tool_name(section: str) -> str:\n    return TOOL_PREFIX + section\ndef prompt_version() -> str:\n    \"\"\"Fingerprint of everything that shapes an extraction's output.\n    Used as part of the extraction cache key (``engine.aicache``): if the model,\n    the brief, the section list or the PDF mode changes, every cached record is\n    invalidated automatically rather than the cache quietly serving output this\n    code would no longer produce.\n    \"\"\"",
         "detail": "engine.extract",
         "documentation": {}
     },
@@ -6316,7 +6446,7 @@
         "kind": 2,
         "importPath": "engine.verify",
         "description": "engine.verify",
-        "peekOfCode": "def research_market(record: PropertyRecord, client=None) -> Optional[dict]:\n    \"\"\"Return a market-context dict, or ``None`` when no key/client is available.\n    Key-gated: with neither a passed ``client`` nor ``ANTHROPIC_API_KEY`` this\n    returns ``None`` and the memo omits the market section. Any failure degrades\n    to ``None`` rather than raising, so verification never crashes or hangs on\n    the network.\n    \"\"\"\n    if client is None:\n        if not os.getenv(\"ANTHROPIC_API_KEY\"):\n            return None",
+        "peekOfCode": "def research_market(record: PropertyRecord, client=None, output_root: str = \".\") -> Optional[dict]:\n    \"\"\"Return a market-context dict, or ``None`` when no key/client is available.\n    Key-gated: with neither a passed ``client`` nor ``ANTHROPIC_API_KEY`` this\n    returns ``None`` and the memo omits the market section. Any failure degrades\n    to ``None`` rather than raising, so verification never crashes or hangs on\n    the network.\n    \"\"\"\n    if client is None:\n        if not os.getenv(\"ANTHROPIC_API_KEY\"):\n            return None",
         "detail": "engine.verify",
         "documentation": {}
     },
@@ -7806,6 +7936,15 @@
         "documentation": {}
     },
     {
+        "label": "test_identical_documents_reuse_the_cached_extraction",
+        "kind": 2,
+        "importPath": "tests.test_jobs",
+        "description": "tests.test_jobs",
+        "peekOfCode": "def test_identical_documents_reuse_the_cached_extraction(tmp_path, monkeypatch):\n    \"\"\"Re-intaking the same PDFs must not pay for extraction twice.\n    Extraction is the most expensive call in the system (six calls carrying both\n    source PDFs). Deleting a property and dropping the same documents again - a\n    marketer fixing a mistake, or a tester repeating the flow - used to re-run\n    all six. It is a pure function of the documents, so the second run is served\n    from cache.\n    \"\"\"\n    db_path = str(tmp_path / \"engine.db\")\n    models.init_db(db_path)",
+        "detail": "tests.test_jobs",
+        "documentation": {}
+    },
+    {
         "label": "test_mixed_uses_canva_for_demo_ad_and_html_for_the_rest",
         "kind": 2,
         "importPath": "tests.test_mixed",
@@ -8121,6 +8260,51 @@
         "documentation": {}
     },
     {
+        "label": "test_info_pack_conditions_page_states_its_heading_once",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_info_pack_conditions_page_states_its_heading_once(golden_record, tmp_path):\n    \"\"\"A dedicated conditions page must not print its own title twice.\n    The page's section head already reads \"Conditions of sale\"; the list macro\n    used to add a sub head saying the same words directly underneath it.\n    \"\"\"\n    golden_record.sale_process.terms = [\n        f\"Condition {i}: the purchaser accepts the property voetstoots and \"\n        f\"acknowledges that all measurements are approximate.\"\n        for i in range(1, 13)\n    ]",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_info_pack_schedule_pages_split_evenly",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_info_pack_schedule_pages_split_evenly(golden_record, tmp_path):\n    \"\"\"A long schedule is split into even pages, never a page holding two rows.\n    23 portions used to render five rows beside the cards on page 2, sixteen on\n    the next sheet and a whole A4 holding the last two plus the total.\n    \"\"\"\n    html = _info_pack_html(_with_portions(golden_record, 23), tmp_path)\n    # The whole schedule moved off page 2 rather than leaving a head table there.\n    assert \"<h3>Schedule of portions</h3>\" not in html\n    chunks = html.split('<table class=\"sched\"')[1:]\n    assert len(chunks) == 2                       # two schedule pages",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_info_pack_schedule_shares_page_two_when_it_fits",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_info_pack_schedule_shares_page_two_when_it_fits(golden_record, tmp_path):\n    \"\"\"A short schedule stays on page 2 with the cards (playbook 4.2).\"\"\"\n    html = _info_pack_html(_with_portions(golden_record, 3), tmp_path)\n    assert \"<h3>Schedule of portions</h3>\" in html\n    assert \"Schedule of portions continued\" not in html\ndef test_info_pack_groups_large_extents_and_adds_hectares(golden_record, tmp_path):\n    \"\"\"A farm sized extent is grouped and given a hectare equivalent.\n    An ungrouped seven digit run cannot be read at a glance in a buyer document.\n    \"\"\"\n    html = _info_pack_html(_with_portions(golden_record, 23), tmp_path)",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_info_pack_groups_large_extents_and_adds_hectares",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_info_pack_groups_large_extents_and_adds_hectares(golden_record, tmp_path):\n    \"\"\"A farm sized extent is grouped and given a hectare equivalent.\n    An ungrouped seven digit run cannot be read at a glance in a buyer document.\n    \"\"\"\n    html = _info_pack_html(_with_portions(golden_record, 23), tmp_path)\n    assert \"1 266 794 m2\" in html\n    assert \"1266794\" not in html\n    assert \"126.7 ha\" in html\n    # Per portion extents are grouped too.\n    assert \"53 571 m2\" in html",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_info_pack_names_one_brand_on_a_sale_pack",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_info_pack_names_one_brand_on_a_sale_pack(golden_record, tmp_path):\n    \"\"\"The pack is issued as Dynamic Auctioneers whatever the sale method.\n    The cover and contact lockup used to switch to the Dynamic Real Estate mark\n    on a non-auction pack while the running head and contact block still read\n    \"Dynamic Auctioneers\": two brands on one document.\n    \"\"\"\n    from engine.render.html_backend import _asset_data_uri\n    golden_record.sale_process.method = \"offers_invited\"\n    html = _info_pack_html(golden_record, tmp_path)\n    auctioneers = _asset_data_uri(\"ads/_assets/logo-auctioneers-on-light.png\")",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
         "label": "test_new_ad_designs_render_place_and_descriptor",
         "kind": 2,
         "importPath": "tests.test_render",
@@ -8274,6 +8458,33 @@
         "documentation": {}
     },
     {
+        "label": "test_badge_never_doubles_the_sale_or_auction_word",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_badge_never_doubles_the_sale_or_auction_word():\n    \"\"\"The callout box takes a REASON, but a marketer may type \"for sale\" in it.\n    The badge appends SALE!/AUCTION! itself, so a callout that already ends in\n    that word must be used as written - reported live as \"FOR SALE SALE!\".\n    \"\"\"\n    from jinja2 import Environment, FileSystemLoader\n    env = Environment(loader=FileSystemLoader(\"engine/render/templates\"))\n    badge = env.get_template(\"_adparts.html.j2\").module.badge_text\n    def text(method, callout):\n        return str(badge({\"method\": method, \"auction_type\": callout})).strip()",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_info_pack_exports_a_real_pdf",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_info_pack_exports_a_real_pdf(golden_record, tmp_path, monkeypatch):\n    \"\"\"The buyer receives a PDF, not a web page.\n    The suite disables the export for speed (conftest), so this test turns it\n    back on to cover the real Chromium print path.\n    \"\"\"\n    from engine.render import rasterize\n    if not rasterize.available():\n        pytest.skip(\"Playwright not installed; PDF export unavailable\")\n    monkeypatch.setenv(\"ENGINE_PDF_EXPORT\", \"1\")\n    store = _store_with(golden_record)",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_info_pack_falls_back_to_html_without_chromium",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_info_pack_falls_back_to_html_without_chromium(golden_record, tmp_path, monkeypatch):\n    \"\"\"A host with no Chromium still gets the pack, as HTML - never a failed render.\"\"\"\n    from engine.render import rasterize\n    monkeypatch.setenv(\"ENGINE_PDF_EXPORT\", \"1\")\n    def _boom(*a, **k):\n        raise rasterize.RasterizeUnavailable(\"no chromium here\")\n    monkeypatch.setattr(rasterize, \"html_to_pdf\", _boom)\n    store = _store_with(golden_record)\n    try:\n        art = render_one(\"3060\", store, \"info_pack\", backend=\"html\", output_root=str(tmp_path))",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
         "label": "POISON_OWNER",
         "kind": 5,
         "importPath": "tests.test_render",
@@ -8351,6 +8562,15 @@
         "importPath": "tests.test_schema",
         "description": "tests.test_schema",
         "peekOfCode": "def test_public_view_strips_professional_valuation():\n    \"\"\"Sale-strategy figures never reach a renderer or the copy model (D32).\n    The valuer's market and forced-sale values would anchor buyers or undercut\n    the sale if they appeared in an ad, so the whole ``valuation.professional``\n    block is structurally absent from the public projection while the rest of\n    the valuation section survives.\n    \"\"\"\n    from engine.schema import ProfessionalValuation, Valuation\n    record = PropertyRecord(\n        dp=\"2035\",",
+        "detail": "tests.test_schema",
+        "documentation": {}
+    },
+    {
+        "label": "test_generated_copy_is_scrubbed_of_municipal_valuation",
+        "kind": 2,
+        "importPath": "tests.test_schema",
+        "description": "tests.test_schema",
+        "peekOfCode": "def test_generated_copy_is_scrubbed_of_municipal_valuation():\n    \"\"\"Second line of defence on the owner directive.\n    The figure is stripped from ``public_view`` so the copy model cannot see it,\n    but a bundle cached before that fix (or any other route to the phrase) must\n    still never reach an advert: every ad renders price_display verbatim.\n    \"\"\"\n    from engine.render.copy import _scrub_forbidden\n    out = _scrub_forbidden({\n        \"price_display\": \"Offers invited. Municipal valuation R960 000 (2024).\",\n        \"headline\": \"Two bedroom apartment in Pelham North\",",
         "detail": "tests.test_schema",
         "documentation": {}
     },
@@ -8859,6 +9079,33 @@
         "documentation": {}
     },
     {
+        "label": "test_artifact_pack_every_tile_has_a_real_preview",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_artifact_pack_every_tile_has_a_real_preview(monkeypatch):\n    \"\"\"No tile is a bare grey icon: text artifacts preview inline, html\n    artifacts preview as a cached thumbnail, and the thumbnail is rasterised\n    once per artifact version (never on the page's critical path).\"\"\"\n    _needs_golden()\n    dp = \"9031\"\n    _golden_clone(dp, state=\"approved\")\n    _render_pack(dp)\n    calls: list = []\n    _fake_rasteriser(monkeypatch, calls)",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_artifact_pack_degrades_when_rasteriser_missing",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_artifact_pack_degrades_when_rasteriser_missing(monkeypatch):\n    \"\"\"With no Playwright the page must still load fast and show the text\n    previews, with no thumbnail requests that could only fail.\"\"\"\n    from engine.render import rasterize\n    def _boom(*a, **k):\n        raise rasterize.RasterizeUnavailable(\"no chromium here\")\n    monkeypatch.setattr(rasterize, \"available\", lambda: False)\n    monkeypatch.setattr(rasterize, \"html_to_png\", _boom)\n    _needs_golden()\n    dp = \"9032\"",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_artifact_pack_previews_carry_no_pii",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_artifact_pack_previews_carry_no_pii(monkeypatch):\n    \"\"\"The tile previews read artifact files straight off disk, so poison the\n    record's internal layer and prove none of it reaches the page.\"\"\"\n    _needs_golden()\n    dp = \"9033\"\n    _golden_clone(dp, poison=True, state=\"approved\")\n    _render_pack(dp)\n    _fake_rasteriser(monkeypatch, [])\n    client = _client()\n    _login_admin(client)",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
         "label": "test_gate2_pick_template_applies_and_re_renders",
         "kind": 2,
         "importPath": "tests.test_webapp",
@@ -9331,7 +9578,7 @@
         "kind": 2,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "def test_admin_can_reach_settings():\n    client = _client()\n    _login_admin(client)\n    assert client.get(\"/settings\").status_code == 200\ndef test_settings_link_hidden_for_marketing_shown_for_admin():\n    m = _client(); _login_marketing(m)\n    assert 'href=\"/settings\"' not in m.get(\"/board\").text\n    a = _client(); _login_admin(a)\n    assert 'href=\"/settings\"' in a.get(\"/board\").text",
+        "peekOfCode": "def test_admin_can_reach_settings():\n    client = _client()\n    _login_admin(client)\n    assert client.get(\"/settings\").status_code == 200\ndef test_settings_link_hidden_for_marketing_shown_for_admin():\n    m = _client(); _login_marketing(m)\n    assert 'href=\"/settings\"' not in m.get(\"/board\").text\n    a = _client(); _login_admin(a)\n    assert 'href=\"/settings\"' in a.get(\"/board\").text\ndef test_clearing_a_gate2_field_actually_clears_it():",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -9340,7 +9587,16 @@
         "kind": 2,
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
-        "peekOfCode": "def test_settings_link_hidden_for_marketing_shown_for_admin():\n    m = _client(); _login_marketing(m)\n    assert 'href=\"/settings\"' not in m.get(\"/board\").text\n    a = _client(); _login_admin(a)\n    assert 'href=\"/settings\"' in a.get(\"/board\").text",
+        "peekOfCode": "def test_settings_link_hidden_for_marketing_shown_for_admin():\n    m = _client(); _login_marketing(m)\n    assert 'href=\"/settings\"' not in m.get(\"/board\").text\n    a = _client(); _login_admin(a)\n    assert 'href=\"/settings\"' in a.get(\"/board\").text\ndef test_clearing_a_gate2_field_actually_clears_it():\n    \"\"\"Blank must mean CLEAR, not \"leave alone\".\n    Reported live: a \"for sale\" callout rendered \"FOR SALE SALE!\", and emptying\n    the box did not remove it - the badge kept the old word - because blank\n    inputs were skipped so they could never wipe a value.",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_clearing_a_gate2_field_actually_clears_it",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_clearing_a_gate2_field_actually_clears_it():\n    \"\"\"Blank must mean CLEAR, not \"leave alone\".\n    Reported live: a \"for sale\" callout rendered \"FOR SALE SALE!\", and emptying\n    the box did not remove it - the badge kept the old word - because blank\n    inputs were skipped so they could never wipe a value.\n    \"\"\"\n    dp = \"9406\"\n    _golden_clone(dp, state=\"drafted\")\n    client = _client()\n    _login_admin(client)",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
