@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from typing import List, Optional
 
 import anthropic
@@ -392,7 +393,25 @@ def generate_copy(record: PropertyRecord, client=None) -> dict:
     if bundle is None:
         return template
 
-    return _merge_bundle(template, bundle)
+    return _scrub_forbidden(_merge_bundle(template, bundle))
+
+
+# A municipal valuation must never appear in client-facing copy (owner
+# directive: the money line is always the offers framing). The figure is now
+# stripped from ``public_view`` so the model cannot see it, but this scrub is
+# the second line of defence - it also cleans a bundle cached before that fix.
+_FORBIDDEN_PHRASE = re.compile(
+    r"\s*[.|;-]?\s*municipal\s+valuation[^.|]*[.|]?", re.IGNORECASE
+)
+
+
+def _scrub_forbidden(bundle: dict) -> dict:
+    """Remove any municipal-valuation mention from every string in the bundle."""
+    for key, value in list(bundle.items()):
+        if isinstance(value, str) and "municipal" in value.lower():
+            cleaned = _FORBIDDEN_PHRASE.sub("", value).strip(" .|;-")
+            bundle[key] = cleaned or None
+    return bundle
 
 
 # --- single-headline generation (gate-2 "auto-generate") -----------------

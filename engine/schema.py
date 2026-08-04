@@ -370,6 +370,16 @@ def _strip_internal_strategy(data: dict) -> None:
     valuation = data.get("valuation")
     if isinstance(valuation, dict):
         valuation.pop("professional", None)
+        # The municipal valuation never reaches anything client-facing (owner
+        # directive: the money line is always the offers framing, never a
+        # valuation figure). Stripping it HERE rather than only in the templates
+        # is what makes that reliable: the copy model writes from this same
+        # projection, and with the figure visible it was observed emitting
+        # "Offers invited. Municipal valuation R960 000 (2024)." into
+        # price_display, which every ad then printed. Remove the fact and the
+        # model cannot repeat it.
+        valuation.pop("municipal_valuation", None)
+        valuation.pop("municipal_valuation_year", None)
 
 
 def _strip_conflicts(data: dict) -> None:

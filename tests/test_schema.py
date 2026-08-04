@@ -113,8 +113,37 @@ def test_public_view_strips_professional_valuation():
     public = record.public_view()
     assert "professional" not in public["valuation"]
     assert POISON not in json.dumps(public)
-    # The rest of the valuation section is untouched.
-    assert public["valuation"]["municipal_valuation"] == 2310000
+    # The municipal valuation is stripped too (owner directive: the money line is
+    # always the offers framing, never a valuation figure). Stripping it from the
+    # projection - not just from the templates - is what stops the copy model
+    # seeing it: given the figure it was observed writing "Offers invited.
+    # Municipal valuation R960 000 (2024)." into price_display, which every ad
+    # then printed.
+    assert "municipal_valuation" not in public["valuation"]
+    assert "2310000" not in json.dumps(public)
+    # The valuation section itself survives (its publishable fields are intact).
+    assert isinstance(public["valuation"], dict)
+    assert "evm_range" in public["valuation"]
+
+
+def test_generated_copy_is_scrubbed_of_municipal_valuation():
+    """Second line of defence on the owner directive.
+
+    The figure is stripped from ``public_view`` so the copy model cannot see it,
+    but a bundle cached before that fix (or any other route to the phrase) must
+    still never reach an advert: every ad renders price_display verbatim.
+    """
+    from engine.render.copy import _scrub_forbidden
+
+    out = _scrub_forbidden({
+        "price_display": "Offers invited. Municipal valuation R960 000 (2024).",
+        "headline": "Two bedroom apartment in Pelham North",
+    })
+    assert out["price_display"] == "Offers invited"
+    assert "municipal" not in out["price_display"].lower()
+    assert out["headline"] == "Two bedroom apartment in Pelham North"  # untouched
+    # A line that is ONLY the forbidden phrase becomes None rather than a stub.
+    assert _scrub_forbidden({"price_display": "Municipal valuation R960 000"})["price_display"] is None
 
 
 # --- multi-portion property (multi-file intake) --------------------------

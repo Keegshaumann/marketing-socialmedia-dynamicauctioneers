@@ -109,15 +109,18 @@ def _format_price(amount: Union[int, float, str]) -> str:
 # --- copy + photo resolution ---------------------------------------------
 
 def copy_cache_key(record: PropertyRecord) -> str:
-    """Fingerprint the public facts the copy is written from.
+    """Fingerprint the SOURCED facts the copy was written from.
 
     Deliberately excludes ``marketing`` (headline/price edits, photo picks and
-    the design choice) and the photo set: none of those change what the model
-    would write, and they are exactly the things a marketer changes repeatedly
-    on gate 2. Two records with the same fingerprint can share generated copy.
+    the design choice), the photo set, and ``human_overrides`` - which is why it
+    reads the raw record rather than ``public_view()``. A marketer correcting a
+    suburb or an address on gate 2 is authoring the advert herself; asking the
+    model to rewrite the copy underneath her would cost twenty seconds and a
+    request, and would fight her edit. Only a change to the sourced layer (a
+    re-extraction) invalidates the cache.
     """
-    pub = record.public_view()
-    facts = {k: pub.get(k) for k in ("identity", "physical", "sale_process", "valuation")}
+    raw = record.model_dump(mode="json")
+    facts = {k: raw.get(k) for k in ("identity", "physical", "sale_process", "valuation")}
     blob = json.dumps(facts, sort_keys=True, default=str)
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:32]
 
