@@ -760,13 +760,25 @@ form.htmx-request button[type="submit"] .spinner { display: inline-block; }
    container by JS, so the whole design is visible and stays vector-crisp -
    rather than showing the top-left corner of a full-size page clipped to a
    short box, which is what a plain height-limited iframe does. */
+/* The whole advert must be visible WITHOUT scrolling, so the box is capped by
+   the viewport height and its width is derived from the design's ratio (a 4:5
+   advert at 52vh tall). JS then measures the real column and sets exact pixel
+   values, but these CSS values alone already show the complete design - so a
+   stale cached script degrades to "slightly smaller", never to a clipped
+   corner, which is what a plain height-limited iframe gives. */
 .adframe {
-  position: relative; width: 100%; overflow: hidden; background: #fff;
+  position: relative; overflow: hidden; background: #fff; margin-inline: auto;
   border-bottom: 1px solid var(--hairline);
+  height: min(72vh, 700px);
+  width: calc(min(72vh, 700px) * var(--ad-w, 1080) / var(--ad-h, 1350));
+  max-width: 100%;
 }
 .adframe iframe {
   position: absolute; top: 0; left: 0; border: 0; display: block;
   transform-origin: top left; pointer-events: none;
+  /* 560/1350 = .414 is the cap-height default; JS overrides with the measured
+     fit (the smaller of width-fit and height-fit). */
+  transform: scale(var(--ad-scale, 0.414));
 }
 /* Gate 2 reviews one advert at a time, so give it room: a single tile spans the
    panel instead of sitting in a 200px grid cell. */

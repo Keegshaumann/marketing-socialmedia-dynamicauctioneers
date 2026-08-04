@@ -403,27 +403,44 @@
   // down to the container, keeping the whole design visible and crisp.
   function fitPreview(box) {
     var frame = box.querySelector('iframe');
-    if (!frame) return;
+    if (!frame) return false;
     var w = parseFloat(box.getAttribute('data-w')) || 1080;
     var h = parseFloat(box.getAttribute('data-h')) || 1350;
-    var avail = box.clientWidth;
-    if (!avail) return;                       // hidden or not laid out yet
-    var scale = avail / w;
+    // Width available = the column the box sits in (its parent), since the box
+    // itself is sized by this function and would otherwise measure its own
+    // previous width.
+    var parent = box.parentElement;
+    var availW = (parent ? parent.clientWidth : 0) || box.clientWidth;
+    if (!availW) return false;                 // hidden or not laid out yet
+    // Height budget = a fraction of the VIEWPORT, not the space left below the
+    // preview's current position: the design picker sits above it, so measuring
+    // downward from wherever the page happens to be scrolled would shrink the
+    // advert to nothing. This way, once the preview is on screen the whole
+    // advert is visible, on a laptop as well as a large monitor.
+    var availH = Math.max(320, window.innerHeight * 0.72);
+    var scale = Math.min(availW / w, availH / h);
     frame.style.transform = 'scale(' + scale + ')';
+    box.style.width = Math.round(w * scale) + 'px';
     box.style.height = Math.round(h * scale) + 'px';
+    return true;
   }
 
   function wirePreviewScale(root) {
     (root || document).querySelectorAll('[data-adframe]').forEach(function (box) {
-      fitPreview(box);
+      // The box may not be laid out yet (fonts, a pending swap). Retry on a few
+      // frames rather than leaving it at the CSS default forever.
+      var tries = 0;
+      (function attempt() {
+        if (fitPreview(box) || ++tries > 20) return;
+        requestAnimationFrame(attempt);
+      })();
       if (box.__fit) return;
       box.__fit = true;
-      // Re-fit when the column width changes (window resize, panel reflow).
-      if (window.ResizeObserver) {
-        new ResizeObserver(function () { fitPreview(box); }).observe(box);
-      } else {
-        window.addEventListener('resize', function () { fitPreview(box); });
+      // Re-fit when the column or the window changes size.
+      if (window.ResizeObserver && box.parentElement) {
+        new ResizeObserver(function () { fitPreview(box); }).observe(box.parentElement);
       }
+      window.addEventListener('resize', function () { fitPreview(box); });
       // The iframe reports its own load; re-fit then too, in case the design
       // swapped to a different canvas size.
       var frame = box.querySelector('iframe');
