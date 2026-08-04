@@ -1,6 +1,7 @@
 {# SAIA alert banner (SPEC 12 step 6b), rebuilt in the real Dynamic ad language
    (D49 / D54): a compressed version of the social ads on one wide strip.
-   1200x400 dark canvas with the darkened hero photo behind it, a metallic gold
+   a 1200px wide dark canvas (about 450px tall) with a darkened property photo
+   behind it, a metallic gold
    MASTER / PROPERTY ref bar on top, the method-aware DS lockup in a white
    shield, the gold place line + white descriptor, the gold method badge and an
    address pill, the gold-outlined money / auction line, a gold-bordered photo on
@@ -92,7 +93,7 @@
 
   @media (max-width: 760px) {
     .bn-ref { padding:9px 18px; font-size:12px; }
-    .bn-main { grid-template-columns:1fr; gap:16px; height:auto; padding:18px; }
+    .bn-main { grid-template-columns:1fr; gap:16px; min-height:0; padding:18px; }
     .bn-copy { gap:16px; }
     .bn-shield { width:96px; height:108px; padding:9px 11px 26px;
                  clip-path:path('M5,0 H91 Q96,0 96,5 V69 Q96,90 48,108 Q0,90 0,69 V5 Q0,0 5,0 Z'); }

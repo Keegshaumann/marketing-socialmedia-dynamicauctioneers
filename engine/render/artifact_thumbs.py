@@ -77,17 +77,6 @@ def _is_pdf(source: Path, mime: str) -> bool:
     return mime == "application/pdf" or source.suffix.lower() == ".pdf"
 
 
-def cached(artifacts_dir, name: str, source) -> Optional[Path]:
-    """Return an already-generated, still-current thumbnail, or None.
-
-    Cheap: pure stat calls, no rendering. Used by the page so it can decide
-    whether a tile has a preview without ever blocking on a rasteriser.
-    """
-    source = Path(source)
-    _cache, out, _fail = _paths(artifacts_dir, name)
-    return out if _fresh(out, source) else None
-
-
 def possible(artifacts_dir, name: str, source, mime: str = "") -> bool:
     """True when a tile can show a thumbnail: one is cached, or one can be made.
 

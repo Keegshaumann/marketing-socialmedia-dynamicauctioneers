@@ -607,6 +607,114 @@ def test_ad_png_route_degrades_when_rasteriser_unavailable(monkeypatch):
     assert resp.status_code == 503  # a clear message, not a crash
 
 
+# --- artifact pack previews (every tile shows the artifact itself) --------
+
+def _render_pack(dp: str) -> None:
+    """Render the full artifact set for ``dp`` into the test output root."""
+    from engine.render.service import render_all
+
+    store = RecordStore(DB_PATH)
+    try:
+        render_all(dp, store, output_root=str(_TMP))
+    finally:
+        store.close()
+
+
+def _fake_rasteriser(monkeypatch, calls: list):
+    """Stand in for headless Chromium: writes a real (tiny) PNG, counts calls."""
+    from PIL import Image
+
+    from engine.render import rasterize
+
+    def _fake(html_path, png_path, **kw):
+        calls.append(str(html_path))
+        Image.new("RGB", (600, 750), (24, 20, 18)).save(str(png_path), "PNG")
+        return Path(png_path)
+
+    monkeypatch.setattr(rasterize, "available", lambda: True)
+    monkeypatch.setattr(rasterize, "html_to_png", _fake)
+
+
+def test_artifact_pack_every_tile_has_a_real_preview(monkeypatch):
+    """No tile is a bare grey icon: text artifacts preview inline, html
+    artifacts preview as a cached thumbnail, and the thumbnail is rasterised
+    once per artifact version (never on the page's critical path)."""
+    _needs_golden()
+    dp = "9031"
+    _golden_clone(dp, state="approved")
+    _render_pack(dp)
+    calls: list = []
+    _fake_rasteriser(monkeypatch, calls)
+
+    client = _client()
+    _login_admin(client)
+    page = client.get(f"/artifacts/{dp}")
+    assert page.status_code == 200
+    assert not calls, "the page itself must not rasterise anything"
+
+    # Text artifacts: the first lines, inline.
+    assert "tile__text" in page.text
+    assert "Property24 Listing" in page.text  # head of portal_listing.md
+    # Page artifacts: a thumbnail url per html format.
+    for fmt in ("demo_ad", "info_pack", "saia_banner", "alert_mailer", "auction_board"):
+        assert f"/artifacts/{dp}/thumb/{fmt}" in page.text
+
+    shot = client.get(f"/artifacts/{dp}/thumb/demo_ad")
+    assert shot.status_code == 200
+    assert shot.headers["content-type"].startswith("image/")
+    assert len(calls) == 1
+    client.get(f"/artifacts/{dp}/thumb/demo_ad")  # cached: no second render
+    assert len(calls) == 1
+
+    # Click-through, version badge and the Canva button are untouched.
+    assert f"/artifacts/{dp}/file/demo_ad" in page.text
+    assert "v1" in page.text
+
+
+def test_artifact_pack_degrades_when_rasteriser_missing(monkeypatch):
+    """With no Playwright the page must still load fast and show the text
+    previews, with no thumbnail requests that could only fail."""
+    from engine.render import rasterize
+
+    def _boom(*a, **k):
+        raise rasterize.RasterizeUnavailable("no chromium here")
+
+    monkeypatch.setattr(rasterize, "available", lambda: False)
+    monkeypatch.setattr(rasterize, "html_to_png", _boom)
+
+    _needs_golden()
+    dp = "9032"
+    _golden_clone(dp, state="approved")
+    _render_pack(dp)
+
+    client = _client()
+    _login_admin(client)
+    page = client.get(f"/artifacts/{dp}")
+    assert page.status_code == 200
+    assert f"/artifacts/{dp}/thumb/" not in page.text  # no doomed image requests
+    assert "tile__text" in page.text  # text previews are browser-free
+
+    resp = client.get(f"/artifacts/{dp}/thumb/demo_ad")
+    assert resp.status_code == 503  # a clear answer, not a hang or a 500
+
+
+def test_artifact_pack_previews_carry_no_pii(monkeypatch):
+    """The tile previews read artifact files straight off disk, so poison the
+    record's internal layer and prove none of it reaches the page."""
+    _needs_golden()
+    dp = "9033"
+    _golden_clone(dp, poison=True, state="approved")
+    _render_pack(dp)
+    _fake_rasteriser(monkeypatch, [])
+
+    client = _client()
+    _login_admin(client)
+    page = client.get(f"/artifacts/{dp}")
+    assert page.status_code == 200
+    for marker in POISON_MARKERS:
+        assert marker not in page.text
+
+
 def test_gate2_pick_template_applies_and_re_renders():
     _needs_golden()
     dp = "9030"
