@@ -4957,7 +4957,7 @@
         "kind": 2,
         "importPath": "engine.render.artifact_thumbs",
         "description": "engine.render.artifact_thumbs",
-        "peekOfCode": "def cache_dir(artifacts_dir) -> Path:\n    \"\"\"The thumbnail cache folder for one DP's artifacts directory.\"\"\"\n    return Path(artifacts_dir) / CACHE_DIRNAME\ndef _paths(artifacts_dir, name: str):\n    cache = cache_dir(artifacts_dir)\n    return cache, cache / f\"{name}.png\", cache / f\"{name}.fail\"\ndef _fresh(target: Path, source: Path) -> bool:\n    \"\"\"True when ``target`` exists and is not older than ``source``.\"\"\"\n    try:\n        return target.exists() and target.stat().st_mtime >= source.stat().st_mtime",
+        "peekOfCode": "def cache_dir(artifacts_dir) -> Path:\n    \"\"\"The thumbnail cache folder for one DP's artifacts directory.\"\"\"\n    return Path(artifacts_dir) / CACHE_DIRNAME\ndef _paths(artifacts_dir, name: str):\n    cache = cache_dir(artifacts_dir)\n    return cache, cache / f\"{name}{_SUFFIX}\", cache / f\"{name}.fail\"\ndef _fresh(target: Path, source: Path) -> bool:\n    \"\"\"True when ``target`` exists and is not older than ``source``.\"\"\"\n    try:\n        return target.exists() and target.stat().st_mtime >= source.stat().st_mtime",
         "detail": "engine.render.artifact_thumbs",
         "documentation": {}
     },
@@ -4984,7 +4984,7 @@
         "kind": 2,
         "importPath": "engine.render.artifact_thumbs",
         "description": "engine.render.artifact_thumbs",
-        "peekOfCode": "def thumbnail(artifacts_dir, name: str, source, mime: str = \"\") -> Optional[Path]:\n    \"\"\"Return a current thumbnail PNG for ``source``, generating it if needed.\n    Returns None (never raises) when the rasteriser is unavailable or the\n    artifact cannot be previewed, so callers can fall back to an icon.\n    \"\"\"\n    source = Path(source)\n    if not source.exists():\n        return None\n    cache, out, fail = _paths(artifacts_dir, name)\n    if _fresh(out, source):",
+        "peekOfCode": "def thumbnail(artifacts_dir, name: str, source, mime: str = \"\") -> Optional[Path]:\n    \"\"\"Return a current thumbnail image for ``source``, generating it if needed.\n    Returns None (never raises) when the rasteriser is unavailable or the\n    artifact cannot be previewed, so callers can fall back to an icon. Serve the\n    result as ``MEDIA_TYPE``.\n    \"\"\"\n    source = Path(source)\n    if not source.exists():\n        return None\n    cache, out, fail = _paths(artifacts_dir, name)",
         "detail": "engine.render.artifact_thumbs",
         "documentation": {}
     },
@@ -5029,7 +5029,7 @@
         "kind": 5,
         "importPath": "engine.render.artifact_thumbs",
         "description": "engine.render.artifact_thumbs",
-        "peekOfCode": "_TALL_RATIO = 1.6\n_CROP_RATIO = 1.4\n_lock = threading.Lock()\ndef cache_dir(artifacts_dir) -> Path:\n    \"\"\"The thumbnail cache folder for one DP's artifacts directory.\"\"\"\n    return Path(artifacts_dir) / CACHE_DIRNAME\ndef _paths(artifacts_dir, name: str):\n    cache = cache_dir(artifacts_dir)\n    return cache, cache / f\"{name}.png\", cache / f\"{name}.fail\"\ndef _fresh(target: Path, source: Path) -> bool:",
+        "peekOfCode": "_TALL_RATIO = 1.6\n_CROP_RATIO = 1.4\n_lock = threading.Lock()\ndef cache_dir(artifacts_dir) -> Path:\n    \"\"\"The thumbnail cache folder for one DP's artifacts directory.\"\"\"\n    return Path(artifacts_dir) / CACHE_DIRNAME\ndef _paths(artifacts_dir, name: str):\n    cache = cache_dir(artifacts_dir)\n    return cache, cache / f\"{name}{_SUFFIX}\", cache / f\"{name}.fail\"\ndef _fresh(target: Path, source: Path) -> bool:",
         "detail": "engine.render.artifact_thumbs",
         "documentation": {}
     },
@@ -5038,7 +5038,7 @@
         "kind": 5,
         "importPath": "engine.render.artifact_thumbs",
         "description": "engine.render.artifact_thumbs",
-        "peekOfCode": "_CROP_RATIO = 1.4\n_lock = threading.Lock()\ndef cache_dir(artifacts_dir) -> Path:\n    \"\"\"The thumbnail cache folder for one DP's artifacts directory.\"\"\"\n    return Path(artifacts_dir) / CACHE_DIRNAME\ndef _paths(artifacts_dir, name: str):\n    cache = cache_dir(artifacts_dir)\n    return cache, cache / f\"{name}.png\", cache / f\"{name}.fail\"\ndef _fresh(target: Path, source: Path) -> bool:\n    \"\"\"True when ``target`` exists and is not older than ``source``.\"\"\"",
+        "peekOfCode": "_CROP_RATIO = 1.4\n_lock = threading.Lock()\ndef cache_dir(artifacts_dir) -> Path:\n    \"\"\"The thumbnail cache folder for one DP's artifacts directory.\"\"\"\n    return Path(artifacts_dir) / CACHE_DIRNAME\ndef _paths(artifacts_dir, name: str):\n    cache = cache_dir(artifacts_dir)\n    return cache, cache / f\"{name}{_SUFFIX}\", cache / f\"{name}.fail\"\ndef _fresh(target: Path, source: Path) -> bool:\n    \"\"\"True when ``target`` exists and is not older than ``source``.\"\"\"",
         "detail": "engine.render.artifact_thumbs",
         "documentation": {}
     },
@@ -5047,7 +5047,7 @@
         "kind": 5,
         "importPath": "engine.render.artifact_thumbs",
         "description": "engine.render.artifact_thumbs",
-        "peekOfCode": "_lock = threading.Lock()\ndef cache_dir(artifacts_dir) -> Path:\n    \"\"\"The thumbnail cache folder for one DP's artifacts directory.\"\"\"\n    return Path(artifacts_dir) / CACHE_DIRNAME\ndef _paths(artifacts_dir, name: str):\n    cache = cache_dir(artifacts_dir)\n    return cache, cache / f\"{name}.png\", cache / f\"{name}.fail\"\ndef _fresh(target: Path, source: Path) -> bool:\n    \"\"\"True when ``target`` exists and is not older than ``source``.\"\"\"\n    try:",
+        "peekOfCode": "_lock = threading.Lock()\ndef cache_dir(artifacts_dir) -> Path:\n    \"\"\"The thumbnail cache folder for one DP's artifacts directory.\"\"\"\n    return Path(artifacts_dir) / CACHE_DIRNAME\ndef _paths(artifacts_dir, name: str):\n    cache = cache_dir(artifacts_dir)\n    return cache, cache / f\"{name}{_SUFFIX}\", cache / f\"{name}.fail\"\ndef _fresh(target: Path, source: Path) -> bool:\n    \"\"\"True when ``target`` exists and is not older than ``source``.\"\"\"\n    try:",
         "detail": "engine.render.artifact_thumbs",
         "documentation": {}
     },
@@ -9529,7 +9529,7 @@
         "kind": 2,
         "importPath": "webapp.routes.artifacts",
         "description": "webapp.routes.artifacts",
-        "peekOfCode": "def artifact_thumb(\n    request: Request,\n    dp: str,\n    fmt: str,\n    user: dict = Depends(auth.require_login),\n):\n    \"\"\"Serve the cached PNG thumbnail of an html/pdf artifact (auth-gated).\n    Generated on first request and cached on disk next to the artifact, so a\n    given artifact version is rasterised once. Answers 503 (not 500, never a\n    hang) when the rasteriser is unavailable or the render fails; the tile then",
+        "peekOfCode": "def artifact_thumb(\n    request: Request,\n    dp: str,\n    fmt: str,\n    user: dict = Depends(auth.require_login),\n):\n    \"\"\"Serve the cached thumbnail image of an html/pdf artifact (auth-gated).\n    Generated on first request and cached on disk next to the artifact, so a\n    given artifact version is rasterised once. Answers 503 (not 500, never a\n    hang) when the rasteriser is unavailable or the render fails; the tile then",
         "detail": "webapp.routes.artifacts",
         "documentation": {}
     },

@@ -62,7 +62,7 @@ def cache_dir(artifacts_dir) -> Path:
 
 def _paths(artifacts_dir, name: str):
     cache = cache_dir(artifacts_dir)
-    return cache, cache / f"{name}.png", cache / f"{name}.fail"
+    return cache, cache / f"{name}{_SUFFIX}", cache / f"{name}.fail"
 
 
 def _fresh(target: Path, source: Path) -> bool:
@@ -110,10 +110,11 @@ def possible(artifacts_dir, name: str, source, mime: str = "") -> bool:
 
 
 def thumbnail(artifacts_dir, name: str, source, mime: str = "") -> Optional[Path]:
-    """Return a current thumbnail PNG for ``source``, generating it if needed.
+    """Return a current thumbnail image for ``source``, generating it if needed.
 
     Returns None (never raises) when the rasteriser is unavailable or the
-    artifact cannot be previewed, so callers can fall back to an icon.
+    artifact cannot be previewed, so callers can fall back to an icon. Serve the
+    result as ``MEDIA_TYPE``.
     """
     source = Path(source)
     if not source.exists():
@@ -133,18 +134,21 @@ def thumbnail(artifacts_dir, name: str, source, mime: str = "") -> Optional[Path
             return out
         if _fresh(fail, source):
             return None
+        raw = cache / f"{name}.raw.png"
         try:
             cache.mkdir(parents=True, exist_ok=True)
             if _is_pdf(source, mime):
-                _pdf_to_png(source, out)
+                _pdf_to_png(source, raw)
             else:
-                _html_to_png(source, out)
-            _shrink(out)
+                _html_to_png(source, raw)
+            _shrink(raw, out)
         except rasterize.RasterizeUnavailable:
             # Environmental, not this artifact's fault: no fail marker, so the
             # tile starts previewing as soon as Chromium is installed.
             return None
         except Exception:
+            # One try per artifact version: the marker stops every later page
+            # view paying the same failed render again.
             try:
                 out.unlink()
             except OSError:
@@ -154,6 +158,11 @@ def thumbnail(artifacts_dir, name: str, source, mime: str = "") -> Optional[Path
             except OSError:
                 pass
             return None
+        finally:
+            try:
+                raw.unlink()
+            except OSError:
+                pass
     return out if out.exists() else None
 
 
@@ -184,14 +193,14 @@ def _pdf_to_png(source: Path, out: Path) -> None:
         doc.close()
 
 
-def _shrink(out: Path) -> None:
-    """Crop a very tall render to its top, then scale it into the size cap."""
+def _shrink(raw: Path, out: Path) -> None:
+    """Crop a very tall render to its top, scale it into the cap, write a JPEG."""
     from PIL import Image
 
-    with Image.open(out) as im:
+    with Image.open(raw) as im:
         im = im.convert("RGB")
         w, h = im.size
         if w and h > w * _TALL_RATIO:
             im = im.crop((0, 0, w, int(w * _CROP_RATIO)))
         im.thumbnail((_MAX_W, _MAX_H), Image.LANCZOS)
-        im.save(out, "PNG", optimize=True)
+        im.save(out, "JPEG", quality=_QUALITY, optimize=True, progressive=True)
