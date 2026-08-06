@@ -12,6 +12,8 @@ suite green.
 from __future__ import annotations
 
 import json
+import re
+import shutil
 from pathlib import Path
 from typing import List
 
@@ -472,6 +474,99 @@ def test_info_pack_names_one_brand_on_a_sale_pack(golden_record, tmp_path):
     realestate = _asset_data_uri("ads/_assets/logo-realestate-on-light.png")
     assert auctioneers and auctioneers in html
     assert realestate not in html
+
+
+def test_info_pack_fills_a_short_page_with_a_photograph_band(golden_record, tmp_path):
+    """A page that runs short takes a photograph band, not a hole.
+
+    The closing page carries fixed text (four steps, the contact block, both
+    disclaimers) and always measures about 50mm short of the sheet, so it is the
+    page that proves the band. Band photographs come from the record, never from
+    anywhere else.
+    """
+    html = _info_pack_html(golden_record, tmp_path)
+
+    assert 'class="band"' in html
+    closing = html.split('page page--last')[1]
+    assert 'class="band"' in closing
+
+    photos = [golden_record.marketing.hero_photo] + list(golden_record.marketing.gallery)
+    names = {Path(p).name for p in photos if p}
+    band_srcs = re.findall(r'<div class="band".*?</div>', html, re.S)
+    assert band_srcs
+    for block in band_srcs:
+        for src in re.findall(r'src="([^"]+)"', block):
+            assert Path(src).name in names
+
+
+def test_info_pack_without_photographs_spreads_its_last_page(golden_record, tmp_path):
+    """No photographs on the record means no band: never an empty image box.
+
+    The closing page then spreads its blocks over the sheet instead, which is
+    what the `page--fill` class switches off.
+    """
+    golden_record.marketing.hero_photo = None
+    golden_record.marketing.gallery = []
+
+    html = _info_pack_html(golden_record, tmp_path)
+
+    assert 'class="band"' not in html
+    # The closing section carries no --fill modifier, so the spread rule applies.
+    # (The class names themselves appear in the stylesheet either way, so the
+    # check has to read the section tag rather than the whole document.)
+    closing = re.findall(r'<section class="(page page--last[^"]*)"', html)
+    assert closing == ["page page--last"]
+
+
+def test_info_pack_pages_are_full_a4_sheets(golden_record, golden_record_path, tmp_path):
+    """Measured in Chromium: no page runs over an A4 and none holds a hole.
+
+    The costing in the template is arithmetic on estimated block heights, so the
+    only honest check is the printed page itself. Every sheet must be exactly A4
+    and no gap between two blocks (or between the last block and the foot of the
+    body) may exceed 30mm, which is the point at which a reader sees a page that
+    ran out of content rather than designed spacing.
+    """
+    from engine.render import rasterize
+
+    if not rasterize.available():
+        pytest.skip("Playwright not installed; page geometry cannot be measured")
+    from playwright.sync_api import sync_playwright
+
+    photos = golden_record_path.parent / "photos"
+    if not photos.is_dir():
+        pytest.skip("golden photographs not present")
+    shutil.copytree(photos, tmp_path / "DP3060" / "photos")
+    store = _store_with(golden_record)
+    try:
+        art = render_one("3060", store, "info_pack", backend="html", output_root=str(tmp_path))
+    finally:
+        store.close()
+
+    measure = """() => Array.from(document.querySelectorAll('.page')).map(el => {
+      const body = el.querySelector('.page__body') || el.querySelector('.cover-body');
+      const r = Array.from(body ? body.children : []).map(k => k.getBoundingClientRect());
+      const gaps = [];
+      for (let j = 1; j < r.length; j++) gaps.push(r[j].top - r[j-1].bottom);
+      if (r.length) gaps.push(body.getBoundingClientRect().bottom - r[r.length-1].bottom);
+      const mm = v => v / 3.7795;
+      return {h: mm(el.getBoundingClientRect().height), gap: mm(Math.max(0, ...gaps))};
+    })"""
+
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(args=["--no-sandbox", "--disable-gpu"])
+        try:
+            page = browser.new_page()
+            page.goto(Path(art.path).with_suffix(".html").as_uri())
+            page.emulate_media(media="print")
+            pages = page.evaluate(measure)
+        finally:
+            browser.close()
+
+    assert len(pages) >= 5
+    for i, p in enumerate(pages, start=1):
+        assert p["h"] < 298, f"page {i} runs over an A4 sheet ({p['h']:.0f}mm)"
+        assert p["gap"] <= 30, f"page {i} holds a {p['gap']:.0f}mm hole"
 
 
 @pytest.mark.parametrize("template", ["feature_list", "stats_first"])
