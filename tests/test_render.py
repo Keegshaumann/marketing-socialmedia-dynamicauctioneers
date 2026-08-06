@@ -343,24 +343,28 @@ def _info_pack_html(record, tmp_path):
 
 
 def test_info_pack_sale_uses_offer_language_not_auction(golden_record, tmp_path):
-    """A normal listing (offers invited) never uses auction / bid wording."""
+    """A normal listing (offers invited) never uses auction / bid wording.
+
+    The cover badge is the tell: the reference packs put the method there in two
+    words, first word gold (playbook 5.1), and a listing that is not an auction
+    must read FOR SALE.
+    """
     golden_record.sale_process.method = "offers_invited"
     html = _info_pack_html(golden_record, tmp_path)
 
-    # Offer / expression-of-interest framing (playbook 5).
-    assert "How to proceed" in html
-    assert "Submit a written offer" in html
-    assert "Buyer information pack" in html
-    assert "Method of sale" in html and "Offers invited" in html
-    # No auction/bidding framing on a sale pack.
-    assert "How the auction works" not in html
+    assert "<b>For</b> Sale" in html
+    assert "Offers invited" in html
+    assert "How It Is Offered" in html                 # the highlights row
+    assert "Enquiries and offers welcome." in html     # the closing tagline
+    # No auction framing anywhere. ("Auctioneers" is in the brand name on every
+    # page, so these are phrases, not the bare word.)
+    assert "Auction information pack" not in html
+    assert "Don't miss this auction" not in html
     assert "Register to bid" not in html
-    assert "On auction" not in html
-    # Disclaimers present verbatim.
+    assert "fall of the hammer" not in html
+    # Disclaimer verbatim, and the enquiries mailbox on the closing page.
     assert _LEGAL_DISCLAIMER in html
-    # Both enquiry mailboxes are offered so a buyer can choose who to email.
     assert "properties@dynamicauctioneers.co.za" in html
-    assert "properties.admin@dynamicauctioneers.co.za" in html
 
 
 def test_info_pack_auction_uses_auction_language_and_details(golden_record, tmp_path):
@@ -372,23 +376,24 @@ def test_info_pack_auction_uses_auction_language_and_details(golden_record, tmp_
     golden_record.sale_process.auction_time = "10:00"
     html = _info_pack_html(golden_record, tmp_path)
 
-    assert "How the auction works" in html
-    assert "Register to bid" in html
-    assert "Auction information pack" in html
-    assert "Insolvency auction" in html          # the optbox headline
+    assert "<b>Online</b> Auction" in html             # the cover badge
+    assert "Offered on Auction" in html                # the highlights row
+    assert "Insolvency auction" in html
     assert "28 May 2026" in html and "10:00" in html
-    # No sale-only "submit an offer" flow on an auction pack.
-    assert "How to proceed" not in html
-    assert "Submit a written offer" not in html
-    # Disclaimers present verbatim.
+    assert "Don't miss this auction!" in html
+    # No sale-only framing on an auction pack.
+    assert "<b>For</b> Sale" not in html
+    assert "Enquiries and offers welcome." not in html
     assert _LEGAL_DISCLAIMER in html
 
 
-def test_info_pack_conditions_page_states_its_heading_once(golden_record, tmp_path):
-    """A dedicated conditions page must not print its own title twice.
+def test_info_pack_prints_the_conditions_once_in_the_terms_box(golden_record, tmp_path):
+    """The conditions live in the bordered box on the details page (playbook 5.2).
 
-    The page's section head already reads "Conditions of sale"; the list macro
-    used to add a sub head saying the same words directly underneath it.
+    The reference packs carry deposit, commission, guarantee and occupation in
+    one box under the fees pill, not on a page of their own. Each condition is
+    printed once: a term repeated on a second page is a term a buyer can read
+    two different ways.
     """
     golden_record.sale_process.terms = [
         f"Condition {i}: the purchaser accepts the property voetstoots and "
@@ -397,11 +402,13 @@ def test_info_pack_conditions_page_states_its_heading_once(golden_record, tmp_pa
     ]
     html = _info_pack_html(golden_record, tmp_path)
 
-    # The list runs long enough to take pages of its own.
-    assert "Conditions of sale continued" in html
-    # Titled by the section head only, never also by a sub head.
-    assert "<h3>Conditions of sale</h3>" not in html
-    assert "<h3>Conditions of sale continued</h3>" not in html
+    box = html.split('<div class="terms">')[1].split("</div>\n          </div>")[0]
+    for i in range(1, 13):
+        assert html.count(f"Condition {i}:") == 1
+        assert f"Condition {i}:" in box
+    # The standing statements that bracket the box, verbatim.
+    assert "All Outstanding Fees, if any, to be Settled by the Seller." in html
+    assert "Subject To 30 days Confirmation By Seller" in html
 
 
 def _with_portions(record, n: int):
@@ -423,25 +430,32 @@ def _with_portions(record, n: int):
 def test_info_pack_schedule_pages_split_evenly(golden_record, tmp_path):
     """A long schedule is split into even pages, never a page holding two rows.
 
-    23 portions used to render five rows beside the cards on page 2, sixteen on
-    the next sheet and a whole A4 holding the last two plus the total.
+    23 portions at twelve to a sheet is 12 and 11, not 12, 11 and a sheet
+    carrying the last row on its own.
     """
     html = _info_pack_html(_with_portions(golden_record, 23), tmp_path)
 
-    # The whole schedule moved off page 2 rather than leaving a head table there.
-    assert "<h3>Schedule of portions</h3>" not in html
-    chunks = html.split('<table class="sched"')[1:]
+    chunks = html.split('<table class="hl sched"')[1:]
     assert len(chunks) == 2                       # two schedule pages
     rows = [c.count("of Farm 7 Slagboom") for c in chunks]
     assert sum(rows) == 23
     assert min(rows) >= 11                        # no ragged tail
+    assert "Schedule of portions continued" in html
 
 
-def test_info_pack_schedule_shares_page_two_when_it_fits(golden_record, tmp_path):
-    """A short schedule stays on page 2 with the cards (playbook 4.2)."""
+def test_info_pack_short_schedule_is_one_page_and_takes_a_band(golden_record, tmp_path):
+    """Three portions do not fill a sheet, so the sheet takes a photograph band.
+
+    The schedule cannot share the details page in this format (that page is
+    composed to its own layout), so the rule is: one schedule page, rows opened
+    up, and what is still empty filled with a photograph rather than left blank.
+    """
     html = _info_pack_html(_with_portions(golden_record, 3), tmp_path)
-    assert "<h3>Schedule of portions</h3>" in html
+
+    assert html.count('<table class="hl sched"') == 1
     assert "Schedule of portions continued" not in html
+    sched_page = html.split("Schedule of portions")[1]
+    assert 'class="band"' in sched_page
 
 
 def test_info_pack_groups_large_extents_and_adds_hectares(golden_record, tmp_path):
@@ -476,34 +490,24 @@ def test_info_pack_names_one_brand_on_a_sale_pack(golden_record, tmp_path):
     assert realestate not in html
 
 
-def test_info_pack_fills_a_short_page_with_a_photograph_band(golden_record, tmp_path):
-    """A page that runs short takes a photograph band, not a hole.
-
-    The closing page carries fixed text (four steps, the contact block, both
-    disclaimers) and always measures about 50mm short of the sheet, so it is the
-    page that proves the band. Band photographs come from the record, never from
-    anywhere else.
-    """
-    html = _info_pack_html(golden_record, tmp_path)
-
-    assert 'class="band"' in html
-    closing = html.split('page page--last')[1]
-    assert 'class="band"' in closing
+def test_info_pack_band_photographs_come_from_the_record(golden_record, tmp_path):
+    """A band that fills a short page uses this property's photographs only."""
+    html = _info_pack_html(_with_portions(golden_record, 3), tmp_path)
 
     photos = [golden_record.marketing.hero_photo] + list(golden_record.marketing.gallery)
     names = {Path(p).name for p in photos if p}
-    band_srcs = re.findall(r'<div class="band".*?</div>', html, re.S)
-    assert band_srcs
-    for block in band_srcs:
+    bands = re.findall(r'<div class="band".*?</div>', html, re.S)
+    assert bands
+    for block in bands:
         for src in re.findall(r'src="([^"]+)"', block):
             assert Path(src).name in names
 
 
-def test_info_pack_without_photographs_spreads_its_last_page(golden_record, tmp_path):
-    """No photographs on the record means no band: never an empty image box.
+def test_info_pack_without_photographs_has_no_band_or_gallery(golden_record, tmp_path):
+    """No photographs on the record means no band and no gallery page.
 
-    The closing page then spreads its blocks over the sheet instead, which is
-    what the `page--fill` class switches off.
+    An empty image box, or a gallery page with nothing on it, is worse than the
+    page simply not being there.
     """
     golden_record.marketing.hero_photo = None
     golden_record.marketing.gallery = []
@@ -511,21 +515,20 @@ def test_info_pack_without_photographs_spreads_its_last_page(golden_record, tmp_
     html = _info_pack_html(golden_record, tmp_path)
 
     assert 'class="band"' not in html
-    # The closing section carries no --fill modifier, so the spread rule applies.
-    # (The class names themselves appear in the stylesheet either way, so the
-    # check has to read the section tag rather than the whole document.)
-    closing = re.findall(r'<section class="(page page--last[^"]*)"', html)
-    assert closing == ["page page--last"]
+    assert 'class="grid3"' not in html
+    assert "<img" in html                      # the logo lockups still render
+    assert 'alt="Property photograph"' not in html
 
 
-def test_info_pack_pages_are_full_a4_sheets(golden_record, golden_record_path, tmp_path):
-    """Measured in Chromium: no page runs over an A4 and none holds a hole.
+def test_info_pack_pages_are_full_a4_landscape_sheets(golden_record, golden_record_path, tmp_path):
+    """Measured in Chromium: every sheet is a full A4 landscape, none clipped.
 
     The costing in the template is arithmetic on estimated block heights, so the
-    only honest check is the printed page itself. Every sheet must be exactly A4
-    and no gap between two blocks (or between the last block and the foot of the
-    body) may exceed 30mm, which is the point at which a reader sees a page that
-    ran out of content rather than designed spacing.
+    only honest check is the printed page itself. Three things must hold on every
+    sheet: it is exactly 210mm tall, nothing overflows it (the pages are fixed
+    height, so an overrun is CLIPPED rather than spilled, which is worse), and no
+    gap between blocks exceeds 30mm. The closing page is exempt from the gap
+    rule: its contact block is pinned to the foot by design.
     """
     from engine.render import rasterize
 
@@ -544,13 +547,15 @@ def test_info_pack_pages_are_full_a4_sheets(golden_record, golden_record_path, t
         store.close()
 
     measure = """() => Array.from(document.querySelectorAll('.page')).map(el => {
-      const body = el.querySelector('.page__body') || el.querySelector('.cover-body');
+      const mm = v => v / 3.7795;
+      const body = el.querySelector('.page__body');
       const r = Array.from(body ? body.children : []).map(k => k.getBoundingClientRect());
       const gaps = [];
       for (let j = 1; j < r.length; j++) gaps.push(r[j].top - r[j-1].bottom);
       if (r.length) gaps.push(body.getBoundingClientRect().bottom - r[r.length-1].bottom);
-      const mm = v => v / 3.7795;
-      return {h: mm(el.getBoundingClientRect().height), gap: mm(Math.max(0, ...gaps))};
+      return {h: mm(el.getBoundingClientRect().height),
+              clip: mm(Math.max(0, el.scrollHeight - el.clientHeight)),
+              gap: mm(Math.max(0, ...gaps))};
     })"""
 
     with sync_playwright() as pw:
@@ -565,7 +570,8 @@ def test_info_pack_pages_are_full_a4_sheets(golden_record, golden_record_path, t
 
     assert len(pages) >= 5
     for i, p in enumerate(pages, start=1):
-        assert p["h"] < 298, f"page {i} runs over an A4 sheet ({p['h']:.0f}mm)"
+        assert 209 < p["h"] < 211, f"page {i} is not a landscape A4 ({p['h']:.0f}mm tall)"
+        assert p["clip"] <= 2, f"page {i} clips {p['clip']:.0f}mm of content"
         assert p["gap"] <= 30, f"page {i} holds a {p['gap']:.0f}mm hole"
 
 
@@ -909,14 +915,14 @@ def test_info_pack_exports_a_real_pdf(golden_record, tmp_path, monkeypatch):
     assert path.suffix == ".pdf"
     assert art.mime == "application/pdf"
     assert path.read_bytes()[:5] == b"%PDF-"      # a real PDF, not renamed HTML
-    # A4 portrait, and the pack runs to more than one page.
+    # A4 LANDSCAPE (playbook 2), and the pack runs to more than one page.
     import fitz
 
     doc = fitz.open(path)
     try:
         assert doc.page_count >= 2
-        assert 580 < doc[0].rect.width < 610      # A4 width in points
-        assert 820 < doc[0].rect.height < 860
+        assert 820 < doc[0].rect.width < 860      # A4 long edge in points
+        assert 580 < doc[0].rect.height < 610
     finally:
         doc.close()
     # The HTML print source is kept beside it.

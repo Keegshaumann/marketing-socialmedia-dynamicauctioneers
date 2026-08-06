@@ -12,3 +12,13 @@ Drop the ad designs you want built into the gallery here, then tell me.
 - Each finished design drops straight into the Gate-2 "Ad design" gallery with an auto-generated thumbnail.
 
 **Note:** files in this folder are gitignored (not committed) — they're inputs, not code. Only the rebuilt `templates/ads/*.html.j2` templates get committed.
+
+## Info packs
+
+Same folder, same idea, for the buyer information pack. The four packs dropped here
+on 2026-08-06 — `DP2674 - DIGITAL INFO PACK.pdf`, `DP2777 INFO PACK.pdf`,
+`DP2948.1 INFO PACK COMPRESSED.pdf` (nine units in one pack) and
+`DP2974 INFO PACK.pdf` — are what `docs/INFO-PACK-PLAYBOOK.md` and
+`templates/info_pack.html.j2` were rebuilt from (D61). They are the reference for
+the pack's look and feel: **if the playbook and one of these packs disagree, the
+pack wins.** Keep them here (or ask for them back) before changing the pack design.

@@ -1,88 +1,62 @@
-{# Buyer / auction information pack (SPEC 12 step 6c), built to the Info Pack
-   Playbook (docs/INFO-PACK-PLAYBOOK.md).
+{# Buyer / auction information pack (SPEC 12 step 6c), rebuilt to the team's own
+   packs (docs/INFO-PACK-PLAYBOOK.md, derived from designs/incoming/DP2674,
+   DP2777, DP2948.1 and DP2974).
 
-   A PAGINATED A4 DOCUMENT, not a web page: every section is a real 210x297mm
-   `.page` block with 18mm padding and `page-break-after`, so the printed PDF
-   (engine/render/rasterize.py html_to_pdf) breaks exactly where the design
-   intends rather than wherever the text happens to reflow. `@page { margin: 0 }`
-   makes the ivory paper run to the sheet edge; `print-color-adjust: exact` keeps
-   the colour.
+   A4 **LANDSCAPE**, 297x210mm, white paper, black ink, the two brand golds
+   (#ac874a mid, #ddc689 light). Every interior sheet carries the gold hairline
+   frame, the grey/gold swoosh in the bottom-right corner and the black shield
+   badge hung off the top-right. That furniture, the heavy uppercase titles and
+   the black glyph beside every feature line are what make the document read as
+   theirs rather than as a generic brochure.
 
-   Page order (playbook 4, adapted to an auto-generated per-property pack):
-     1. Cover
-     2. Property information            (MUST be page 2)
-     2b. Schedule of portions           (only a multi portion property, and only
-                                         when the schedule cannot share page 2)
-     2c. Conditions of sale             (only when they cannot share page 2)
-     3. Photographs                     (only when the record carries photos)
-     4. Accommodation and features      (the residential stand-in for the
-                                         playbook's loose-asset register; MUST
-                                         come before the highlights)
-     5. Investment highlights           (MUST be second last, Highlight | Detail)
-     6. Contact and disclaimers         (MUST be last)
-   Pages 2b, 2c, 3, 4 and 5 render only when this property actually holds that
-   data: an empty stub page is worse than no page. The order rule then applies
-   to the pages that do render.
+   Page order (playbook 4):
+     1. Cover                       white panel + full bleed photograph + circle
+     2. Location details            MUST be page 2
+     2b. Schedule of portions       multi-portion properties only
+     3. Property features           one or more pages
+     4. Gallery                     3x3, repeats until the photographs run out
+     5. Investment highlights       MUST be second last
+     6. Closing                     MUST be last
+   A page with no data for it is omitted rather than printed empty.
 
-   PAGE COMPOSITION IS MEASURED, NOT GUESSED. Every block on a sheet has a cost
-   in tenths of a millimetre, taken off the printed page (the constants below),
-   and the template adds those costs up to decide what shares a sheet and what
-   moves to its own. Three rules follow from it:
-     - a long list is split so every page carries the same PROPORTION of its own
-       budget, never filled to the brim page by page, which is what leaves a
-       last page holding two orphan rows;
-     - a list that is short for its page has its row padding opened up to fill
-       the sheet (`padmm`), so a light page reads as designed spacing rather
-       than as a heading with nothing under it;
-     - what is STILL empty after that, once a list has taken all the padding it
-       can carry, is measured (`FILL_MIN`) and given a photograph band that
-       flexes to the exact height left over. No sheet in the pack carries a hand
-       sized hole between its content and its footnote.
+   PAGE COMPOSITION IS MEASURED (D60, carried over from the portrait pack and
+   re-derived for landscape). Blocks are costed in tenths of a millimetre; a list
+   that is short for its sheet has its rows opened up, and what is STILL empty
+   past FILL_MIN takes a photograph band that flexes into exactly the space left.
 
    Rendered from `public_view` only, so owner name/ID, occupant contact, bond and
-   arrears are structurally absent (SPEC 4.4). No valuation figure appears
-   anywhere: the municipal and professional valuations are stripped from the
-   projection on purpose (owner directive, D32), so the money element is always
-   the offers framing or the auction line.
+   arrears are structurally absent (SPEC 4.4). No valuation figure appears: the
+   municipal and professional valuations are stripped from the projection (D32,
+   D54, D57) and the EVM range and comparable average are deliberately not
+   printed either (playbook 11), so the money element is always the offers
+   framing or the auction line. Monthly rates ARE shown, hedged: a running cost
+   to the buyer, not a valuation of the property, and the reference packs print
+   it.
 
-   Auction vs sale is the key branch (playbook 5): the pack only uses auction /
-   bidding language when sale_process.method == "auction". A normal listing is a
-   "Buyer information pack" using offer language ("How to proceed", "Submit a
-   written offer", "conditions of sale"), never auction / bid words. Figures are
-   hedged (approx.), there are no em or en dashes, and both disclaimers appear
-   verbatim (playbook 8). The pack is issued as Dynamic Auctioneers whichever
-   way the property is sold, so the lockup is pinned to the auctioneers brand:
-   the running head, the contact block and the legal entity all say Dynamic
-   Auctioneers and the logo must not say something else. #}
+   Auction vs sale is the key branch (playbook 7): auction and bidding words only
+   when sale_process.method == "auction". A normal listing reads FOR SALE and
+   uses offer language throughout. Figures are hedged, there are no em or en
+   dashes, and the disclaimer is verbatim. #}
 {% import "_adparts.html.j2" as parts %}
 
 {% set is_auction = (vm.method == 'auction') %}
 {% set pack_label = 'Auction information pack' if is_auction else 'Buyer information pack' %}
 
-{# --- the auction line: channel, date, time, from record fields only ------ #}
-{% set abits = [] %}
-{% if vm.auction_channel %}{% set _ = abits.append(vm.auction_channel) %}{% endif %}
-{% if vm.auction_date %}{% set _ = abits.append(vm.auction_date) %}{% endif %}
-{% set auction_line %}
-{%- if abits %}{{ abits | join(', ') }}{% if vm.auction_time %} at {{ vm.auction_time }}{% endif %}{% else %}Date to be confirmed{% endif -%}
-{% endset %}
-{% set offer_headline = (vm.price_display or 'Offers invited') %}
+{# --- the method badge on the cover: first word gold, rest white, on black --- #}
+{% set badge_lead = (vm.auction_channel or vm.auction_type or 'Liquidation') if is_auction else 'For' %}
+{% set badge_tail = 'Auction' if is_auction else 'Sale' %}
 
-{# --- the extent, in the words the document uses everywhere --------------- #}
+{# --- the auction / viewing line printed large on the details page ---------- #}
+{% set auction_bits = [] %}
+{% if vm.auction_date %}{% set _ = auction_bits.append(vm.auction_date) %}{% endif %}
+{% if vm.auction_time %}{% set _ = auction_bits.append('@ ' ~ vm.auction_time) %}{% endif %}
+
 {% set extent_str %}
-{%- if vm.size_display %}approx. {{ vm.size_display }} m2{% if vm.size_ha %}, about {{ vm.size_ha }} ha{% endif %}{% endif -%}
+{%- if vm.size_display %}± {{ vm.size_display }} m2{% if vm.size_ha %} (± {{ vm.size_ha }} ha){% endif %}{% endif -%}
 {% endset %}
 
-{# --- stat cells (up to 4), each one a fact the record actually holds ----- #}
-{% set stats = [] %}
-{% if vm.size_display %}{% set _ = stats.append(((vm.size_ha ~ ' ha') if vm.size_ha else (vm.size_display ~ ' m2'), 'Approx. extent')) %}{% endif %}
-{% if vm.beds %}{% set _ = stats.append((vm.beds, 'Bedroom' if vm.beds == '1' else 'Bedrooms')) %}{% endif %}
-{% if vm.baths %}{% set _ = stats.append((vm.baths, 'Bathroom' if vm.baths == '1' else 'Bathrooms')) %}{% endif %}
-{% if vm.garages and vm.garages != '0' %}{% set _ = stats.append((vm.garages, 'Garage' if vm.garages == '1' else 'Garages')) %}{% endif %}
-{% if vm.flatlet_present %}{% set _ = stats.append((vm.flatlet_beds or 'Yes', 'Bed flatlet' if vm.flatlet_beds else 'Flatlet')) %}{% endif %}
-{% set stats = stats[:4] %}
-
-{# --- accommodation phrase, reused on the highlights table ---------------- #}
+{# --- accommodation, in the words the pack reuses on the features list and the
+   highlights table --------------------------------------------------------- #}
 {% set accom = [] %}
 {% if vm.beds %}{% set _ = accom.append(vm.beds ~ (' bedroom' if vm.beds == '1' else ' bedrooms')) %}{% endif %}
 {% if vm.baths %}{% set _ = accom.append(vm.baths ~ (' bathroom' if vm.baths == '1' else ' bathrooms')) %}{% endif %}
@@ -93,68 +67,40 @@
 {%- if vm.flatlet_features %} with {{ vm.flatlet_features | join(', ') | lower }}{% endif -%}
 {% endset %}
 
-{# The hero is already on the cover, so the gallery page carries the next six. #}
-{% set shots = (vm.photos or [])[1:7] %}
-
-{# Photographs that neither the cover nor the gallery page used feed the bands
-   that fill short pages. When they run out the band cycles back through the
-   set: a photograph the buyer has already seen reads better than a third of an
-   empty sheet, which is the whole point of the band. #}
-{% set fill_photos = vm.photos or [] %}
-{% set pool = namespace(i=(shots | length) + 1) %}
+{# --- photographs ---------------------------------------------------------- #}
+{% set photos = vm.photos or [] %}
+{% set hero = photos[0] if photos else None %}
+{# The cover circle takes the second photograph so the sheet does not print the
+   same picture twice; with one photograph it takes that one. #}
+{% set circle_src = photos[1] if photos | length > 1 else hero %}
+{% set gallery = photos[1:] if photos | length > 1 else [] %}
+{% set gallery_pages = gallery | batch(9) | list %}
+{# The closing page's ground, and the bands that fill short sheets. #}
+{% set fill_photos = photos %}
+{% set pool = namespace(i=0) %}
 
 {# =========================================================================
-   SHEET GEOMETRY. All costs are tenths of a millimetre, measured off the
-   printed A4 (rasterise the PDF and read the block positions; the numbers
-   below are within a millimetre of the real thing).
+   SHEET GEOMETRY, tenths of a millimetre, measured off the printed landscape
+   A4: 210mm tall, 13mm top and 12mm bottom padding, and a title block of about
+   20mm, leaving ~163mm of body.
    ========================================================================= #}
-{# Body region of an ordinary sheet: from 56mm (under the section rule) to
-   255mm (above a three line footnote). The features page footnote runs to one
-   line, so that page has ~8mm more. #}
-{% set REGION = 1990 %}
-{% set REGION_WIDE = 2075 %}
-{% set H3 = 61 %}          {# a small caps sub head plus its margin #}
-{% set GAP = 70 %}         {# the 7mm gap between two blocks #}
-{% set LINE = 49 %}        {# one line of 11.5px body text #}
-{% set ROW_PAD = 25 %}     {# default vertical padding on a list row, per side #}
-{% set SCHED_PAD = 26 %}   {# ... on a schedule row #}
-{% set KV_PAD = 23 %}      {# ... on a card row #}
-{% set CARD_CHROME = 161 %}{# card padding top and bottom plus its sub head #}
-{# Characters per line, measured off the printed text (a full width list row is
-   168mm at about 1.5mm a character). Rounded DOWN, so a wrap is counted a
-   little early rather than a line late. #}
-{% set CARD_CHARS = 28 %}  {# a card's value column, 43mm #}
-{% set TERM_CHARS = 105 %} {# a full width list row, 168mm #}
-{% set COL_CHARS = 48 %}   {# one of two feature columns, 77mm #}
-{% set TH_ROW = 65 %}      {# a table's column heading row (schedule, highlights) #}
-{% set OFFER_BOX = 305 %}  {# the gold "how it is offered" panel #}
-{% set STAT_STRIP = 283 %} {# the four stat cells #}
-{% set FLATLET_BOX = 345 %}{# the flatlet callout plus the gap above it #}
-{% set SROW = LINE + 2 * SCHED_PAD %}
-{% set SCHED_CHARS = 34 %} {# characters per line in the schedule's widest column #}
+{% set REGION = 1630 %}
+{% set FROW = 128 %}        {# one feature row: a 9mm glyph plus its padding #}
+{% set FSUB = 38 %}         {# ... plus a sub line under the label #}
+{% set COLHEAD = 92 %}      {# a gold column heading and its margin #}
+{% set FOOTNOTE = 96 %}     {# the black footnote line under a features page #}
+{% set CHIP = 100 %}        {# the complex-name chip in the bottom-right corner #}
+{% set LINE = 46 %}         {# one line of 11px body text #}
+{% set ROW_PAD = 22 %}      {# default padding on a feature row, per side #}
+{% set TH_ROW = 62 %}       {# a table's heading row #}
+{% set FILL_MIN = 260 %}    {# 26mm: past this a sheet reads as short, not spaced #}
+{% set FILL_WIDE = 620 %}   {# past 62mm one photograph looks stretched: use two #}
 
-{# What counts as a hole. A sheet still holding this much empty height after its
-   list has taken all the row padding it is allowed reads as a page that ran out
-   of content, so it takes a photograph band. Under it the gap is small enough
-   to read as designed spacing and is left alone. #}
-{% set FILL_MIN = 300 %}   {# 30mm #}
-{% set FILL_WIDE = 720 %}  {# from 72mm one photograph looks stretched: use two #}
+{% macro padraw(budget, lines, rows, cap, base=ROW_PAD) %}{{ ([[(((budget - lines * FROW) // (2 * rows)) if rows else base), cap] | min, base] | max) }}{% endmacro %}
 
-{# Row padding that makes a list fill its share of the sheet: the space left
-   over is divided over the rows instead of being left as a hole at the foot.
-   Capped, because no amount of padding turns two bullet points into a page.
-   `padraw` is the number (tenths of a millimetre) so the page can also work out
-   what is STILL empty once the rows have taken their share; `padmm` is the same
-   number as a CSS length. One formula, two readers. #}
-{% macro padraw(budget, lines, rows, cap, base=ROW_PAD) %}{{ ([[(((budget - lines * LINE) // (2 * rows)) if rows else base), cap] | min, base] | max) }}{% endmacro %}
-
-{% macro padmm(budget, lines, rows, cap, base=ROW_PAD) -%}
-{{ (padraw(budget, lines, rows, cap, base) | int) / 10 }}mm
-{%- endmacro %}
-
-{# The band itself: one or two photographs that flex to whatever height the page
-   has left. The height is CSS, not arithmetic, so a costing that is a few
-   millimetres out still produces a sheet with no hole in it. #}
+{# The band: photographs that take exactly the height a page has left over.
+   flex-basis 0 and minmax(0, 1fr) rows mean it asks for no height of its own,
+   so it can never be the block that pushes a sheet onto a second one. #}
 {% macro fill_band(wide=false) -%}
 {%- if fill_photos -%}
 {%- set n = 2 if (wide and (fill_photos | length) > 1) else 1 -%}
@@ -167,318 +113,91 @@
 {%- endif -%}
 {%- endmacro %}
 
-{# --- page 2's two cards, built as data so their height can be costed ----- #}
-{# Title, not owner: the deeds identity of the property. The owner's name and
-   ID are POPIA internal layer and are not in this projection (SPEC 4.4). #}
-{% set title_rows = [] %}
-{% if vm.title_type_label %}{% set _ = title_rows.append(('Title type', vm.title_type_label)) %}{% endif %}
-{% if vm.scheme %}{% set _ = title_rows.append(('Scheme', vm.scheme ~ (', unit ' ~ vm.unit if vm.unit else ''))) %}{% endif %}
-{% if vm.erf %}{% set _ = title_rows.append(('Erf', vm.erf)) %}{% endif %}
-{% if vm.legal_description %}{% set _ = title_rows.append(('Legal description', vm.legal_description)) %}{% endif %}
-{% if vm.title_deed_no %}{% set _ = title_rows.append(('Title deed no.', vm.title_deed_no)) %}{% endif %}
-{% if extent_str | trim %}{% set _ = title_rows.append(('Extent', extent_str | trim)) %}{% endif %}
-{% if vm.zoning %}{% set _ = title_rows.append(('Zoning', vm.zoning)) %}{% endif %}
-{% if vm.municipality %}{% set _ = title_rows.append(('Municipality', vm.municipality)) %}{% endif %}
-{% if vm.province %}{% set _ = title_rows.append(('Province', vm.province)) %}{% endif %}
-{% if vm.gps_str %}{% set _ = title_rows.append(('Coordinates', 'approx. ' ~ vm.gps_str)) %}{% endif %}
-
-{% set offer_rows = [('Method of sale', 'Auction' if is_auction else 'Offers invited')] %}
-{% if is_auction %}
-{% if vm.auction_type %}{% set _ = offer_rows.append(('Auction type', vm.auction_type ~ ' auction')) %}{% endif %}
-{% if vm.auction_channel %}{% set _ = offer_rows.append(('Held', vm.auction_channel)) %}{% endif %}
-{% if vm.auction_date %}{% set _ = offer_rows.append(('Auction date', vm.auction_date ~ (' at ' ~ vm.auction_time if vm.auction_time else ''))) %}{% endif %}
-{% set _ = offer_rows.append(('Confirmation', "The highest bid is subject to the seller's confirmation")) %}
-{% else %}
-{# Only a real asking figure earns a row of its own: repeating "Offers invited"
-   under "Method of sale" says nothing twice. #}
-{% if vm.price_display and vm.price_display | lower != 'offers invited' %}
-{% set _ = offer_rows.append(('Asking', vm.price_display)) %}
-{% endif %}
-{% set _ = offer_rows.append(('Offers', 'In writing to Dynamic Auctioneers')) %}
-{% set _ = offer_rows.append(('Confirmation', "Any sale is subject to the seller's confirmation")) %}
-{% endif %}
-{% if vm.address %}{% set _ = offer_rows.append(('Address', vm.address)) %}{% endif %}
-{% if vm.public_ref %}{% set _ = offer_rows.append(('Reference', vm.public_ref)) %}{% endif %}
-{% set _ = offer_rows.append(('Viewing', 'Strictly by appointment' if vm.viewing_by_appt else 'By arrangement with Dynamic Auctioneers')) %}
-
-{% set tcost = namespace(n=0, lines=0) %}
-{% for label, value in title_rows %}
-{% set l = 1 + (((value | string | length) - 1) // CARD_CHARS) %}
-{% set tcost.n = tcost.n + KV_PAD * 2 + LINE * l %}
-{% set tcost.lines = tcost.lines + l %}
-{% endfor %}
-{% set ocost = namespace(n=0, lines=0) %}
-{% for label, value in offer_rows %}
-{% set l = 1 + (((value | string | length) - 1) // CARD_CHARS) %}
-{% set ocost.n = ocost.n + KV_PAD * 2 + LINE * l %}
-{% set ocost.lines = ocost.lines + l %}
-{% endfor %}
-{# The two cards sit side by side, so the block is as tall as the taller card. #}
-{% set cards_cost = ([tcost.n, ocost.n] | max) + CARD_CHROME %}
-{% set kv_tall_n = [tcost.n, ocost.n] | max %}
-{% set kv_tall_lines = tcost.lines if tcost.n >= ocost.n else ocost.lines %}
-{% set kv_tall_rows = (title_rows | length) if tcost.n >= ocost.n else (offer_rows | length) %}
-
-{# --- the schedule of portions (multi portion properties only) ------------ #}
-{% set portions = vm.portions or [] %}
-{% set np = portions | length %}
-{% set sched_units = np + (1 if np > 1 else 0) %}{# the total extent row #}
-{% set sched_inline = (H3 + TH_ROW + sched_units * SROW + GAP) if np else 0 %}
-{# Whole schedule beside the cards on page 2 (playbook 4.2), or nothing: half
-   the rows on page 2 and the rest on a sheet of their own is what leaves a
-   ragged tail. Past that it takes pages of its own, split evenly. #}
-{% set sched_on_p2 = np > 0 and (sched_inline + cards_cost) <= REGION %}
-{% set sched_own = np > 0 and not sched_on_p2 %}
-{% set sched_cap = (REGION - TH_ROW - GAP) // SROW %}
-{% set sched_np = ((sched_units + sched_cap - 1) // sched_cap) if sched_own else 0 %}
-{% set sched_pages = portions | batch(((np + sched_np - 1) // sched_np) if sched_np else np) | list if sched_own else [] %}
-
-{# --- the conditions of sale ---------------------------------------------- #}
-{# The list can be model generated or human edited, so its height is measured
-   (a term over about 95 characters wraps) rather than assumed. #}
-{% set terms_all = vm.terms or [] %}
-{% set term_lines = [] %}
-{% for t in terms_all %}{% set _ = term_lines.append(1 + ((t | length) // TERM_CHARS)) %}{% endfor %}
-{% set terms_cost = ((term_lines | sum) * LINE + (terms_all | length) * 2 * ROW_PAD) if terms_all else 0 %}
-{% set p2_used = cards_cost + (sched_inline if sched_on_p2 else 0) %}
-{# They stay on page 2 while they fit under the cards, which is the common
-   single property case; only a genuinely full page 2 moves them off. Merely
-   having portions is not a reason to give six short conditions a whole sheet. #}
-{% set terms_on_p2 = terms_all and (p2_used + GAP + H3 + terms_cost) <= REGION %}
-{% set terms_own = terms_all and not terms_on_p2 %}
-{# What is left of page 2 once everything that belongs there is placed. On a
-   data light record (no conditions, few deeds fields) that is most of the
-   sheet, so the card rows are opened up to take it rather than leaving a third
-   of an A4 blank under two short cards. #}
-{# The threshold is high, and 15mm of the spare is left on the table, because
-   the estimate is only good to about a centimetre: opening the rows up on a
-   page that was merely comfortable would push it onto a second sheet. #}
-{% set p2_spare = REGION - p2_used - ((GAP + H3 + terms_cost) if terms_on_p2 else 0) %}
-{% set kv_fill = p2_spare > 400 %}
-{# The two card and conditions paddings, resolved as numbers, so what is left
-   after both have taken their share can be measured rather than guessed at.
-   The conditions budget nets off what the cards took: they draw on the same
-   spare height, and counting it twice would run the sheet long. #}
-{# The card rows are opened up gently when a photograph band is there to take
-   the rest of the sheet, and hard when there is no photograph on the record at
-   all: an airy card is a poorer page than a tight one, but both beat a third of
-   an A4 left blank under two short boxes. #}
-{% set kv_cap = 50 if fill_photos else 115 %}
-{% set kv_pad = (padraw(kv_tall_n + p2_spare - 150, kv_tall_lines, kv_tall_rows, kv_cap, KV_PAD) | int) if kv_fill else KV_PAD %}
-{% set kv_extra = kv_tall_rows * 2 * (kv_pad - KV_PAD) %}
-{% set p2_term_pad = (padraw(REGION - p2_used - GAP - H3 - kv_extra, term_lines | sum, terms_all | length, 80) | int) if terms_on_p2 else ROW_PAD %}
-{% set p2_term_extra = ((terms_all | length) * 2 * (p2_term_pad - ROW_PAD)) if terms_on_p2 else 0 %}
-{% set p2_left = p2_spare - kv_extra - p2_term_extra %}
-{% set p2_band = fill_photos and p2_left >= FILL_MIN %}
-
-{# =========================================================================
-   LIST PAGINATION. Three lists can outgrow a sheet: the two feature columns
-   and (on its own page) the conditions. Each is packed the same way, so the
-   maths lives in one loop.
-   ========================================================================= #}
+{# --- feature lists, costed --------------------------------------------- #}
 {% set fm_all = vm.features_main or [] %}
 {% set fc_all = vm.features_complex or [] %}
-{% set feat_total = (fm_all | length) + (fc_all | length) %}
-{# Short lists get one roomy full width column; long ones get two columns, and
-   an item in a narrow column wraps at about 44 characters instead of 95. #}
-{% set feat_stack = (not (fm_all and fc_all)) or feat_total <= 10 %}
-{% set feat_chars = TERM_CHARS if feat_stack else COL_CHARS %}
-{% set feat_shared = feat_stack and fm_all and fc_all %}
 
-{% set fm_lines = [] %}
-{% for f in fm_all %}{% set _ = fm_lines.append(1 + ((f | length) // feat_chars)) %}{% endfor %}
-{% set fc_lines = [] %}
-{% for f in fc_all %}{% set _ = fc_lines.append(1 + ((f | length) // feat_chars)) %}{% endfor %}
-{% set fm_cost = (fm_lines | sum) * LINE + (fm_all | length) * 2 * ROW_PAD %}
-{% set fc_cost = (fc_lines | sum) * LINE + (fc_all | length) * 2 * ROW_PAD %}
+{% macro rowcost(items) %}{% set c = namespace(n=0) %}{% for f in items %}{% set c.n = c.n + FROW + (FSUB if split_label(f)[1] else 0) %}{% endfor %}{{ c.n }}{% endmacro %}
 
-{# A feature page's first sheet also carries the stat strip and, where there is
-   one, the flatlet callout, so it holds roughly 145mm of list against a
-   continuation sheet's 200mm. Budgeting both at the same number is what turned
-   38 features into three ragged pages instead of two full ones. When the two
-   lists share one column they also share the sheet, split by weight. #}
-{% set feat_ovh = (2 * H3 + GAP) if feat_shared else H3 %}
-{% set feat_first = REGION_WIDE - (STAT_STRIP if stats else 0) - (FLATLET_BOX if vm.flatlet_present else 0) - feat_ovh %}
-{% set feat_cont = REGION_WIDE - feat_ovh %}
-{% set feat_den = (fm_cost + fc_cost) if feat_shared else 0 %}
+{# Two columns per sheet. The first features page also carries the footnote, so
+   it holds slightly less than a continuation sheet. #}
+{% set feat_budget = REGION - COLHEAD - FOOTNOTE %}
+{% set feat_per_col = (feat_budget // FROW) %}
+{% set feat_per_page = feat_per_col * 2 %}
+{# The flatlet is a feature of the property, so it belongs in the list with a
+   glyph beside it rather than buried in a footnote (the reference packs list
+   "1-BED FLATLET" under external features). #}
+{% set feat_all = fm_all + ([flatlet_line | trim] if vm.flatlet_present else []) + fc_all %}
+{% set feat_pages = feat_all | batch(feat_per_page) | list %}
 
-{% set pack_items = [fm_all, fc_all, terms_all if terms_own else []] %}
-{% set pack_lines = [fm_lines, fc_lines, term_lines if terms_own else []] %}
-{% set pack_b1 = [
-     (feat_first * fm_cost // feat_den) if feat_den else feat_first,
-     (feat_first * fc_cost // feat_den) if feat_den else feat_first,
-     REGION - OFFER_BOX - GAP] %}
-{% set pack_b2 = [
-     (feat_cont * fm_cost // feat_den) if feat_den else feat_cont,
-     (feat_cont * fc_cost // feat_den) if feat_den else feat_cont,
-     REGION] %}
-{% set packed = [] %}
-{% for items in pack_items %}
-  {% set lines = pack_lines[loop.index0] %}
-  {% set b1 = pack_b1[loop.index0] %}
-  {% set b2 = pack_b2[loop.index0] %}
-  {% set cost = (lines | sum) * LINE + (items | length) * 2 * ROW_PAD %}
-  {# The tallest single row, held back on every page after the first so the
-     last page cannot be handed more than it can hold. #}
-  {% set mx = namespace(v=0) %}
-  {% for l in lines %}{% if l * LINE + 2 * ROW_PAD > mx.v %}{% set mx.v = l * LINE + 2 * ROW_PAD %}{% endif %}{% endfor %}
-  {% set nn = namespace(n=0) %}
-  {% for k in range(1, 13) %}
-    {% if not nn.n and cost <= b1 + (k - 1) * (b2 - mx.v) %}{% set nn.n = k %}{% endif %}
-  {% endfor %}
-  {% set n = nn.n or 12 %}
-  {% set cap = b1 + (n - 1) * b2 %}
-  {% set pk = namespace(out=[], cur=[], used=0, i=0) %}
-  {% for f in items %}
-    {% set c = lines[loop.index0] * LINE + 2 * ROW_PAD %}
-    {# Each page takes the same fraction of its own budget as the list takes of
-       the total, so no page ends up with the leftovers. #}
-    {% set tgt = ((b1 if pk.i == 0 else b2) * cost // cap) if cap else 0 %}
-    {% if pk.cur and pk.i < n - 1 and pk.used + c > tgt %}
-      {% set pk.out = pk.out + [pk.cur] %}
-      {% set pk.cur = [] %}
-      {% set pk.used = 0 %}
-      {% set pk.i = pk.i + 1 %}
-    {% endif %}
-    {% set pk.cur = pk.cur + [f] %}
-    {% set pk.used = pk.used + c %}
-  {% endfor %}
-  {% if pk.cur %}{% set pk.out = pk.out + [pk.cur] %}{% endif %}
-  {% set _ = packed.append(pk.out) %}
-{% endfor %}
-{% set fm_pages = packed[0] %}
-{% set fc_pages = packed[1] %}
-{% set term_pages = packed[2] %}
-{# The flatlet callout rides the features page; it is not a page on its own. #}
-{% set feature_pages = [fm_pages | length, fc_pages | length] | max %}
-
-{% set any_portion_erf = portions | selectattr('erf') | list | length > 0 %}
-{% set any_portion_deed = portions | selectattr('deed') | list | length > 0 %}
-
-{# --- investment highlights: one row per real record fact ----------------- #}
+{# --- investment highlights: one row per fact the record actually holds ---- #}
 {% set hl = [] %}
 {% if is_auction %}
-{% set _ = hl.append(('Offered on auction', ((vm.auction_type ~ ' auction, ') if vm.auction_type else 'Auction, ') ~ auction_line)) %}
+{% set _ = hl.append(('Offered on Auction', ((vm.auction_type ~ ' auction') if vm.auction_type else 'Auction') ~ (', ' ~ (auction_bits | join(' ')) if auction_bits else '') ~ '. The highest bid is subject to the seller\'s confirmation.')) %}
 {% else %}
-{% set _ = hl.append(('How it is offered', offer_headline ~ ', subject to the conditions of sale')) %}
+{% set _ = hl.append(('How It Is Offered', (vm.price_display or 'Offers invited') ~ ', subject to the conditions of sale and the seller\'s confirmation.')) %}
 {% endif %}
-{% if vm.location_line %}{% set _ = hl.append(('Location', vm.location_line)) %}{% endif %}
-{% if accom %}{% set _ = hl.append(('Accommodation', accom | join(', '))) %}{% endif %}
-{% if vm.flatlet_present %}{% set _ = hl.append(('Separate flatlet', flatlet_line)) %}{% endif %}
-{% if extent_str | trim %}{% set _ = hl.append(('Extent', (extent_str | trim) ~ (', being the total of the ' ~ np ~ ' portions listed' if np > 1 else '') ~ ', to be confirmed on due diligence')) %}{% endif %}
-{% if vm.garages and vm.garages != '0' %}{% set _ = hl.append(('Parking', vm.garages ~ (' garage' if vm.garages == '1' else ' garages'))) %}{% endif %}
-{% if vm.title_type_label %}{% set _ = hl.append(('Title', vm.title_type_label ~ (', ' ~ vm.scheme if vm.scheme else '') ~ (' unit ' ~ vm.unit if vm.unit else '') ~ (', erf ' ~ vm.erf if vm.erf else ''))) %}{% endif %}
-{% if vm.zoning %}{% set _ = hl.append(('Zoning', vm.zoning ~ ', to be confirmed on due diligence')) %}{% endif %}
-{% if vm.features_complex %}{% set _ = hl.append(('Complex and shared facilities', vm.features_complex[:4] | join(', '))) %}{% endif %}
-{% if vm.features_main %}{% set _ = hl.append(('Main residence', vm.features_main[:3] | join('; '))) %}{% endif %}
-{% if vm.viewing_by_appt %}{% set _ = hl.append(('Viewing', 'Strictly by appointment through Dynamic Auctioneers')) %}{% endif %}
-{# A table of three or four rows is not a page. Below that the highlights page
-   is dropped rather than padded out with invented selling points. #}
+{% if vm.location_line %}{% set _ = hl.append(('Established Location', vm.location_line ~ '.')) %}{% endif %}
+{% if accom %}{% set _ = hl.append(('Practical Accommodation', (accom | join(', ')) | capitalize ~ ', as inspected.')) %}{% endif %}
+{% if vm.flatlet_present %}{% set _ = hl.append(('Separate Flatlet', (flatlet_line | trim) ~ ', offering potential for extended family, a work from home space or rental use.')) %}{% endif %}
+{% if extent_str | trim %}{% set _ = hl.append(('Generous Extent', (extent_str | trim) ~ (', being the total of the ' ~ (vm.portions | length) ~ ' portions listed' if (vm.portions | length) > 1 else '') ~ ', to be confirmed on due diligence.')) %}{% endif %}
+{% if vm.garages and vm.garages != '0' %}{% set _ = hl.append(('Secure Parking', vm.garages ~ (' garage' if vm.garages == '1' else ' garages') ~ ' on the property.')) %}{% endif %}
+{% if vm.title_type_label %}{% set _ = hl.append(('Clean Title', vm.title_type_label ~ (', ' ~ vm.scheme if vm.scheme else '') ~ (' unit ' ~ vm.unit if vm.unit else '') ~ (', erf ' ~ vm.erf if vm.erf else '') ~ '.')) %}{% endif %}
+{% if vm.zoning %}{% set _ = hl.append(('Zoning', vm.zoning ~ ', to be confirmed on due diligence.')) %}{% endif %}
+{% if fc_all %}{% set _ = hl.append(('Complex Facilities', (fc_all[:4] | join(', ')) ~ '.')) %}{% endif %}
+{% if fm_all %}{% set _ = hl.append(('Main Residence', (fm_all[:3] | join('; ')) ~ '.')) %}{% endif %}
+{% if vm.viewing_by_appt %}{% set _ = hl.append(('Viewing', 'Strictly by appointment through Dynamic Auctioneers.')) %}{% endif %}
 {% set show_highlights = (hl | length) >= 5 %}
 {% set hl_lines = namespace(n=0) %}
-{% for label, detail in hl %}{% set hl_lines.n = hl_lines.n + 1 + ((detail | length) // 69) %}{% endfor %}
+{% for label, detail in hl %}{% set hl_lines.n = hl_lines.n + 1 + ((detail | length) // 96) %}{% endfor %}
 
-{% macro running_head() %}
-  <div class="rh">
-    <span class="rh-b">{{ vm.brand_name }}</span>
-    <span>{{ pack_label }}{% if vm.public_ref %} | Ref {{ vm.public_ref }}{% endif %}</span>
+{# --- the tagline on the closing page, from the record's own words --------- #}
+{% set close_lead %}
+{%- if vm.descriptor_line %}{{ vm.descriptor_line }}{% if vm.suburb %} in {{ vm.suburb }}{% endif %}.
+{%- else %}{{ vm.headline }}.{% endif -%}
+{% endset %}
+
+{# ========================================================================= #}
+{% macro frame() %}<div class="frame"></div>{% endmacro %}
+
+{% macro swoosh() %}
+  <svg class="swoosh" viewBox="0 0 600 240" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 196c120-8 190-56 320-70 96-10 190 4 280 34v80H0z" fill="#d7d7d7"/>
+    <path d="M96 240c76-58 152-96 268-104 92-6 168 8 236 34v70z" fill="#e8dece"/>
+    <path d="M300 240c56-34 118-52 200-54 40 0 74 4 100 12v42z" fill="#cfcfcf"/>
+  </svg>
+{% endmacro %}
+
+{% macro shield() %}
+  <div class="shield">{{ parts.brand_logo(vm, 'dark', 'auctioneers') }}</div>
+{% endmacro %}
+
+{% macro page_title(text) %}
+  <h2 class="ptitle">{{ text }}</h2>
+{% endmacro %}
+
+{% macro pill(text, outline=false) %}
+  <div class="pill {{ 'pill--out' if outline else '' }}">{{ text }}</div>
+{% endmacro %}
+
+{# One feature line: glyph, bold label, optional qualifier under it. #}
+{% macro frow(text, pad='') %}
+  {% set parts_ = split_label(text) %}
+  <div class="frow"{% if pad %} style="--frowpad: {{ pad }}"{% endif %}>
+    <span class="g">{{ glyph(icon_for(text)) }}</span>
+    <span class="t">{{ parts_[0] }}{% if parts_[1] %}<span class="s">{{ parts_[1] }}</span>{% endif %}</span>
   </div>
 {% endmacro %}
 
-{% macro page_foot() %}
-  <div class="pf">
-    <span>{{ vm.headline }}</span>
-    <span class="num"></span>
+{% macro chip(icon, label, value) %}
+  <div class="chip">
+    <span class="ring">{{ glyph(icon, '7mm') }}</span>
+    <span><b>{{ label }}</b><br>{{ value }}</span>
   </div>
 {% endmacro %}
 
-{% macro section_head(eyebrow, title) %}
-  <div class="sec">
-    <div class="eyebrow">{{ eyebrow }}</div>
-    <h2>{{ title }}</h2>
-  </div>
-{% endmacro %}
-
-{% macro stat_cells(cells) %}
-  <div class="stats" style="grid-template-columns: repeat({{ cells | length }}, 1fr)">
-    {% for value, label in cells %}
-      <div><div class="stat-n">{{ value }}</div><div class="stat-l">{{ label }}</div></div>
-    {% endfor %}
-  </div>
-{% endmacro %}
-
-{% macro kv_card(heading, rows) %}
-  <div class="card">
-    <h3>{{ heading }}</h3>
-    <table class="kv">
-      {% for label, value in rows %}
-      <tr><td>{{ label }}</td><td>{{ value }}</td></tr>
-      {% endfor %}
-    </table>
-  </div>
-{% endmacro %}
-
-{% macro schedule_table(rows, with_total, pad='') %}
-  <table class="sched"{% if pad %} style="--srow: {{ pad }}"{% endif %}>
-    <thead>
-      <tr>
-        <th>Portion</th>
-        {% if any_portion_erf %}<th>Erf</th>{% endif %}
-        <th>Extent</th>
-        {% if any_portion_deed %}<th>Title deed</th>{% endif %}
-      </tr>
-    </thead>
-    <tbody>
-      {% for p in rows %}
-      <tr>
-        <td>{{ p.label or 'Portion ' ~ loop.index }}</td>
-        {% if any_portion_erf %}<td>{{ p.erf or '' }}</td>{% endif %}
-        <td>{% if p.size_display %}approx. {{ p.size_display }} m2{% endif %}</td>
-        {% if any_portion_deed %}<td>{{ p.deed or '' }}</td>{% endif %}
-      </tr>
-      {% endfor %}
-      {% if with_total and vm.size_display and np > 1 %}
-      <tr class="tot">
-        <td>Total extent</td>
-        {% if any_portion_erf %}<td></td>{% endif %}
-        <td>{{ extent_str | trim }}</td>
-        {% if any_portion_deed %}<td></td>{% endif %}
-      </tr>
-      {% endif %}
-    </tbody>
-  </table>
-{% endmacro %}
-
-{# `heading` is optional on purpose: on a page whose section head already reads
-   "Conditions of sale" a sub head saying it again is the same words twice. #}
-{% macro tick_list(items, pad='', heading='') %}
-  {% if heading %}<h3>{{ heading }}</h3>{% endif %}
-  <ul class="ticks"{% if pad %} style="--tickpad: {{ pad }}"{% endif %}>
-    {% for t in items %}<li>{{ t }}</li>{% endfor %}
-  </ul>
-{% endmacro %}
-
-{% macro hedge_note() %}
-  <p class="note">
-    All extents, figures and features stated in this pack are approximate. They are drawn
-    from the deeds records, the property report and third party data, have not been
-    independently verified, and are to be confirmed on due diligence. Amounts are in
-    South African Rand.
-  </p>
-{% endmacro %}
-
-{% macro offer_panel() %}
-  <div class="offer">
-    {% if is_auction %}
-    <div class="lbl">Auction</div>
-    <div class="big">{% if vm.auction_type %}{{ vm.auction_type }} auction{% else %}Auction{% endif %}</div>
-    <div class="sub">{{ auction_line }}. Registration to bid closes before the auction.</div>
-    {% else %}
-    <div class="lbl">How it is offered</div>
-    <div class="big">{{ offer_headline }}</div>
-    <div class="sub">Written offers invited, subject to the conditions of sale and the seller's confirmation.</div>
-    {% endif %}
-  </div>
+{% macro fact(label, value) %}
+  {% if value %}<div class="fact"><b>{{ label }}:</b> {{ value }}</div>{% endif %}
 {% endmacro %}
 <!doctype html>
 <html lang="en">
@@ -487,535 +206,495 @@
 <title>{{ pack_label }} | {{ vm.headline }} | {{ vm.brand_name }}</title>
 <style>
   :root {
-    /* Playbook 3, the LIGHT document palette (distinct from the dark ads). */
-    --paper: #faf7f0;
-    --paper-2: #f4efe4;
-    --line: #e3dbc7;
-    --ink: #211d15;
-    --ink-2: #574f42;
-    --ink-3: #8c8371;
-    --gold: #9c7a24;
-    --green: #465a30;
+    /* Playbook 2, sampled off the vector reference pack. */
+    --paper: #ffffff;
+    --ink: #000000;
+    --ink-2: #3f3f3f;
+    --gold: #ac874a;
+    --gold-2: #ddc689;
+    --grey: #d7d7d7;
     --font: 'Montserrat', 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
   }
-  @page { size: A4; margin: 0; }
+  @page { size: A4 landscape; margin: 0; }
   * { box-sizing: border-box; }
-  /* The paper colour is set on <html> so it paints the whole print canvas: if a
-     page ever does run long, the extra sheet is still ivory, not bare white. */
   html {
     background: var(--paper);
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
   body {
-    margin: 0; background: var(--paper); color: var(--ink-2);
-    font-family: var(--font); font-size: 12.5px; line-height: 1.55;
-    -webkit-font-smoothing: antialiased; counter-reset: pg;
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font); font-size: 11px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
   }
   img { max-width: 100%; }
 
-  /* One physical A4 sheet. min-height (not height) so a pathologically long
-     value flows rather than being clipped away. */
+  /* One physical A4 sheet, landscape. Fixed height, not min-height: the design
+     is composed to the sheet, and a block that would overrun is clipped rather
+     than allowed to spill a ragged extra page into the middle of the pack. */
   .page {
-    position: relative; width: 210mm; min-height: 297mm;
-    padding: 18mm 18mm 13mm; background: var(--paper);
+    position: relative; width: 297mm; height: 210mm; padding: 13mm 15mm 12mm;
+    background: var(--paper); overflow: hidden;
     display: flex; flex-direction: column;
-    page-break-after: always; break-after: page; counter-increment: pg;
+    page-break-after: always; break-after: page;
   }
   .page:last-child { page-break-after: auto; break-after: auto; }
-  /* Content sits at the top of the sheet and the hedging note (or, on the
-     closing page, the registration block) is pinned to the foot, so a page with
-     less data reads as designed white space rather than as a page that stopped. */
-  .page__body { flex: 1 1 auto; display: flex; flex-direction: column; }
-  .page__body > .note { margin-top: auto; }
-  .page--last .legal { margin-top: auto; }
-  /* A page carrying a photograph band gives the leftover height to the band
-     instead of to these auto margins. Flexbox hands free space to auto margins
-     BEFORE flex-grow, so leaving them on would starve the band flat. */
-  .page__body--fill > .note, .page--last.page--fill .legal { margin-top: 0; }
-  /* A record with no photographs cannot take a band, so the closing page (whose
-     text is fixed and always runs about 50mm short) spreads its blocks over the
-     sheet instead of stacking them at the top with the shortfall in one lump. */
-  .page--last:not(.page--fill) .page__body { justify-content: space-between; }
-  .page--last:not(.page--fill) .legal { margin-top: 0; }
+  .page__body { position: relative; z-index: 2; flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
 
-  /* The band: photographs that take exactly the height a page has left over. */
-  /* flex-basis 0 and minmax(0, 1fr) rows: the band asks for NO height of its
-     own and takes only what the page has left, so it can never be the thing
-     that pushes a sheet onto a second one. Without minmax(0, ...) a portrait
-     photograph's intrinsic height becomes the row's minimum and the page runs
-     long, which is exactly what happens with `1fr`. */
+  /* Furniture: gold hairline frame, corner swoosh, shield badge. */
+  .frame {
+    position: absolute; inset: 5mm; border: 1px solid var(--gold);
+    border-radius: 4mm; z-index: 1; pointer-events: none;
+  }
+  .swoosh { position: absolute; right: 0; bottom: 0; width: 62%; height: 34%; z-index: 0; }
+  .shield {
+    position: absolute; top: 0; right: 16mm; width: 34mm; padding: 4mm 4mm 8mm;
+    background: var(--ink); z-index: 3;
+    clip-path: polygon(0 0, 100% 0, 100% 74%, 50% 100%, 0 74%);
+  }
+  .shield img { width: 100%; display: block; }
+
+  /* Titles: heavy uppercase with the pack's gold ghost offset. */
+  .ptitle {
+    margin: 0 0 5mm; font-size: 27px; font-weight: 900; letter-spacing: .005em;
+    text-transform: uppercase; color: var(--ink);
+    text-shadow: .7mm .7mm 0 var(--gold-2);
+  }
+  .ptitle--mid { text-align: center; }
+  .colhead {
+    margin: 0 0 3mm; font-size: 14px; font-weight: 900; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--gold); text-shadow: .5mm .5mm 0 rgba(0,0,0,.10);
+  }
+
+  /* --- cover ------------------------------------------------------------ */
+  .cover { padding: 0; }
+  .cover-bg { position: absolute; inset: 0; z-index: 0; background: #1a1a1a; }
+  .cover-bg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cover-panel {
+    position: absolute; top: 0; bottom: 0; left: 22mm; width: 124mm; z-index: 2;
+    background: #fff; overflow: hidden;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 14mm 10mm; text-align: center;
+  }
+  /* Explicit width/height rather than inset: an SVG sized only by offsets keeps
+     its intrinsic ratio through the print path and prints a stamp of chevrons
+     at the top instead of a ground behind the whole panel. */
+  .chevrons { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 0; opacity: .5; }
+  .cover-panel > * { position: relative; z-index: 1; }
+  .cover-logo { width: 66mm; margin-bottom: 13mm; }
+  .cover-logo img { width: 100%; display: block; }
+  .cover-desc {
+    font-size: 31px; font-weight: 900; line-height: 1.1; text-transform: uppercase;
+    letter-spacing: -.015em;
+  }
+  .cover-desc--long { font-size: 24px; }
+  .cover-place { margin-top: 1.5mm; font-size: 31px; font-weight: 900; line-height: 1.1; text-transform: uppercase; color: var(--gold); }
+  .cover-city { margin-top: 1.5mm; font-size: 27px; font-weight: 900; text-transform: uppercase; }
+  .cover-badge {
+    margin-top: 12mm; background: var(--ink); padding: 2.8mm 6mm;
+    font-size: 21px; font-weight: 900; letter-spacing: .02em; text-transform: uppercase; color: #fff;
+  }
+  .cover-badge b { color: var(--gold-2); font-weight: 900; }
+  .cover-ref {
+    margin-top: 5mm; font-size: 9px; font-weight: 700; letter-spacing: .18em;
+    text-transform: uppercase; color: #8a8a8a;
+  }
+  /* Positioned with plain offsets, not a transform: a transformed clipping box
+     rasterises unreliably through the print path (the ring lost its bottom arc). */
+  .cover-circle {
+    position: absolute; z-index: 2; top: 44mm; left: 160mm;
+    width: 122mm; height: 122mm; border-radius: 50%; overflow: hidden;
+    border: 1.4mm solid var(--gold-2); background: #fff;
+  }
+  .cover-circle img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 50%; }
+
+  /* --- location details -------------------------------------------------- */
+  .ld { display: grid; grid-template-columns: 1.15fr 1fr; gap: 6mm 10mm; flex: 1 1 auto; min-height: 0; }
+  /* The left column's blocks spread over the sheet rather than stacking at the
+     top and leaving the foot empty; the facts stay put, the pills and the terms
+     box take the slack between them. */
+  .ld-left { display: flex; flex-direction: column; justify-content: space-between; min-height: 0; }
+  .ld-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm 8mm; }
+  .fact { font-size: 11.5px; line-height: 1.55; }
+  .fact b { font-weight: 800; }
+  .fact-group { margin-bottom: 3mm; }
+  .chips { display: flex; gap: 10mm; margin: 4mm 0 3mm; }
+  .chip { display: flex; align-items: center; gap: 3mm; font-size: 11px; }
+  .chip b { font-weight: 800; }
+  .ring {
+    display: flex; align-items: center; justify-content: center;
+    width: 11mm; height: 11mm; border: 1.2px solid var(--ink); border-radius: 50%; flex: 0 0 auto;
+  }
+  .pill {
+    margin: 2.5mm 0; padding: 2.4mm 6mm; border-radius: 999px; text-align: center;
+    background: linear-gradient(90deg, #cba869, #ac874a);
+    color: var(--ink); font-size: 11px; font-weight: 800; letter-spacing: .04em;
+  }
+  .pill--out { background: #fff; border: 1.4px solid var(--gold); font-weight: 800; }
+  .terms {
+    border: 1.4px solid var(--ink); padding: 3.5mm 5mm; text-align: center;
+    font-size: 10.5px; line-height: 1.85;
+  }
+  .terms b { font-weight: 800; }
+  .ld-when {
+    text-align: center; font-size: 21px; font-weight: 900; text-transform: uppercase;
+    line-height: 1.2; margin-bottom: 4mm;
+  }
+  .ld-when small { display: block; font-size: 13px; letter-spacing: .04em; }
+  .ld-map { flex: 1 1 auto; min-height: 0; border: 1.4px solid var(--gold); overflow: hidden; }
+  .ld-map img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ld-right { display: flex; flex-direction: column; min-height: 0; }
+
+  /* --- features ---------------------------------------------------------- */
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm 12mm; flex: 1 1 auto; min-height: 0; }
+  .cols > div { display: flex; flex-direction: column; min-height: 0; }
+  /* Rows spread down the sheet rather than stacking at the top: that is how the
+     reference packs sit a four line feature list on a whole A4, and it fills a
+     short page without any measurement at all. */
+  .cols--spread > div { justify-content: space-between; }
+  .cols--rule > div:first-child { border-right: 1px solid var(--gold); padding-right: 10mm; }
+  .frow { display: flex; align-items: center; gap: 5mm; padding: var(--frowpad, 2.2mm) 0; }
+  .frow .g { flex: 0 0 auto; width: 9mm; height: 9mm; color: var(--ink); display: flex; }
+  .frow .t {
+    font-size: 12.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .01em;
+    line-height: 1.2;
+  }
+  .frow .s {
+    display: block; margin-top: .6mm; font-size: 8.5px; font-weight: 700;
+    letter-spacing: .04em; color: var(--ink-2);
+  }
+  .boxgroup { border: 1.2px solid var(--gold); border-radius: 3mm; padding: 3mm 4mm; margin-bottom: 3mm; }
+  .footline {
+    margin-top: 4mm; font-size: 10px; font-weight: 800; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--ink);
+  }
+  .chip-place {
+    display: inline-flex; align-items: center; gap: 2.5mm; align-self: flex-end;
+    border: 1.4px solid var(--gold); border-radius: 999px; padding: 2mm 5mm;
+    font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+  }
+  .chip-place svg { width: 4.5mm; height: 4.5mm; }
+
+  /* --- gallery ----------------------------------------------------------- */
+  .gal-head { display: flex; align-items: center; gap: 6mm; margin-bottom: 4mm; }
+  .gal-badge { width: 34mm; background: var(--ink); padding: 3mm; }
+  .gal-badge img { width: 100%; display: block; }
+  /* Six tracks, not three: a photograph normally spans two of them, and the
+     last row's photographs share the six between them, so a gallery of four or
+     five never prints a row with an empty cell in it. */
+  .grid3 {
+    display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: minmax(0, 1fr);
+    gap: 4mm; flex: 1 1 0; min-height: 0;
+  }
+  .grid3 img { width: 100%; height: 100%; min-height: 0; object-fit: cover; display: block; border: 1.2px solid var(--gold); }
+
+  /* --- highlights -------------------------------------------------------- */
+  .hl { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+  .hl td { border: 1px solid #222; padding: var(--hlrow, 2.4mm) 3.5mm; vertical-align: middle; }
+  .hl td:first-child { width: 27%; font-weight: 800; }
+
+  /* --- closing ----------------------------------------------------------- */
+  .close { padding: 0; }
+  .close-bg { position: absolute; inset: 0; z-index: 0; background: #14120f; }
+  .close-bg img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: .5; }
+  /* A dimming wash over the photograph, heavier at the foot where the contact
+     rows and the disclaimer sit: white type on an undimmed photograph is what
+     makes a closing page unreadable. */
+  .close-bg::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,.42) 38%, rgba(0,0,0,.78) 100%);
+  }
+  .close-body {
+    position: relative; z-index: 2; flex: 1 1 auto; display: flex; flex-direction: column;
+    padding: 18mm 20mm 10mm; color: #fff;
+  }
+  .close-lead { border-left: 1.2mm solid var(--gold-2); padding-left: 6mm; max-width: 170mm; }
+  .close-lead .a { font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: .02em; line-height: 1.3; }
+  .close-lead .b { margin-top: 2mm; font-size: 17px; font-weight: 500; }
+  .contacts { margin-top: auto; display: flex; flex-direction: column; gap: 4mm; }
+  .crow { display: flex; align-items: center; gap: 5mm; font-size: 15px; }
+  .crow .ring { width: 11mm; height: 11mm; border-color: #fff; color: #fff; }
+  .disclaimer {
+    position: relative; z-index: 2; padding: 0 14mm 6mm; text-align: center;
+    font-size: 7px; line-height: 1.55; font-weight: 600; color: #fff;
+  }
+
+  /* Bands fill a sheet that still runs short (D60). */
   .band {
-    flex: 1 1 0; min-height: 0; margin-top: 7mm;
-    display: grid; grid-auto-rows: minmax(0, 1fr); gap: 5mm; overflow: hidden;
+    flex: 1 1 0; min-height: 0; margin-top: 5mm;
+    display: grid; grid-auto-rows: minmax(0, 1fr); gap: 4mm; overflow: hidden;
   }
   .band img {
     width: 100%; height: 100%; min-height: 0; object-fit: cover;
-    display: block; border: 1px solid var(--line);
+    display: block; border: 1.2px solid var(--gold);
   }
 
-  .rh {
-    display: flex; justify-content: space-between; align-items: baseline; gap: 10mm;
-    border-bottom: 1px solid var(--line); padding-bottom: 3mm; margin-bottom: 7mm;
-    font-size: 8.5px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase;
-    color: var(--ink-3);
-  }
-  .rh .rh-b { color: var(--gold); }
-  .pf {
-    display: flex; justify-content: space-between; align-items: baseline; gap: 10mm;
-    border-top: 1px solid var(--line); padding-top: 3mm; margin-top: 6mm;
-    font-size: 8.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3);
-  }
-  .pf span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .pf .num::after { content: counter(pg); }
-
-  .eyebrow {
-    font-size: 9.5px; font-weight: 600; letter-spacing: .22em;
-    text-transform: uppercase; color: var(--gold);
-  }
-  h1 { margin: 0; font-size: 30px; font-weight: 700; line-height: 1.14; color: var(--ink); }
-  h1.h1--long { font-size: 24px; }
-  h2 { margin: 2mm 0 0; font-size: 19px; font-weight: 700; color: var(--ink); }
-  h3 {
-    margin: 0 0 3mm; font-size: 9.5px; font-weight: 700; letter-spacing: .18em;
-    text-transform: uppercase; color: var(--ink-3);
-  }
-  .sec { margin-bottom: 6mm; }
-  .sec::after { content: ''; display: block; width: 22mm; height: 3px; background: var(--gold); margin-top: 3mm; }
-
-  /* Key/value card table, used by the title and offering cards. */
-  .kv { width: 100%; border-collapse: collapse; font-size: 11.5px; }
-  .kv td { padding: var(--kvrow, 2.3mm) 0; border-bottom: 1px solid var(--line); vertical-align: top; }
-  .kv tr:last-child td { border-bottom: 0; }
-  .kv td:first-child { width: 40%; padding-right: 4mm; color: var(--ink-3); font-weight: 600; }
-  .kv td:last-child { color: var(--ink); font-weight: 500; }
-
-  /* align-items:start so each card hugs its own rows: stretching a short card
-     to match a long one leaves a large empty box on a data light record. */
-  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; align-items: start; }
-  .card { border: 1px solid var(--line); background: var(--paper-2); padding: 5mm 6mm; }
-
-  .stats { display: grid; border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); }
-  .stats > div { padding: 4.5mm 2mm; text-align: center; border-right: 1px solid var(--line); }
-  .stats > div:last-child { border-right: 0; }
-  .stat-n { font-size: 19px; font-weight: 700; color: var(--ink); }
-  .stat-l {
-    margin-top: 1.5mm; font-size: 8.5px; font-weight: 600; letter-spacing: .16em;
-    text-transform: uppercase; color: var(--ink-3);
-  }
-
-  /* How it is offered: the auction line or the offers framing. Never a valuation. */
-  .offer { border: 1px solid var(--line); border-left: 4px solid var(--gold); background: var(--paper-2); padding: 5mm 6mm; }
-  .offer .lbl { font-size: 9px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); }
-  .offer .big { margin-top: 1.5mm; font-size: 19px; font-weight: 700; color: var(--ink); }
-  .offer .sub { margin-top: 1.5mm; font-size: 11.5px; color: var(--ink-2); }
-
-  /* Cover */
-  .cover { padding-bottom: 0; }
-  /* Everything above the dark contact strip. It flexes, so the strip is pinned
-     to the foot of the sheet without an auto margin (which would eat the free
-     space the hero wants). */
-  .cover-body { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
-  .cover-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10mm; }
-  .cover-logo img { height: 19mm; width: auto; display: block; }
-  .cover-ref { text-align: right; }
-  .cover-ref .ref { margin-top: 1.5mm; font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
-  /* The hero takes the cover's leftover height rather than leaving a band of
-     empty paper above the contact strip: basis 100mm, grows to fill, capped so
-     a small photograph is never blown up past what it can carry. */
-  .cover-hero {
-    margin: 9mm 0 8mm; flex: 1 1 100mm; min-height: 84mm; max-height: 134mm;
-    overflow: hidden; border: 1px solid var(--line);
-  }
-  .cover-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .cover-hero--plain { display: flex; align-items: center; justify-content: center; background: var(--paper-2); }
-  .cover-hero--plain img { height: 24mm; width: auto; object-fit: contain; }
-  /* With no photograph and no stat cells the cover would run light, so the
-     brand panel takes the space the stats would have used. */
-  .cover-hero--tall { flex-basis: 128mm; max-height: 170mm; }
-  .lede { margin: 3mm 0 0; font-size: 13px; color: var(--ink-2); }
-  .cover .offer { margin-top: 7mm; }
-  .cover .stats { margin-top: 7mm; }
-  .cover-contact {
-    margin: 0 -18mm; padding: 6mm 18mm; background: var(--ink); color: var(--paper-2);
-    display: flex; justify-content: space-between; align-items: center; gap: 6mm;
-    font-size: 10.5px; line-height: 1.7; letter-spacing: .02em;
-  }
-  .cover-contact .cc-web { color: var(--gold); font-weight: 600; }
-  .cover-contact .cc-r { text-align: right; }
-
-  /* Schedule of portions (multi portion properties only). --srow opens the rows
-     up on a sheet the schedule does not fill on its own. */
-  .sched { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 7mm; }
-  .sched th {
-    text-align: left; padding: 0 4mm 2.5mm 0; border-bottom: 2px solid var(--ink);
-    font-size: 8.5px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-3);
-  }
-  .sched td {
-    padding: var(--srow, 2.6mm) 4mm var(--srow, 2.6mm) 0;
-    border-bottom: 1px solid var(--line); color: var(--ink); vertical-align: top;
-  }
-  .sched tr.tot td { border-bottom: 0; border-top: 1px solid var(--ink); font-weight: 700; }
-
-  /* Photographs. The rows share the height the page has left (grid-auto-rows:
-     1fr on a grid that flexes), so four photographs fill the sheet exactly as
-     six do and the page never ends halfway down. */
-  .shots {
-    flex: 1 1 0; min-height: 60mm; display: grid; grid-template-columns: 1fr 1fr;
-    grid-auto-rows: minmax(0, 1fr); gap: 5mm; overflow: hidden;
-  }
-  .shots img { width: 100%; height: 100%; min-height: 0; object-fit: cover; display: block; border: 1px solid var(--line); }
-  .shots--1, .shots--2 { grid-template-columns: 1fr; }
-  .shots--3 img:last-child, .shots--5 img:last-child { grid-column: 1 / -1; }
-
-  /* Feature and conditions lists. --tickpad is computed per page so a short
-     list fills its sheet instead of leaving a hole under the heading. */
-  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 7mm 8mm; }
-  .two--one { grid-template-columns: 1fr; }
-  ul.ticks { list-style: none; margin: 0; padding: 0; }
-  ul.ticks li {
-    position: relative; padding: var(--tickpad, 2.5mm) 0 var(--tickpad, 2.5mm) 6mm;
-    border-bottom: 1px solid var(--line); font-size: 11.5px; color: var(--ink);
-  }
-  ul.ticks li:last-child { border-bottom: 0; }
-  ul.ticks li::before {
-    content: ''; position: absolute; left: 0; top: calc(var(--tickpad, 2.5mm) + 1.7mm);
-    width: 2mm; height: 2mm; background: var(--gold);
-  }
-  .callout { border: 1px solid var(--line); border-left: 4px solid var(--green); background: var(--paper-2); padding: 5mm 6mm; }
-  .callout .t { font-size: 12.5px; font-weight: 700; color: var(--ink); }
-  .callout .d { margin-top: 1.5mm; font-size: 11.5px; color: var(--ink-2); }
-
-  /* Investment highlights: Highlight | Detail (playbook 4.5) */
-  .hl { width: 100%; border-collapse: collapse; font-size: 11.5px; }
-  .hl th {
-    text-align: left; padding: 0 0 2.5mm; border-bottom: 2px solid var(--ink);
-    font-size: 8.5px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-3);
-  }
-  .hl th:first-child, .hl td:first-child { width: 34%; padding-right: 6mm; }
-  .hl td { padding: var(--hlrow, 3.2mm) 0; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--ink-2); }
-  .hl td:first-child { color: var(--ink); font-weight: 700; }
-
-  /* Steps, contact, disclaimers */
-  ol.steps { list-style: none; counter-reset: s; margin: 0; padding: 0; }
-  ol.steps li {
-    counter-increment: s; position: relative; padding: 0 0 4.5mm 11mm;
-    font-size: 12px; color: var(--ink);
-  }
-  ol.steps li:last-child { padding-bottom: 0; }
-  ol.steps li + li { padding-top: 1.5mm; }
-  ol.steps li::before {
-    content: counter(s); position: absolute; left: 0; top: -0.5mm; width: 6.5mm; height: 6.5mm;
-    border-radius: 50%; background: var(--ink); color: var(--paper);
-    font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center;
-  }
-  .contact {
-    display: grid; grid-template-columns: auto 1fr; gap: 8mm; align-items: center;
-    border: 1px solid var(--line); background: var(--paper-2); padding: 6mm 7mm;
-  }
-  .contact-logo img { height: 20mm; width: auto; display: block; }
-  .contact .who { font-size: 16px; font-weight: 700; color: var(--ink); }
-  .contact .rowline { margin-top: 1.6mm; font-size: 11.5px; color: var(--ink); }
-  .contact .rowline b { display: inline-block; width: 24mm; color: var(--ink-3); font-weight: 600; }
-  .note { margin: 4mm 0 0; font-size: 10px; line-height: 1.6; color: var(--ink-3); }
-  .disc p { margin: 0 0 3.5mm; font-size: 10px; line-height: 1.66; color: var(--ink-3); }
-  .disc p b { color: var(--ink-2); }
-  .legal { border-top: 1px solid var(--line); margin-top: 4mm; padding-top: 3.5mm; font-size: 8.5px; line-height: 1.6; color: var(--ink-3); }
-
-  /* On screen (gate 2 preview, HTML fallback) the sheets sit on a ground so the
-     pagination is visible; the printed PDF keeps the paper edge to edge. */
+  /* On screen (gate 2 preview) the sheets sit on a ground so the pagination is
+     visible; the printed PDF keeps the paper edge to edge. */
   @media screen {
     body { background: #e7e1d3; padding: 8mm 0; }
-    .page { margin: 0 auto 8mm; box-shadow: 0 1px 3px rgba(33,29,21,.12), 0 10px 30px rgba(33,29,21,.14); }
+    .page { margin: 0 auto 8mm; box-shadow: 0 1px 3px rgba(0,0,0,.14), 0 10px 30px rgba(0,0,0,.16); }
   }
-  @media print {
-    .page { margin: 0; box-shadow: none; }
-  }
+  @media print { .page { margin: 0; box-shadow: none; } }
 </style>
 </head>
 <body>
-<div class="sheet doc">
 
   {# ---------------------------------------------------------------- 1 COVER #}
   <section class="page cover">
-    <div class="cover-body">
-    <div class="cover-top">
+    <div class="cover-bg">
+      {% if hero %}<img src="{{ hero }}" alt="{{ vm.headline }}">{% endif %}
+    </div>
+
+    <div class="cover-panel">
+      {# The panel's faint chevron ground. Drawn rather than tiled so it scales
+         with the panel and prints without a background-image round trip. #}
+      <svg class="chevrons" viewBox="0 0 124 210" preserveAspectRatio="none" aria-hidden="true">
+        {% for i in range(-1, 8) %}
+        <path d="M-14 {{ i * 30 }} L62 {{ i * 30 + 34 }} L138 {{ i * 30 }}" fill="none" stroke="#f2f2f2" stroke-width="11"/>
+        {% endfor %}
+      </svg>
       <div class="cover-logo">{{ parts.brand_logo(vm, 'light', 'auctioneers') }}</div>
-      <div class="cover-ref">
-        <div class="eyebrow">{{ pack_label }}</div>
-        {% if vm.public_ref %}<div class="ref">Ref {{ vm.public_ref }}</div>{% endif %}
-      </div>
+      {% if vm.descriptor_line %}
+      <div class="cover-desc {{ 'cover-desc--long' if vm.descriptor_line | length > 28 else '' }}">{{ vm.descriptor_line }}</div>
+      {% else %}
+      <div class="cover-desc cover-desc--long">{{ vm.headline }}</div>
+      {% endif %}
+      {% if vm.suburb %}<div class="cover-place">{{ vm.suburb }}</div>{% endif %}
+      {% if vm.municipality or vm.province %}
+      <div class="cover-city">{{ vm.municipality or vm.province }}</div>
+      {% endif %}
+      <div class="cover-badge"><b>{{ badge_lead }}</b> {{ badge_tail }}</div>
+      <div class="cover-ref">Property ref: {{ vm.property_ref }}</div>
     </div>
 
-    {% if vm.hero_src %}
-    <div class="cover-hero"><img src="{{ vm.hero_src }}" alt="{{ vm.headline }}"></div>
-    {% else %}
-    {# No photograph on the record yet: a composed ivory panel carrying the brand
-       mark, never an empty grey box. #}
-    <div class="cover-hero cover-hero--plain {{ 'cover-hero--tall' if not stats else '' }}">{{ parts.brand_logo(vm, 'light', 'auctioneers') }}</div>
+    {% if circle_src %}
+    <div class="cover-circle"><img src="{{ circle_src }}" alt="{{ vm.headline }}"></div>
     {% endif %}
+  </section>
 
-    <h1 class="{{ 'h1--long' if vm.headline | length > 68 else '' }}">{{ vm.headline }}</h1>
-    {% if vm.address or vm.location_line %}
-    <p class="lede">{{ vm.address or vm.location_line }}</p>
-    {% endif %}
+  {# ------------------------------------------------- 2 LOCATION DETAILS #}
+  <section class="page">
+    {{ swoosh() }}{{ frame() }}{{ shield() }}
+    <div class="page__body">
+      {{ page_title('Location details') }}
 
-    {{ offer_panel() }}
+      <div class="ld">
+        <div class="ld-left">
+          <div class="ld-facts">
+            <div>
+              <div class="fact-group">
+                <div class="fact"><b>Physical Address:</b></div>
+                {% if vm.address %}<div class="fact">{{ vm.address }}</div>{% endif %}
+                {% if vm.suburb %}<div class="fact">{{ vm.suburb }}</div>{% endif %}
+                {% if vm.province %}<div class="fact">{{ vm.province }}</div>{% endif %}
+              </div>
+              {{ fact('Zoning', vm.zoning) }}
+              {{ fact('Extent', extent_str | trim) }}
+            </div>
+            <div>
+              <div class="fact-group">
+                <div class="fact"><b>Legal Address:</b></div>
+                {% if vm.legal_description %}<div class="fact">{{ vm.legal_description }}</div>{% endif %}
+                {% if vm.scheme %}<div class="fact">Scheme: {{ vm.scheme }}{% if vm.unit %}, unit {{ vm.unit }}{% endif %}</div>{% endif %}
+                {% if vm.erf %}<div class="fact">Erf {{ vm.erf }}</div>{% endif %}
+                {% if vm.title_deed_no %}<div class="fact">Title deed: {{ vm.title_deed_no }}</div>{% endif %}
+              </div>
+              {{ fact('Mun', vm.municipality) }}
+              {{ fact('Title type', vm.title_type_label) }}
+            </div>
+          </div>
 
-    {% if stats %}{{ stat_cells(stats) }}{% endif %}
-    </div>
+          <div class="chips">
+            {{ chip('doc', 'Rates & Taxes:', ('± R' ~ vm.monthly_rates) if vm.monthly_rates else 'TBC') }}
+            {{ chip('doc', 'Levies:', 'TBC') }}
+          </div>
 
-    <div class="cover-contact">
-      <div class="cc-l">
-        <div>{{ vm.brand_phone }}</div>
-        <div class="cc-web">{{ vm.brand_web }}</div>
-      </div>
-      <div class="cc-r">
-        <div>{{ vm.brand_email }}</div>
-        {% if vm.brand_email_admin %}<div>{{ vm.brand_email_admin }}</div>{% endif %}
+          {{ pill('All Outstanding Fees, if any, to be Settled by the Seller.') }}
+
+          {% if vm.terms %}
+          <div class="terms">
+            {% for t in vm.terms %}<div>{{ t }}</div>{% endfor %}
+          </div>
+          {% endif %}
+
+          {{ pill('Subject To 30 days Confirmation By Seller') }}
+        </div>
+
+        <div class="ld-right">
+          {% if is_auction %}
+          <div class="ld-when">
+            {{ (vm.auction_channel ~ ' auction') if vm.auction_channel else 'Auction' }}
+            <small>{{ auction_bits | join(' ') if auction_bits else 'Date to be confirmed' }}</small>
+          </div>
+          {% else %}
+          <div class="ld-when">
+            Viewing:
+            <small>{{ 'Strictly by appointment' if vm.viewing_by_appt else 'By arrangement with Dynamic Auctioneers' }}</small>
+          </div>
+          {% endif %}
+          {% if vm.gps_str %}
+          <div class="fact" style="text-align:center;margin-bottom:3mm">Coordinates: approx. {{ vm.gps_str }}</div>
+          {% endif %}
+          {% if photos %}
+          <div class="ld-map"><img src="{{ photos[-1] }}" alt="{{ vm.headline }}"></div>
+          {% endif %}
+        </div>
       </div>
     </div>
   </section>
 
-  {# ------------------------------------------------- 2 PROPERTY INFORMATION #}
+  {# --------------------------------- 2b SCHEDULE OF PORTIONS (if any) #}
+  {% if vm.portions %}
+  {# Split EVENLY: twelve rows to a sheet is the cap, but 23 portions go 12 and
+     11 rather than 12, 11 and then a page holding one orphan row. #}
+  {% set sch_n = (((vm.portions | length) + 11) // 12) %}
+  {% set sch_pages = vm.portions | batch((((vm.portions | length) + sch_n - 1) // sch_n)) | list %}
+  {% for chunk in sch_pages %}
+  {% set sch_rows = (chunk | length) + 1 + (1 if (loop.last and (vm.portions | length) > 1) else 0) %}
+  {% set sch_pad = ([[((REGION - sch_rows * LINE) // (2 * sch_rows)), 110] | min, 24] | max) %}
+  {% set sch_left = REGION - sch_rows * (LINE + 2 * sch_pad) %}
+  {% set sch_band = fill_photos and sch_left >= FILL_MIN %}
   <section class="page">
-    {{ running_head() }}
-    <div class="page__body{{ ' page__body--fill' if p2_band else '' }}">
-      {{ section_head('The property', 'Property information') }}
-
-      {% if sched_on_p2 %}
-      <h3>Schedule of portions</h3>
-      {{ schedule_table(portions, true) }}
-      {% endif %}
-
-      <div class="cards"{% if kv_fill %} style="--kvrow: {{ kv_pad / 10 }}mm"{% endif %}>
-        {{ kv_card('Title and registration', title_rows) }}
-        {{ kv_card('How it is offered', offer_rows) }}
-      </div>
-
-      {% if terms_on_p2 %}
-      <div style="margin-top:7mm">
-        {{ tick_list(terms_all, (p2_term_pad / 10) ~ 'mm', 'Conditions of sale') }}
-      </div>
-      {% endif %}
-
-      {% if p2_band %}{{ fill_band(p2_left >= FILL_WIDE) }}{% endif %}
-
-      {{ hedge_note() }}
+    {{ swoosh() }}{{ frame() }}{{ shield() }}
+    <div class="page__body">
+      {{ page_title('Schedule of portions' if loop.first else 'Schedule of portions continued') }}
+      <table class="hl sched" style="--hlrow: {{ sch_pad / 10 }}mm">
+        <tbody>
+          <tr>
+            <td>Portion</td><td>Extent</td>{% if vm.portions | selectattr('deed') | list %}<td>Title deed</td>{% endif %}
+          </tr>
+          {% for p in chunk %}
+          <tr>
+            <td>{{ p.label or 'Portion ' ~ loop.index }}{% if p.erf %} (erf {{ p.erf }}){% endif %}</td>
+            <td>{% if p.size_display %}± {{ p.size_display }} m2{% endif %}</td>
+            {% if vm.portions | selectattr('deed') | list %}<td>{{ p.deed or '' }}</td>{% endif %}
+          </tr>
+          {% endfor %}
+          {% if loop.last and vm.size_display and (vm.portions | length) > 1 %}
+          <tr><td><b>Total extent</b></td><td><b>{{ extent_str | trim }}</b></td>{% if vm.portions | selectattr('deed') | list %}<td></td>{% endif %}</tr>
+          {% endif %}
+        </tbody>
+      </table>
+      {% if sch_band %}{{ fill_band(sch_left >= FILL_WIDE) }}{% endif %}
     </div>
-    {{ page_foot() }}
-  </section>
-
-  {# --------------------------------- 2b SCHEDULE OF PORTIONS (its own page) #}
-  {# Only when the whole schedule cannot sit beside the cards on page 2. The
-     rows are then opened up to fill the sheet, so a nine portion schedule is
-     one composed page rather than five rows on page 2 and four on page 3. #}
-  {% for chunk in sched_pages %}
-  {% set slines = namespace(n=0) %}
-  {% for p in chunk %}{% set slines.n = slines.n + 1 + (((p.label or '') | length) // SCHED_CHARS) %}{% endfor %}
-  {% set srows = (chunk | length) + (1 if loop.last and np > 1 else 0) %}
-  {% set s_lines = slines.n + srows - (chunk | length) %}
-  {% set s_pad = padraw(REGION - TH_ROW - GAP, s_lines, srows, 100) | int %}
-  {% set s_left = REGION - TH_ROW - GAP - s_lines * LINE - srows * 2 * s_pad %}
-  {% set s_band = fill_photos and s_left >= FILL_MIN %}
-  <section class="page">
-    {{ running_head() }}
-    <div class="page__body{{ ' page__body--fill' if s_band else '' }}">
-      {{ section_head('The property', 'Schedule of portions' if loop.first else 'Schedule of portions continued') }}
-      {{ schedule_table(chunk, loop.last, (s_pad / 10) ~ 'mm') }}
-      {% if s_band %}{{ fill_band(s_left >= FILL_WIDE) }}{% endif %}
-      {{ hedge_note() }}
-    </div>
-    {{ page_foot() }}
   </section>
   {% endfor %}
-
-  {# ------------------- 2c CONDITIONS OF SALE (moved off a crowded page 2) #}
-  {% for chunk in term_pages %}
-  {% set chunk_lines = namespace(n=0) %}
-  {% for t in chunk %}{% set chunk_lines.n = chunk_lines.n + 1 + ((t | length) // TERM_CHARS) %}{% endfor %}
-  {% set t_budget = REGION - (OFFER_BOX + GAP if loop.first else 0) %}
-  {% set t_pad = padraw(t_budget, chunk_lines.n, chunk | length, 80) | int %}
-  {% set t_left = t_budget - chunk_lines.n * LINE - (chunk | length) * 2 * t_pad %}
-  {% set t_band = fill_photos and t_left >= FILL_MIN %}
-  <section class="page">
-    {{ running_head() }}
-    <div class="page__body{{ ' page__body--fill' if t_band else '' }}">
-      {{ section_head('The offering', 'Conditions of sale' if loop.first else 'Conditions of sale continued') }}
-      {% if loop.first %}
-      <div style="margin-bottom:7mm">{{ offer_panel() }}</div>
-      {% endif %}
-      {# No sub head here: the section head above already says it. #}
-      {{ tick_list(chunk, (t_pad / 10) ~ 'mm') }}
-      {% if t_band %}{{ fill_band(t_left >= FILL_WIDE) }}{% endif %}
-      {{ hedge_note() }}
-    </div>
-    {{ page_foot() }}
-  </section>
-  {% endfor %}
-
-  {# ------------------------------------------------------- 3 PHOTOGRAPHS #}
-  {% if shots %}
-  <section class="page">
-    {{ running_head() }}
-    {# --fill: the grid takes the height, so the footnote keeps its own margin
-       instead of pushing the photographs up the sheet. #}
-    <div class="page__body page__body--fill">
-      {{ section_head('The property', 'Photographs') }}
-      <div class="shots shots--{{ shots | length }}">
-        {% for src in shots %}<img src="{{ src }}" alt="Property photograph">{% endfor %}
-      </div>
-      <p class="note">
-        Photographs are supplied for marketing purposes and are indicative of the property
-        at the date of inspection. Fixtures, fittings and contents shown are not necessarily
-        included in the sale and are to be confirmed on due diligence.
-      </p>
-    </div>
-    {{ page_foot() }}
-  </section>
   {% endif %}
 
-  {# ------------------------------------------ 4 ACCOMMODATION AND FEATURES #}
-  {% for i in range(feature_pages) %}
-  {% set fm = fm_pages[i] if i < fm_pages | length else [] %}
-  {% set fc = fc_pages[i] if i < fc_pages | length else [] %}
-  {% set fml = namespace(n=0) %}
-  {% for f in fm %}{% set fml.n = fml.n + 1 + ((f | length) // feat_chars) %}{% endfor %}
-  {% set fcl = namespace(n=0) %}
-  {% for f in fc %}{% set fcl.n = fcl.n + 1 + ((f | length) // feat_chars) %}{% endfor %}
-  {% set fm_pad = padraw(pack_b1[0] if loop.first else pack_b2[0], fml.n, fm | length, 80) | int %}
-  {% set fc_pad = padraw(pack_b1[1] if loop.first else pack_b2[1], fcl.n, fc | length, 80) | int %}
-  {% set fm_used = fml.n * LINE + (fm | length) * 2 * fm_pad %}
-  {% set fc_used = fcl.n * LINE + (fc | length) * 2 * fc_pad %}
-  {# Stacked lists share the sheet top to bottom, so their heights add; side by
-     side columns sit level, so the page is as tall as the taller one. #}
-  {% set feat_left = (feat_first if loop.first else feat_cont)
-       - ((fm_used + fc_used) if feat_shared else ([fm_used, fc_used] | max)) %}
-  {% set feat_band = fill_photos and feat_left >= FILL_MIN %}
+  {# --------------------------------------------------- 3 PROPERTY FEATURES #}
+  {% for chunk in feat_pages %}
+  {% set half = (chunk | length + 1) // 2 %}
+  {% set left = chunk[:half] %}
+  {% set right = chunk[half:] %}
+  {# What the taller of the two columns costs at default padding, then how much
+     padding the sheet can afford, then what is STILL empty after that. Costed
+     per column because the two sit side by side: the page is as tall as the
+     taller one, never as tall as both. #}
+  {% set rows = [left | length, right | length] | max %}
+  {% set base_cost = [rowcost(left) | int, rowcost(right) | int] | max %}
+  {% set budget = REGION - COLHEAD - (FOOTNOTE if loop.first else 0) - (CHIP if (loop.first and vm.scheme) else 0) %}
+  {% set pad = ([[((budget - base_cost) // (2 * rows)) if rows else ROW_PAD, 70] | min, ROW_PAD] | max) %}
+  {% set feat_left = budget - base_cost - rows * 2 * (pad - ROW_PAD) %}
+  {# A sheet with room to spare spreads its rows over it. Only a genuinely short
+     list - one that would leave a hand's width of paper even spread out - takes
+     a photograph band instead, because rows that far apart stop reading as a
+     list. #}
+  {% set feat_band = fill_photos and feat_left >= FILL_WIDE %}
   <section class="page">
-    {{ running_head() }}
-    <div class="page__body{{ ' page__body--fill' if feat_band else '' }}">
-      {{ section_head('The property', 'Accommodation and features' if loop.first else 'Accommodation and features continued') }}
-
-      {% if loop.first and stats %}<div style="margin-bottom:7mm">{{ stat_cells(stats) }}</div>{% endif %}
-
-      {# Two short columns leave a hole; one roomy column fills the sheet. #}
-      <div class="two {{ 'two--one' if feat_stack or not (fm and fc) else '' }}">
-        {% if fm %}
+    {{ swoosh() }}{{ frame() }}{{ shield() }}
+    <div class="page__body">
+      {{ page_title('Property features' if loop.first else 'Property features continued') }}
+      <div class="cols cols--rule {{ '' if feat_band else 'cols--spread' }}">
         <div>
-          <h3>Main residence</h3>
-          {{ tick_list(fm, (fm_pad / 10) ~ 'mm') }}
+          {% if loop.first %}<h3 class="colhead">{{ 'Main house:' if fm_all else 'Features:' }}</h3>{% endif %}
+          {% for f in left %}{{ frow(f, (pad / 10) ~ 'mm') }}{% endfor %}
         </div>
-        {% endif %}
-        {% if fc %}
         <div>
-          <h3>Complex and shared facilities</h3>
-          {{ tick_list(fc, (fc_pad / 10) ~ 'mm') }}
+          {% if loop.first %}<h3 class="colhead">{{ 'External and shared:' if fc_all else 'Also included:' }}</h3>{% endif %}
+          {% for f in right %}{{ frow(f, (pad / 10) ~ 'mm') }}{% endfor %}
         </div>
-        {% endif %}
       </div>
-
-      {% if loop.first and vm.flatlet_present %}
-      <div class="callout" style="margin-top:7mm">
-        <div class="t">Separate flatlet</div>
-        <div class="d">{{ flatlet_line }}. Accommodation is as inspected and is to be confirmed on due diligence.</div>
-      </div>
-      {% endif %}
-
       {% if feat_band %}{{ fill_band(feat_left >= FILL_WIDE) }}{% endif %}
-
-      <p class="note">
-        Accommodation is described as inspected. Room counts, sizes and finishes are
-        approximate and to be confirmed on due diligence.
-      </p>
+      {% if loop.first %}
+      <div class="footline">Accommodation as inspected - all sizes and finishes to be confirmed on due diligence</div>
+      {% endif %}
+      {% if loop.first and vm.scheme %}
+      <div class="chip-place">{{ glyph('pin', '4.5mm') }} {{ vm.scheme }}</div>
+      {% endif %}
     </div>
-    {{ page_foot() }}
+  </section>
+  {% endfor %}
+
+  {# ------------------------------------------------------------ 4 GALLERY #}
+  {% for chunk in gallery_pages %}
+  <section class="page">
+    {{ swoosh() }}{{ frame() }}
+    <div class="page__body">
+      <div class="gal-head">
+        <div class="gal-badge">{{ parts.brand_logo(vm, 'dark', 'auctioneers') }}</div>
+        <h2 class="ptitle" style="margin:0">Gallery</h2>
+      </div>
+      {# Columns follow the count: two for a short gallery, three once there are
+         five or more. The trailing part-row shares the six tracks equally. #}
+      {% set cols = 1 if (chunk | length) == 1 else (2 if (chunk | length) <= 4 else 3) %}
+      {% set full = (chunk | length) // cols * cols %}
+      {% set rest = (chunk | length) - full %}
+      <div class="grid3">
+        {% for src in chunk %}
+        <img src="{{ src }}" alt="Property photograph"
+             style="grid-column: span {{ (6 // cols) if loop.index0 < full else (6 // rest) }}">
+        {% endfor %}
+      </div>
+    </div>
   </section>
   {% endfor %}
 
   {# ------------------------------------- 5 INVESTMENT HIGHLIGHTS (2nd last) #}
   {% if show_highlights %}
-  {% set hl_pad = padraw(REGION - TH_ROW, hl_lines.n, hl | length, 130) | int %}
-  {% set hl_left = REGION - TH_ROW - hl_lines.n * LINE - (hl | length) * 2 * hl_pad %}
-  {% set hl_band = fill_photos and hl_left >= FILL_MIN %}
   <section class="page">
-    {{ running_head() }}
-    <div class="page__body{{ ' page__body--fill' if hl_band else '' }}">
-      {{ section_head('Why this property', 'Investment highlights') }}
+    {{ swoosh() }}{{ frame() }}
+    <div class="page__body">
+      {{ page_title('Investment highlights') }}
+      {# Row padding opened up so the table fills the sheet: the space left over
+         once the text is laid out is divided over the rows rather than left as
+         a hole under the last one. Costed on wrapped lines, capped at 9mm. #}
+      {% set hl_pad = ([[((REGION - hl_lines.n * LINE) // (2 * (hl | length))) if hl else 24, 110] | min, 24] | max) %}
       <table class="hl" style="--hlrow: {{ hl_pad / 10 }}mm">
-        <thead><tr><th>Highlight</th><th>Detail</th></tr></thead>
         <tbody>
           {% for label, detail in hl %}
           <tr><td>{{ label }}</td><td>{{ detail }}</td></tr>
           {% endfor %}
         </tbody>
       </table>
-      {% if hl_band %}{{ fill_band(hl_left >= FILL_WIDE) }}{% endif %}
-      <p class="note">
-        Every point above is taken from the records held for this property. No market
-        forecast, yield or return is stated or implied, and each point is to be confirmed
-        on due diligence.
-      </p>
     </div>
-    {{ page_foot() }}
   </section>
   {% endif %}
 
-  {# ------------------------------------------- 6 CONTACT AND DISCLAIMERS #}
-  {# The closing page carries fixed text (four steps, the contact block, both
-     verbatim disclaimers), which measures about 60mm short of the sheet on every
-     property. So it always takes a band when the record holds a photograph: the
-     one page whose hole does not depend on the data. #}
-  <section class="page page--last{{ ' page--fill' if fill_photos else '' }}">
-    {{ running_head() }}
-    <div class="page__body">
-      {% if is_auction %}
-      {{ section_head('Next steps', 'How the auction works') }}
-      <ol class="steps">
-        <li>Register to bid with Dynamic Auctioneers before the auction closes.</li>
-        <li>The auction is held{% if vm.auction_channel %} {{ vm.auction_channel | lower }}{% endif %}{% if vm.auction_date %} on {{ vm.auction_date }}{% endif %}{% if vm.auction_time %} at {{ vm.auction_time }}{% endif %}.</li>
-        <li>The highest bid is subject to the seller's confirmation.</li>
-        <li>The successful bidder signs the conditions of sale and pays the required deposit.</li>
-      </ol>
-      {% else %}
-      {{ section_head('Next steps', 'How to proceed') }}
-      <ol class="steps">
-        <li>View the property by appointment through Dynamic Auctioneers.</li>
-        <li>Submit a written offer to Dynamic Auctioneers.</li>
-        <li>Offers are presented to the seller for consideration.</li>
-        <li>Any sale is subject to the conditions of sale and the seller's confirmation.</li>
-      </ol>
-      {% endif %}
-
-      {{ fill_band(true) }}
-
-      <div class="contact" style="margin-top:8mm">
-        <div class="contact-logo">{{ parts.brand_logo(vm, 'light', 'auctioneers') }}</div>
-        <div>
-          <div class="who">{{ vm.brand_name }}</div>
-          <div class="rowline"><b>Telephone</b>{{ vm.brand_phone }}</div>
-          <div class="rowline"><b>Email</b>{{ vm.brand_email }}</div>
-          {% if vm.brand_email_admin %}<div class="rowline"><b></b>{{ vm.brand_email_admin }}</div>{% endif %}
-          <div class="rowline"><b>Website</b>{{ vm.brand_web }}</div>
-          {% if vm.brand_address %}<div class="rowline"><b>Offices</b>{{ vm.brand_address }}</div>{% endif %}
-        </div>
+  {# --------------------------------------------------------- 6 CLOSING #}
+  <section class="page close">
+    <div class="close-bg">
+      {% if photos %}<img src="{{ photos[0] }}" alt="{{ vm.headline }}">{% endif %}
+    </div>
+    {{ frame() }}{{ shield() }}
+    <div class="close-body">
+      <div class="close-lead">
+        <div class="a">{{ close_lead | trim }}</div>
+        {# Literal template text, not an expression: an apostrophe inside a Jinja
+           string is autoescaped to an entity, which is fine on the page but is
+           not what a reader of the source (or a test) sees. #}
+        <div class="b">{% if is_auction %}Don't miss this auction!{% else %}Enquiries and offers welcome.{% endif %}</div>
       </div>
-
-      <div class="disc" style="margin-top:8mm">
-        <h3>Disclaimers</h3>
-        {# Both disclaimers are single unbroken lines on purpose: the playbook
-           requires them VERBATIM, so the text must survive being copied out of
-           the HTML source, not only read on the printed page. #}
-        <p><b>Marketing note.</b> This pack is for marketing purposes only. It is not an offer, a warranty or advice. All figures are approximate and drawn from public deeds records, third party data and the owner's information, and have not been independently verified. Buyers must conduct their own due diligence. {{ 'Any sale by auction is' if is_auction else 'Any sale is' }} subject to the conditions of sale and confirmation by the seller.</p>
-        <p><b>Legal disclaimer.</b> Whilst all reasonable care has been taken to provide accurate information, neither Dynamic Solutions 1068 (Pty) LTD Trading As Dynamic Auctioneers nor the Seller/s guarantee the correctness of the information provided herein and neither will be held liable for any direct or indirect damages or loss, of whatsoever nature, suffered by any person as a result of errors or omissions in the information provided, whether due to negligence or otherwise of Dynamic Solutions 1068 (Pty) LTD Trading As Dynamic Auctioneers or the Seller/s or any other person.</p>
-      </div>
-
-      <div class="legal">
-        {{ vm.brand_reg }}<br>{{ vm.generated_note }}
+      <div class="contacts">
+        <div class="crow"><span class="ring">{{ glyph('pin', '6mm') }}</span>{{ vm.brand_address }}</div>
+        <div class="crow"><span class="ring">{{ glyph('globe', '6mm') }}</span>{{ vm.brand_web }}</div>
+        <div class="crow"><span class="ring">{{ glyph('mail', '6mm') }}</span>{{ vm.brand_email }}</div>
+        <div class="crow"><span class="ring">{{ glyph('phone', '6mm') }}</span>{{ vm.brand_phone }}</div>
       </div>
     </div>
-    {{ page_foot() }}
+    <div class="disclaimer">
+      Whilst all reasonable care has been taken to provide accurate information, neither Dynamic Solutions 1068 (Pty) LTD Trading As Dynamic Auctioneers nor the Seller/s guarantee the correctness of the information provided herein and neither will be held liable for any direct or indirect damages or loss, of whatsoever nature, suffered by any person as a result of errors or omissions in the information provided, whether due to negligence or otherwise of Dynamic Solutions 1068 (Pty) LTD Trading As Dynamic Auctioneers or the Seller/s or any other person.
+    </div>
   </section>
 
-</div>
 </body>
 </html>

@@ -31,7 +31,9 @@ from pathlib import Path, PurePosixPath
 from typing import Dict, List, Optional, Tuple
 
 from jinja2 import Environment, FileSystemLoader
+from markupsafe import Markup
 
+from engine.render import pack_icons
 from engine.render.base import FORMATS, Artifact, RenderBackend, RenderRequest
 
 
@@ -195,6 +197,13 @@ class HtmlBackend(RenderBackend):
         # Let templates embed a bundled asset (logo, etc.) as a data URI, so the
         # rendered ad is self-contained for rasterising (D41).
         self._env.globals["asset_uri"] = _asset_data_uri
+        # The info pack prints a black glyph beside every feature line and splits
+        # a line into label + qualifier (playbook 3). Both are pure functions of
+        # record wording, so the template calls them directly rather than the
+        # view model carrying a second, parallel copy of every feature list.
+        self._env.globals["glyph"] = lambda name, size="9mm": Markup(pack_icons.svg(name, size))
+        self._env.globals["icon_for"] = pack_icons.icon_for
+        self._env.globals["split_label"] = pack_icons.split_label
         self._env.filters["split3"] = _split3
 
     # --- backend contract ------------------------------------------------
@@ -363,6 +372,12 @@ class HtmlBackend(RenderBackend):
             "features_complex": list(physical.get("features_complex") or []),
             "terms": list(sale.get("terms") or []),
             "municipal_valuation": _fmt_num(valuation.get("municipal_valuation")),
+            # A running municipal cost to the buyer, not a valuation of the
+            # property: the reference packs print it as a "Rates & Taxes" chip
+            # and the no-valuation directive (D32/D54/D57) does not cover it.
+            # The valuation figures themselves are already absent from this
+            # projection, so there is nothing here to leak.
+            "monthly_rates": _fmt_size(valuation.get("estimated_monthly_rates")),
             "viewing_by_appt": bool(viewing.get("by_appointment")),
             "contact_public": viewing.get("contact_public"),
             "photos": photos,
