@@ -1822,3 +1822,50 @@ def test_clearing_a_gate2_field_actually_clears_it():
     assert save("") is None          # cleared, not stuck on the old value
     assert save("Liquidation") == "Liquidation"
     assert save("   ") is None       # whitespace counts as blank
+
+
+# --- getting back to the editor after the pack is built ------------------
+
+def test_every_screen_after_the_draft_can_reach_the_editor():
+    """A built or posted property must be one click from gate 2.
+
+    The client rings about the price after the pack is built. The board's button
+    for that state is "Build assets" (the pack), the pack's buttons were download
+    and post, and the post screen led on to distribution: nothing pointed back at
+    the only screen that can change a price or an address, so the way in was
+    knowing the gate-2 URL by heart.
+    """
+    dp = "9042"
+    _seed_minimal(dp, state="client_approved")
+    client = _client()
+    _login_admin(client)
+
+    board = client.get("/board")
+    assert board.status_code == 200
+    assert f'href="/gates/{dp}/ads"' in board.text, "board row carries no edit link"
+
+    pack = client.get(f"/artifacts/{dp}")
+    assert pack.status_code == 200
+    assert f'href="/gates/{dp}/ads"' in pack.text
+    assert "Edit price and details" in pack.text
+
+    post = client.get(f"/post/{dp}")
+    assert post.status_code == 200
+    assert f'href="/gates/{dp}/ads"' in post.text
+
+    # And the editor opens at this state rather than bouncing the user.
+    assert client.get(f"/gates/{dp}/ads").status_code == 200
+
+
+def test_the_editor_link_is_not_offered_before_there_is_an_advert():
+    """Nothing to edit yet at intake: the row shows its own next action only."""
+    dp = "9043"
+    _seed_minimal(dp, state="extracted")
+    client = _client()
+    _login_admin(client)
+
+    rows = client.get("/board/rows")
+    assert rows.status_code == 200
+    row = [line for line in rows.text.splitlines() if dp in line or "9043" in line]
+    assert row, "seeded row not found on the board"
+    assert f'/gates/{dp}/ads' not in rows.text.split(f'<td class="ledger__dp">{dp}')[1][:1200]

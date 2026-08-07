@@ -1004,8 +1004,12 @@ pre.card { color: var(--text); font-size: 12.5px; line-height: 1.6; }
   color: var(--accent-ink); background: var(--accent); padding: 2px 8px; border-radius: 999px;
 }
 
-/* --- board row delete control ----------------------------------------- */
-.ledger__manage { text-align: center; }
+/* --- board row manage controls (edit, delete) -------------------------- */
+.ledger__manage { text-align: center; white-space: nowrap; }
+a.iconbtn { text-decoration: none; }
+a.iconbtn:hover {
+  color: var(--gold); border-color: var(--gold); background: rgba(172, 135, 74, .10);
+}
 .iconbtn {
   display: inline-flex; align-items: center; justify-content: center;
   width: 30px; height: 30px; border-radius: 7px;

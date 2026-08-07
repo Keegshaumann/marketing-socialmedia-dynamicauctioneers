@@ -27,6 +27,11 @@
     {% endif %}
   </td>
   <td class="ledger__manage">
+    {% if r.edit_href and r.next.href != r.edit_href %}
+    <a class="iconbtn" href="{{ r.edit_href }}"
+       title="Edit price and details for DP {{ r.dp }}"
+       aria-label="Edit price and details for DP {{ r.dp }}">{{ ui.icon('edit', 'icon--sm') }}</a>
+    {% endif %}
     <button type="button" class="iconbtn iconbtn--danger"
             title="Delete DP {{ r.dp }}" aria-label="Delete DP {{ r.dp }}"
             hx-post="/board/{{ r.dp }}/delete"

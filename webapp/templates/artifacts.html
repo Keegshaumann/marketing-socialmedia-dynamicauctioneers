@@ -11,6 +11,10 @@
 
 {% block topbar_actions %}
   <a class="btn btn--ghost btn--sm" href="/board">{{ ui.icon('arrow', 'icon--sm icon--flip') }}<span>Back to board</span></a>
+  {# The way back to the editor. Without it this page is a dead end: the board's
+     button for a built property lands here, and changing a price or an address
+     meant knowing the gate-2 URL by heart. #}
+  <a class="btn btn--ghost btn--sm" href="/gates/{{ dp }}/ads">{{ ui.icon('edit') }}<span>Edit price and details</span></a>
   <a class="btn btn--gold btn--sm" href="/artifacts/{{ dp }}/download">{{ ui.icon('download') }}<span>Download pack</span></a>
   <a class="btn btn--ghost btn--sm" href="/post/{{ dp }}">{{ ui.icon('send') }}<span>Post and change</span></a>
 {% endblock %}

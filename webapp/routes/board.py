@@ -66,6 +66,27 @@ def _next_action(dp: str, state: str) -> Dict[str, Any]:
     return {"label": label, "href": href, "variant": variant}
 
 
+# States whose next action is NOT the editor, but where a human still has to be
+# able to reach it: the client rings about the price after the pack is built, or
+# after it has gone out. Before `drafted` there is no advert to edit yet, and a
+# closed record is not edited at all, so those rows carry no edit link.
+_EDITABLE_STATES = frozenset(
+    {"drafted", "approved", "client_approved", "assets_built", "live", "updated"}
+)
+
+
+def _edit_href(dp: str, state: str) -> Optional[str]:
+    """Gate 2 for any row where the primary button goes somewhere else.
+
+    Without this the board is a one-way street: "Build assets" and "Post" both
+    lead away from the only screen that can change a price or an address, and
+    the way back was knowing the URL.
+    """
+    if state not in _EDITABLE_STATES:
+        return None
+    return f"/gates/{dp}/ads"
+
+
 # --- pipeline stage (state -> position on the 5-step track) ---------------
 # The lifecycle has 13 states; the board shows them condensed onto five
 # milestones so a row reads as a progress track (Intake -> Verify -> Draft ->
@@ -161,6 +182,7 @@ def _load_rows(db_path: str) -> List[Dict[str, Any]]:
                     "owner": _owner_from_note(last_actor["note"] if last_actor else None)
                     or "Unassigned",
                     "next": _next_action(dp, state),
+                    "edit_href": _edit_href(dp, state),
                     "stage": _pipeline_stage(state),
                 }
             )
