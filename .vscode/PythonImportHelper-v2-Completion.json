@@ -440,6 +440,22 @@
         "documentation": {}
     },
     {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
         "label": "json",
         "kind": 6,
         "isExtraImport": true,
@@ -1038,6 +1054,30 @@
     },
     {
         "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
         "importPath": "typing",
         "description": "typing",
         "isExtraImport": true,
@@ -2553,6 +2593,14 @@
         "documentation": {}
     },
     {
+        "label": "pack_icons",
+        "importPath": "engine.render",
+        "description": "engine.render",
+        "isExtraImport": true,
+        "detail": "engine.render",
+        "documentation": {}
+    },
+    {
         "label": "DEFAULT_BACKEND",
         "importPath": "engine.render",
         "description": "engine.render",
@@ -3069,6 +3117,14 @@
         "description": "functools",
         "isExtraImport": true,
         "detail": "functools",
+        "documentation": {}
+    },
+    {
+        "label": "Markup",
+        "importPath": "markupsafe",
+        "description": "markupsafe",
+        "isExtraImport": true,
+        "detail": "markupsafe",
         "documentation": {}
     },
     {
@@ -3892,6 +3948,38 @@
         "description": "webapp",
         "isExtraImport": true,
         "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "ICONS",
+        "importPath": "engine.render.pack_icons",
+        "description": "engine.render.pack_icons",
+        "isExtraImport": true,
+        "detail": "engine.render.pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "icon_for",
+        "importPath": "engine.render.pack_icons",
+        "description": "engine.render.pack_icons",
+        "isExtraImport": true,
+        "detail": "engine.render.pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "split_label",
+        "importPath": "engine.render.pack_icons",
+        "description": "engine.render.pack_icons",
+        "isExtraImport": true,
+        "detail": "engine.render.pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "svg",
+        "importPath": "engine.render.pack_icons",
+        "description": "engine.render.pack_icons",
+        "isExtraImport": true,
+        "detail": "engine.render.pack_icons",
         "documentation": {}
     },
     {
@@ -5395,6 +5483,51 @@
         "description": "engine.render.html_backend",
         "peekOfCode": "_ASSET_MIME = {\n    \".png\": \"image/png\", \".jpg\": \"image/jpeg\", \".jpeg\": \"image/jpeg\",\n    \".svg\": \"image/svg+xml\", \".webp\": \"image/webp\",\n}\n@lru_cache(maxsize=64)\ndef _asset_data_uri(relative_path: str) -> str:\n    \"\"\"Read a template-relative asset (e.g. a logo) and return a base64 data URI.\n    Templates embed assets this way so the rendered ad is self-contained and\n    survives file:// rasterising (no external file resolution). Cached; returns\n    \"\" if the asset is missing so a template never crashes on a typo'd path.",
         "detail": "engine.render.html_backend",
+        "documentation": {}
+    },
+    {
+        "label": "icon_for",
+        "kind": 2,
+        "importPath": "engine.render.pack_icons",
+        "description": "engine.render.pack_icons",
+        "peekOfCode": "def icon_for(text: str) -> str:\n    \"\"\"Return the glyph name for a line of record text (\"mark\" if nothing fits).\"\"\"\n    lowered = (text or \"\").lower()\n    for pattern, name in _COMPILED:\n        if pattern.search(lowered):\n            return name\n    return \"mark\"\ndef svg(name: str, size: str = \"9mm\", extra_class: str = \"\") -> str:\n    \"\"\"Return one glyph as a complete SVG element, inheriting ``currentColor``.\"\"\"\n    inner = ICONS.get(name) or ICONS[\"mark\"]",
+        "detail": "engine.render.pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "svg",
+        "kind": 2,
+        "importPath": "engine.render.pack_icons",
+        "description": "engine.render.pack_icons",
+        "peekOfCode": "def svg(name: str, size: str = \"9mm\", extra_class: str = \"\") -> str:\n    \"\"\"Return one glyph as a complete SVG element, inheriting ``currentColor``.\"\"\"\n    inner = ICONS.get(name) or ICONS[\"mark\"]\n    cls = f' class=\"{extra_class}\"' if extra_class else \"\"\n    return (\n        f'<svg{cls} viewBox=\"0 0 24 24\" width=\"{size}\" height=\"{size}\" '\n        f'fill=\"currentColor\" aria-hidden=\"true\" focusable=\"false\">{inner}</svg>'\n    )\n# --- shaping a feature line ----------------------------------------------\n# The pack prints a bold label with a smaller qualifier under it",
+        "detail": "engine.render.pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "split_label",
+        "kind": 2,
+        "importPath": "engine.render.pack_icons",
+        "description": "engine.render.pack_icons",
+        "peekOfCode": "def split_label(text: str) -> Tuple[str, str]:\n    \"\"\"Split a feature line into (label, sub-line). The sub-line may be empty.\n    Never adds a word: both halves come out of ``text``. A line short enough to\n    print whole is returned as the label with no sub-line, because a one word\n    qualifier under a two word label reads as a mistake rather than a detail.\n    \"\"\"\n    line = (text or \"\").strip().rstrip(\".\")\n    if len(line) <= 26:\n        return line.upper(), \"\"\n    parts = _SPLIT.split(line, maxsplit=1)",
+        "detail": "engine.render.pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "_COMPILED",
+        "kind": 5,
+        "importPath": "engine.render.pack_icons",
+        "description": "engine.render.pack_icons",
+        "peekOfCode": "_COMPILED = [(re.compile(pattern), name) for pattern, name in _RULES]\ndef icon_for(text: str) -> str:\n    \"\"\"Return the glyph name for a line of record text (\"mark\" if nothing fits).\"\"\"\n    lowered = (text or \"\").lower()\n    for pattern, name in _COMPILED:\n        if pattern.search(lowered):\n            return name\n    return \"mark\"\ndef svg(name: str, size: str = \"9mm\", extra_class: str = \"\") -> str:\n    \"\"\"Return one glyph as a complete SVG element, inheriting ``currentColor``.\"\"\"",
+        "detail": "engine.render.pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "_SPLIT",
+        "kind": 5,
+        "importPath": "engine.render.pack_icons",
+        "description": "engine.render.pack_icons",
+        "peekOfCode": "_SPLIT = re.compile(r\"\\s*(?:,|\\(|\\bwith\\b|\\bplus\\b|\\bincluding\\b|\\s-\\s)\\s*\", re.I)\ndef split_label(text: str) -> Tuple[str, str]:\n    \"\"\"Split a feature line into (label, sub-line). The sub-line may be empty.\n    Never adds a word: both halves come out of ``text``. A line short enough to\n    print whole is returned as the label with no sub-line, because a one word\n    qualifier under a two word label reads as a mistake rather than a detail.\n    \"\"\"\n    line = (text or \"\").strip().rstrip(\".\")\n    if len(line) <= 26:\n        return line.upper(), \"\"",
+        "detail": "engine.render.pack_icons",
         "documentation": {}
     },
     {
@@ -7990,6 +8123,51 @@
         "documentation": {}
     },
     {
+        "label": "test_icon_for_picks_the_right_picture",
+        "kind": 2,
+        "importPath": "tests.test_pack_icons",
+        "description": "tests.test_pack_icons",
+        "peekOfCode": "def test_icon_for_picks_the_right_picture(line, expected):\n    assert icon_for(line) == expected\ndef test_icon_for_never_returns_a_missing_glyph():\n    \"\"\"Anything unmatched falls back to a drawn mark, never to nothing.\"\"\"\n    assert icon_for(\"something nobody has ever written on a property report\") == \"mark\"\n    assert icon_for(\"\") == \"mark\"\n    assert icon_for(None) == \"mark\"\n    for name in (\"mark\", *ICONS):\n        assert ICONS[name].strip()\ndef test_split_label_only_reshapes_the_record_wording():",
+        "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "test_icon_for_never_returns_a_missing_glyph",
+        "kind": 2,
+        "importPath": "tests.test_pack_icons",
+        "description": "tests.test_pack_icons",
+        "peekOfCode": "def test_icon_for_never_returns_a_missing_glyph():\n    \"\"\"Anything unmatched falls back to a drawn mark, never to nothing.\"\"\"\n    assert icon_for(\"something nobody has ever written on a property report\") == \"mark\"\n    assert icon_for(\"\") == \"mark\"\n    assert icon_for(None) == \"mark\"\n    for name in (\"mark\", *ICONS):\n        assert ICONS[name].strip()\ndef test_split_label_only_reshapes_the_record_wording():\n    \"\"\"The label and its qualifier both come out of the line, uppercased.\"\"\"\n    label, sub = split_label(\"3 bedrooms, main with en-suite (bath, toilet, basin)\")",
+        "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "test_split_label_only_reshapes_the_record_wording",
+        "kind": 2,
+        "importPath": "tests.test_pack_icons",
+        "description": "tests.test_pack_icons",
+        "peekOfCode": "def test_split_label_only_reshapes_the_record_wording():\n    \"\"\"The label and its qualifier both come out of the line, uppercased.\"\"\"\n    label, sub = split_label(\"3 bedrooms, main with en-suite (bath, toilet, basin)\")\n    assert label == \"3 BEDROOMS\"\n    assert sub == \"MAIN WITH EN-SUITE BATH, TOILET, BASIN\"\n    # No orphaned bracket left behind by the split.\n    assert \"(\" not in sub and \")\" not in sub\n    # Every word printed is a word the line already held.\n    original = set(re.findall(r\"[a-z]+\", \"3 bedrooms, main with en-suite (bath, toilet, basin)\"))\n    printed = set(re.findall(r\"[a-z]+\", (label + \" \" + sub).lower()))",
+        "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "test_split_label_leaves_a_short_line_whole",
+        "kind": 2,
+        "importPath": "tests.test_pack_icons",
+        "description": "tests.test_pack_icons",
+        "peekOfCode": "def test_split_label_leaves_a_short_line_whole():\n    \"\"\"A short line is one label: a two word qualifier under it reads as a slip.\"\"\"\n    assert split_label(\"Kitchen\") == (\"KITCHEN\", \"\")\n    assert split_label(\"Communal braai area\") == (\"COMMUNAL BRAAI AREA\", \"\")\ndef test_svg_is_self_contained_and_inherits_its_ink():\n    \"\"\"Glyphs print inside the HTML, take the surrounding colour, and scale.\"\"\"\n    markup = svg(\"bed\", \"9mm\")\n    assert markup.startswith(\"<svg\") and markup.endswith(\"</svg>\")\n    assert 'viewBox=\"0 0 24 24\"' in markup\n    assert 'fill=\"currentColor\"' in markup       # black on a row, white on the closing page",
+        "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "test_svg_is_self_contained_and_inherits_its_ink",
+        "kind": 2,
+        "importPath": "tests.test_pack_icons",
+        "description": "tests.test_pack_icons",
+        "peekOfCode": "def test_svg_is_self_contained_and_inherits_its_ink():\n    \"\"\"Glyphs print inside the HTML, take the surrounding colour, and scale.\"\"\"\n    markup = svg(\"bed\", \"9mm\")\n    assert markup.startswith(\"<svg\") and markup.endswith(\"</svg>\")\n    assert 'viewBox=\"0 0 24 24\"' in markup\n    assert 'fill=\"currentColor\"' in markup       # black on a row, white on the closing page\n    assert 'width=\"9mm\"' in markup\n    assert \"http\" not in markup                  # nothing fetched at render time\n    # An unknown name still returns a drawing rather than an empty element.\n    assert svg(\"no-such-glyph\").count(\"<svg\") == 1",
+        "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
         "label": "test_extract_photos_yields_source_quality_pngs",
         "kind": 2,
         "importPath": "tests.test_photos",
@@ -8246,7 +8424,7 @@
         "kind": 2,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "def test_info_pack_sale_uses_offer_language_not_auction(golden_record, tmp_path):\n    \"\"\"A normal listing (offers invited) never uses auction / bid wording.\"\"\"\n    golden_record.sale_process.method = \"offers_invited\"\n    html = _info_pack_html(golden_record, tmp_path)\n    # Offer / expression-of-interest framing (playbook 5).\n    assert \"How to proceed\" in html\n    assert \"Submit a written offer\" in html\n    assert \"Buyer information pack\" in html\n    assert \"Method of sale\" in html and \"Offers invited\" in html\n    # No auction/bidding framing on a sale pack.",
+        "peekOfCode": "def test_info_pack_sale_uses_offer_language_not_auction(golden_record, tmp_path):\n    \"\"\"A normal listing (offers invited) never uses auction / bid wording.\n    The cover badge is the tell: the reference packs put the method there in two\n    words, first word gold (playbook 5.1), and a listing that is not an auction\n    must read FOR SALE.\n    \"\"\"\n    golden_record.sale_process.method = \"offers_invited\"\n    html = _info_pack_html(golden_record, tmp_path)\n    assert \"<b>For</b> Sale\" in html\n    assert \"Offers invited\" in html",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -8255,16 +8433,16 @@
         "kind": 2,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "def test_info_pack_auction_uses_auction_language_and_details(golden_record, tmp_path):\n    \"\"\"An auction record frames the pack as an auction with its specifics.\"\"\"\n    golden_record.sale_process.method = \"auction\"\n    golden_record.sale_process.auction_type = \"Insolvency\"\n    golden_record.sale_process.auction_channel = \"Online\"\n    golden_record.sale_process.auction_date = \"28 May 2026\"\n    golden_record.sale_process.auction_time = \"10:00\"\n    html = _info_pack_html(golden_record, tmp_path)\n    assert \"How the auction works\" in html\n    assert \"Register to bid\" in html",
+        "peekOfCode": "def test_info_pack_auction_uses_auction_language_and_details(golden_record, tmp_path):\n    \"\"\"An auction record frames the pack as an auction with its specifics.\"\"\"\n    golden_record.sale_process.method = \"auction\"\n    golden_record.sale_process.auction_type = \"Insolvency\"\n    golden_record.sale_process.auction_channel = \"Online\"\n    golden_record.sale_process.auction_date = \"28 May 2026\"\n    golden_record.sale_process.auction_time = \"10:00\"\n    html = _info_pack_html(golden_record, tmp_path)\n    assert \"<b>Online</b> Auction\" in html             # the cover badge\n    assert \"Offered on Auction\" in html                # the highlights row",
         "detail": "tests.test_render",
         "documentation": {}
     },
     {
-        "label": "test_info_pack_conditions_page_states_its_heading_once",
+        "label": "test_info_pack_prints_the_conditions_once_in_the_terms_box",
         "kind": 2,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "def test_info_pack_conditions_page_states_its_heading_once(golden_record, tmp_path):\n    \"\"\"A dedicated conditions page must not print its own title twice.\n    The page's section head already reads \"Conditions of sale\"; the list macro\n    used to add a sub head saying the same words directly underneath it.\n    \"\"\"\n    golden_record.sale_process.terms = [\n        f\"Condition {i}: the purchaser accepts the property voetstoots and \"\n        f\"acknowledges that all measurements are approximate.\"\n        for i in range(1, 13)\n    ]",
+        "peekOfCode": "def test_info_pack_prints_the_conditions_once_in_the_terms_box(golden_record, tmp_path):\n    \"\"\"The conditions live in the bordered box on the details page (playbook 5.2).\n    The reference packs carry deposit, commission, guarantee and occupation in\n    one box under the fees pill, not on a page of their own. Each condition is\n    printed once: a term repeated on a second page is a term a buyer can read\n    two different ways.\n    \"\"\"\n    golden_record.sale_process.terms = [\n        f\"Condition {i}: the purchaser accepts the property voetstoots and \"\n        f\"acknowledges that all measurements are approximate.\"",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -8273,16 +8451,16 @@
         "kind": 2,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "def test_info_pack_schedule_pages_split_evenly(golden_record, tmp_path):\n    \"\"\"A long schedule is split into even pages, never a page holding two rows.\n    23 portions used to render five rows beside the cards on page 2, sixteen on\n    the next sheet and a whole A4 holding the last two plus the total.\n    \"\"\"\n    html = _info_pack_html(_with_portions(golden_record, 23), tmp_path)\n    # The whole schedule moved off page 2 rather than leaving a head table there.\n    assert \"<h3>Schedule of portions</h3>\" not in html\n    chunks = html.split('<table class=\"sched\"')[1:]\n    assert len(chunks) == 2                       # two schedule pages",
+        "peekOfCode": "def test_info_pack_schedule_pages_split_evenly(golden_record, tmp_path):\n    \"\"\"A long schedule is split into even pages, never a page holding two rows.\n    23 portions at twelve to a sheet is 12 and 11, not 12, 11 and a sheet\n    carrying the last row on its own.\n    \"\"\"\n    html = _info_pack_html(_with_portions(golden_record, 23), tmp_path)\n    chunks = html.split('<table class=\"hl sched\"')[1:]\n    assert len(chunks) == 2                       # two schedule pages\n    rows = [c.count(\"of Farm 7 Slagboom\") for c in chunks]\n    assert sum(rows) == 23",
         "detail": "tests.test_render",
         "documentation": {}
     },
     {
-        "label": "test_info_pack_schedule_shares_page_two_when_it_fits",
+        "label": "test_info_pack_short_schedule_is_one_page_and_takes_a_band",
         "kind": 2,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "def test_info_pack_schedule_shares_page_two_when_it_fits(golden_record, tmp_path):\n    \"\"\"A short schedule stays on page 2 with the cards (playbook 4.2).\"\"\"\n    html = _info_pack_html(_with_portions(golden_record, 3), tmp_path)\n    assert \"<h3>Schedule of portions</h3>\" in html\n    assert \"Schedule of portions continued\" not in html\ndef test_info_pack_groups_large_extents_and_adds_hectares(golden_record, tmp_path):\n    \"\"\"A farm sized extent is grouped and given a hectare equivalent.\n    An ungrouped seven digit run cannot be read at a glance in a buyer document.\n    \"\"\"\n    html = _info_pack_html(_with_portions(golden_record, 23), tmp_path)",
+        "peekOfCode": "def test_info_pack_short_schedule_is_one_page_and_takes_a_band(golden_record, tmp_path):\n    \"\"\"Three portions do not fill a sheet, so the sheet takes a photograph band.\n    The schedule cannot share the details page in this format (that page is\n    composed to its own layout), so the rule is: one schedule page, rows opened\n    up, and what is still empty filled with a photograph rather than left blank.\n    \"\"\"\n    html = _info_pack_html(_with_portions(golden_record, 3), tmp_path)\n    assert html.count('<table class=\"hl sched\"') == 1\n    assert \"Schedule of portions continued\" not in html\n    sched_page = html.split(\"Schedule of portions\")[1]",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -8301,6 +8479,33 @@
         "importPath": "tests.test_render",
         "description": "tests.test_render",
         "peekOfCode": "def test_info_pack_names_one_brand_on_a_sale_pack(golden_record, tmp_path):\n    \"\"\"The pack is issued as Dynamic Auctioneers whatever the sale method.\n    The cover and contact lockup used to switch to the Dynamic Real Estate mark\n    on a non-auction pack while the running head and contact block still read\n    \"Dynamic Auctioneers\": two brands on one document.\n    \"\"\"\n    from engine.render.html_backend import _asset_data_uri\n    golden_record.sale_process.method = \"offers_invited\"\n    html = _info_pack_html(golden_record, tmp_path)\n    auctioneers = _asset_data_uri(\"ads/_assets/logo-auctioneers-on-light.png\")",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_info_pack_band_photographs_come_from_the_record",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_info_pack_band_photographs_come_from_the_record(golden_record, tmp_path):\n    \"\"\"A band that fills a short page uses this property's photographs only.\"\"\"\n    html = _info_pack_html(_with_portions(golden_record, 3), tmp_path)\n    photos = [golden_record.marketing.hero_photo] + list(golden_record.marketing.gallery)\n    names = {Path(p).name for p in photos if p}\n    bands = re.findall(r'<div class=\"band\".*?</div>', html, re.S)\n    assert bands\n    for block in bands:\n        for src in re.findall(r'src=\"([^\"]+)\"', block):\n            assert Path(src).name in names",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_info_pack_without_photographs_has_no_band_or_gallery",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_info_pack_without_photographs_has_no_band_or_gallery(golden_record, tmp_path):\n    \"\"\"No photographs on the record means no band and no gallery page.\n    An empty image box, or a gallery page with nothing on it, is worse than the\n    page simply not being there.\n    \"\"\"\n    golden_record.marketing.hero_photo = None\n    golden_record.marketing.gallery = []\n    html = _info_pack_html(golden_record, tmp_path)\n    assert 'class=\"band\"' not in html\n    assert 'class=\"grid3\"' not in html",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_info_pack_pages_are_full_a4_landscape_sheets",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_info_pack_pages_are_full_a4_landscape_sheets(golden_record, golden_record_path, tmp_path):\n    \"\"\"Measured in Chromium: every sheet is a full A4 landscape, none clipped.\n    The costing in the template is arithmetic on estimated block heights, so the\n    only honest check is the printed page itself. Three things must hold on every\n    sheet: it is exactly 210mm tall, nothing overflows it (the pages are fixed\n    height, so an overrun is CLIPPED rather than spilled, which is worse), and no\n    gap between blocks exceeds 30mm. The closing page is exempt from the gap\n    rule: its contact block is pinned to the foot by design.\n    \"\"\"\n    from engine.render import rasterize",
         "detail": "tests.test_render",
         "documentation": {}
     },
