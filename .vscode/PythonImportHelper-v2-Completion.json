@@ -8501,6 +8501,15 @@
         "documentation": {}
     },
     {
+        "label": "test_info_pack_every_word_is_visible",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_info_pack_every_word_is_visible(golden_record, golden_record_path, tmp_path):\n    \"\"\"Nothing is hidden behind the badge, and nothing is cut off by the sheet.\n    Two ways a word can be on the page and unreadable. The shield badge is\n    absolutely positioned over the top-right corner, so it cannot push anything\n    aside: on a property viewed \"by arrangement\" the viewing line runs wide\n    enough to reach it and printed underneath the black. And the pages are a\n    fixed height with `overflow: hidden`, so anything that outgrows its sheet is\n    silently clipped rather than spilling somewhere visible.\n    Measured in Chromium rather than reasoned about: both faults depend on the\n    text's rendered width, which no amount of arithmetic in the template can",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
         "label": "test_info_pack_pages_are_full_a4_landscape_sheets",
         "kind": 2,
         "importPath": "tests.test_render",
@@ -9806,6 +9815,24 @@
         "documentation": {}
     },
     {
+        "label": "test_every_screen_after_the_draft_can_reach_the_editor",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_every_screen_after_the_draft_can_reach_the_editor():\n    \"\"\"A built or posted property must be one click from gate 2.\n    The client rings about the price after the pack is built. The board's button\n    for that state is \"Build assets\" (the pack), the pack's buttons were download\n    and post, and the post screen led on to distribution: nothing pointed back at\n    the only screen that can change a price or an address, so the way in was\n    knowing the gate-2 URL by heart.\n    \"\"\"\n    dp = \"9042\"\n    _seed_minimal(dp, state=\"client_approved\")",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_editor_link_is_not_offered_before_there_is_an_advert",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_the_editor_link_is_not_offered_before_there_is_an_advert():\n    \"\"\"Nothing to edit yet at intake: the row shows its own next action only.\"\"\"\n    dp = \"9043\"\n    _seed_minimal(dp, state=\"extracted\")\n    client = _client()\n    _login_admin(client)\n    rows = client.get(\"/board/rows\")\n    assert rows.status_code == 200\n    row = [line for line in rows.text.splitlines() if dp in line or \"9043\" in line]\n    assert row, \"seeded row not found on the board\"",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
         "label": "_TMP",
         "kind": 5,
         "importPath": "tests.test_webapp",
@@ -10126,6 +10153,15 @@
         "importPath": "webapp.routes.board",
         "description": "webapp.routes.board",
         "peekOfCode": "logger = logging.getLogger(\"webapp.auth\")\n# --- shared render helper -------------------------------------------------\ndef _view(request: Request, name: str, ctx: Optional[dict] = None, status_code: int = 200):\n    templates = request.app.state.templates\n    data: Dict[str, Any] = {\"user\": auth.current_user(request)}\n    if ctx:\n        data.update(ctx)\n    return templates.TemplateResponse(request, name, data, status_code=status_code)\n# --- next-action mapping (state -> what a human does next) ----------------\n# href targets follow the platform's screen prefixes; a screen still being",
+        "detail": "webapp.routes.board",
+        "documentation": {}
+    },
+    {
+        "label": "_EDITABLE_STATES",
+        "kind": 5,
+        "importPath": "webapp.routes.board",
+        "description": "webapp.routes.board",
+        "peekOfCode": "_EDITABLE_STATES = frozenset(\n    {\"drafted\", \"approved\", \"client_approved\", \"assets_built\", \"live\", \"updated\"}\n)\ndef _edit_href(dp: str, state: str) -> Optional[str]:\n    \"\"\"Gate 2 for any row where the primary button goes somewhere else.\n    Without this the board is a one-way street: \"Build assets\" and \"Post\" both\n    lead away from the only screen that can change a price or an address, and\n    the way back was knowing the URL.\n    \"\"\"\n    if state not in _EDITABLE_STATES:",
         "detail": "webapp.routes.board",
         "documentation": {}
     },
