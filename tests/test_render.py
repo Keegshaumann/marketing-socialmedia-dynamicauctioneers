@@ -520,6 +520,86 @@ def test_info_pack_without_photographs_has_no_band_or_gallery(golden_record, tmp
     assert 'alt="Property photograph"' not in html
 
 
+def test_info_pack_every_word_is_visible(golden_record, golden_record_path, tmp_path):
+    """Nothing is hidden behind the badge, and nothing is cut off by the sheet.
+
+    Two ways a word can be on the page and unreadable. The shield badge is
+    absolutely positioned over the top-right corner, so it cannot push anything
+    aside: on a property viewed "by arrangement" the viewing line runs wide
+    enough to reach it and printed underneath the black. And the pages are a
+    fixed height with `overflow: hidden`, so anything that outgrows its sheet is
+    silently clipped rather than spilling somewhere visible.
+
+    Measured in Chromium rather than reasoned about: both faults depend on the
+    text's rendered width, which no amount of arithmetic in the template can
+    know. Measured on the TEXT, not on its block - a full-width heading's box
+    legitimately reaches the badge while its words stop well short (that is what
+    the title's right padding is for), so a Range's client rects are the ink.
+    """
+    from engine.render import rasterize
+
+    if not rasterize.available():
+        pytest.skip("Playwright not installed; page geometry cannot be measured")
+    from playwright.sync_api import sync_playwright
+
+    photos = golden_record_path.parent / "photos"
+    if not photos.is_dir():
+        pytest.skip("golden photographs not present")
+    shutil.copytree(photos, tmp_path / "DP3060" / "photos")
+    # The long-viewing-line case, plus a scheme and municipality that run wide.
+    golden_record.sale_process.viewing.by_appointment = False
+    golden_record.identity.municipality = "City of Tshwane Metropolitan Municipality"
+
+    store = _store_with(golden_record)
+    try:
+        art = render_one("3060", store, "info_pack", backend="html", output_root=str(tmp_path))
+    finally:
+        store.close()
+
+    overlaps = """() => {
+      const out = [];
+      document.querySelectorAll('.page').forEach((page, i) => {
+        // The closing page carries the badge too, and its body is .close-body.
+        const body = page.querySelector('.page__body') || page.querySelector('.close-body');
+        if (!body) return;
+        const badge = page.querySelector('.shield');
+        const b = badge ? badge.getBoundingClientRect() : null;
+        const p = page.getBoundingClientRect();
+        const hits = (r, r2) =>
+          Math.min(r.right, r2.right) - Math.max(r.left, r2.left) > 1 &&
+          Math.min(r.bottom, r2.bottom) - Math.max(r.top, r2.top) > 1;
+        const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+        for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+          const text = n.textContent.trim();
+          if (!text) continue;
+          const range = document.createRange();
+          range.selectNodeContents(n);
+          for (const r of range.getClientRects()) {
+            if (b && hits(r, b)) { out.push(`under the badge, page ${i + 1}: ${text.slice(0, 40)}`); break; }
+            // 2px of tolerance for sub-pixel rounding on the sheet edge.
+            if (r.top < p.top - 2 || r.bottom > p.bottom + 2 ||
+                r.left < p.left - 2 || r.right > p.right + 2) {
+              out.push(`clipped by the sheet, page ${i + 1}: ${text.slice(0, 40)}`); break;
+            }
+          }
+        }
+      });
+      return out;
+    }"""
+
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(args=["--no-sandbox", "--disable-gpu"])
+        try:
+            page = browser.new_page()
+            page.goto(Path(art.path).with_suffix(".html").as_uri())
+            page.emulate_media(media="print")
+            hits = page.evaluate(overlaps)
+        finally:
+            browser.close()
+
+    assert hits == [], "hidden or clipped text: " + "; ".join(hits)
+
+
 def test_info_pack_pages_are_full_a4_landscape_sheets(golden_record, golden_record_path, tmp_path):
     """Measured in Chromium: every sheet is a full A4 landscape, none clipped.
 

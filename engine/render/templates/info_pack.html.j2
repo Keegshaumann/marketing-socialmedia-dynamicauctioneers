@@ -255,8 +255,10 @@
 
   /* Titles: heavy uppercase with the pack's gold ghost offset. */
   .ptitle {
-    margin: 0 0 5mm; font-size: 27px; font-weight: 900; letter-spacing: .005em;
-    text-transform: uppercase; color: var(--ink);
+    /* The right padding is the shield badge's footprint: the badge is absolute,
+       so without it a long title runs underneath and is lost behind the black. */
+    margin: 0 0 5mm; padding-right: 42mm; font-size: 27px; font-weight: 900;
+    letter-spacing: .005em; text-transform: uppercase; color: var(--ink);
     text-shadow: .7mm .7mm 0 var(--gold-2);
   }
   .ptitle--mid { text-align: center; }
@@ -309,10 +311,11 @@
 
   /* --- location details -------------------------------------------------- */
   .ld { display: grid; grid-template-columns: 1.15fr 1fr; gap: 6mm 10mm; flex: 1 1 auto; min-height: 0; }
-  /* The left column's blocks spread over the sheet rather than stacking at the
-     top and leaving the foot empty; the facts stay put, the pills and the terms
-     box take the slack between them. */
-  .ld-left { display: flex; flex-direction: column; justify-content: space-between; min-height: 0; }
+  /* Blocks sit together under the facts. They used to spread over the whole
+     sheet (justify-content: space-between), which filled the page but pushed the
+     pills and the terms box so far apart that the column read as unrelated
+     fragments rather than one panel. The map beside it carries the height. */
+  .ld-left { display: flex; flex-direction: column; gap: 1mm; min-height: 0; }
   .ld-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm 8mm; }
   .fact { font-size: 11.5px; line-height: 1.55; }
   .fact b { font-weight: 800; }
@@ -342,15 +345,18 @@
   .ld-when small { display: block; font-size: 13px; letter-spacing: .04em; }
   .ld-map { flex: 1 1 auto; min-height: 0; border: 1.4px solid var(--gold); overflow: hidden; }
   .ld-map img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .ld-right { display: flex; flex-direction: column; min-height: 0; }
+  /* Starts below the shield badge. The badge is absolutely positioned over the
+     top-right corner, and this column is the only content that reaches it: the
+     viewing line and the coordinates were printing underneath the black. */
+  .ld-right { display: flex; flex-direction: column; min-height: 0; padding-top: 14mm; }
 
   /* --- features ---------------------------------------------------------- */
   .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm 12mm; flex: 1 1 auto; min-height: 0; }
-  .cols > div { display: flex; flex-direction: column; min-height: 0; }
-  /* Rows spread down the sheet rather than stacking at the top: that is how the
-     reference packs sit a four line feature list on a whole A4, and it fills a
-     short page without any measurement at all. */
-  .cols--spread > div { justify-content: space-between; }
+  /* Rows stack from the top with their own (costed, capped) padding. Spreading
+     them over the whole sheet filled the page, but six features an arm's length
+     apart stopped reading as a list; a photograph band takes the leftover
+     instead. */
+  .cols > div { display: flex; flex-direction: column; justify-content: flex-start; min-height: 0; }
   .cols--rule > div:first-child { border-right: 1px solid var(--gold); padding-right: 10mm; }
   .frow { display: flex; align-items: center; gap: 5mm; padding: var(--frowpad, 2.2mm) 0; }
   .frow .g { flex: 0 0 auto; width: 9mm; height: 9mm; color: var(--ink); display: flex; }
@@ -593,18 +599,17 @@
   {% set rows = [left | length, right | length] | max %}
   {% set base_cost = [rowcost(left) | int, rowcost(right) | int] | max %}
   {% set budget = REGION - COLHEAD - (FOOTNOTE if loop.first else 0) - (CHIP if (loop.first and vm.scheme) else 0) %}
-  {% set pad = ([[((budget - base_cost) // (2 * rows)) if rows else ROW_PAD, 70] | min, ROW_PAD] | max) %}
+  {# The padding cap is deliberately tight (4mm a side, so 8mm between rows). A
+     feature list has to read as a list: past that the eye stops connecting one
+     row to the next, and the sheet is better filled with a photograph. #}
+  {% set pad = ([[((budget - base_cost) // (2 * rows)) if rows else ROW_PAD, 40] | min, ROW_PAD] | max) %}
   {% set feat_left = budget - base_cost - rows * 2 * (pad - ROW_PAD) %}
-  {# A sheet with room to spare spreads its rows over it. Only a genuinely short
-     list - one that would leave a hand's width of paper even spread out - takes
-     a photograph band instead, because rows that far apart stop reading as a
-     list. #}
-  {% set feat_band = fill_photos and feat_left >= FILL_WIDE %}
+  {% set feat_band = fill_photos and feat_left >= FILL_MIN %}
   <section class="page">
     {{ swoosh() }}{{ frame() }}{{ shield() }}
     <div class="page__body">
       {{ page_title('Property features' if loop.first else 'Property features continued') }}
-      <div class="cols cols--rule {{ '' if feat_band else 'cols--spread' }}">
+      <div class="cols cols--rule">
         <div>
           {% if loop.first %}<h3 class="colhead">{{ 'Main house:' if fm_all else 'Features:' }}</h3>{% endif %}
           {% for f in left %}{{ frow(f, (pad / 10) ~ 'mm') }}{% endfor %}
@@ -655,10 +660,11 @@
     {{ swoosh() }}{{ frame() }}
     <div class="page__body">
       {{ page_title('Investment highlights') }}
-      {# Row padding opened up so the table fills the sheet: the space left over
-         once the text is laid out is divided over the rows rather than left as
-         a hole under the last one. Costed on wrapped lines, capped at 9mm. #}
-      {% set hl_pad = ([[((REGION - hl_lines.n * LINE) // (2 * (hl | length))) if hl else 24, 110] | min, 24] | max) %}
+      {# Rows take the leftover height, but only up to 7mm a side: a table whose
+         rows sit a thumb apart stops reading as a table. What is still empty
+         after that takes a photograph, the same rule as the features page. #}
+      {% set hl_pad = ([[((REGION - hl_lines.n * LINE) // (2 * (hl | length))) if hl else 24, 70] | min, 24] | max) %}
+      {% set hl_left = REGION - hl_lines.n * LINE - (hl | length) * 2 * hl_pad %}
       <table class="hl" style="--hlrow: {{ hl_pad / 10 }}mm">
         <tbody>
           {% for label, detail in hl %}
@@ -666,6 +672,7 @@
           {% endfor %}
         </tbody>
       </table>
+      {% if fill_photos and hl_left >= FILL_MIN %}{{ fill_band(hl_left >= FILL_WIDE) }}{% endif %}
     </div>
   </section>
   {% endif %}
