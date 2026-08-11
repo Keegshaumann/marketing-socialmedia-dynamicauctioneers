@@ -1,7 +1,11 @@
 {# Facebook post copy. No emojis, no em or en dashes (SA English). #}
 # Facebook Post: {{ vm.headline }}
 
-{% if vm.location_line %}{{ vm.location_line | upper }} | {{ vm.badge_label | upper }}{% else %}{{ vm.badge_label | upper }}{% endif %}
+{# The money line is price_display, NOT the method badge: price_display already
+   falls back to the badge when no figure is set, so an asking price typed at
+   gate 2 reaches this post instead of it still reading OFFERS INVITED while the
+   advert beside it reads R1 875 000. #}
+{% if vm.location_line %}{{ vm.location_line | upper }} | {{ vm.price_display | upper }}{% else %}{{ vm.price_display | upper }}{% endif %}
 
 {{ vm.headline }}{% if vm.scheme %} in the {{ vm.scheme }} scheme{% endif %}{% if vm.address %}, {{ vm.address }}{% endif %}.
 

@@ -9,7 +9,10 @@
 {%- set hlen = hero | length -%}
 {%- set hsize = 62 if hlen <= 8 else (46 if hlen <= 12 else (34 if hlen <= 18 else 26)) -%}
 {%- set sub = ((vm.beds ~ ' BED ') if vm.beds else '') ~ ((vm.title_type_label or '') | upper) -%}
-{%- set badge = (vm.badge_label or '') | upper -%}
+{# price_display, not the method badge: it falls back to the badge when no figure
+   is set, so a price typed at gate 2 shows here instead of the tile still
+   reading OFFERS INVITED beside an advert that reads R1 875 000. #}
+{%- set badge = (vm.price_display or vm.badge_label or '') | upper -%}
 {%- set bw = (badge | length) * 20 + 56 -%}
 {%- set bx = (512 - bw) / 2 -%}
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="{{ hero }} auction">

@@ -2,7 +2,11 @@
    CTA links carry ?dp=<n> for CRM attribution. #}
 # Email Blast: {{ vm.headline }}
 
-**Subject A:** {{ vm.headline }}: {{ vm.badge_label | lower }}
+{# price_display, not the badge: it already falls back to the method framing
+   when no figure is set, so a typed asking price reaches the subject line. #}
+{# Not lowercased: "r1 875 000" is not a price. The method framing reads fine in
+   sentence case either way. #}
+**Subject A:** {{ vm.headline }}: {{ vm.price_display }}
 **Subject B:** New listing{% if vm.suburb %} in {{ vm.suburb }}{% endif %}{% if vm.flatlet_present %} (with rental income potential){% endif %}
 
 **Preheader:** {% if vm.size_str %}{{ vm.size_str }} m2 {% endif %}{% if vm.title_type_label %}{{ vm.title_type_label | lower }} {% endif %}listing.{% if vm.viewing_by_appt %} Viewing by appointment.{% endif %}

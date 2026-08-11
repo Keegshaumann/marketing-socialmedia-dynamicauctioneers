@@ -520,6 +520,46 @@ def test_info_pack_without_photographs_has_no_band_or_gallery(golden_record, tmp
     assert 'alt="Property photograph"' not in html
 
 
+def test_a_price_reaches_every_artifact(golden_record, tmp_path):
+    """One price on the record, the same price on all nine artifacts.
+
+    This is the engine's whole reason for existing: the price changes once and
+    every piece of marketing follows. It did not hold. The Facebook post, the
+    email subject and the website tile printed the sale-METHOD badge instead of
+    the figure, so a property whose advert read "R1 875 000" was posted to
+    Facebook as "OFFERS INVITED" - two different money lines for one property,
+    live on two channels at the same time.
+    """
+    golden_record.marketing.price_display = "R1 875 000"
+    store = _store_with(golden_record)
+    try:
+        artifacts = render_all("3060", store, backend="html", output_root=str(tmp_path))
+    finally:
+        store.close()
+
+    missing = []
+    for art in artifacts:
+        path = Path(art.path)
+        if path.suffix == ".pdf":                       # compressed: read its text
+            import fitz
+
+            doc = fitz.open(path)
+            try:
+                found = any("R1 875 000" in page.get_text() for page in doc)
+            finally:
+                doc.close()
+        else:
+            blob = path.read_bytes()
+            found = any(
+                marker in blob
+                for marker in (b"R1 875 000", b"R1&#160;875&#160;000", b"R1\xc2\xa0875\xc2\xa0000")
+            )
+        if not found:
+            missing.append(art.fmt)
+
+    assert missing == [], f"the price never reached: {missing}"
+
+
 def test_info_pack_every_word_is_visible(golden_record, golden_record_path, tmp_path):
     """Nothing is hidden behind the badge, and nothing is cut off by the sheet.
 
