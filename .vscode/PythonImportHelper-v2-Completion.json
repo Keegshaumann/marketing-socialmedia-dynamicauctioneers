@@ -8501,6 +8501,15 @@
         "documentation": {}
     },
     {
+        "label": "test_a_price_reaches_every_artifact",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_a_price_reaches_every_artifact(golden_record, tmp_path):\n    \"\"\"One price on the record, the same price on all nine artifacts.\n    This is the engine's whole reason for existing: the price changes once and\n    every piece of marketing follows. It did not hold. The Facebook post, the\n    email subject and the website tile printed the sale-METHOD badge instead of\n    the figure, so a property whose advert read \"R1 875 000\" was posted to\n    Facebook as \"OFFERS INVITED\" - two different money lines for one property,\n    live on two channels at the same time.\n    \"\"\"\n    golden_record.marketing.price_display = \"R1 875 000\"",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
         "label": "test_info_pack_every_word_is_visible",
         "kind": 2,
         "importPath": "tests.test_render",
