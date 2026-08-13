@@ -121,6 +121,7 @@
     .board { zoom:.979; margin:8mm auto; }
   }
   .nb{white-space:nowrap}
+  .un{text-transform:none}
 </style>
 
 <div class="board ad">
@@ -136,7 +137,7 @@
       <span class="bd-badge gold">{{ parts.badge_text(vm) }}</span>
 
       <div class="bd-stats">
-        {% if vm.size_str %}<div class="bd-stat">{{ parts.icon_size() }}<span><span class="nb">&plusmn;{{ vm.size_str }}m&sup2;</span> Property</span></div>{% endif %}
+        {% if vm.size_str %}<div class="bd-stat">{{ parts.icon_size() }}<span><span class="nb">&plusmn;{% if vm.size_ha %}{{ vm.size_ha }}<span class="un"> ha</span>{% else %}{{ vm.size_str }}<span class="un">m&sup2;</span>{% endif %}</span> Property</span></div>{% endif %}
         {% if vm.beds %}<div class="bd-stat">{{ parts.icon_bed() }}<span>{{ vm.beds }} Bedroom{{ 's' if vm.beds != '1' }}</span></div>{% endif %}
         {% if vm.baths %}<div class="bd-stat">{{ parts.icon_bath() }}<span>{{ vm.baths }} Bathroom{{ 's' if vm.baths != '1' }}</span></div>{% endif %}
         {% if vm.garages and vm.garages != '0' %}<div class="bd-stat">{{ parts.icon_garage() }}<span>{{ parts.garage_word(vm.garages) }}</span></div>{% endif %}

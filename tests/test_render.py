@@ -520,6 +520,90 @@ def test_info_pack_without_photographs_has_no_band_or_gallery(golden_record, tmp
     assert 'alt="Property photograph"' not in html
 
 
+@pytest.mark.parametrize("design", AD_DESIGNS)
+def test_no_ad_text_is_cut_off(design, golden_record, tmp_path):
+    """Measured in Chromium: no run of text on an ad falls outside the canvas.
+
+    The canvas is a locked 1080x1350 with `overflow: hidden`, and the stat rows,
+    the tagline and the terms strip were `white-space: nowrap` with an ellipsis -
+    so a long real value was forced onto one line and then silently truncated,
+    or pushed past the edge and clipped away. Long values now wrap. This asserts
+    the outcome rather than the CSS, on every design in the library, because the
+    fault depends on the rendered width of real record text.
+    """
+    from engine.render import rasterize
+
+    if not rasterize.available():
+        pytest.skip("Playwright not installed; ad geometry cannot be measured")
+    from playwright.sync_api import sync_playwright
+
+    # Values long enough to have overflowed before: a scheme name, a wordy
+    # descriptor and a terms strip are what the team's real records carry.
+    golden_record.marketing.template_set = design
+    golden_record.identity.scheme = "SS PAULA- EN KARIENHOF NUMBER 334 OF 1993"
+    golden_record.marketing.headline = (
+        "Spacious three bedroom sectional title apartment with a separate flatlet"
+    )
+    golden_record.sale_process.terms = [
+        "10% deposit on the purchase price payable by the purchaser on submitting an offer",
+        "Electrical COC, SPLUMA and all certificates for successful registration",
+    ]
+    store = _store_with(golden_record)
+    try:
+        art = render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path))
+    finally:
+        store.close()
+
+    # Measured against every CLIPPING ancestor, not just the canvas. An inner box
+    # with `overflow: hidden` cuts text off while the words still sit well inside
+    # the 1080x1350 frame, so a canvas-only check passes even when half a stat row
+    # has been eaten (verified: it does not fire on deliberately oversized copy).
+    overflow = """() => {
+      const canvas = document.querySelector('.ig') || document.body;
+      const clippers = el => {
+        const out = [];
+        for (let p = el; p && p !== document.documentElement; p = p.parentElement) {
+          const o = getComputedStyle(p);
+          if (o.overflowX !== 'visible' || o.overflowY !== 'visible') out.push(p);
+        }
+        if (!out.includes(canvas)) out.push(canvas);
+        return out;
+      };
+      const out = [];
+      const walker = document.createTreeWalker(canvas, NodeFilter.SHOW_TEXT);
+      for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+        const text = n.textContent.trim();
+        if (!text) continue;
+        const range = document.createRange();
+        range.selectNodeContents(n);
+        const boxes = clippers(n.parentElement);
+        let hit = false;
+        for (const r of range.getClientRects()) {
+          if (!r.width || !r.height) continue;
+          for (const box of boxes) {
+            const c = box.getBoundingClientRect();
+            if (r.right > c.right + 2 || r.left < c.left - 2 ||
+                r.bottom > c.bottom + 2 || r.top < c.top - 2) { hit = true; break; }
+          }
+          if (hit) break;
+        }
+        if (hit) out.push(text.slice(0, 40));
+      }
+      return out;
+    }"""
+
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(args=["--no-sandbox", "--disable-gpu"])
+        try:
+            page = browser.new_page(viewport={"width": 1080, "height": 1350})
+            page.goto(Path(art.path).as_uri())
+            spills = page.evaluate(overflow)
+        finally:
+            browser.close()
+
+    assert spills == [], f"{design}: text outside the canvas: {spills}"
+
+
 def test_a_price_reaches_every_artifact(golden_record, tmp_path):
     """One price on the record, the same price on all nine artifacts.
 

@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import base64
 import os
+import re
 from functools import lru_cache
 from pathlib import Path, PurePosixPath
 from typing import Dict, List, Optional, Tuple
@@ -165,6 +166,45 @@ def _fmt_size(value: object) -> Optional[str]:
     return format(whole, ",").replace(",", " ")
 
 
+def _ad_features(
+    features: List[str],
+    *,
+    beds: Optional[str] = None,
+    baths: Optional[str] = None,
+    garages: Optional[str] = None,
+) -> List[str]:
+    """Feature bullets for an ad, minus whatever the stat rows already say.
+
+    The ad designs print a stat grid (extent, bedrooms, bathrooms, garages) and
+    then a couple of feature bullets underneath. Both come off the same record,
+    so a property whose features begin "3 bedrooms, main with en-suite" and
+    "Full family bathroom plus separate toilet" printed **3 BEDROOMS** as a stat
+    and then said it again as a bullet, on the same ad, twice over. The client's
+    own ads never repeat a stat in the bullets.
+
+    Only the line's SUBJECT is tested (everything before the first comma or
+    bracket), so "Kitchen with a bathroom off the passage" survives while
+    "2 bathrooms, both recently refitted" does not. A stat that is not being
+    printed does not suppress anything.
+    """
+    skip: List[str] = []
+    if beds:
+        skip += ["bedroom", "bed "]
+    if baths:
+        skip += ["bathroom", "en-suite", "ensuite"]
+    if garages and garages != "0":
+        skip += ["garage", "carport"]
+    if not skip:
+        return list(features)
+    kept = []
+    for feature in features:
+        subject = re.split(r"[,(;]", feature, maxsplit=1)[0].lower()
+        if any(word in subject for word in skip):
+            continue
+        kept.append(feature)
+    return kept
+
+
 def _fmt_ha(value: object) -> Optional[str]:
     """The same extent in hectares, one decimal, for land big enough to warrant
     it (over a hectare). ``None`` for an ordinary residential erf, so the pack
@@ -178,7 +218,13 @@ def _fmt_ha(value: object) -> Optional[str]:
         return None
     if area < 10000:
         return None
-    return f"{area / 10000:.1f}"
+    ha = area / 10000
+    # Two decimals under 100 ha, one above. The client's own boards print
+    # "59.96 ha": rounding that to "60.0 ha" throws away 400 m2 of land on a
+    # figure a buyer reads as exact, while a 1 200 ha farm does not need
+    # centares. Trailing zeros are trimmed so 60 ha never prints as "60.00".
+    text = f"{ha:.2f}" if ha < 100 else f"{ha:.1f}"
+    return text.rstrip("0").rstrip(".") if "." in text else text
 
 
 class HtmlBackend(RenderBackend):
@@ -369,6 +415,15 @@ class HtmlBackend(RenderBackend):
             # the info pack can describe it without inventing anything.
             "flatlet_features": self._flatlet_features(flatlet) if flatlet_present else [],
             "features_main": list(physical.get("features_main") or []),
+            # The same features minus anything the ad's stat grid already
+            # states, so a bedroom count is never printed twice on one ad.
+            "features_ad": _ad_features(
+                list(physical.get("features_main") or [])
+                + list(physical.get("features_complex") or []),
+                beds=_fmt_num(physical.get("bedrooms")),
+                baths=_fmt_num(physical.get("bathrooms_main_unit")),
+                garages=_fmt_num(physical.get("garages")),
+            ),
             "features_complex": list(physical.get("features_complex") or []),
             "terms": list(sale.get("terms") or []),
             "municipal_valuation": _fmt_num(valuation.get("municipal_valuation")),

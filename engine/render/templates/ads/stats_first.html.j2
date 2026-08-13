@@ -10,7 +10,8 @@
 {% import "_adparts.html.j2" as parts %}
 {% set is_auction = (vm.method == 'auction') %}
 {% set photos = ([vm.hero_src] if vm.hero_src else []) + (vm.stack_photos or []) + (vm.gallery_photos or []) %}
-{% set feats = (vm.features_main or []) + (vm.features_complex or []) %}
+{# Stat-free features: the grid above already prints beds, baths and garages. #}
+{% set feats = vm.features_ad or ((vm.features_main or []) + (vm.features_complex or [])) %}
 <title>{{ vm.place_line or vm.suburb }} | {{ vm.brand_name }}</title>
 <style>
   {{ brand.tokens_css() }}
@@ -46,7 +47,7 @@
   .sf-stats { flex:1 1 auto; min-height:0; overflow:hidden; display:grid; grid-template-columns:1fr 1fr;
               align-content:center; gap:24px 34px; padding:14px 44px; }
   .sf-item { display:flex; align-items:center; gap:18px; font-size:26px; font-weight:800; color:#fff; text-transform:uppercase; line-height:1.08; min-width:0; }
-  .sf-item span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+  .sf-item span { overflow-wrap:anywhere; min-width:0; }
   .sf-item svg { width:48px; height:48px; stroke:#fff; fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; flex:none; }
 
   .ig-money { margin:6px 44px 0; flex:none; border:2.5px solid var(--gline); border-radius:12px; padding:18px 16px; text-align:center;
@@ -63,6 +64,7 @@
   .ig-contact .dot svg { width:20px; height:20px; fill:#ddc689; }
   .ig-contact svg.mail { width:30px; height:24px; fill:none; stroke:#191613; stroke-width:1.8; }
   .nb{white-space:nowrap}
+  .un{text-transform:none}
 </style>
 
 <div class="ig ad">
@@ -88,7 +90,7 @@
   </div>
 
   <div class="sf-stats">
-    {% if vm.size_str %}<div class="sf-item">{{ parts.icon_size() }}<span><span class="nb">&plusmn;{{ vm.size_str }}m&sup2;</span> Property</span></div>{% endif %}
+    {% if vm.size_str %}<div class="sf-item">{{ parts.icon_size() }}<span><span class="nb">&plusmn;{% if vm.size_ha %}{{ vm.size_ha }}<span class="un"> ha</span>{% else %}{{ vm.size_str }}<span class="un">m&sup2;</span>{% endif %}</span> Property</span></div>{% endif %}
     {% if vm.beds %}<div class="sf-item">{{ parts.icon_bed() }}<span>{{ vm.beds }} Bedroom{{ 's' if vm.beds != '1' }}</span></div>{% endif %}
     {% if vm.baths %}<div class="sf-item">{{ parts.icon_bath() }}<span>{{ vm.baths }} Bathroom{{ 's' if vm.baths != '1' }}</span></div>{% endif %}
     {% if vm.garages and vm.garages != '0' %}<div class="sf-item">{{ parts.icon_garage() }}<span>{{ parts.garage_word(vm.garages) }}</span></div>{% endif %}

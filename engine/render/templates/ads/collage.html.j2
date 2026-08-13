@@ -48,9 +48,9 @@
                 text-align:center; font-size:34px; font-weight:800; color:#fff; letter-spacing:.01em; text-transform:uppercase; }
   .ig-terms { margin:12px 40px 0; border:1.5px solid var(--g3); border-radius:999px; padding:12px 20px;
               text-align:center; font-size:17px; font-weight:800; letter-spacing:.04em; color:#e9dcc0; text-transform:uppercase;
-              white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+              overflow-wrap:anywhere; }
   .ig-tag { padding:18px 40px 6px; text-align:center; font-size:23px; font-weight:800; letter-spacing:.02em;
-            color:#fff; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+            color:#fff; text-transform:uppercase; overflow-wrap:anywhere; }
   .ig-stats { margin:8px 40px 0; border:2px solid var(--g3); border-radius:999px; display:flex;
               align-items:center; justify-content:space-around; gap:8px; padding:16px 10px; }
   .ig-stat { display:flex; align-items:center; gap:10px; font-size:24px; font-weight:800; color:#fff; letter-spacing:.02em; }
@@ -63,6 +63,7 @@
   .ig-contact .dot svg { width:20px; height:20px; fill:#ddc689; }
   .ig-contact svg.mail { width:30px; height:24px; fill:none; stroke:#191613; stroke-width:1.8; }
   .nb{white-space:nowrap}
+  .un{text-transform:none}
 </style>
 
 <div class="ig ad">
@@ -102,7 +103,7 @@
     {% if vm.beds %}<div class="ig-stat"><svg viewBox="0 0 24 24"><path d="M3 7v11m0-4h18m0 4v-7a2 2 0 0 0-2-2h-7v5"/><circle cx="7" cy="10" r="1.6"/></svg>{{ vm.beds }} <span class="u">Bed</span></div>{% endif %}
     {% if vm.baths %}<div class="ig-stat"><svg viewBox="0 0 24 24"><path d="M4 12h16v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M6 12V6a2 2 0 0 1 2-2 1.5 1.5 0 0 1 1.5 1.5"/></svg>{{ vm.baths }} <span class="u">Bath</span></div>{% endif %}
     {% if vm.garages and vm.garages != '0' %}<div class="ig-stat"><svg viewBox="0 0 24 24"><path d="M3 20v-8l9-5 9 5v8"/><path d="M6 20v-5h12v5"/><path d="M6 15h12"/></svg>{{ vm.garages }} <span class="u">Garage{{ 's' if vm.garages != '1' }}</span></div>{% endif %}
-    {% if vm.size_str %}<div class="ig-stat nb">{{ vm.size_str }}<span class="u" style="font-size:19px">m&sup2;</span></div>{% endif %}
+    {% if vm.size_str %}<div class="ig-stat nb">{% if vm.size_ha %}{{ vm.size_ha }}<span class="u un" style="font-size:19px"> ha</span>{% else %}{{ vm.size_str }}<span class="u un" style="font-size:19px">m&sup2;</span>{% endif %}</div>{% endif %}
   </div>
 
   {% if vm.terms %}
