@@ -169,7 +169,12 @@
 {% endmacro %}
 
 {% macro shield() %}
-  <div class="shield">{{ parts.brand_logo(vm, 'dark', 'auctioneers') }}</div>
+  <div class="shield">
+    <svg viewBox="0 0 34 40" preserveAspectRatio="none" aria-hidden="true">
+      <polygon points="0,0 34,0 34,29.6 17,40 0,29.6" fill="#000000"/>
+    </svg>
+    {{ parts.brand_logo(vm, 'dark', 'auctioneers') }}
+  </div>
 {% endmacro %}
 
 {% macro page_title(text) %}
@@ -246,12 +251,9 @@
     border-radius: 4mm; z-index: 1; pointer-events: none;
   }
   .swoosh { position: absolute; right: 0; bottom: 0; width: 62%; height: 34%; z-index: 0; }
-  .shield {
-    position: absolute; top: 0; right: 16mm; width: 34mm; padding: 4mm 4mm 8mm;
-    background: var(--ink); z-index: 3;
-    clip-path: polygon(0 0, 100% 0, 100% 74%, 50% 100%, 0 74%);
-  }
-  .shield img { width: 100%; display: block; }
+  .shield { position: absolute; top: 0; right: 16mm; width: 34mm; height: 40mm; z-index: 3; }
+  .shield svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .shield img { position: absolute; left: 12%; top: 10%; width: 76%; display: block; }
 
   /* Titles: heavy uppercase with the pack's gold ghost offset. */
   .ptitle {
@@ -480,7 +482,7 @@
 
   {# ------------------------------------------------- 2 LOCATION DETAILS #}
   <section class="page">
-    {{ swoosh() }}{{ frame() }}{{ shield() }}
+    {{ shield() }}
     <div class="page__body">
       {{ page_title('Location details') }}
 
@@ -490,9 +492,10 @@
             <div>
               <div class="fact-group">
                 <div class="fact"><b>Physical Address:</b></div>
-                {% if vm.address %}<div class="fact">{{ vm.address }}</div>{% endif %}
-                {% if vm.suburb %}<div class="fact">{{ vm.suburb }}</div>{% endif %}
-                {% if vm.province %}<div class="fact">{{ vm.province }}</div>{% endif %}
+                {% set addr = vm.address or '' %}
+                {% if addr %}<div class="fact">{{ addr }}</div>{% endif %}
+                {% if vm.suburb and vm.suburb not in addr %}<div class="fact">{{ vm.suburb }}</div>{% endif %}
+                {% if vm.province and vm.province not in addr %}<div class="fact">{{ vm.province }}</div>{% endif %}
               </div>
               {{ fact('Zoning', vm.zoning) }}
               {{ fact('Extent', extent_str | trim) }}
@@ -503,7 +506,6 @@
                 {% if vm.legal_description %}<div class="fact">{{ vm.legal_description }}</div>{% endif %}
                 {% if vm.scheme %}<div class="fact">Scheme: {{ vm.scheme }}{% if vm.unit %}, unit {{ vm.unit }}{% endif %}</div>{% endif %}
                 {% if vm.erf %}<div class="fact">Erf {{ vm.erf }}</div>{% endif %}
-                {% if vm.title_deed_no %}<div class="fact">Title deed: {{ vm.title_deed_no }}</div>{% endif %}
               </div>
               {{ fact('Mun', vm.municipality) }}
               {{ fact('Title type', vm.title_type_label) }}
@@ -558,7 +560,7 @@
   {% set sch_left = REGION - sch_rows * (LINE + 2 * sch_pad) %}
   {% set sch_band = fill_photos and sch_left >= FILL_MIN %}
   <section class="page">
-    {{ swoosh() }}{{ frame() }}{{ shield() }}
+    {{ shield() }}
     <div class="page__body">
       {{ page_title('Schedule of portions' if loop.first else 'Schedule of portions continued') }}
       <table class="hl sched" style="--hlrow: {{ sch_pad / 10 }}mm">
@@ -603,7 +605,7 @@
   {% set feat_left = budget - base_cost - rows * 2 * (pad - ROW_PAD) %}
   {% set feat_band = fill_photos and feat_left >= FILL_MIN %}
   <section class="page">
-    {{ swoosh() }}{{ frame() }}{{ shield() }}
+    {{ shield() }}
     <div class="page__body">
       {{ page_title('Property features' if loop.first else 'Property features continued') }}
       <div class="cols cols--rule">
@@ -627,7 +629,7 @@
   {# ------------------------------------------------------------ 4 GALLERY #}
   {% for chunk in gallery_pages %}
   <section class="page">
-    {{ swoosh() }}{{ frame() }}
+    
     <div class="page__body">
       <div class="gal-head">
         <div class="gal-badge">{{ parts.brand_logo(vm, 'dark', 'auctioneers') }}</div>
@@ -651,7 +653,7 @@
   {# ------------------------------------- 5 INVESTMENT HIGHLIGHTS (2nd last) #}
   {% if show_highlights %}
   <section class="page">
-    {{ swoosh() }}{{ frame() }}
+    
     <div class="page__body">
       {{ page_title('Investment highlights') }}
       {# Rows take the leftover height, but only up to 7mm a side: a table whose
@@ -676,7 +678,7 @@
     <div class="close-bg">
       {% if photos %}<img src="{{ photos[0] }}" alt="{{ vm.headline }}">{% endif %}
     </div>
-    {{ frame() }}{{ shield() }}
+    {{ shield() }}
     <div class="close-body">
       <div class="close-lead">
         <div class="a">{{ close_lead | trim }}</div>

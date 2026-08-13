@@ -14,6 +14,7 @@ of crashing.
 
 from __future__ import annotations
 
+import math
 from pathlib import Path
 
 # The ad card element to capture. Every ad design wraps its layout in one of
@@ -104,14 +105,24 @@ def html_to_png(
     return png_path
 
 
-def html_to_pdf(html_path, pdf_path, timeout_ms: int = 60000) -> Path:
-    """Print a local HTML document to a real A4 PDF and return its path.
+def html_to_pdf(html_path, pdf_path, timeout_ms: int = 60000, fit_selector: str = "") -> Path:
+    """Print a local HTML document to a real PDF and return its path.
 
-    For the buyer information pack, which is a multi-page DOCUMENT rather than a
-    fixed-canvas ad: a buyer is emailed a PDF, not a web page. Chromium's own
-    print pipeline is used, so the template's ``@media print`` rules apply and
-    backgrounds are kept (``print_background``), which the pack's ivory paper and
-    gold rules depend on.
+    Every visual artifact is delivered as a PDF: that is what the team hands to a
+    client, attaches to an email and imports into Canva. Chromium's own print
+    pipeline is used, so the template's ``@media print`` rules apply and
+    backgrounds are kept (``print_background``). The text stays TEXT (embedded
+    font subsets) and the chrome stays vector, which is what makes the file
+    editable on the other side rather than a picture of a document.
+
+    Two page geometries:
+
+    * **Document mode** (default, no ``fit_selector``): A4 with print margins.
+      The information pack sets its own ``@page`` size and margins, and wins.
+    * **Canvas mode** (``fit_selector``, e.g. ``.ig`` for an ad): the element is
+      measured in the browser and the PDF is printed as ONE page at exactly that
+      size, so a 1080x1350 advert becomes a 1080x1350 PDF rather than an A4 sheet
+      with the ad letterboxed inside it and half the canvas white.
 
     Raises ``RasterizeUnavailable`` when Playwright/Chromium is missing, so the
     caller can fall back to serving the HTML rather than failing the render.
@@ -133,12 +144,28 @@ def html_to_pdf(html_path, pdf_path, timeout_ms: int = 60000) -> Path:
                 page = browser.new_page()
                 page.goto(html_path.as_uri(), wait_until="load", timeout=timeout_ms)
                 page.wait_for_timeout(250)  # let photos paint before printing
-                page.pdf(
-                    path=str(pdf_path),
-                    format="A4",
-                    print_background=True,
-                    margin={"top": "12mm", "bottom": "14mm", "left": "10mm", "right": "10mm"},
-                )
+                box = None
+                if fit_selector:
+                    element = page.query_selector(fit_selector)
+                    box = element.bounding_box() if element else None
+                if box:
+                    # One page, exactly the canvas. Rounded UP: a fractional
+                    # height rounds down into a second, almost-empty page.
+                    page.pdf(
+                        path=str(pdf_path),
+                        width=f"{math.ceil(box['width'])}px",
+                        height=f"{math.ceil(box['height'])}px",
+                        print_background=True,
+                        margin={"top": "0", "bottom": "0", "left": "0", "right": "0"},
+                        page_ranges="1",
+                    )
+                else:
+                    page.pdf(
+                        path=str(pdf_path),
+                        format="A4",
+                        print_background=True,
+                        margin={"top": "12mm", "bottom": "14mm", "left": "10mm", "right": "10mm"},
+                    )
             finally:
                 browser.close()
     except RasterizeUnavailable:

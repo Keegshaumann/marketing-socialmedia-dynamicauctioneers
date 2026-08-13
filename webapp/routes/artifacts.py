@@ -380,11 +380,24 @@ def download_pack(
     if not art_dir.exists():
         raise HTTPException(status_code=404, detail="No artifacts rendered for this DP yet.")
 
+    # Deliverables only. Every visual artifact is printed to PDF and its HTML is
+    # kept beside it purely as the print source; zipping those too handed the
+    # marketer a folder of web pages, which is what they reported. An .html is
+    # only included when its PDF is missing (a host without Chromium), so the
+    # pack degrades to something openable rather than to nothing.
+    files = [p for p in sorted(art_dir.iterdir()) if p.is_file()]
+    pdfs = {p.stem for p in files if p.suffix == ".pdf"}
+    deliverables = [
+        p for p in files
+        if p.name != "manifest.json"
+        and not (p.suffix == ".html" and p.stem in pdfs)
+        and p.parent == art_dir
+    ]
+
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
-        for path in sorted(art_dir.iterdir()):
-            if path.is_file():
-                archive.write(path, arcname=path.name)
+        for path in deliverables:
+            archive.write(path, arcname=path.name)
     buffer.seek(0)
 
     headers = {"Content-Disposition": f'attachment; filename="DP{dp}-artifacts.zip"'}

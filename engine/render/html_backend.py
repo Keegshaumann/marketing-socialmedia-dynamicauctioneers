@@ -78,7 +78,24 @@ _FORMAT_SPEC: Dict[str, Tuple[str, str, str]] = {
 # an attachment, not web pages: the HTML is rendered first (and kept as the print
 # source) and Chromium then prints it to A4. A host without Chromium keeps the
 # HTML artifact, so the pack still renders everywhere.
-_PDF_FORMATS = frozenset({"info_pack"})
+#
+# Every VISUAL artifact is a PDF: the team hands these to clients, attaches them
+# to email and imports them into Canva, and an .html file is none of those things
+# (the downloaded pack used to be a folder of web pages). The value is the root
+# element to print at its own size - an advert is a 1080x1350 canvas, not an A4
+# sheet - or "" for a document that sets its own @page rules.
+#
+# The copy formats (portal_listing, facebook_post, email_blast) stay MARKDOWN on
+# purpose: they exist to be pasted into Property24, Facebook and the mailer, and
+# text cannot be pasted out of a PDF without picking up its line breaks.
+_PDF_FORMATS: Dict[str, str] = {
+    "info_pack": "",            # multi-page A4 landscape, its own @page rules
+    "demo_ad": ".ig",           # 1080x1350 social canvas
+    "saia_banner": ".bn",
+    # The mailer is an email: nested tables with a 640px wrapper, no canvas.
+    "alert_mailer": ".wrap",
+    "auction_board": ".board",
+}
 
 
 def _pdf_export_enabled() -> bool:
@@ -294,7 +311,9 @@ class HtmlBackend(RenderBackend):
 
             pdf_path = art_dir / f"{request.fmt}.pdf"
             try:
-                rasterize.html_to_pdf(path, pdf_path)
+                rasterize.html_to_pdf(
+                    path, pdf_path, fit_selector=_PDF_FORMATS[request.fmt]
+                )
                 path, mime = pdf_path, "application/pdf"
             except Exception:
                 pass

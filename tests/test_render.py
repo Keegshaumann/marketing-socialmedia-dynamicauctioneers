@@ -604,6 +604,51 @@ def test_no_ad_text_is_cut_off(design, golden_record, tmp_path):
     assert spills == [], f"{design}: text outside the canvas: {spills}"
 
 
+def test_every_visual_artifact_is_a_pdf_at_its_own_size(golden_record, tmp_path, monkeypatch):
+    """The pack ships PDFs, each printed at its own canvas, text still text.
+
+    The team downloads the pack to send to a client and to import into Canva.
+    It used to hand them .html files: only the information pack was printed, and
+    printing an advert as A4 would letterbox a 1080x1350 canvas onto a portrait
+    sheet. Each visual format is now printed at the size of its own root element,
+    and its text stays selectable text rather than a picture of an advert.
+    """
+    from engine.render import rasterize
+
+    if not rasterize.available():
+        pytest.skip("Playwright not installed; PDF export unavailable")
+    monkeypatch.setenv("ENGINE_PDF_EXPORT", "1")
+    import fitz
+
+    store = _store_with(golden_record)
+    try:
+        artifacts = {a.fmt: a for a in render_all("3060", store, backend="html", output_root=str(tmp_path))}
+    finally:
+        store.close()
+
+    for fmt in ("demo_ad", "info_pack", "saia_banner", "alert_mailer", "auction_board"):
+        art = artifacts[fmt]
+        path = Path(art.path)
+        assert path.suffix == ".pdf", f"{fmt} is not a PDF ({path.name})"
+        assert art.mime == "application/pdf"
+        assert path.read_bytes()[:5] == b"%PDF-"
+        doc = fitz.open(path)
+        try:
+            # Text is text (a rasterised page yields none), and the ad canvases
+            # print as ONE page rather than spilling onto a second, near-empty one.
+            assert doc[0].get_text().strip(), f"{fmt} has no extractable text"
+            if fmt != "info_pack":
+                assert doc.page_count == 1, f"{fmt} printed {doc.page_count} pages"
+            if fmt == "demo_ad":                       # 1080x1350 px at 0.75 pt/px
+                assert abs(doc[0].rect.width / doc[0].rect.height - 0.8) < 0.02
+        finally:
+            doc.close()
+
+    # The copy formats stay text: they are pasted into portals and posts.
+    for fmt in ("portal_listing", "facebook_post", "email_blast"):
+        assert Path(artifacts[fmt].path).suffix == ".md"
+
+
 def test_a_price_reaches_every_artifact(golden_record, tmp_path):
     """One price on the record, the same price on all nine artifacts.
 
