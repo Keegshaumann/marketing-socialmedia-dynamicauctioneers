@@ -88,7 +88,6 @@
 {% set FROW = 128 %}        {# one feature row: a 9mm glyph plus its padding #}
 {% set FSUB = 38 %}         {# ... plus a sub line under the label #}
 {% set COLHEAD = 92 %}      {# a gold column heading and its margin #}
-{% set FOOTNOTE = 96 %}     {# the black footnote line under a features page #}
 {% set CHIP = 100 %}        {# the complex-name chip in the bottom-right corner #}
 {% set LINE = 46 %}         {# one line of 11px body text #}
 {% set ROW_PAD = 22 %}      {# default padding on a feature row, per side #}
@@ -119,9 +118,10 @@
 
 {% macro rowcost(items) %}{% set c = namespace(n=0) %}{% for f in items %}{% set c.n = c.n + FROW + (FSUB if split_label(f)[1] else 0) %}{% endfor %}{{ c.n }}{% endmacro %}
 
-{# Two columns per sheet. The first features page also carries the footnote, so
-   it holds slightly less than a continuation sheet. #}
-{% set feat_budget = REGION - COLHEAD - FOOTNOTE %}
+{# Two columns per sheet, the full body region each. The first page used to give
+   up 9.6mm to an "accommodation as inspected" footnote; that line is gone (the
+   client reads it as filler), so the budget takes the height back. #}
+{% set feat_budget = REGION - COLHEAD %}
 {% set feat_per_col = (feat_budget // FROW) %}
 {% set feat_per_page = feat_per_col * 2 %}
 {# The flatlet is a feature of the property, so it belongs in the list with a
@@ -329,7 +329,7 @@
   }
   .pill {
     margin: 2.5mm 0; padding: 2.4mm 6mm; border-radius: 999px; text-align: center;
-    background: linear-gradient(90deg, #cba869, #ac874a);
+    background: linear-gradient(90deg, var(--gold), var(--gold-2));
     color: var(--ink); font-size: 11px; font-weight: 800; letter-spacing: .04em;
   }
   .pill--out { background: #fff; border: 1.4px solid var(--gold); font-weight: 800; }
@@ -538,9 +538,6 @@
             <small>{{ 'Strictly by appointment' if vm.viewing_by_appt else 'By arrangement with Dynamic Auctioneers' }}</small>
           </div>
           {% endif %}
-          {% if vm.gps_str %}
-          <div class="fact" style="text-align:center;margin-bottom:3mm">Coordinates: approx. {{ vm.gps_str }}</div>
-          {% endif %}
           {% if photos %}
           <div class="ld-map"><img src="{{ photos[-1] }}" alt="{{ vm.headline }}"></div>
           {% endif %}
@@ -598,7 +595,7 @@
      taller one, never as tall as both. #}
   {% set rows = [left | length, right | length] | max %}
   {% set base_cost = [rowcost(left) | int, rowcost(right) | int] | max %}
-  {% set budget = REGION - COLHEAD - (FOOTNOTE if loop.first else 0) - (CHIP if (loop.first and vm.scheme) else 0) %}
+  {% set budget = REGION - COLHEAD - (CHIP if (loop.first and vm.scheme) else 0) %}
   {# The padding cap is deliberately tight (4mm a side, so 8mm between rows). A
      feature list has to read as a list: past that the eye stops connecting one
      row to the next, and the sheet is better filled with a photograph. #}
@@ -615,14 +612,11 @@
           {% for f in left %}{{ frow(f, (pad / 10) ~ 'mm') }}{% endfor %}
         </div>
         <div>
-          {% if loop.first %}<h3 class="colhead">{{ 'External and shared:' if fc_all else 'Also included:' }}</h3>{% endif %}
+          {% if loop.first %}<h3 class="colhead">{{ 'External and shared:' if fc_all else 'Additional features:' }}</h3>{% endif %}
           {% for f in right %}{{ frow(f, (pad / 10) ~ 'mm') }}{% endfor %}
         </div>
       </div>
       {% if feat_band %}{{ fill_band(feat_left >= FILL_WIDE) }}{% endif %}
-      {% if loop.first %}
-      <div class="footline">Accommodation as inspected - all sizes and finishes to be confirmed on due diligence</div>
-      {% endif %}
       {% if loop.first and vm.scheme %}
       <div class="chip-place">{{ glyph('pin', '4.5mm') }} {{ vm.scheme }}</div>
       {% endif %}

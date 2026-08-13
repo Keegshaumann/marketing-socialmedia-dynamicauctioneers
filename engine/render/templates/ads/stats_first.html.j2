@@ -57,11 +57,12 @@
   .sf-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; padding:16px 44px 6px; height:250px; flex:none; }
   .sf-strip img { width:100%; height:100%; object-fit:cover; display:block; border:3px solid var(--gline); border-radius:10px; min-height:0; }
 
-  .ig-contact { margin-top:auto; padding:20px 44px; display:flex; align-items:center; gap:44px; font-size:24px; font-weight:800; color:#191613; }
+  .ig-contact { margin-top:auto; padding:20px 44px; display:flex; align-items:center; justify-content:space-between; gap:24px; font-size:24px; font-weight:800; color:#191613; }
   .ig-contact span { display:flex; align-items:center; gap:14px; }
   .ig-contact .dot { width:38px; height:38px; border-radius:50%; background:#191613; display:flex; align-items:center; justify-content:center; flex:none; }
   .ig-contact .dot svg { width:20px; height:20px; fill:#ddc689; }
   .ig-contact svg.mail { width:30px; height:24px; fill:none; stroke:#191613; stroke-width:1.8; }
+  .nb{white-space:nowrap}
 </style>
 
 <div class="ig ad">
@@ -87,7 +88,7 @@
   </div>
 
   <div class="sf-stats">
-    {% if vm.size_str %}<div class="sf-item">{{ parts.icon_size() }}<span>&plusmn;{{ vm.size_str }}m&sup2; Property</span></div>{% endif %}
+    {% if vm.size_str %}<div class="sf-item">{{ parts.icon_size() }}<span><span class="nb">&plusmn;{{ vm.size_str }}m&sup2;</span> Property</span></div>{% endif %}
     {% if vm.beds %}<div class="sf-item">{{ parts.icon_bed() }}<span>{{ vm.beds }} Bedroom{{ 's' if vm.beds != '1' }}</span></div>{% endif %}
     {% if vm.baths %}<div class="sf-item">{{ parts.icon_bath() }}<span>{{ vm.baths }} Bathroom{{ 's' if vm.baths != '1' }}</span></div>{% endif %}
     {% if vm.garages and vm.garages != '0' %}<div class="sf-item">{{ parts.icon_garage() }}<span>{{ parts.garage_word(vm.garages) }}</span></div>{% endif %}
