@@ -360,6 +360,16 @@ class HtmlBackend(RenderBackend):
 
         photos = self._photo_refs(request, marketing)
 
+        # OTP-derived sale terms (D68). Built here so the template stays free of
+        # wording logic, and so a record with no OTP yields empty values that the
+        # pack can fall back from.
+        from engine.otp import confirmation_pill, outstanding_pill, terms_lines
+
+        otp = sale.get("otp") or {}
+        otp_lines = terms_lines(otp) if otp.get("deposit_pct") is not None else []
+        otp_confirmation = confirmation_pill(otp) if otp else None
+        otp_outstanding = outstanding_pill(otp)
+
         vm: dict = {
             "dp": request.dp,
             # ``ref`` is the INTERNAL filing code (DP number) - used only on the
@@ -445,6 +455,12 @@ class HtmlBackend(RenderBackend):
             ),
             "features_complex": list(physical.get("features_complex") or []),
             "terms": list(sale.get("terms") or []),
+            # Sale terms read from the OTP's clauses (D68). Empty when no OTP has
+            # been uploaded, and the pack then falls back to the record's own
+            # free-text terms rather than printing a default that would be wrong.
+            "otp_terms_lines": otp_lines,
+            "otp_confirmation_pill": otp_confirmation,
+            "otp_outstanding_pill": otp_outstanding,
             "municipal_valuation": _fmt_num(valuation.get("municipal_valuation")),
             # A running municipal cost to the buyer, not a valuation of the
             # property: the reference packs print it as a "Rates & Taxes" chip

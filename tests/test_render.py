@@ -406,9 +406,43 @@ def test_info_pack_prints_the_conditions_once_in_the_terms_box(golden_record, tm
     for i in range(1, 13):
         assert html.count(f"Condition {i}:") == 1
         assert f"Condition {i}:" in box
-    # The standing statements that bracket the box, verbatim.
+    # The standing statement above the box, verbatim.
     assert "All Outstanding Fees, if any, to be Settled by the Seller." in html
-    assert "Subject To 30 days Confirmation By Seller" in html
+    # With no OTP on the record the confirmation pill is OMITTED rather than
+    # printed with a guessed period (D68). It used to read a hardcoded "30 days",
+    # which the sample OTP shows to be wrong: that sale confirms in 7.
+    assert "Confirmation By Seller" not in html
+
+
+def test_info_pack_terms_come_from_the_otp_when_there_is_one(golden_record, tmp_path):
+    """Deposit, commission, guarantee and confirmation follow the OTP's clauses.
+
+    The values were literal strings in the template - one property's terms baked
+    in - so a sale on a 20% deposit and a 7 day confirmation printed "10%" and
+    "30 days" on its buyer pack.
+    """
+    from engine.schema import OtpTerms
+
+    golden_record.sale_process.otp = OtpTerms(
+        deposit_pct=20.0,
+        deposit_due="on signature date",
+        guarantee_days=60,
+        commission_pct=6.0,
+        commission_vat=True,
+        commission_payable_by="seller",
+        confirmation_days=7,
+        outstanding_payable_by="purchaser",
+    )
+    html = _info_pack_html(golden_record, tmp_path)
+
+    assert "20% deposit payable on signature date" in html
+    assert "6% commission and VAT on the commission payable by the Seller" in html
+    assert "Guarantee for balance within 60 days after confirmation" in html
+    assert "Subject To 7 days Confirmation By Seller" in html
+    assert "All Outstanding Fees, if any, to be Settled by the Purchaser." in html
+    # None of the old hardcoded values survive anywhere on the pack.
+    for stale in ("10% deposit", "45 days", "30 days Confirmation"):
+        assert stale not in html
 
 
 def _with_portions(record, n: int):

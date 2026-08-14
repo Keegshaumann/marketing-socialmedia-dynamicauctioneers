@@ -248,9 +248,41 @@ class Viewing(_Base):
     contact_internal_only: Optional[str] = None  # occupant cell — POPIA, stripped
 
 
+class OtpTerms(_Base):
+    """Sale terms read from the OTP / Conditions of Sale (fix list 3.2, D68).
+
+    The information pack used to print these as literal strings ("10% deposit",
+    "45 days", "30 days confirmation"), which were simply one property's values
+    baked into a template. Read from the numbered clauses instead: the sample OTP
+    carries a 20% deposit, a 60 day guarantee and a 7 day confirmation period, so
+    every hardcoded value was wrong for it.
+
+    ``clauses`` keeps the verbatim sentence each figure came from, so a human can
+    check the source rather than trust the number, and ``flags`` records anything
+    the document itself leaves ambiguous (the sample states its commission as
+    "6 % (SEVEN PERCENT POINT FIVE PERCENT)"). Public: these are the terms a
+    buyer is told, not internal strategy.
+    """
+
+    deposit_pct: Optional[float] = None
+    deposit_due: Optional[str] = None            # "on the fall of the hammer" | "on signature date"
+    guarantee_days: Optional[int] = None
+    commission_pct: Optional[float] = None
+    commission_vat: Optional[bool] = None
+    commission_payable_by: Optional[str] = None  # "seller" | "purchaser"
+    confirmation_days: Optional[int] = None
+    outstanding_payable_by: Optional[str] = None
+    clauses: Optional[Dict[str, str]] = None
+    flags: Optional[List[str]] = None
+    source_file: Optional[str] = None
+
+
 class SaleProcess(_Base):
     method: Optional[str] = None  # "offers_invited" | "auction"
     terms: Optional[List[str]] = None
+    # Read from the OTP when one has been uploaded; None means the pack falls
+    # back to the record's free-text terms rather than inventing figures.
+    otp: Optional[OtpTerms] = None
     viewing: Optional[Viewing] = None
     # Auction specifics shown on auction ads only (D42), entered by marketing at
     # gate 2. Free display text so each reads exactly as the ad should. On an

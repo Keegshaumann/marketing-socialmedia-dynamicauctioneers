@@ -517,15 +517,21 @@
             {{ chip('doc', 'Levies:', 'TBC') }}
           </div>
 
-          {{ pill('All Outstanding Fees, if any, to be Settled by the Seller.') }}
+          {# The two pills and the box read from the OTP's clauses when one has
+             been uploaded (D68). Before that they were literal strings, so a
+             property on a 20% deposit and a 7 day confirmation still printed
+             "10%" and "30 days". With no OTP the record's own terms are used and
+             the confirmation pill is simply omitted rather than guessed. #}
+          {{ pill(vm.otp_outstanding_pill) }}
 
-          {% if vm.terms %}
+          {% set term_lines = vm.otp_terms_lines or vm.terms %}
+          {% if term_lines %}
           <div class="terms">
-            {% for t in vm.terms %}<div>{{ t }}</div>{% endfor %}
+            {% for t in term_lines %}<div>{{ t }}</div>{% endfor %}
           </div>
           {% endif %}
 
-          {{ pill('Subject To 30 days Confirmation By Seller') }}
+          {% if vm.otp_confirmation_pill %}{{ pill(vm.otp_confirmation_pill) }}{% endif %}
         </div>
 
         <div class="ld-right">
