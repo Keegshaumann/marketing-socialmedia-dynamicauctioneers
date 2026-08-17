@@ -7,6 +7,8 @@ when they are absent.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from engine.intake import (
@@ -148,3 +150,73 @@ def test_build_combined_job_without_dp_leaves_key_blank(tmp_path):
     assert job2.dp == "2918.1"
     assert job2.parent_dp == "2918"
     assert job2.lot == 1
+
+
+# --- the sale contract and the levy statement (D75) -----------------------
+
+OTP_SAMPLE = Path("/Users/keegshaumann/Dev/claudecode/Dynamic/OTP/2383.1 OTP.pdf")
+LEVY_SAMPLE = Path("/Users/keegshaumann/Dev/claudecode/Dynamic/Levies/BPMW00051D.pdf")
+
+
+def _paperwork():
+    missing = [p for p in (OTP_SAMPLE, LEVY_SAMPLE) if not p.exists()]
+    if missing:
+        pytest.skip(f"paperwork sample not present: {missing[0].name}")
+    return OTP_SAMPLE, LEVY_SAMPLE
+
+
+def test_intake_recognises_an_otp_and_a_levy_statement():
+    """Both are classified by content, like every other source document."""
+    otp, levy = _paperwork()
+    from engine.intake import classify_pdf
+
+    assert classify_pdf(otp) == "otp"
+    assert classify_pdf(levy) == "levy_statement"
+
+
+def test_neither_document_gates_completeness():
+    """A property is marketable without its paperwork; the pack simply falls
+    back to the record's own terms and prints "TBC" for the levy."""
+    otp, levy = _paperwork()
+    from engine.intake import build_combined_job
+
+    job = build_combined_job([otp, levy], dp="3060")
+    assert job.otps and job.levy_statements
+    assert job.is_complete is False                    # no EVM, no property report
+    assert "otp" not in job.missing and "levy_statement" not in job.missing
+
+
+def test_the_paperwork_reaches_the_record():
+    """The parsers were reachable only from the renderer, which reads values
+    already on a record - so an uploaded OTP produced nothing at all."""
+    otp, levy = _paperwork()
+    from engine.intake import attach_paperwork, build_combined_job
+    from engine.schema import PropertyRecord
+
+    record = PropertyRecord(dp="3060")
+    notes = attach_paperwork(record, build_combined_job([otp, levy], dp="3060"))
+
+    assert record.sale_process.otp.deposit_pct == 20.0
+    assert record.sale_process.otp.confirmation_days == 7
+    assert record.sale_process.otp.source_file == otp.name
+    assert record.valuation.monthly_levy == 1283.12
+    # The levy note shows its components, so the figure is checkable.
+    assert "+" in record.valuation.monthly_levy_note
+    # The document's own contradiction is surfaced, not buried.
+    assert any("6% in figures" in n for n in notes)
+
+
+def test_unreadable_paperwork_never_fails_an_intake(tmp_path):
+    """A property is still marketable when its contract will not parse."""
+    from engine.intake import attach_paperwork, build_combined_job
+    from engine.schema import PropertyRecord
+
+    broken = tmp_path / "2383 OTP.pdf"
+    broken.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    job = build_combined_job([broken], dp="3060")
+    record = PropertyRecord(dp="3060")
+
+    notes = attach_paperwork(record, job)          # must not raise
+
+    assert record.sale_process is None or record.sale_process.otp is None
+    assert any("could not be read" in n for n in notes)

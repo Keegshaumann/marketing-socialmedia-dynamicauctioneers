@@ -25,12 +25,16 @@ the loop moves on.
 
 from __future__ import annotations
 
+import logging
 import os
 import threading
+from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple
 
 from webapp import models
 from webapp.models import get_job  # re-exported: get_job(db_path, id)
+
+log = logging.getLogger(__name__)
 
 JOB_KINDS = ("extract", "verify", "render", "post")
 
@@ -209,6 +213,21 @@ def _handle_extract(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, s
     # different DP still hit the cache.
     record.dp = dp
     record.parent_dp = payload.get("parent_dp") or record.parent_dp
+
+    # The OTP's sale terms and the levy statement's monthly figure (D75). These
+    # are read from the uploaded documents rather than the model, so they are
+    # applied AFTER the cache restore: a cached extraction of the same property
+    # documents still picks up an OTP added later.
+    try:
+        from engine.intake import attach_paperwork, build_combined_job
+
+        paperwork = [Path(p) for p in (payload.get("otps") or []) + (payload.get("levy_statements") or [])]
+        if paperwork:
+            job = build_combined_job(paperwork, dp=dp)
+            for note in attach_paperwork(record, job):
+                log.info("dp=%s %s", dp, note)
+    except Exception as exc:  # never fail an extraction over the paperwork
+        log.warning("dp=%s paperwork not attached: %s", dp, exc)
 
     store = RecordStore(models.resolve_db_path(db_path))
     try:

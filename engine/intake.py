@@ -129,11 +129,45 @@ def _score(text: str, markers: dict) -> int:
     return sum(weight for marker, weight in markers.items() if marker in text)
 
 
+# The Offer to Purchase / Conditions of Sale, which carries the sale terms the
+# information pack prints (D68). Distinctive because it is a contract: it names
+# the parties and its clauses, where a report describes a property.
+OTP_MARKERS = {
+    "conditions of sale": 3,
+    "offer to purchase": 3,
+    "agreement and conditions": 3,
+    "purchaser": 2,
+    "seller": 1,
+    "fall of the hammer": 2,
+    "signature date": 2,
+    "voetstoots": 2,
+    "confirmation period": 2,
+    "commission": 1,
+    "deposit": 1,
+    "conveyancer": 2,
+}
+
+# A managing agent's levy statement (D73). Every one is laid out differently, so
+# the markers are the words they all use rather than any one format's headings.
+LEVY_MARKERS = {
+    "levy statement": 3,
+    "body corporate": 3,
+    "levies": 3,
+    "csos": 3,
+    "reserve fund": 2,
+    "managing agent": 2,
+    "customer statement": 2,
+    "balance b/f": 2,
+    "arrears": 1,
+    "tax invoice": 1,
+}
+
+
 def classify_pdf(path: PathLike) -> str:
     """Classify a PDF by its content.
 
-    Returns ``"lightstone_evm"``, ``"property_report"``, ``"valuation_report"``
-    or ``"unknown"``. Page text is scored against the marker tables; the
+    Returns ``"lightstone_evm"``, ``"property_report"``, ``"valuation_report"``,
+    ``"otp"``, ``"levy_statement"`` or ``"unknown"``. Page text is scored against the marker tables; the
     filename is consulted only to break an exact tie, never as the sole signal.
     """
     path = Path(path)
@@ -142,6 +176,8 @@ def classify_pdf(path: PathLike) -> str:
         "lightstone_evm": _score(text, LIGHTSTONE_MARKERS),
         "property_report": _score(text, PROPERTY_REPORT_MARKERS),
         "valuation_report": _score(text, VALUATION_MARKERS),
+        "otp": _score(text, OTP_MARKERS),
+        "levy_statement": _score(text, LEVY_MARKERS),
     }
     best = max(scores, key=lambda k: scores[k])
     # A clear winner (a positive score not tied with another kind) settles it.
@@ -158,6 +194,10 @@ def classify_pdf(path: PathLike) -> str:
         return "property_report"
     if "valuation" in hint or "valuer" in hint:
         return "valuation_report"
+    if "otp" in hint or "conditions of sale" in hint:
+        return "otp"
+    if "levy" in hint or "levies" in hint or "statement" in hint:
+        return "levy_statement"
     return "unknown"
 
 
@@ -179,6 +219,12 @@ class IntakeJob:
     # Optional third source (a registered valuer's report). Not required for
     # completeness - marketing is not always given it (D35).
     valuation_reports: List[Path] = field(default_factory=list)
+    # The sale contract and the managing agent's statement. Both are optional
+    # and neither gates completeness: an OTP supplies the terms the pack prints
+    # (D68) and a levy statement the monthly levy (D73), and without them the
+    # pack falls back to the record's own terms and prints "TBC" respectively.
+    otps: List[Path] = field(default_factory=list)
+    levy_statements: List[Path] = field(default_factory=list)
     unknown: List[Path] = field(default_factory=list)
 
     # --- back-compat singular accessors (first of each list, or None) ------
@@ -193,6 +239,14 @@ class IntakeJob:
     @property
     def valuation_report(self) -> Optional[Path]:
         return self.valuation_reports[0] if self.valuation_reports else None
+
+    @property
+    def otp(self) -> Optional[Path]:
+        return self.otps[0] if self.otps else None
+
+    @property
+    def levy_statement(self) -> Optional[Path]:
+        return self.levy_statements[0] if self.levy_statements else None
 
     @property
     def all_sources(self) -> List[Path]:
@@ -229,6 +283,10 @@ def _slot(job: "IntakeJob", path: Path) -> None:
         job.property_reports.append(path)
     elif kind == "valuation_report":
         job.valuation_reports.append(path)
+    elif kind == "otp":
+        job.otps.append(path)
+    elif kind == "levy_statement":
+        job.levy_statements.append(path)
     else:
         job.unknown.append(path)
 
@@ -319,3 +377,62 @@ def build_jobs_from_dir(directory: PathLike) -> List[IntakeJob]:
     root = Path(directory)
     pdfs = sorted(root.rglob("*.pdf"))
     return build_jobs(list(pdfs))
+
+
+def attach_paperwork(record, job: "IntakeJob") -> List[str]:
+    """Read the OTP and the levy statement onto ``record``. Returns the notes.
+
+    The two parsers (``engine.otp``, ``engine.levies``) were reachable only from
+    the renderer, which reads values already on a record - so a marketer who
+    uploaded an OTP got nothing at all from it. This is what puts them there.
+
+    Everything is best-effort: an unreadable or absent document leaves the field
+    unset, and the pack falls back (the record's own terms, "Levies: TBC"). A
+    parse failure must never fail an intake - the property is still marketable
+    without the paperwork, and a human can fill the gaps at gate 2.
+    """
+    notes: List[str] = []
+
+    if job.otps:
+        from engine.otp import extract_terms
+        from engine.schema import OtpTerms, SaleProcess
+
+        try:
+            raw = extract_terms(job.otps[0])
+        except Exception as exc:
+            notes.append(f"OTP could not be read ({type(exc).__name__}); terms left as they were")
+        else:
+            fields = {k: v for k, v in raw.items() if k in OtpTerms.model_fields}
+            fields["source_file"] = Path(job.otps[0]).name
+            if record.sale_process is None:
+                record.sale_process = SaleProcess()
+            record.sale_process.otp = OtpTerms(**fields)
+            got = [k for k in ("deposit_pct", "guarantee_days", "commission_pct",
+                               "confirmation_days") if fields.get(k) is not None]
+            notes.append(f"OTP read from {Path(job.otps[0]).name}: {', '.join(got) or 'no clause matched'}")
+            for flag in raw.get("flags") or []:
+                notes.append(f"OTP: {flag}")
+
+    if job.levy_statements:
+        from engine.levies import read_statement
+        from engine.schema import Valuation
+
+        try:
+            levy = read_statement(job.levy_statements[0])
+        except Exception as exc:
+            notes.append(f"Levy statement could not be read ({type(exc).__name__}); levies stay TBC")
+        else:
+            if levy.get("monthly_total") is not None:
+                if record.valuation is None:
+                    record.valuation = Valuation()
+                record.valuation.monthly_levy = levy["monthly_total"]
+                parts = " + ".join(f"{c['amount']:,.2f}" for c in levy["components"])
+                record.valuation.monthly_levy_note = (
+                    f"{levy['month']} from {levy['source_file']}: {parts}"
+                )
+                notes.append(f"Levy read: R{levy['monthly_total']:,.2f} ({levy['month']})")
+            else:
+                notes.append(
+                    f"{Path(job.levy_statements[0]).name} carries no levy charge; levies stay TBC"
+                )
+    return notes

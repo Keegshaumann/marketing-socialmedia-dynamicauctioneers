@@ -186,6 +186,14 @@ def _ingest_job(
         print(f"  error: extraction failed: {exc}")
         return "error"
 
+    # The OTP's sale terms and the levy statement's monthly figure, when either
+    # was in the drop (D75). Best effort: a missing or unreadable document leaves
+    # the fields unset and the pack falls back.
+    from engine.intake import attach_paperwork
+
+    for note in attach_paperwork(record, job):
+        print(f"  {note}")
+
     if record.marketing is None:
         record.marketing = Marketing()
     record.marketing.hero_photo = picks["hero"]
