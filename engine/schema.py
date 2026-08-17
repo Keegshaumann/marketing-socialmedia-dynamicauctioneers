@@ -249,6 +249,22 @@ class FinancialsInternal(_Base):
 # --- sale process (Property Report wins) ---------------------------------
 
 class Viewing(_Base):
+    """How the property may be viewed (fix list 4.6, D76).
+
+    Three states, because "by appointment" cannot express the two that matter
+    commercially: a SET viewing window, which is the thing a buyer diarises, and
+    NO viewing at all, which on a liquidation or an occupied property is a fact
+    the buyer must be told before they bid rather than discover afterwards.
+
+    ``by_appointment`` is kept and derived from ``mode`` so every existing
+    record and every template that reads it keeps working.
+    """
+
+    # "by_arrangement" | "set_time" | "none"
+    mode: Optional[str] = None
+    # The window, when mode is "set_time": free display text as the marketer
+    # types it ("2 September 2026, 10:00 to 12:00").
+    viewing_at: Optional[str] = None
     by_appointment: Optional[bool] = None
     contact_public: Optional[str] = None  # Dynamic's number (safe to render)
     contact_internal_only: Optional[str] = None  # occupant cell — POPIA, stripped

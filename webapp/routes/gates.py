@@ -37,7 +37,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 from starlette.templating import Jinja2Templates
 
@@ -716,6 +716,10 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
             "auction_channel": sale.get("auction_channel") or "",
             "auction_date": sale.get("auction_date") or "",
             "auction_time": sale.get("auction_time") or "",
+            # Viewing (D76): the mode drives which control shows.
+            "viewing_mode": ((sale.get("viewing") or {}).get("mode")
+                             or ("by_arrangement" if (sale.get("viewing") or {}).get("by_appointment") is not False else "none")),
+            "viewing_at": (sale.get("viewing") or {}).get("viewing_at") or "",
             # Design picker (D33): hidden unless more than one set is
             # configured AND the active renderer routes through Canva; the
             # first configured set is the default a blank pick follows.
@@ -1080,6 +1084,62 @@ async def gate2_photo_hero(dp: str, request: Request, user: dict = Depends(requi
     return _photo_result(request, db_path, dp, toast)
 
 
+@router.post("/{dp}/ads/photos/replace", response_class=HTMLResponse)
+async def gate2_photo_replace(
+    dp: str, request: Request,
+    file: UploadFile = File(...),
+    name: str = Form(...),
+    user: dict = Depends(require_role("approver", "marketing")),
+):
+    """Swap one photograph, keeping its PLACE in the list (fix list 2.5).
+
+    Remove-and-re-upload appends to the end, so replacing the lead photo made it
+    no longer the lead and quietly reordered the gallery underneath the marketer.
+    The new file takes the old one's index, and the old file is left on disk: it
+    costs nothing and an undo is then a re-upload rather than a lost photograph.
+    """
+    db_path = _db(request)
+    full = _photo_list(_load(db_path, dp))
+    target = f"photos/{Path(name).name}"
+    if target not in full:
+        return _photo_result(request, db_path, dp,
+                             {"tone": "note", "title": "Photo not found",
+                              "text": "It may already have been removed."})
+
+    raw = await file.read()
+    new_name = _safe_photo_name(file.filename or "photo")
+    ext = Path(new_name).suffix.lower()
+    if ext not in _IMAGE_MIME:
+        derived = _CTYPE_EXT.get((file.content_type or "").lower())
+        if derived is None:
+            return _photo_result(request, db_path, dp,
+                                 {"tone": "note", "title": "Not an image",
+                                  "text": "Use a jpg, png, webp or gif."})
+        new_name += derived
+    if not raw or len(raw) > _MAX_PHOTO_BYTES:
+        return _photo_result(request, db_path, dp,
+                             {"tone": "note", "title": "Not replaced",
+                              "text": "The file is empty or over the 12 MB limit."})
+
+    photos_dir = _photos_dir(db_path, dp)
+    photos_dir.mkdir(parents=True, exist_ok=True)
+    dest = photos_dir / new_name
+    stem, suffix, n = dest.stem, dest.suffix, 1
+    while dest.exists():
+        dest = photos_dir / f"{stem}_{n}{suffix}"
+        n += 1
+    dest.write_bytes(raw)
+
+    full[full.index(target)] = f"photos/{dest.name}"      # same index, new file
+    _reopen_if_live(db_path, dp, user["email"])
+    _save_photos(db_path, dp, full, user["email"])
+    was_lead = full.index(f"photos/{dest.name}") == 0
+    return _photo_result(request, db_path, dp,
+                         {"tone": "ok", "title": "Photo replaced",
+                          "text": ("The lead photo was swapped; it is still the lead."
+                                   if was_lead else "It kept its place in the gallery.")})
+
+
 @router.post("/{dp}/ads/photos/delete", response_class=HTMLResponse)
 async def gate2_photo_delete(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
     db_path = _db(request)
@@ -1119,7 +1179,13 @@ _EDIT_TEXT_FIELDS = {
     "auction_type": "sale_process.auction_type",
     "auction_date": "sale_process.auction_date",
     "auction_time": "sale_process.auction_time",
+    # The viewing window, when the mode is "set_time" (D76). Free display text,
+    # like the auction date, so it reads exactly as the marketer wants it.
+    "viewing_at": "sale_process.viewing.viewing_at",
 }
+# The three viewing states (fix list 4.6). Validated like the sale method so a
+# crafted POST cannot store an off-list value that then fails to round-trip.
+_VIEWING_MODES = ("by_arrangement", "set_time", "none")
 _SALE_METHODS = ("offers_invited", "auction")
 _AUCTION_CHANNELS = ("Online", "On-site")
 
@@ -1207,6 +1273,13 @@ def _collect_edit_fields(
         fields["sale_process.method"] = method
     # Auction channel is a fixed choice, validated like method so a crafted POST
     # cannot store an off-list value that then fails to round-trip in the select.
+    mode = str(form.get("viewing_mode", "")).strip()
+    if mode in _VIEWING_MODES:
+        fields["sale_process.viewing.mode"] = mode
+        # Keep the old boolean consistent with the mode, so any surface still
+        # reading it (and every record written before the mode existed) agrees
+        # with the one the marketer chose.
+        fields["sale_process.viewing.by_appointment"] = mode != "none"
     channel = str(form.get("auction_channel", "")).strip()
     if channel in _AUCTION_CHANNELS:
         fields["sale_process.auction_channel"] = channel

@@ -136,6 +136,40 @@
     input.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
+  // The viewing window only makes sense for a set time (D76).
+  // Click a photo to see it full size (1.2). The tiles are 120px, so "is this
+  // the right photo?" could not be answered from the panel at all.
+  function wireLightbox(root) {
+    (root || document).querySelectorAll('[data-lightbox]').forEach(function (img) {
+      if (img.__lightbox) return;
+      img.__lightbox = true;
+      img.addEventListener('click', function () {
+        var box = document.createElement('div');
+        box.className = 'lightbox';
+        box.setAttribute('role', 'dialog');
+        box.setAttribute('aria-label', img.alt || 'Photograph');
+        box.innerHTML = '<img src="' + img.src + '" alt="' + (img.alt || '') + '">';
+        function close() { box.remove(); document.removeEventListener('keydown', onKey); }
+        function onKey(e) { if (e.key === 'Escape') close(); }
+        box.addEventListener('click', close);
+        document.addEventListener('keydown', onKey);
+        document.body.appendChild(box);
+      });
+    });
+  }
+
+  function wireViewing(root) {
+    (root || document).querySelectorAll('[data-viewing-select]').forEach(function (sel) {
+      if (sel.__viewing) return;
+      sel.__viewing = true;
+      var when = (sel.closest('form') || document).querySelector('[data-viewing-when]');
+      if (!when) return;
+      function sync() { when.hidden = sel.value !== 'set_time'; }
+      sel.addEventListener('change', sync);
+      sync();
+    });
+  }
+
   function wireDropzones(root) {
     (root || document).querySelectorAll('[data-dropzone]').forEach(function (zone) {
       if (zone.__wired) return;
@@ -497,7 +531,7 @@
     });
   }
 
-  function init(root) { wireDropzones(root); armToasts(root); wireSweeps(root); wireEmailAd(root); wireAdtpl(root); wireAuctionPanel(root); wirePhotoPicker(root); wirePreviewScale(root); }
+  function init(root) { wireDropzones(root); armToasts(root); wireSweeps(root); wireEmailAd(root); wireAdtpl(root); wireAuctionPanel(root); wirePhotoPicker(root); wirePreviewScale(root); wireViewing(root); wireLightbox(root); }
 
   // A plain (non-HTMX) form submit does a full-page nav; swap the submit
   // button's label for its spinner so the click has immediate feedback. HTMX

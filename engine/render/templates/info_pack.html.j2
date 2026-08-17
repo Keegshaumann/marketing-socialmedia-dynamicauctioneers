@@ -131,12 +131,12 @@
 {% set feat_pages = feat_all | batch(feat_per_page) | list %}
 
 {# --- investment highlights: one row per fact the record actually holds ---- #}
+{# 5.2: how it is offered is the SALE BASIS, not an investment highlight, so it
+   is off this table. It was also the pack's only price line, so deleting it
+   alone would have stripped money from the whole buyer pack and re-created the
+   fault D64 fixed - the money line moves to the details page in the same
+   change, never after it. #}
 {% set hl = [] %}
-{% if is_auction %}
-{% set _ = hl.append(('Offered on Auction', ((vm.auction_type ~ ' auction') if vm.auction_type else 'Auction') ~ (', ' ~ (auction_bits | join(' ')) if auction_bits else '') ~ '. The highest bid is subject to the seller\'s confirmation.')) %}
-{% else %}
-{% set _ = hl.append(('How It Is Offered', (vm.price_display or 'Offers invited') ~ ', subject to the conditions of sale and the seller\'s confirmation.')) %}
-{% endif %}
 {% if vm.location_line %}{% set _ = hl.append(('Established Location', vm.location_line ~ '.')) %}{% endif %}
 {% if accom %}{% set _ = hl.append(('Practical Accommodation', (accom | join(', ')) | capitalize ~ ', as inspected.')) %}{% endif %}
 {% if vm.flatlet_present %}{% set _ = hl.append(('Separate Flatlet', (flatlet_line | trim) ~ ', offering potential for extended family, a work from home space or rental use.')) %}{% endif %}
@@ -146,8 +146,12 @@
 {% if vm.zoning %}{% set _ = hl.append(('Zoning', vm.zoning ~ ', to be confirmed on due diligence.')) %}{% endif %}
 {% if fc_all %}{% set _ = hl.append(('Complex Facilities', (fc_all[:4] | join(', ')) ~ '.')) %}{% endif %}
 {% if fm_all %}{% set _ = hl.append(('Main Residence', (fm_all[:3] | join('; ')) ~ '.')) %}{% endif %}
-{% if vm.viewing_by_appt %}{% set _ = hl.append(('Viewing', 'Strictly by appointment through Dynamic Auctioneers.')) %}{% endif %}
-{% set show_highlights = (hl | length) >= 5 %}
+{% if vm.viewing.mode == 'none' %}{% set _ = hl.append(('Viewing', 'Viewing not possible. Vacant occupation cannot be guaranteed.')) %}
+{% elif vm.viewing.mode == 'set_time' %}{% set _ = hl.append(('Viewing', 'Viewing on ' ~ vm.viewing.detail ~ ', through Dynamic Auctioneers.')) %}
+{% elif vm.viewing_by_appt %}{% set _ = hl.append(('Viewing', 'Strictly by appointment through Dynamic Auctioneers.')) %}{% endif %}
+{# The gate drops with the row: a sparse property had exactly five rows, and
+   removing one would otherwise have taken its whole highlights page with it. #}
+{% set show_highlights = (hl | length) >= 4 %}
 {% set hl_lines = namespace(n=0) %}
 {% for label, detail in hl %}{% set hl_lines.n = hl_lines.n + 1 + ((detail | length) // 96) %}{% endfor %}
 
@@ -340,6 +344,11 @@
     font-size: 10.5px; line-height: 1.85;
   }
   .terms b { font-weight: 800; }
+  .ld-money {
+    text-align:center; font-size: 27px; font-weight: 900; letter-spacing: -.01em;
+    text-transform: uppercase; color: var(--ink); margin-bottom: 3mm;
+    padding-bottom: 3mm; border-bottom: 2px solid var(--gold);
+  }
   .ld-when {
     text-align: center; font-size: 21px; font-weight: 900; text-transform: uppercase;
     line-height: 1.2; margin-bottom: 4mm;
@@ -535,15 +544,25 @@
         </div>
 
         <div class="ld-right">
+          {# The pack's money line (5.2). It says the same thing the cover badge
+             does, in the place a buyer looks for terms. #}
+          <div class="ld-money">{{ vm.price_display or ('On auction' if is_auction else 'Offers invited') }}</div>
           {% if is_auction %}
+          {# The auction TYPE (insolvency, liquidation, deceased estate) told a
+             buyer why the property is on the market and lived only in the
+             highlights row 5.2 removed, so it is stated here with the rest of
+             the auction detail rather than lost with the row. #}
           <div class="ld-when">
-            {{ (vm.auction_channel ~ ' auction') if vm.auction_channel else 'Auction' }}
-            <small>{{ auction_bits | join(' ') if auction_bits else 'Date to be confirmed' }}</small>
+            {{ ((vm.auction_type ~ ' auction') if vm.auction_type else ((vm.auction_channel ~ ' auction') if vm.auction_channel else 'Auction')) }}
+            <small>
+              {%- if vm.auction_type and vm.auction_channel %}{{ vm.auction_channel }}, {% endif -%}
+              {{ auction_bits | join(' ') if auction_bits else 'Date to be confirmed' }}
+            </small>
           </div>
           {% else %}
           <div class="ld-when">
-            Viewing:
-            <small>{{ 'Strictly by appointment' if vm.viewing_by_appt else 'By arrangement with Dynamic Auctioneers' }}</small>
+            {{ vm.viewing.lead }}
+            <small>{{ vm.viewing.detail }}</small>
           </div>
           {% endif %}
           {% if photos %}

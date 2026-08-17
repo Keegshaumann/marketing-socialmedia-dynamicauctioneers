@@ -16,7 +16,7 @@
 {% for f in vm.features_complex %}- {{ f }}
 {% endfor %}
 
-{% if vm.badge_label == "Offers Invited" %}Offers invited.{% elif vm.badge_label == "On Auction" %}On auction.{% endif %}{% if vm.viewing_by_appt %} Viewing by appointment only.{% endif %}
+{% if vm.badge_label == "Offers Invited" %}Offers invited.{% elif vm.badge_label == "On Auction" %}On auction.{% endif %}{% if vm.viewing.mode == 'none' %} Viewing not possible. Vacant occupation cannot be guaranteed.{% elif vm.viewing.mode == 'set_time' %} Viewing {{ vm.viewing.detail }}.{% elif vm.viewing_by_appt %} Viewing by appointment only.{% endif %}
 
 Call {{ vm.brand_phone }}
 Email {{ vm.brand_email }}{% if vm.brand_email_admin %} or {{ vm.brand_email_admin }}{% endif %}

@@ -160,6 +160,32 @@ _DATE_FORMATS = (
 )
 
 
+# The three viewing states and the words each prints. The "none" wording is the
+# client's own, verbatim from the fix list: a buyer who cannot view must be told
+# so, and told why, before they bid.
+VIEWING_WORDS = {
+    "by_arrangement": ("Viewing:", "By arrangement with Dynamic Auctioneers"),
+    "set_time": ("Viewing:", ""),          # filled with the window
+    "none": ("Viewing not possible.", "Vacant occupation cannot be guaranteed."),
+}
+
+
+def _viewing(viewing: dict) -> dict:
+    """The viewing block for every surface, from the record's mode.
+
+    Falls back to the old boolean for records written before the mode existed,
+    so nothing has to be migrated: by_appointment True reads as an arrangement.
+    """
+    mode = (viewing.get("mode") or "").strip()
+    if mode not in VIEWING_WORDS:
+        mode = "by_arrangement"
+    lead, tail = VIEWING_WORDS[mode]
+    if mode == "set_time":
+        tail = str(viewing.get("viewing_at") or "").strip() or "To be confirmed"
+    return {"mode": mode, "lead": lead, "detail": tail,
+            "possible": mode != "none"}
+
+
 def _board_phone(contact: object, fallback: str) -> str:
     """The one number a board prints, big.
 
@@ -534,6 +560,7 @@ class HtmlBackend(RenderBackend):
             "monthly_rates": _fmt_size(valuation.get("estimated_monthly_rates")),
             "monthly_levy": _fmt_size(valuation.get("monthly_levy")),
             "viewing_by_appt": bool(viewing.get("by_appointment")),
+            "viewing": _viewing(viewing),
             "contact_public": viewing.get("contact_public"),
             # The single number the on-site board prints (D74).
             "board_phone": _board_phone(viewing.get("contact_public"), BRAND["phone"]),

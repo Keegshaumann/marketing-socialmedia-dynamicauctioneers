@@ -1023,3 +1023,14 @@ tr:hover .iconbtn { opacity: 1; }
 .iconbtn--danger:hover {
   color: var(--block); border-color: var(--block); background: rgba(232, 115, 95, .10);
 }
+
+/* --- photo lightbox (1.2) --------------------------------------------- */
+.lightbox {
+  position: fixed; inset: 0; z-index: 90; display: flex; align-items: center;
+  justify-content: center; padding: 4vmin; background: rgba(16, 13, 9, .86);
+  cursor: zoom-out; animation: fade-in var(--dur-1) var(--ease);
+}
+.lightbox img {
+  max-width: 100%; max-height: 100%; object-fit: contain;
+  border: 1px solid var(--line); box-shadow: 0 18px 60px rgba(0, 0, 0, .5);
+}

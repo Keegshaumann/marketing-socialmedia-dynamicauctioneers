@@ -93,8 +93,9 @@
     {% for p in photos %}
     <div class="tile">
       <div class="tile__body" style="position:relative">
-        <img src="{{ p.url }}" alt="{{ p.name }}" loading="lazy"
-             style="width:100%;height:120px;object-fit:cover;display:block;background:#f2efe9">
+        <img src="{{ p.url }}" alt="{{ p.name }}" loading="lazy" data-lightbox
+             title="Click to enlarge"
+             style="width:100%;height:120px;object-fit:cover;display:block;background:#f2efe9;cursor:zoom-in">
         {% if p.low_res %}
         <span class="badge badge--note" style="position:absolute;top:6px;left:6px"
               title="This photo is only {{ p.dims }} pixels. Social feeds show about 1080px wide, so it will look soft. You can still use it, but a larger photo from the property's Media folder is sharper.">
@@ -109,6 +110,16 @@
                   hx-vals='{{ {"name": p.name} | tojson }}' hx-target="#photos" hx-swap="outerHTML">
             {{ ui.icon('check', 'icon--sm') }}<span>Lead</span><span class="spinner" aria-hidden="true"></span></button>
         {% endif %}
+        {# Replace keeps the photo's PLACE: removing and re-uploading appends to
+           the end, so a swapped lead photo stopped being the lead and the
+           gallery order changed under the marketer (2.5). #}
+        <label class="btn btn--ghost btn--sm" style="cursor:pointer">
+          {{ ui.icon('photo', 'icon--sm') }}<span>Replace</span>
+          <input type="file" name="file" accept="image/*" hidden
+                 hx-post="/gates/{{ dp }}/ads/photos/replace" hx-encoding="multipart/form-data"
+                 hx-vals='{{ {"name": p.name} | tojson }}'
+                 hx-target="#photos" hx-swap="outerHTML" hx-trigger="change">
+        </label>
         <button class="btn btn--ghost btn--sm" hx-post="/gates/{{ dp }}/ads/photos/delete"
                 hx-vals='{{ {"name": p.name} | tojson }}' hx-target="#photos" hx-swap="outerHTML"
                 hx-confirm="Remove this photo from the adverts?">

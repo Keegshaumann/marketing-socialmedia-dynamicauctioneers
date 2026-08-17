@@ -143,6 +143,24 @@
                 </div>
               </div>
             </div>
+            {# Viewing (fix list 4.6, D76). Three states, because "by appointment"
+               cannot say the two that matter to a buyer: a window they can
+               diarise, and no viewing at all - which on an occupied or
+               liquidated property must be said before they bid. #}
+            <div class="field">
+              <label class="label" for="viewing_mode">Viewing</label>
+              <select class="input" id="viewing_mode" name="viewing_mode" data-viewing-select>
+                <option value="by_arrangement"{% if viewing_mode == 'by_arrangement' %} selected{% endif %}>Per arrangement</option>
+                <option value="set_time"{% if viewing_mode == 'set_time' %} selected{% endif %}>Set viewing time</option>
+                <option value="none"{% if viewing_mode == 'none' %} selected{% endif %}>No viewing</option>
+              </select>
+              <div class="hint">"No viewing" prints: Viewing not possible. Vacant occupation cannot be guaranteed.</div>
+            </div>
+            <div class="field" data-viewing-when{% if viewing_mode != 'set_time' %} hidden{% endif %}>
+              <label class="label label--sm" for="viewing_at">Viewing time</label>
+              <input class="input" id="viewing_at" name="viewing_at" value="{{ viewing_at }}"
+                     placeholder="2 September 2026, 10:00 to 12:00">
+            </div>
             {% if template_sets|length > 1 %}
             <div class="field">
               <label class="label" for="template_set">Design template</label>

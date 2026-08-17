@@ -353,8 +353,12 @@ def test_info_pack_sale_uses_offer_language_not_auction(golden_record, tmp_path)
     html = _info_pack_html(golden_record, tmp_path)
 
     assert "<b>For</b> Sale" in html
+    # The sale basis is no longer an investment highlight (5.2), but the money
+    # line must still be on the pack - deleting the row without relocating it is
+    # exactly the fault D64 fixed.
+    assert "How It Is Offered" not in html
     assert "Offers invited" in html
-    assert "How It Is Offered" in html                 # the highlights row
+    assert 'class="ld-money"' in html
     assert "Enquiries and offers welcome." in html     # the closing tagline
     # No auction framing anywhere. ("Auctioneers" is in the brand name on every
     # page, so these are phrases, not the bare word.)
@@ -377,7 +381,8 @@ def test_info_pack_auction_uses_auction_language_and_details(golden_record, tmp_
     html = _info_pack_html(golden_record, tmp_path)
 
     assert "<b>Online</b> Auction" in html             # the cover badge
-    assert "Offered on Auction" in html                # the highlights row
+    assert "Offered on Auction" not in html            # not a highlight (5.2)
+    assert 'class="ld-money"' in html                  # but the money line stays
     assert "Insolvency auction" in html
     assert "28 May 2026" in html and "10:00" in html
     assert "Don't miss this auction!" in html
@@ -1350,3 +1355,47 @@ def test_board_prints_one_reference_not_two(golden_record, tmp_path):
 
     golden_record.identity.mandate_ref = None
     assert "Property ref: DP3060" in _board_html(golden_record, tmp_path)
+
+
+# --- viewing modes reach every surface (4.6, D76) -------------------------
+
+@pytest.mark.parametrize(
+    "mode, extra, expected",
+    [
+        ("none", {}, "Viewing not possible. Vacant occupation cannot be guaranteed."),
+        ("set_time", {"viewing_at": "2 September 2026, 10:00 to 12:00"},
+         "2 September 2026, 10:00 to 12:00"),
+        ("by_arrangement", {}, "By arrangement with Dynamic Auctioneers"),
+    ],
+)
+def test_the_pack_states_the_viewing_arrangement(mode, extra, expected, golden_record, tmp_path):
+    golden_record.sale_process.viewing.mode = mode
+    for key, value in extra.items():
+        setattr(golden_record.sale_process.viewing, key, value)
+    html = _info_pack_html(golden_record, tmp_path)
+    assert expected in html
+
+
+def test_no_viewing_reaches_the_facebook_post_too(golden_record, tmp_path):
+    """A fact must reach every surface that mentions it - the D64 lesson. A
+    buyer told "viewing by appointment" on Facebook and "not possible" in the
+    pack has been told two different things about the same property."""
+    golden_record.sale_process.viewing.mode = "none"
+    store = _store_with(golden_record)
+    try:
+        post = Path(render_one("3060", store, "facebook_post", backend="html",
+                               output_root=str(tmp_path)).path).read_text(encoding="utf-8")
+    finally:
+        store.close()
+
+    assert "Viewing not possible." in post
+    assert "Vacant occupation cannot be guaranteed." in post
+    assert "by appointment" not in post
+
+
+def test_a_record_written_before_viewing_modes_still_reads(golden_record, tmp_path):
+    """No migration: the old boolean still means an arrangement."""
+    golden_record.sale_process.viewing.mode = None
+    golden_record.sale_process.viewing.by_appointment = True
+    html = _info_pack_html(golden_record, tmp_path)
+    assert "By arrangement with Dynamic Auctioneers" in html

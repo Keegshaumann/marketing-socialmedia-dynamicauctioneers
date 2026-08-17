@@ -2011,3 +2011,68 @@ def test_regenerate_with_nothing_pending_says_so():
     resp = client.post(f"/gates/{dp}/ads/regenerate")
     assert resp.status_code == 200
     assert "Nothing to regenerate" in resp.text
+
+
+# --- replacing one photograph keeps its place (2.5, D76) ------------------
+
+def test_replacing_a_photo_keeps_its_position():
+    """Remove-and-re-upload appends to the end, so swapping the lead photo made
+    it no longer the lead and reordered the gallery under the marketer."""
+    import io
+
+    dp = "9070"
+    _seed_minimal(dp, state="drafted")
+    client = _client()
+    _login_admin(client)
+
+    png = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
+    for name in ("one.png", "two.png", "three.png"):
+        client.post(f"/gates/{dp}/ads/photos/upload",
+                    files={"files": (name, io.BytesIO(png), "image/png")})
+
+    store = RecordStore(DB_PATH)
+    try:
+        before = [store.get(dp).marketing.hero_photo] + list(store.get(dp).marketing.gallery)
+    finally:
+        store.close()
+    assert before == ["photos/one.png", "photos/two.png", "photos/three.png"]
+
+    # Replace the MIDDLE one; the order must not change.
+    resp = client.post(f"/gates/{dp}/ads/photos/replace",
+                       data={"name": "two.png"},
+                       files={"file": ("new.png", io.BytesIO(png + b"x"), "image/png")})
+    assert resp.status_code == 200
+    assert "Photo replaced" in resp.text
+
+    store = RecordStore(DB_PATH)
+    try:
+        after = [store.get(dp).marketing.hero_photo] + list(store.get(dp).marketing.gallery)
+    finally:
+        store.close()
+    assert after[0] == "photos/one.png"          # lead untouched
+    assert after[2] == "photos/three.png"        # tail untouched
+    assert after[1] == "photos/new.png"          # swapped in place
+
+
+def test_replacing_the_lead_photo_leaves_it_the_lead():
+    import io
+
+    dp = "9071"
+    _seed_minimal(dp, state="drafted")
+    client = _client()
+    _login_admin(client)
+    png = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
+    for name in ("lead.png", "other.png"):
+        client.post(f"/gates/{dp}/ads/photos/upload",
+                    files={"files": (name, io.BytesIO(png), "image/png")})
+
+    resp = client.post(f"/gates/{dp}/ads/photos/replace",
+                       data={"name": "lead.png"},
+                       files={"file": ("better.png", io.BytesIO(png + b"y"), "image/png")})
+    assert "still the lead" in resp.text
+
+    store = RecordStore(DB_PATH)
+    try:
+        assert store.get(dp).marketing.hero_photo == "photos/better.png"
+    finally:
+        store.close()
