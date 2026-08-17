@@ -27,6 +27,9 @@
 
 {# The headline money row: the channel/date/time line on an auction (there is no
    price on an auction ad), the display price otherwise. #}
+{# The ads' auction line is fixed by D42 and does NOT carry the weekday; the
+   BOARD does (vm.auction_weekday, D71), because that is what its reference
+   prints. One macro serving both would have changed every advert. #}
 {% macro money_text(vm) -%}
   {%- if vm.method == 'auction' -%}
     {{ (vm.auction_channel or 'Online') | upper }} AUCTION{% if vm.auction_date %} | {{ vm.auction_date | upper }}{% endif %}{% if vm.auction_time %} @ {{ vm.auction_time }}{% endif %}

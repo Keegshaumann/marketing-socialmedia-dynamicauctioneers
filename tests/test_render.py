@@ -1230,3 +1230,51 @@ def test_info_pack_falls_back_to_html_without_chromium(golden_record, tmp_path, 
     assert Path(art.path).suffix == ".html"
     assert art.mime == "text/html"
     assert "Buyer information pack" in Path(art.path).read_text(encoding="utf-8")
+
+
+# --- the board's weekday is derived, never typed (D71) --------------------
+
+@pytest.mark.parametrize(
+    "typed, expected",
+    [
+        ("7 May 2026", "THURSDAY"),          # the day their own reference board prints
+        ("28 May 2026", "THURSDAY"),
+        ("2026-09-15", "TUESDAY"),
+        ("7/5/2026", "THURSDAY"),            # SA order, day first
+        ("Thursday 7 May 2026", "THURSDAY"), # a weekday already typed in
+        ("7th May 2026", "THURSDAY"),        # ordinal suffix
+    ],
+)
+def test_auction_weekday_is_derived_from_the_date(typed, expected):
+    from engine.render.html_backend import _auction_weekday
+
+    assert _auction_weekday(typed) == expected
+
+
+@pytest.mark.parametrize("typed", ["next week", "TBC", "15 September", "", None])
+def test_an_unreadable_date_yields_no_weekday_rather_than_a_guess(typed):
+    """A wrong day on a printed board sends people to a property on the wrong
+    morning, so an unparseable date (or one with no year) prints nothing."""
+    from engine.render.html_backend import _auction_weekday
+
+    assert _auction_weekday(typed) is None
+
+
+def test_the_ads_auction_line_does_not_carry_the_weekday(golden_record, tmp_path):
+    """The board prints the weekday; the adverts keep D42's wording.
+
+    One shared macro serving both would have changed every advert in the library.
+    """
+    golden_record.sale_process.method = "auction"
+    golden_record.sale_process.auction_channel = "Online"
+    golden_record.sale_process.auction_date = "28 May 2026"
+    golden_record.sale_process.auction_time = "10:00"
+    store = _store_with(golden_record)
+    try:
+        ad = Path(render_one("3060", store, "demo_ad", backend="html",
+                             output_root=str(tmp_path)).path).read_text(encoding="utf-8")
+    finally:
+        store.close()
+
+    assert "ONLINE AUCTION | 28 MAY 2026 @ 10:00" in ad
+    assert "THURSDAY" not in ad

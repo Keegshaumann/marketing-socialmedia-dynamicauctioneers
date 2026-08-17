@@ -154,6 +154,48 @@ def _split3(text: object) -> List[str]:
     return [" ".join(words[i : i + per]) for i in range(0, len(words), per)][:3]
 
 
+_DATE_FORMATS = (
+    "%d %B %Y", "%d %b %Y", "%-d %B %Y", "%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y",
+    "%B %d %Y", "%b %d %Y", "%d %B", "%d %b",
+)
+
+
+def _auction_weekday(text: object) -> Optional[str]:
+    """The weekday of the auction, DERIVED from the date the marketer typed.
+
+    The board's header reads "ONLINE | THURSDAY" over the date, and the day must
+    be the actual auction day (owner's ruling) rather than a second thing to type
+    and get wrong. ``auction_date`` is free display text (D42) - "28 May 2026",
+    "2026-09-15", "7/5/2026" - so it is parsed rather than replaced by a date
+    field, which would ripple into extraction, gate 2 and every artifact for a
+    single derived word.
+
+    An unparseable date yields None and the board prints no weekday: a wrong day
+    on a printed board sends people to a property on the wrong morning.
+    """
+    raw = str(text or "").strip()
+    if not raw:
+        return None
+    # Strip a weekday the marketer may already have typed, and any ordinal
+    # suffix ("7th May 2026"), so both spellings parse.
+    cleaned = re.sub(
+        r"^(mon|tues|wednes|thurs|fri|satur|sun)day[,\s]+", "", raw, flags=re.I)
+    cleaned = re.sub(r"(\d{1,2})(st|nd|rd|th)\b", r"\1", cleaned, flags=re.I)
+    cleaned = cleaned.replace(",", " ").strip()
+    cleaned = re.sub(r"\s+", " ", cleaned)
+    from datetime import datetime
+
+    for fmt in _DATE_FORMATS:
+        try:
+            parsed = datetime.strptime(cleaned, fmt)
+        except ValueError:
+            continue
+        if parsed.year == 1900:          # a date with no year cannot name a day
+            return None
+        return parsed.strftime("%A").upper()
+    return None
+
+
 def _fmt_num(value: object) -> Optional[str]:
     """Render a number without a trailing ``.0`` (185.0 -> ``"185"``)."""
     if value is None:
@@ -411,6 +453,8 @@ class HtmlBackend(RenderBackend):
             "auction_type": sale.get("auction_type"),
             "auction_channel": sale.get("auction_channel"),
             "auction_date": sale.get("auction_date"),
+            # Derived from the date above, never typed (D71).
+            "auction_weekday": _auction_weekday(sale.get("auction_date")),
             "auction_time": sale.get("auction_time"),
             "badge_label": badge_label,
             "price_display": marketing.get("price_display") or badge_label,
