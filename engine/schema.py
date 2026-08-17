@@ -204,6 +204,12 @@ class Valuation(_Base):
     municipal_valuation: Optional[float] = None
     municipal_valuation_year: Optional[int] = None
     estimated_monthly_rates: Optional[float] = None
+    # Read off the managing agent's statement (engine/levies.py, D73). A running
+    # cost to the buyer like the rates, not a valuation, so it is public. None
+    # means no statement was supplied or it carried no levy charge, and the pack
+    # prints "TBC" rather than a figure nobody checked.
+    monthly_levy: Optional[float] = None
+    monthly_levy_note: Optional[str] = None
     comparables_avg_sales_price: Optional[float] = None
     same_scheme_sale: Optional[SameSchemeSale] = None
     professional: Optional[ProfessionalValuation] = None

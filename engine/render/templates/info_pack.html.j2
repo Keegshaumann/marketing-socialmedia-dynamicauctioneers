@@ -514,7 +514,7 @@
 
           <div class="chips">
             {{ chip('doc', 'Rates & Taxes:', ('± R' ~ vm.monthly_rates) if vm.monthly_rates else 'TBC') }}
-            {{ chip('doc', 'Levies:', 'TBC') }}
+            {{ chip('doc', 'Levies:', ('± R' ~ vm.monthly_levy) if vm.monthly_levy else 'TBC') }}
           </div>
 
           {# The two pills and the box read from the OTP's clauses when one has

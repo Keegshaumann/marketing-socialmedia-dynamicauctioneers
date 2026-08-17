@@ -512,6 +512,7 @@ class HtmlBackend(RenderBackend):
             # The valuation figures themselves are already absent from this
             # projection, so there is nothing here to leak.
             "monthly_rates": _fmt_size(valuation.get("estimated_monthly_rates")),
+            "monthly_levy": _fmt_size(valuation.get("monthly_levy")),
             "viewing_by_appt": bool(viewing.get("by_appointment")),
             "contact_public": viewing.get("contact_public"),
             "photos": photos,
