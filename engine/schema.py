@@ -309,6 +309,12 @@ class ChannelRouting(_Base):
 
 
 class Marketing(_Base):
+    # The auction board's QR code, as a path relative to the DP folder (like the
+    # photos). The team generates the code themselves - in GoHighLevel, so a scan
+    # lands on a tracked page - and uploads it at gate 2 (D69). GoHighLevel's QR
+    # generator is a page-builder element, not an API, so the engine cannot make
+    # this for them; it can only ask for it and print it.
+    qr_code: Optional[str] = None
     headline: Optional[str] = None
     price_display: Optional[str] = None
     channel_routing: Optional[ChannelRouting] = None

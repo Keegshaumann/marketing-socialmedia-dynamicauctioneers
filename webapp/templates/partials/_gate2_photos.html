@@ -11,6 +11,36 @@
     {{ ui.button('Upload and re-render', variant='primary', icon_name='photo', type='submit', attrs='data-photo-submit') }}
   </form>
 
+  {# The auction board's QR code (D69). The team generates it themselves - in
+     GoHighLevel, so scans are tracked - and the platform's job is to ask for it.
+     The prompt is a visible banner while it is missing, because the board goes
+     to print and a missing code is only noticed once it is on a pavement. #}
+  {% if qr_src %}
+  <div class="banner banner--ok">
+    {{ ui.icon('check') }}
+    <div class="banner__body">
+      <div class="banner__title">QR code attached</div>
+      <div>The auction board carries it. Upload another to replace it.</div>
+    </div>
+  </div>
+  {% else %}
+  <div class="banner banner--note">
+    {{ ui.icon('note') }}
+    <div class="banner__body">
+      <div class="banner__title">Add the QR code for the auction board</div>
+      <div>Generate it in GoHighLevel (so scans are tracked), then upload it here. Without it the board prints without a code.</div>
+    </div>
+  </div>
+  {% endif %}
+  <form hx-post="/gates/{{ dp }}/ads/qr/upload" hx-encoding="multipart/form-data"
+        hx-target="#photos" hx-swap="outerHTML" class="stack">
+    <div class="field">
+      <label class="label" for="qr-file">Auction board QR code</label>
+      <input class="input" type="file" id="qr-file" name="file" accept="image/*">
+    </div>
+    {{ ui.button('Attach QR code', variant='ghost', icon_name='plus', type='submit') }}
+  </form>
+
   {# Chosen-but-not-yet-uploaded files. The browser's file input only says
      "N files" and nothing has reached the server yet, so without this the panel
      below still reads "No photos yet" and the two contradict each other. #}

@@ -1869,3 +1869,68 @@ def test_the_editor_link_is_not_offered_before_there_is_an_advert():
     row = [line for line in rows.text.splitlines() if dp in line or "9043" in line]
     assert row, "seeded row not found on the board"
     assert f'/gates/{dp}/ads' not in rows.text.split(f'<td class="ledger__dp">{dp}')[1][:1200]
+
+
+# --- the auction board's QR code (D69) -----------------------------------
+
+def test_gate2_prompts_for_the_board_qr_and_accepts_one():
+    """The team generates the QR; the platform's job is to ask for it.
+
+    GoHighLevel's QR generator is a page-builder element, not an API, so the
+    engine cannot make the code. The board goes to print, and a missing code is
+    only noticed once it is standing on a pavement, so the prompt is a visible
+    banner until one is attached.
+    """
+    import io
+
+    dp = "9050"
+    _seed_minimal(dp, state="drafted")
+    client = _client()
+    _login_admin(client)
+
+    page = client.get(f"/gates/{dp}/ads")
+    assert page.status_code == 200
+    assert "Add the QR code for the auction board" in page.text
+    assert "QR code attached" not in page.text
+
+    png = (b"\x89PNG\r\n\x1a\n" + b"\x00" * 128)
+    resp = client.post(
+        f"/gates/{dp}/ads/qr/upload",
+        files={"file": ("qr.png", io.BytesIO(png), "image/png")},
+    )
+    assert resp.status_code == 200
+    assert "QR code added" in resp.text
+
+    store = RecordStore(DB_PATH)
+    try:
+        record = store.get(dp)
+    finally:
+        store.close()
+    assert record.marketing.qr_code == "photos/qr.png"
+
+    # The prompt turns into a confirmation, and the QR never joins the gallery.
+    page = client.get(f"/gates/{dp}/ads")
+    assert "QR code attached" in page.text
+    assert "Add the QR code for the auction board" not in page.text
+    assert not (record.marketing.gallery or [])
+
+
+def test_the_board_qr_is_rejected_when_it_is_not_an_image():
+    dp = "9051"
+    _seed_minimal(dp, state="drafted")
+    client = _client()
+    _login_admin(client)
+
+    import io
+
+    resp = client.post(
+        f"/gates/{dp}/ads/qr/upload",
+        files={"file": ("notes.txt", io.BytesIO(b"not an image"), "text/plain")},
+    )
+    assert resp.status_code == 200
+    assert "Not an image" in resp.text
+    store = RecordStore(DB_PATH)
+    try:
+        assert store.get(dp).marketing.qr_code is None
+    finally:
+        store.close()

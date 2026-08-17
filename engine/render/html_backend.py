@@ -471,6 +471,14 @@ class HtmlBackend(RenderBackend):
             "viewing_by_appt": bool(viewing.get("by_appointment")),
             "contact_public": viewing.get("contact_public"),
             "photos": photos,
+            # The board's QR code, uploaded by the team (D69). Resolved the
+            # same way as a photo so it embeds for print; None until they
+            # add one, and the board then omits the block rather than
+            # printing an empty white square.
+            "qr_src": (
+                self._photo_refs(request, {"hero_photo": marketing.get("qr_code")})[0]
+                if marketing.get("qr_code") else None
+            ),
             "hero_src": photos[0] if photos else None,
             "stack_photos": photos[1:3],
             "gallery_photos": photos[3:7],

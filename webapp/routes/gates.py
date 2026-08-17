@@ -497,6 +497,7 @@ def gate_photos_page(dp: str, request: Request, user: dict = Depends(require_rol
             "state": _state(db_path, dp),
             "headline": (record.marketing.headline if record.marketing else None),
             "photos": _photo_view(db_path, dp, record),
+            "qr_src": _qr_view(db_path, dp, record),
             "max_photos": _MAX_PHOTOS_TOTAL,
         },
     )
@@ -681,6 +682,7 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
             "is_update": state in ("live", "updated"),
             "delete_caveat": DELETE_CAVEAT,
             "photos": _photo_view(db_path, dp, record),
+            "qr_src": _qr_view(db_path, dp, record),
             "approval_email": email_html,
             "links": links,
             "email_subject": email_subject,
@@ -781,6 +783,55 @@ def _photo_list(record: PropertyRecord) -> List[str]:
     return uniq
 
 
+def _save_qr(db_path: str, dp: str, rel: str, user: str) -> None:
+    """Write the board's QR onto the record and re-render.
+
+    On the RECORD, not through ``human_overrides``: an override is a human
+    rewriting a sourced fact (a headline, a price), and it only surfaces through
+    ``public_view``. An uploaded file is an asset, the same as a photograph, so
+    it is stored the way ``apply_photos`` stores those - otherwise the gate-2
+    panel, which reads the record, would keep asking for a code that is already
+    attached.
+    """
+    store = _store(db_path)
+    try:
+        record = _load_record_for_write(store, dp)
+        if record.marketing is None:
+            from engine.schema import Marketing
+
+            record.marketing = Marketing()
+        record.marketing.qr_code = rel
+        store.upsert(record)
+        store.record_signoff(dp, gate="2", user=user, note=f"board QR attached: {rel}")
+        state = store.get_state(dp)
+        if state not in ("intake", "extracted", "photos"):
+            render_all(dp, store, output_root=_output_root(db_path),
+                       formats=_formats_for_state(state))
+    finally:
+        store.close()
+
+
+def _load_record_for_write(store, dp: str):
+    record = store.get(dp)
+    if record is None:
+        raise HTTPException(status_code=404, detail="No record for this DP.")
+    return record
+
+
+def _qr_view(db_path: str, dp: str, record: PropertyRecord) -> Optional[str]:
+    """The URL of the board's QR code, or None while the team has not added one.
+
+    Served through the same auth-gated photo route, so an uploaded QR is no more
+    public than a property photograph.
+    """
+    marketing = getattr(record, "marketing", None)
+    rel = getattr(marketing, "qr_code", None) if marketing else None
+    if not rel:
+        return None
+    name = Path(rel).name
+    return f"/gates/{dp}/ads/photos/{name}" if (_photos_dir(db_path, dp) / name).exists() else None
+
+
 def _photo_view(db_path: str, dp: str, record: PropertyRecord) -> List[Dict[str, Any]]:
     """Panel view-model: one tile per photo (name, url, is_hero, low-res warning).
 
@@ -838,7 +889,8 @@ def _photo_result(request: Request, db_path: str, dp: str, toast: Dict[str, Any]
     return templates.TemplateResponse(
         request,
         "partials/_gate2_photo_result.html",
-        {"dp": dp, "tiles": tiles, "photos": _photo_view(db_path, dp, record), "toast": toast},
+        {"dp": dp, "tiles": tiles, "photos": _photo_view(db_path, dp, record),
+         "qr_src": _qr_view(db_path, dp, record), "toast": toast},
     )
 
 
@@ -916,6 +968,48 @@ async def gate2_photo_upload(
     else:
         toast = {"tone": "note", "title": "No photos added",
                  "text": "Only image files (jpg, png, webp, gif) up to 12 MB are accepted."}
+    return _photo_result(request, db_path, dp, toast)
+
+
+@router.post("/{dp}/ads/qr/upload", response_class=HTMLResponse)
+async def gate2_qr_upload(
+    dp: str, request: Request,
+    file: UploadFile = File(...),
+    user: dict = Depends(require_role("approver", "marketing")),
+):
+    """Attach the auction board's QR code (D69).
+
+    The team generates the code themselves - in GoHighLevel, so a scan lands on a
+    tracked page - because GoHighLevel's QR generator is a page-builder element
+    and not an API the engine can call. So the platform's job is to ASK for it,
+    hold it on the record and print it on the board. Stored beside the photos and
+    kept out of the photo list, so it never lands in a gallery or on an advert.
+    """
+    db_path = _db(request)
+    raw = await file.read()
+    toast = None
+    name = _safe_photo_name(file.filename or "qr")
+    ext = Path(name).suffix.lower()
+    if ext not in _IMAGE_MIME:
+        derived = _CTYPE_EXT.get((file.content_type or "").lower())
+        if derived is None:
+            toast = {"tone": "note", "title": "Not an image",
+                     "text": "The QR code must be a jpg, png, webp or gif."}
+        else:
+            name += derived
+    elif not raw or len(raw) > _MAX_PHOTO_BYTES:
+        toast = {"tone": "note", "title": "QR code not saved",
+                 "text": "The file is empty or larger than the 12 MB limit."}
+
+    if toast is None:
+        photos_dir = _photos_dir(db_path, dp)
+        photos_dir.mkdir(parents=True, exist_ok=True)
+        dest = photos_dir / f"qr{Path(name).suffix.lower()}"
+        dest.write_bytes(raw)
+        _reopen_if_live(db_path, dp, user["email"])
+        _save_qr(db_path, dp, f"photos/{dest.name}", user["email"])
+        toast = {"tone": "ok", "title": "QR code added",
+                 "text": "The auction board now carries it."}
     return _photo_result(request, db_path, dp, toast)
 
 

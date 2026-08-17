@@ -120,6 +120,9 @@
        (280mm tall), and the top margin centres it on the 297mm sheet. */
     .board { zoom:.979; margin:8mm auto; }
   }
+  .bd-qr { position:absolute; right:46px; bottom:190px; width:210px; text-align:center; z-index:4; }
+  .bd-qr img { width:210px; height:210px; display:block; background:#fff; padding:10px; border:3px solid #ac874a; }
+  .bd-qr span { display:block; margin-top:10px; font-size:20px; font-weight:900; letter-spacing:.12em; color:#ddc689; }
   .nb{white-space:nowrap}
   .un{text-transform:none}
 </style>
@@ -159,6 +162,13 @@
   {% endif %}
 
   <div class="bd-money">{{ money }}</div>
+
+  {# The QR the team generated (in GoHighLevel, so a scan is tracked) and
+     uploaded at gate 2. Nothing is drawn when they have not added one: an empty
+     white square on a printed board is worse than no square. #}
+  {% if vm.qr_src %}
+  <div class="bd-qr"><img src="{{ vm.qr_src }}" alt="Scan for this property"><span>SCAN FOR DETAILS</span></div>
+  {% endif %}
 
   <div class="bd-contact gold">
     <span class="tel">
