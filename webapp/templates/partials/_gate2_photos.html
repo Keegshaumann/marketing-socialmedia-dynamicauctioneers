@@ -4,11 +4,28 @@
         hx-target="#photos" hx-swap="outerHTML" class="stack" data-photo-form>
     <div class="field">
       <label class="label" for="photo-files">Add photos</label>
-      <input class="input" type="file" id="photo-files" name="files" accept="image/*" multiple
-             data-photo-input>
-      <div class="hint">JPG, PNG, WebP or GIF, up to 12 MB each. Use large photos (about 1080px on the shorter side or bigger); small photos from the report look soft when posted. The lead photo is the main image on every advert.</div>
+      {# A real dropzone, and every drop or browse ADDS to what is already
+         chosen. Photos come from several folders, so picking one lot and then
+         another used to lose the first lot before Upload was pressed. #}
+      <div class="dropzone" data-dropzone tabindex="0" role="button"
+           aria-label="Drop photos here, or press to browse">
+        <div class="dropzone__prompt">
+          {{ ui.icon('photo', 'icon--xl') }}
+          <div class="dropzone__title">Drop photos here</div>
+          <div class="dropzone__hint">Drop a folder's worth, then drop more: each lot is added to
+            the ones already chosen, nothing is replaced. JPG, PNG, WebP or GIF up to 12 MB each,
+            {{ max_photos }} per property. Use large photos (about 1080px on the shorter side or
+            bigger); small ones from the report look soft when posted. Or press to browse.</div>
+        </div>
+        <input class="input" type="file" id="photo-files" name="files" accept="image/*" multiple
+               data-photo-input hidden>
+        <div class="dropzone__files" data-dropzone-files aria-live="polite"></div>
+      </div>
     </div>
-    {{ ui.button('Upload and re-render', variant='primary', icon_name='photo', type='submit', attrs='data-photo-submit') }}
+    <div class="row">
+      {{ ui.button('Upload and re-render', variant='primary', icon_name='photo', type='submit', attrs='data-photo-submit') }}
+      <button type="button" class="btn btn--ghost btn--sm" data-photo-clear>Clear chosen</button>
+    </div>
   </form>
 
   {# The auction board's QR code (D69). The team generates it themselves - in

@@ -97,6 +97,45 @@
     }
   }
 
+  // --- accumulating file buffer -----------------------------------------
+  // A file input REPLACES its FileList on every pick: drop three photos, drop
+  // two more, and the first three are gone before Upload is ever pressed. The
+  // marketer's photos live in several folders, so this is the normal way to use
+  // it, not an edge case. Each input keeps a DataTransfer buffer that new files
+  // are ADDED to, and the input is re-pointed at the buffer.
+  // Name and size, deliberately NOT lastModified: the same photograph copied
+  // into two folders has two timestamps, and the marketer means one photo.
+  function fileKey(f) { return f.name + ':' + f.size; }
+
+  function fileBuffer(input) {
+    if (!input.__buf) input.__buf = new DataTransfer();
+    return input.__buf;
+  }
+
+  function addFiles(input, list) {
+    if (!list || !list.length) return 0;
+    var buf = fileBuffer(input), seen = {}, added = 0;
+    Array.prototype.forEach.call(buf.files, function (f) { seen[fileKey(f)] = true; });
+    Array.prototype.forEach.call(list, function (f) {
+      if (seen[fileKey(f)]) return;            // the same file twice is one file
+      seen[fileKey(f)] = true;
+      buf.items.add(f);
+      added++;
+    });
+    input.__syncing = true;                    // assigning .files fires 'change'
+    input.files = buf.files;
+    input.__syncing = false;
+    return added;
+  }
+
+  function clearFiles(input) {
+    input.__buf = new DataTransfer();
+    input.__syncing = true;
+    input.files = input.__buf.files;
+    input.__syncing = false;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
   function wireDropzones(root) {
     (root || document).querySelectorAll('[data-dropzone]').forEach(function (zone) {
       if (zone.__wired) return;
@@ -116,7 +155,7 @@
         stop(e);
         zone.classList.remove('is-dragover');
         if (input && e.dataTransfer && e.dataTransfer.files.length) {
-          input.files = e.dataTransfer.files;
+          addFiles(input, e.dataTransfer.files);
           input.dispatchEvent(new Event('change', { bubbles: true }));
         }
       });
@@ -361,6 +400,10 @@
       if (!pending || !title || !names) return;
 
       input.addEventListener('change', function () {
+        // A browse also replaces the FileList, so merge it into the buffer the
+        // same way a drop does. __syncing guards the change event that our own
+        // reassignment fires, which would otherwise recurse.
+        if (!input.__syncing) addFiles(input, input.files);
         var files = input.files || [];
         var n = files.length;
         if (!n) {
@@ -380,6 +423,12 @@
         if (empty) empty.hidden = true;
         if (submit) submit.classList.add('is-ready');
       });
+
+      var clear = panel.querySelector('[data-photo-clear]');
+      if (clear && !clear.__wired) {
+        clear.__wired = true;
+        clear.addEventListener('click', function (e) { e.preventDefault(); clearFiles(input); });
+      }
     });
   }
 

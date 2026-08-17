@@ -499,6 +499,7 @@ def gate_photos_page(dp: str, request: Request, user: dict = Depends(require_rol
             "photos": _photo_view(db_path, dp, record),
             "qr_src": _qr_view(db_path, dp, record),
             "max_photos": _MAX_PHOTOS_TOTAL,
+            "max_photos": _MAX_PHOTOS_TOTAL,
         },
     )
 
@@ -683,6 +684,7 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
             "delete_caveat": DELETE_CAVEAT,
             "photos": _photo_view(db_path, dp, record),
             "qr_src": _qr_view(db_path, dp, record),
+            "max_photos": _MAX_PHOTOS_TOTAL,
             "approval_email": email_html,
             "links": links,
             "email_subject": email_subject,
@@ -730,7 +732,8 @@ _MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is reject
 # The most photos a property may carry. An advert uses one lead photo plus up to
 # six more (2 stacked + 4 gallery = 7 used); 8 leaves a small buffer and keeps
 # the panel tidy. Uploads past this are rejected with a clear message.
-_MAX_PHOTOS_TOTAL = 8
+_MAX_PHOTOS_TOTAL = 40  # owner's number (D70). Was 8, which rejected the second
+# batch of a multi-folder upload and made named galleries impossible (D52).
 # A photo is flagged low-res (a non-blocking warning) when its shorter side is
 # under this. Social feeds render around 1080px wide, so smaller images upscale
 # and look soft. The photos extracted from a Property Report PDF are often tiny
@@ -890,7 +893,8 @@ def _photo_result(request: Request, db_path: str, dp: str, toast: Dict[str, Any]
         request,
         "partials/_gate2_photo_result.html",
         {"dp": dp, "tiles": tiles, "photos": _photo_view(db_path, dp, record),
-         "qr_src": _qr_view(db_path, dp, record), "toast": toast},
+         "qr_src": _qr_view(db_path, dp, record),
+            "max_photos": _MAX_PHOTOS_TOTAL, "toast": toast},
     )
 
 
