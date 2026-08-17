@@ -34,9 +34,10 @@ Clause map, confirmed against the sample:
 from __future__ import annotations
 
 import re
-import subprocess
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+
+from engine.pdftext import PdfUnreadable, layout_text
 
 # "20% (Twenty Percent)" / "6 % (SEVEN PERCENT POINT FIVE PERCENT)" / "7,5%"
 _PCT = r"(\d{1,2}(?:[.,]\d{1,2})?)\s*%"
@@ -50,27 +51,16 @@ _WORD_NUMBERS = {
 }
 
 
-class OtpUnreadable(RuntimeError):
-    """The document could not be turned into text (no pdftotext, or an image scan)."""
+class OtpUnreadable(PdfUnreadable):
+    """Kept as its own name so callers can catch this reader specifically."""
 
 
-def pdf_text(path: "str | Path") -> str:
-    """The OTP as laid-out text. Uses ``pdftotext -layout`` (poppler)."""
-    path = Path(path)
+def _read(path: "str | Path") -> str:
+    """Text with its rows intact. Raises OtpUnreadable when the document is a scan."""
     try:
-        out = subprocess.run(
-            ["pdftotext", "-layout", str(path), "-"],
-            capture_output=True, timeout=60,
-        )
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        raise OtpUnreadable(f"could not run pdftotext on {path.name}") from exc
-    text = out.stdout.decode("utf-8", errors="replace")
-    if len(text.strip()) < 200:
-        raise OtpUnreadable(
-            f"{path.name} yielded almost no text; it is probably a scan, so the "
-            "terms must be entered by hand"
-        )
-    return text
+        return layout_text(path)
+    except PdfUnreadable as exc:
+        raise OtpUnreadable(str(exc)) from exc
 
 
 def _clause(text: str, number: str, stop: str) -> str:
@@ -144,7 +134,7 @@ def extract_terms(pdf_path: "str | Path") -> Dict[str, object]:
     tell "not in this document" from "zero". ``clauses`` carries the verbatim
     text each value came from, and ``flags`` any disagreement a human must settle.
     """
-    text = pdf_text(pdf_path)
+    text = _read(pdf_path)
     clauses = {
         "3.1": _clause(text, "3.1", r"3\.2"),
         "3.2": _clause(text, "3.2", r"3\.3"),

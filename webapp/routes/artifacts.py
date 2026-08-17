@@ -390,6 +390,9 @@ def download_pack(
     deliverables = [
         p for p in files
         if p.name != "manifest.json"
+        # Nothing internal travels to a client: the pending-render marker
+        # (.stale, D72) and any other dotfile are ours, not theirs.
+        and not p.name.startswith(".")
         and not (p.suffix == ".html" and p.stem in pdfs)
         and p.parent == art_dir
     ]

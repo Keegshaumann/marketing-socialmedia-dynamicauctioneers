@@ -12,7 +12,6 @@ are not (they are client documents, not test data).
 
 from __future__ import annotations
 
-import shutil
 from pathlib import Path
 
 import pytest
@@ -34,8 +33,6 @@ EXPECTED = {
 
 
 def _sample(name: str) -> Path:
-    if shutil.which("pdftotext") is None:
-        pytest.skip("pdftotext (poppler) not installed")
     path = SAMPLES / name
     if not path.exists():
         pytest.skip(f"levy sample not present: {name}")
@@ -92,8 +89,6 @@ def test_one_off_backdated_corrections_are_excluded():
 
 
 def test_a_scan_is_refused_rather_than_guessed(tmp_path):
-    if shutil.which("pdftotext") is None:
-        pytest.skip("pdftotext (poppler) not installed")
     empty = tmp_path / "scan.pdf"
     empty.write_bytes(b"%PDF-1.4\n%%EOF\n")
     with pytest.raises(LeviesUnreadable):

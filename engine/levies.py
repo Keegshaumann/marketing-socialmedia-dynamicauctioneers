@@ -29,10 +29,11 @@ answer: a wrong levy on a buyer pack is a misrepresentation.
 from __future__ import annotations
 
 import re
-import subprocess
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+
+from engine.pdftext import PdfUnreadable, layout_text
 
 # 2025-06-01 | 01/04/2026 | 1 May 2026
 _DATE = re.compile(
@@ -58,25 +59,16 @@ _NOT_A_CHARGE = (
 )
 
 
-class LeviesUnreadable(RuntimeError):
-    """The statement could not be turned into text (an image scan, or no poppler)."""
+class LeviesUnreadable(PdfUnreadable):
+    """Kept as its own name so callers can catch this reader specifically."""
 
 
-def pdf_text(path: "str | Path") -> str:
-    path = Path(path)
+def _read(path: "str | Path") -> str:
+    """Text with its rows intact. Raises LeviesUnreadable when the document is a scan."""
     try:
-        out = subprocess.run(
-            ["pdftotext", "-layout", str(path), "-"], capture_output=True, timeout=60
-        )
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        raise LeviesUnreadable(f"could not run pdftotext on {path.name}") from exc
-    text = out.stdout.decode("utf-8", errors="replace")
-    if len(text.strip()) < 80:
-        raise LeviesUnreadable(
-            f"{path.name} yielded almost no text; it is probably a scan, so the "
-            "levy must be entered by hand"
-        )
-    return text
+        return layout_text(path)
+    except PdfUnreadable as exc:
+        raise LeviesUnreadable(str(exc)) from exc
 
 
 def _month_of(line: str) -> Optional[str]:
@@ -123,7 +115,7 @@ def read_statement(pdf_path: "str | Path") -> Dict[str, object]:
 
     ``{}`` when the statement carries no levy charge at all.
     """
-    text = pdf_text(pdf_path)
+    text = _read(pdf_path)
     by_month: Dict[str, List[Tuple[str, float]]] = defaultdict(list)
 
     for raw in text.splitlines():

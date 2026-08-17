@@ -12,7 +12,6 @@ these tests skip when it is absent - the same rule the source-document tests use
 
 from __future__ import annotations
 
-import shutil
 from pathlib import Path
 
 import pytest
@@ -29,8 +28,6 @@ SAMPLE = Path("/Users/keegshaumann/Dev/claudecode/Dynamic/OTP/2383.1 OTP.pdf")
 
 
 def _require_sample() -> Path:
-    if shutil.which("pdftotext") is None:
-        pytest.skip("pdftotext (poppler) not installed")
     if not SAMPLE.exists():
         pytest.skip(f"OTP sample not present: {SAMPLE}")
     return SAMPLE
@@ -104,8 +101,6 @@ def test_no_terms_at_all_rather_than_invented_ones():
 
 def test_a_scanned_document_is_refused_not_guessed(tmp_path):
     """An image-only PDF must raise, so intake can ask for a text one."""
-    if shutil.which("pdftotext") is None:
-        pytest.skip("pdftotext (poppler) not installed")
     empty = tmp_path / "scan.pdf"
     empty.write_bytes(b"%PDF-1.4\n%%EOF\n")
     with pytest.raises(OtpUnreadable):

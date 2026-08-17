@@ -2076,3 +2076,34 @@ def test_replacing_the_lead_photo_leaves_it_the_lead():
         assert store.get(dp).marketing.hero_photo == "photos/better.png"
     finally:
         store.close()
+
+
+def test_the_downloaded_pack_carries_nothing_internal():
+    """A client receives the artifacts, not our bookkeeping.
+
+    The pending-render marker (.stale, D72) lives in the artifacts folder, and
+    the download walks that folder: with edits pending it was being zipped and
+    sent out with the pack.
+    """
+    import io
+    import zipfile
+
+    _needs_golden()
+    dp = "9080"
+    _golden_clone(dp, state="approved")
+    _render_pack(dp)
+
+    client = _client()
+    _login_admin(client)
+    client.post(f"/gates/{dp}/ads/copy", data={"headline": "Edited, not regenerated"})
+
+    resp = client.get(f"/artifacts/{dp}/download")
+    assert resp.status_code == 200
+    names = zipfile.ZipFile(io.BytesIO(resp.content)).namelist()
+
+    assert names, "the pack downloaded empty"
+    assert not [n for n in names if n.startswith(".")], f"internal files shipped: {names}"
+    assert "manifest.json" not in names
+    # The suite disables the PDF export for speed, so the deliverables are the
+    # print sources here; either way the pack must not come out empty.
+    assert any(n.endswith((".pdf", ".html", ".md")) for n in names)
