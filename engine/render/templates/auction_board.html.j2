@@ -1,181 +1,187 @@
-{# Print-ready on-site auction / sale board (SPEC 12 step 6d), rebuilt in the
-   D54 brand language: dark canvas, metallic gold chrome, the white shield
-   lockup, huge type meant to be read from the pavement.
+{# On-site auction board (SPEC 12 step 6d), rebuilt to the team's own board:
+   designs/incoming/DP2817.3 - AUCTION BOARD.png (fix list 6.1, 6.2, 6.5-6.7).
 
-   CANVAS: 1620 x 1080 px = 3:2 LANDSCAPE, the usual SA on-site signboard
-   proportion (900 x 600 mm at 1.8 px per mm; the same artwork scales to a
-   1200 x 800 mm board without reflowing). The print block below fits that 3:2
-   canvas onto A3 landscape for an office proof; the sign printer works from the
-   same fixed-ratio artwork at whatever size the board is ordered in.
+   1200 x 1600, and **no property photograph** (6.1): a board is read from a
+   pavement at speed, so it carries the facts that make someone stop, not a
+   picture they can see by looking up. The billboard is a separate, landscape
+   artefact and is not this.
 
-   Method-aware through the shared macros: an auction shows the Dynamic
-   Auctioneers lockup and the channel / date / time line, anything else shows
-   Dynamic Real Estate and the price line. Every value comes from the POPIA-safe
-   view model and a missing field simply drops its block. #}
-{% import "_brand.html.j2" as brand %}
+   Structure, top to bottom, straight off the reference:
+     black header band   channel | WEEKDAY over the date and time
+     ref pill            MASTER REF, top right, outlined
+     headline stack      bedrooms / extent + type / suburb, city
+     method box          two-tone "LIQUIDATION | AUCTION"
+     QR                  the code the team uploaded (D69); omitted when none
+     phone               the number for THIS board
+     black footer        the full lockup
+
+   The weekday is derived from the auction date (D71), never typed. Residential
+   boards always print bedrooms and commercial/agricultural ones always print the
+   extent (6.5, 6.6), because those are the two facts that decide whether a
+   passer-by is the buyer. #}
 {% import "_adparts.html.j2" as parts %}
+
 {% set is_auction = (vm.method == 'auction') %}
-{% set hero = vm.hero_src %}
-{% set place = vm.place_line or vm.suburb or vm.municipality or vm.province %}
-{# Board type is set once, so the huge locality line never wraps past two lines
-   and never runs under the shield: shrink the type as the name gets longer. #}
-{% set n = (place or '') | length %}
-{% set place_px = 116 if n <= 16 else (94 if n <= 24 else (78 if n <= 34 else 62)) %}
-{% set addr = vm.address or vm.location_line %}
-{# The money line is the other block that has to stay on the board: an auction
-   channel/date/time line or a wordy price runs far longer than "R1 250 000",
-   so step its type down by length instead of letting it push the layout. #}
-{% set money = parts.money_text(vm) %}
-{% set m = money | length %}
-{% if is_auction %}
-{% set money_px = 62 if m <= 36 else (50 if m <= 46 else 40) %}
-{% else %}
-{% set money_px = 88 if m <= 18 else (68 if m <= 28 else 50) %}
-{% endif %}
+
+{# The header's first line: how it is sold and on which day. #}
+{% set channel = (vm.auction_channel or 'Online') if is_auction else 'For sale' %}
+
+{# The method box, two tone. An auction names its type; a listing reads FOR SALE. #}
+{% set box_lead = (vm.auction_type or 'Liquidation') if is_auction else 'For' %}
+{% set box_tail = 'Auction' if is_auction else 'Sale' %}
+
+{# The reference number a passer-by quotes. The master (mandate) ref when the
+   record carries one, the property ref otherwise: printing both on a board read
+   from six metres away is two numbers nobody writes down (6.2). #}
+{% set ref_label = 'Master ref' if vm.public_ref else 'Property ref' %}
+{% set ref_value = vm.public_ref or vm.property_ref %}
+
+{# Line 1 of the stack: bedrooms for a home, extent for anything else. A board
+   that says neither tells a passer-by nothing about whether it is for them. #}
+{% set lead_line %}
+{%- if vm.beds %}{{ vm.beds }}-BED
+{%- elif vm.size_ha %}± {{ vm.size_ha }} HA
+{%- elif vm.size_str %}± {{ vm.size_str }}M²{% endif -%}
+{% endset %}
+
+{# Line 2: the extent and the property type together, so a residential board
+   still states its size and a commercial one still states what it is. #}
+{# The descriptor usually opens with the bed count ("3 Bedroom Apartment"), and
+   the lead line above already says "3-BED", so it is stripped here rather than
+   printed twice on a board with room for six words. #}
+{% set descriptor = vm.descriptor_line or vm.title_type_label or 'Property' %}
+{% set type_word = (descriptor | regex_strip_beds) if vm.beds else descriptor %}
+{% set size_line %}
+{%- if vm.beds and vm.size_ha %}± {{ vm.size_ha }} HA {{ type_word }}
+{%- elif vm.beds and vm.size_str %}± {{ vm.size_str }}M² {{ type_word }}
+{%- else %}{{ type_word }}{% endif -%}
+{% endset %}
+
+{% set place = vm.place_line or vm.suburb or '' %}
+{# One number, and only a number (see _board_phone): the contact field is free
+   text and has held a name, a number and an email at once. #}
+{% set phone = vm.board_phone or vm.brand_phone %}
+
+{# Type steps down by length rather than letting a long suburb push the layout. #}
+{% set place_px = 62 if (place | length) <= 22 else (52 if (place | length) <= 30 else 42) %}
+{% set size_px = 58 if (size_line | trim | length) <= 24 else (48 if (size_line | trim | length) <= 32 else 38) %}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
 <title>Board {{ place or vm.headline }} | {{ vm.brand_name }}</title>
 <style>
-  {{ brand.tokens_css() }}
-  :root { --g2:#ddc689; --g3:#ac874a; --gline:#ac874a; }
-  body { background:#0d0b08; }
+  :root { --ink:#000; --gold:#ac874a; --gold-2:#ddc689; --paper:#f4efe6; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; background:#fff; }
+  body { font-family:'Montserrat','Avenir Next',Arial,sans-serif; -webkit-font-smoothing:antialiased; }
 
+  /* The board itself: a locked 1200x1600 canvas, printed at exactly that size. */
   .board {
-    width:1620px; height:1080px; margin:0 auto; background:#17130E; color:#ffffff;
-    position:relative; overflow:hidden; display:flex; flex-direction:column;
-    font-family:'Montserrat',system-ui,sans-serif;
-    background-image:radial-gradient(130% 90% at 78% 0%, #17130E 0%, #0d0b08 100%);
+    position:relative; width:1200px; height:1600px; overflow:hidden;
+    background:var(--paper); display:flex; flex-direction:column;
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  .gold { background:linear-gradient(180deg,#8a6a38 0%,#ac874a 22%,#ddc689 50%,#ac874a 78%,#8a6a38 100%); }
 
-  /* Top chrome: metallic gold ref bar, same wording as the social ads. */
-  .bd-ref { flex:none; display:flex; justify-content:space-between; padding:15px 44px; font-size:26px;
-            font-weight:800; letter-spacing:.04em; color:#191613; text-transform:uppercase; }
-
-  .bd-main { flex:1 1 auto; min-height:0; display:flex; align-items:stretch; gap:34px; }
-
-  .bd-left { flex:1 1 auto; min-width:0; overflow:hidden; display:flex; flex-direction:column;
-             justify-content:center; padding:26px 0 26px 46px; }
-  .bd-place { margin:0; font-size:{{ place_px }}px; font-weight:900; line-height:.92; color:#ffffff;
-              text-transform:uppercase; letter-spacing:-.015em; overflow-wrap:break-word; }
-  .bd-desc { margin:10px 0 0; font-size:54px; font-weight:900; line-height:1; color:var(--g2);
-             text-transform:uppercase; letter-spacing:-.01em; }
-  .bd-badge { align-self:flex-start; margin-top:26px; padding:14px 34px; font-size:44px; font-weight:900;
-              letter-spacing:.02em; text-transform:uppercase; color:#191613; border-radius:8px;
-              box-shadow:0 4px 16px rgba(0,0,0,.45); }
-
-  .bd-stats { margin-top:30px; display:grid; grid-template-columns:1fr 1fr; gap:22px 34px; overflow:hidden; }
-  .bd-stat { display:flex; align-items:center; gap:20px; font-size:36px; font-weight:800; color:#ffffff;
-             text-transform:uppercase; line-height:1.06; min-width:0; }
-  .bd-stat span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .bd-stat svg { width:62px; height:62px; stroke:#ffffff; fill:none; stroke-width:1.7;
-                 stroke-linecap:round; stroke-linejoin:round; flex:none; }
-  .bd-stat.wide { grid-column:1 / -1; }
-
-  /* Media column: hero photo in a gold frame with the white shield lockup over
-     its top corner. With no photo the column narrows to just the shield. */
-  .bd-right { flex:none; width:600px; padding:0 46px 0 0; position:relative; }
-  .bd-right.nophoto { width:306px; }
-  .bd-right img.photo { width:100%; height:100%; object-fit:cover; display:block;
-                        border:4px solid var(--gline); border-radius:14px; }
-  .bd-shield { position:absolute; top:-8px; right:46px; z-index:2; width:250px; height:282px; background:#ffffff;
-               display:flex; align-items:center; justify-content:center; padding:21px 26px 60px;
-               clip-path:path('M10,0 H240 Q250,0 250,10 V179 Q250,235 125,282 Q0,235 0,179 V10 Q0,0 10,0 Z'); }
-  .bd-shield img { width:100%; height:auto; display:block; }
-
-  .bd-addr { flex:none; margin:14px 46px 0; border:3px solid var(--gline); border-radius:999px;
-             padding:12px 28px; display:flex; align-items:center; justify-content:center; gap:14px;
-             font-size:30px; font-weight:800; color:#ffffff; text-transform:uppercase; text-align:center; }
-  .bd-addr svg { width:32px; height:32px; fill:var(--g2); flex:none; }
-
-  .bd-money { flex:none; margin:16px 46px 0; border:4px solid var(--gline); border-radius:14px;
-              padding:16px 20px; text-align:center; font-weight:900; color:#ffffff;
-              text-transform:uppercase; letter-spacing:.01em; line-height:1.04;
-              font-size:{{ money_px }}px; }
-
-  /* Bottom chrome: the call to action. The phone is the biggest thing on the
-     board after the locality, which is what a passing motorist needs. */
-  .bd-contact { flex:none; margin-top:auto; padding:22px 46px; display:flex; align-items:center;
-                gap:56px; color:#191613; }
-  .bd-contact .tel { display:flex; align-items:center; gap:22px; font-size:78px; font-weight:900;
-                     letter-spacing:.01em; flex:none; }
-  .bd-contact .dot { width:100px; height:100px; border-radius:50%; background:#191613; display:flex;
-                     align-items:center; justify-content:center; flex:none; }
-  .bd-contact .dot svg { width:54px; height:54px; fill:#ddc689; }
-  .bd-contact .mailto { display:flex; align-items:center; gap:18px; font-size:32px; font-weight:800;
-                        min-width:0; overflow:hidden; }
-  .bd-contact .mailto span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .bd-contact svg.mail { width:46px; height:36px; fill:none; stroke:#191613; stroke-width:1.8; flex:none; }
-
-  /* On-screen preview only: step the fixed board down so it fits a browser or
-     the platform's preview frame. Print and rasterising are unaffected. */
-  @media screen and (max-width:1600px) { .board { zoom:.82; } }
-  @media screen and (max-width:1300px) { .board { zoom:.66; } }
-  @media screen and (max-width:1040px) { .board { zoom:.50; } }
-  @media screen and (max-width:780px)  { .board { zoom:.36; } }
-
-  @media print {
-    @page { size:A3 landscape; margin:0; }
-    body { background:#ffffff; }
-    /* 1620px = 428.6mm at 96dpi; 0.979 fits the 3:2 board across A3 landscape
-       (280mm tall), and the top margin centres it on the 297mm sheet. */
-    .board { zoom:.979; margin:8mm auto; }
+  /* The diagonal sheen of the reference: pale bands across an ivory ground. */
+  .bd-ground { position:absolute; inset:0; z-index:0;
+    background:
+      linear-gradient(118deg, rgba(255,255,255,.95) 0 32%, rgba(255,255,255,0) 32% 44%,
+                              rgba(255,255,255,.75) 44% 58%, rgba(255,255,255,0) 58% 72%,
+                              rgba(255,255,255,.85) 72% 100%),
+      linear-gradient(160deg, #ffffff 0%, #f6f1e7 55%, #e8dcc6 100%);
   }
-  .bd-qr { position:absolute; right:46px; bottom:190px; width:210px; text-align:center; z-index:4; }
-  .bd-qr img { width:210px; height:210px; display:block; background:#fff; padding:10px; border:3px solid #ac874a; }
-  .bd-qr span { display:block; margin-top:10px; font-size:20px; font-weight:900; letter-spacing:.12em; color:#ddc689; }
+
+  .bd-head {
+    position:relative; z-index:2; flex:none; background:var(--ink); color:#fff;
+    padding:34px 40px 38px; text-align:center;
+  }
+  .bd-head .l1 { font-size:76px; font-weight:900; line-height:1.02; letter-spacing:-.01em; text-transform:uppercase; }
+  .bd-head .l2 { margin-top:10px; font-size:70px; font-weight:900; line-height:1.02; letter-spacing:-.01em; text-transform:uppercase; }
+
+  .bd-body { position:relative; z-index:2; flex:1 1 auto; display:flex; flex-direction:column;
+             align-items:center; padding:26px 46px 30px; min-height:0; }
+  .bd-mid { margin-top:auto; margin-bottom:auto; display:flex; flex-direction:column; align-items:center; }
+
+  .bd-ref { align-self:flex-end; border:3px solid var(--ink); border-radius:999px;
+            padding:12px 26px; font-size:22px; font-weight:800; letter-spacing:.02em;
+            text-transform:uppercase; color:var(--ink); background:rgba(255,255,255,.75); }
+
+  .bd-stack { margin-top:14px; text-align:center; color:var(--ink); }
+  .bd-stack .lead { font-size:84px; font-weight:900; line-height:1.0; letter-spacing:-.02em; text-transform:uppercase; }
+  .bd-stack .size { margin-top:6px; font-weight:900; line-height:1.02; letter-spacing:-.02em; text-transform:uppercase; }
+  .bd-stack .place { margin-top:6px; font-weight:900; line-height:1.02; letter-spacing:-.01em; text-transform:uppercase; }
+
+  /* The two-tone method box: outlined, half black-on-white, half white-on-black. */
+  .bd-method { margin-top:24px; display:flex; border:4px solid var(--ink); }
+  .bd-method span { padding:12px 22px; font-size:52px; font-weight:900; line-height:1;
+                    letter-spacing:-.01em; text-transform:uppercase; }
+  .bd-method .a { background:#fff; color:var(--ink); }
+  .bd-method .b { background:var(--ink); color:#fff; }
+
+  .bd-qr { margin-top:26px; width:330px; height:330px; border:4px solid var(--ink);
+           background:#fff; padding:10px; }
+  .bd-qr img { width:100%; height:100%; object-fit:contain; display:block; }
+
+  .bd-tel { margin-top:34px; padding-top:0; display:flex; align-items:center; gap:22px;
+            font-size:76px; font-weight:900; color:var(--ink); letter-spacing:-.01em; }
+  .bd-tel .dot { width:74px; height:74px; border-radius:50%; background:var(--ink);
+                 display:flex; align-items:center; justify-content:center; flex:none; }
+  .bd-tel .dot svg { width:42px; height:42px; fill:#fff; }
+
+  .bd-foot { position:relative; z-index:2; flex:none; background:var(--ink);
+             padding:30px 40px; display:flex; align-items:center; justify-content:center; }
+  .bd-foot img { height:118px; width:auto; display:block; }
+
   .nb{white-space:nowrap}
   .un{text-transform:none}
 </style>
+</head>
+<body>
 
 <div class="board ad">
-  <div class="bd-ref gold">
-    <span>{% if vm.public_ref %}MASTER REF: {{ vm.public_ref }}{% endif %}</span>
-    <span>PROPERTY REF: {{ vm.property_ref }}</span>
+  <div class="bd-ground"></div>
+
+  <div class="bd-head">
+    <div class="l1">{{ channel | upper }}{% if vm.auction_weekday %} | {{ vm.auction_weekday }}{% endif %}</div>
+    {% if vm.auction_date or vm.auction_time %}
+    <div class="l2">{{ vm.auction_date | upper }}{% if vm.auction_time %} @ {{ vm.auction_time }}{% endif %}</div>
+    {% elif not is_auction %}
+    <div class="l2">{{ vm.price_display | upper }}</div>
+    {% endif %}
   </div>
 
-  <div class="bd-main">
-    <div class="bd-left">
-      {% if place %}<h1 class="bd-place">{{ place }}</h1>{% endif %}
-      {% if vm.descriptor_line %}<div class="bd-desc">{{ vm.descriptor_line }}</div>{% endif %}
-      <span class="bd-badge gold">{{ parts.badge_text(vm) }}</span>
+  <div class="bd-body">
+    {% if ref_value %}
+    <div class="bd-ref">{{ ref_label }}: {{ ref_value }}</div>
+    {% endif %}
 
-      <div class="bd-stats">
-        {% if vm.size_str %}<div class="bd-stat">{{ parts.icon_size() }}<span><span class="nb">&plusmn;{% if vm.size_ha %}{{ vm.size_ha }}<span class="un"> ha</span>{% else %}{{ vm.size_str }}<span class="un">m&sup2;</span>{% endif %}</span> Property</span></div>{% endif %}
-        {% if vm.beds %}<div class="bd-stat">{{ parts.icon_bed() }}<span>{{ vm.beds }} Bedroom{{ 's' if vm.beds != '1' }}</span></div>{% endif %}
-        {% if vm.baths %}<div class="bd-stat">{{ parts.icon_bath() }}<span>{{ vm.baths }} Bathroom{{ 's' if vm.baths != '1' }}</span></div>{% endif %}
-        {% if vm.garages and vm.garages != '0' %}<div class="bd-stat">{{ parts.icon_garage() }}<span>{{ parts.garage_word(vm.garages) }}</span></div>{% endif %}
-        {% if vm.flatlet_present %}<div class="bd-stat wide">{{ parts.icon_feature() }}<span>Separate Flatlet</span></div>{% endif %}
-      </div>
+    <div class="bd-mid">
+    <div class="bd-stack">
+      {% if lead_line | trim %}<div class="lead nb">{{ lead_line | trim }}</div>{% endif %}
+      {% if size_line | trim %}<div class="size" style="font-size:{{ size_px }}px">{{ size_line | trim }}</div>{% endif %}
+      {% if place %}<div class="place" style="font-size:{{ place_px }}px">{{ place }}</div>{% endif %}
     </div>
 
-    <div class="bd-right{{ '' if hero else ' nophoto' }}">
-      {% if hero %}<img class="photo" src="{{ hero }}" alt="{{ place or vm.headline }}"/>{% endif %}
-      <div class="bd-shield">{{ parts.brand_logo(vm, 'light') }}</div>
+    <div class="bd-method">
+      <span class="a">{{ box_lead }}</span><span class="b">{{ box_tail }}</span>
+    </div>
+
+    {# The QR the team generated and uploaded (D69). Nothing is drawn without
+       one: an empty white square on a printed board is worse than no square. #}
+    {% if vm.qr_src %}
+    <div class="bd-qr"><img src="{{ vm.qr_src }}" alt="Scan for this property"></div>
+    {% endif %}
+
+    <div class="bd-tel">
+      <span class="dot"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11 11 0 0 0 3.4.55 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.3a1 1 0 0 1 1 1 11 11 0 0 0 .55 3.4 1 1 0 0 1-.24 1z"/></svg></span>
+      <span class="nb">{{ phone }}</span>
+    </div>
     </div>
   </div>
 
-  {% if addr %}
-  <div class="bd-addr">
-    <svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
-    {{ addr }}
-  </div>
-  {% endif %}
-
-  <div class="bd-money">{{ money }}</div>
-
-  {# The QR the team generated (in GoHighLevel, so a scan is tracked) and
-     uploaded at gate 2. Nothing is drawn when they have not added one: an empty
-     white square on a printed board is worse than no square. #}
-  {% if vm.qr_src %}
-  <div class="bd-qr"><img src="{{ vm.qr_src }}" alt="Scan for this property"><span>SCAN FOR DETAILS</span></div>
-  {% endif %}
-
-  <div class="bd-contact gold">
-    <span class="tel">
-      <span class="dot"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11 11 0 0 0 3.4.55 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.3a1 1 0 0 1 1 1 11 11 0 0 0 .55 3.4 1 1 0 0 1-.24 1z"/></svg></span>{{ vm.brand_phone }}
-    </span>
-    <span class="mailto">
-      <svg class="mail" viewBox="0 0 24 24"><path d="M3 5h18v14H3z"/><path d="M3 6l9 6 9-6"/></svg><span>{{ vm.brand_email }}</span>
-    </span>
-  </div>
+  <div class="bd-foot">{{ parts.brand_logo(vm, 'dark', 'auctioneers') }}</div>
 </div>
+
+</body>
+</html>

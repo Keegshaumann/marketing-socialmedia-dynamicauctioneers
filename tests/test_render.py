@@ -1278,3 +1278,75 @@ def test_the_ads_auction_line_does_not_carry_the_weekday(golden_record, tmp_path
 
     assert "ONLINE AUCTION | 28 MAY 2026 @ 10:00" in ad
     assert "THURSDAY" not in ad
+
+
+# --- the on-site auction board, rebuilt to DP2817.3 (D74) -----------------
+
+def _board_html(record, tmp_path) -> str:
+    store = _store_with(record)
+    try:
+        art = render_one(record.dp, store, "auction_board", backend="html",
+                         output_root=str(tmp_path))
+        return Path(art.path).read_text(encoding="utf-8")
+    finally:
+        store.close()
+
+
+def test_board_carries_no_property_photograph(golden_record, tmp_path):
+    """6.1: a board is read from a pavement. It carries the facts that make
+    someone stop, not a picture they can see by looking up."""
+    html = _board_html(golden_record, tmp_path)
+
+    assert 'alt="Property photograph"' not in html
+    assert "hero" not in html.lower().split("<style>")[0]
+
+
+def test_residential_board_always_leads_with_bedrooms(golden_record, tmp_path):
+    """6.6, and the bed count is not then repeated by the descriptor."""
+    html = _board_html(golden_record, tmp_path)
+
+    assert "3-BED" in html
+    assert "3 Bedroom Apartment" not in html      # would say it twice
+    assert "Apartment" in html
+
+
+def test_a_board_without_bedrooms_leads_with_the_extent(golden_record, tmp_path):
+    """6.5: commercial, industrial and agricultural boards must state the size."""
+    golden_record.physical.bedrooms = None
+    golden_record.physical.unit_size_m2 = 599600.0        # 59.96 ha
+    html = _board_html(golden_record, tmp_path)
+
+    assert "59.96 HA" in html.upper()
+    assert "-BED" not in html
+
+
+def test_board_prints_the_number_not_the_whole_contact_field(golden_record, tmp_path):
+    """The contact field is free text and has held a name, a number and an email
+    at once; the board prints one number at 76px."""
+    golden_record.sale_process.viewing.contact_public = (
+        "Dynamic Auctioneers 084 702 3766 | properties@dynamicauctioneers.co.za"
+    )
+    html = _board_html(golden_record, tmp_path)
+
+    assert "084 702 3766" in html
+    assert "properties@dynamicauctioneers.co.za" not in html
+
+
+def test_board_shows_the_qr_only_when_there_is_one(golden_record, tmp_path):
+    """An empty white square on a printed board is worse than no square (D69)."""
+    assert 'alt="Scan for this property"' not in _board_html(golden_record, tmp_path)
+
+    golden_record.marketing.qr_code = "photos/qr.png"
+    assert 'alt="Scan for this property"' in _board_html(golden_record, tmp_path)
+
+
+def test_board_prints_one_reference_not_two(golden_record, tmp_path):
+    """6.2: two numbers on a board read from six metres away is two numbers
+    nobody writes down. The master ref wins when the record carries one."""
+    golden_record.identity.mandate_ref = "G971/2024"
+    html = _board_html(golden_record, tmp_path)
+    assert "Master ref: G971/2024" in html
+    assert "DP3060" not in html.split("<style>")[1] if "<style>" in html else True
+
+    golden_record.identity.mandate_ref = None
+    assert "Property ref: DP3060" in _board_html(golden_record, tmp_path)

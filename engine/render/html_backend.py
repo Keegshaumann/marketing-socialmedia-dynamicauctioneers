@@ -160,6 +160,21 @@ _DATE_FORMATS = (
 )
 
 
+def _board_phone(contact: object, fallback: str) -> str:
+    """The one number a board prints, big.
+
+    ``sale_process.viewing.contact_public`` is free text and has been seen
+    holding a name, a number and an email in one string ("Dynamic Auctioneers
+    086 155 2288 | properties@..."). A board carries a single number at 76px, so
+    the NUMBER is extracted rather than the field printed: splitting on a
+    separator that happens to be there put "Dynamic Auctioneers" where the phone
+    should be, and printing the field whole ran off the edge of the board.
+    """
+    text = str(contact or "")
+    match = re.search(r"(?:\+?27[\s-]?|0)\d[\d\s-]{7,12}\d", text)
+    return " ".join(match.group(0).split()) if match else fallback
+
+
 def _auction_weekday(text: object) -> Optional[str]:
     """The weekday of the auction, DERIVED from the date the marketer typed.
 
@@ -310,6 +325,11 @@ class HtmlBackend(RenderBackend):
         self._env.globals["icon_for"] = pack_icons.icon_for
         self._env.globals["split_label"] = pack_icons.split_label
         self._env.filters["split3"] = _split3
+        # "3 Bedroom Apartment" -> "Apartment", for surfaces that state the bed
+        # count separately (the board's stacked headline).
+        self._env.filters["regex_strip_beds"] = lambda t: re.sub(
+            r"^\s*\d+\s*(?:-|\s)?bed(?:room)?s?\s+", "", str(t or ""), flags=re.I
+        ).strip() or str(t or "")
 
     # --- backend contract ------------------------------------------------
 
@@ -515,6 +535,8 @@ class HtmlBackend(RenderBackend):
             "monthly_levy": _fmt_size(valuation.get("monthly_levy")),
             "viewing_by_appt": bool(viewing.get("by_appointment")),
             "contact_public": viewing.get("contact_public"),
+            # The single number the on-site board prints (D74).
+            "board_phone": _board_phone(viewing.get("contact_public"), BRAND["phone"]),
             "photos": photos,
             # The board's QR code, uploaded by the team (D69). Resolved the
             # same way as a photo so it embeds for print; None until they
