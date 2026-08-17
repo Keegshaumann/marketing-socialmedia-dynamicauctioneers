@@ -456,6 +456,22 @@
         "documentation": {}
     },
     {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
         "label": "json",
         "kind": 6,
         "isExtraImport": true,
@@ -638,6 +654,22 @@
     },
     {
         "label": "PurePosixPath",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
         "importPath": "pathlib",
         "description": "pathlib",
         "isExtraImport": true,
@@ -1254,6 +1286,38 @@
     },
     {
         "label": "Union",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
         "importPath": "typing",
         "description": "typing",
         "isExtraImport": true,
@@ -3128,6 +3192,15 @@
         "documentation": {}
     },
     {
+        "label": "math",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "math",
+        "description": "math",
+        "detail": "math",
+        "documentation": {}
+    },
+    {
         "label": "hashlib",
         "kind": 6,
         "isExtraImport": true,
@@ -3440,6 +3513,15 @@
         "importPath": "fitz",
         "description": "fitz",
         "detail": "fitz",
+        "documentation": {}
+    },
+    {
+        "label": "subprocess",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "subprocess",
+        "description": "subprocess",
+        "detail": "subprocess",
         "documentation": {}
     },
     {
@@ -3948,6 +4030,46 @@
         "description": "webapp",
         "isExtraImport": true,
         "detail": "webapp",
+        "documentation": {}
+    },
+    {
+        "label": "OtpUnreadable",
+        "importPath": "engine.otp",
+        "description": "engine.otp",
+        "isExtraImport": true,
+        "detail": "engine.otp",
+        "documentation": {}
+    },
+    {
+        "label": "confirmation_pill",
+        "importPath": "engine.otp",
+        "description": "engine.otp",
+        "isExtraImport": true,
+        "detail": "engine.otp",
+        "documentation": {}
+    },
+    {
+        "label": "extract_terms",
+        "importPath": "engine.otp",
+        "description": "engine.otp",
+        "isExtraImport": true,
+        "detail": "engine.otp",
+        "documentation": {}
+    },
+    {
+        "label": "outstanding_pill",
+        "importPath": "engine.otp",
+        "description": "engine.otp",
+        "isExtraImport": true,
+        "detail": "engine.otp",
+        "documentation": {}
+    },
+    {
+        "label": "terms_lines",
+        "importPath": "engine.otp",
+        "description": "engine.otp",
+        "isExtraImport": true,
+        "detail": "engine.otp",
         "documentation": {}
     },
     {
@@ -5459,15 +5581,6 @@
         "documentation": {}
     },
     {
-        "label": "_PDF_FORMATS",
-        "kind": 5,
-        "importPath": "engine.render.html_backend",
-        "description": "engine.render.html_backend",
-        "peekOfCode": "_PDF_FORMATS = frozenset({\"info_pack\"})\ndef _pdf_export_enabled() -> bool:\n    \"\"\"Whether to print the PDF formats. On by default; ``ENGINE_PDF_EXPORT=0``\n    turns it off.\n    Each PDF costs a Chromium launch (~2-3s). That is fine once per approval in\n    production, but the test suite renders the pack in dozens of tests and went\n    from 33s to nearly nine minutes, so the suite disables it and a couple of\n    dedicated tests turn it back on to cover the real export.\n    \"\"\"\n    return (os.getenv(\"ENGINE_PDF_EXPORT\") or \"1\").strip() != \"0\"",
-        "detail": "engine.render.html_backend",
-        "documentation": {}
-    },
-    {
         "label": "_TEMPLATE_DIR",
         "kind": 5,
         "importPath": "engine.render.html_backend",
@@ -5562,7 +5675,7 @@
         "kind": 2,
         "importPath": "engine.render.rasterize",
         "description": "engine.render.rasterize",
-        "peekOfCode": "def html_to_pdf(html_path, pdf_path, timeout_ms: int = 60000) -> Path:\n    \"\"\"Print a local HTML document to a real A4 PDF and return its path.\n    For the buyer information pack, which is a multi-page DOCUMENT rather than a\n    fixed-canvas ad: a buyer is emailed a PDF, not a web page. Chromium's own\n    print pipeline is used, so the template's ``@media print`` rules apply and\n    backgrounds are kept (``print_background``), which the pack's ivory paper and\n    gold rules depend on.\n    Raises ``RasterizeUnavailable`` when Playwright/Chromium is missing, so the\n    caller can fall back to serving the HTML rather than failing the render.\n    \"\"\"",
+        "peekOfCode": "def html_to_pdf(html_path, pdf_path, timeout_ms: int = 60000, fit_selector: str = \"\") -> Path:\n    \"\"\"Print a local HTML document to a real PDF and return its path.\n    Every visual artifact is delivered as a PDF: that is what the team hands to a\n    client, attaches to an email and imports into Canva. Chromium's own print\n    pipeline is used, so the template's ``@media print`` rules apply and\n    backgrounds are kept (``print_background``). The text stays TEXT (embedded\n    font subsets) and the chrome stays vector, which is what makes the file\n    editable on the other side rather than a picture of a document.\n    Two page geometries:\n    * **Document mode** (default, no ``fit_selector``): A4 with print margins.",
         "detail": "engine.render.rasterize",
         "documentation": {}
     },
@@ -6179,6 +6292,87 @@
         "documentation": {}
     },
     {
+        "label": "OtpUnreadable",
+        "kind": 6,
+        "importPath": "engine.otp",
+        "description": "engine.otp",
+        "peekOfCode": "class OtpUnreadable(RuntimeError):\n    \"\"\"The document could not be turned into text (no pdftotext, or an image scan).\"\"\"\ndef pdf_text(path: \"str | Path\") -> str:\n    \"\"\"The OTP as laid-out text. Uses ``pdftotext -layout`` (poppler).\"\"\"\n    path = Path(path)\n    try:\n        out = subprocess.run(\n            [\"pdftotext\", \"-layout\", str(path), \"-\"],\n            capture_output=True, timeout=60,\n        )",
+        "detail": "engine.otp",
+        "documentation": {}
+    },
+    {
+        "label": "pdf_text",
+        "kind": 2,
+        "importPath": "engine.otp",
+        "description": "engine.otp",
+        "peekOfCode": "def pdf_text(path: \"str | Path\") -> str:\n    \"\"\"The OTP as laid-out text. Uses ``pdftotext -layout`` (poppler).\"\"\"\n    path = Path(path)\n    try:\n        out = subprocess.run(\n            [\"pdftotext\", \"-layout\", str(path), \"-\"],\n            capture_output=True, timeout=60,\n        )\n    except (OSError, subprocess.TimeoutExpired) as exc:\n        raise OtpUnreadable(f\"could not run pdftotext on {path.name}\") from exc",
+        "detail": "engine.otp",
+        "documentation": {}
+    },
+    {
+        "label": "extract_terms",
+        "kind": 2,
+        "importPath": "engine.otp",
+        "description": "engine.otp",
+        "peekOfCode": "def extract_terms(pdf_path: \"str | Path\") -> Dict[str, object]:\n    \"\"\"Read the sale terms out of an OTP. Returns a dict shaped for the record.\n    Keys are left out entirely when the clause could not be read, so a caller can\n    tell \"not in this document\" from \"zero\". ``clauses`` carries the verbatim\n    text each value came from, and ``flags`` any disagreement a human must settle.\n    \"\"\"\n    text = pdf_text(pdf_path)\n    clauses = {\n        \"3.1\": _clause(text, \"3.1\", r\"3\\.2\"),\n        \"3.2\": _clause(text, \"3.2\", r\"3\\.3\"),",
+        "detail": "engine.otp",
+        "documentation": {}
+    },
+    {
+        "label": "terms_lines",
+        "kind": 2,
+        "importPath": "engine.otp",
+        "description": "engine.otp",
+        "peekOfCode": "def terms_lines(terms: Dict[str, object]) -> List[str]:\n    \"\"\"The terms box, in the reference pack's wording, from extracted values.\n    Only states what the document actually said. A missing value drops its line\n    rather than printing a default that would be wrong.\n    \"\"\"\n    lines: List[str] = []\n    deposit = terms.get(\"deposit_pct\")\n    if deposit is not None:\n        due = terms.get(\"deposit_due\") or \"on acceptance\"\n        lines.append(f\"{_pct(deposit)} deposit payable {due} by way of EFT.\")",
+        "detail": "engine.otp",
+        "documentation": {}
+    },
+    {
+        "label": "confirmation_pill",
+        "kind": 2,
+        "importPath": "engine.otp",
+        "description": "engine.otp",
+        "peekOfCode": "def confirmation_pill(terms: Dict[str, object]) -> Optional[str]:\n    \"\"\"The gold pill under the terms box, or None when the OTP did not say.\"\"\"\n    days = terms.get(\"confirmation_days\")\n    return f\"Subject To {days} days Confirmation By Seller\" if days is not None else None\ndef outstanding_pill(terms: Dict[str, object]) -> str:\n    \"\"\"The gold pill above the terms box: who settles what is outstanding.\"\"\"\n    payer = terms.get(\"outstanding_payable_by\")\n    if payer:\n        return f\"All Outstanding Fees, if any, to be Settled by the {str(payer).title()}.\"\n    return \"All Outstanding Fees, if any, to be Settled by the Seller.\"",
+        "detail": "engine.otp",
+        "documentation": {}
+    },
+    {
+        "label": "outstanding_pill",
+        "kind": 2,
+        "importPath": "engine.otp",
+        "description": "engine.otp",
+        "peekOfCode": "def outstanding_pill(terms: Dict[str, object]) -> str:\n    \"\"\"The gold pill above the terms box: who settles what is outstanding.\"\"\"\n    payer = terms.get(\"outstanding_payable_by\")\n    if payer:\n        return f\"All Outstanding Fees, if any, to be Settled by the {str(payer).title()}.\"\n    return \"All Outstanding Fees, if any, to be Settled by the Seller.\"\ndef _pct(value: float) -> str:\n    \"\"\"\"20\" not \"20.0\"; \"7.5\" kept.\"\"\"\n    return f\"{value:g}%\"",
+        "detail": "engine.otp",
+        "documentation": {}
+    },
+    {
+        "label": "_PCT",
+        "kind": 5,
+        "importPath": "engine.otp",
+        "description": "engine.otp",
+        "peekOfCode": "_PCT = r\"(\\d{1,2}(?:[.,]\\d{1,2})?)\\s*%\"\n# \"60 (SIXTY) days\" / \"7 (SEVEN) days\"\n_DAYS = r\"(\\d{1,3})\\s*(?:\\([A-Za-z ]+\\)\\s*)?(?:business\\s+|working\\s+)?days\"\n_WORD_NUMBERS = {\n    \"one\": 1, \"two\": 2, \"three\": 3, \"four\": 4, \"five\": 5, \"six\": 6, \"seven\": 7,\n    \"eight\": 8, \"nine\": 9, \"ten\": 10, \"fifteen\": 15, \"twenty\": 20, \"thirty\": 30,\n    \"forty\": 40, \"forty five\": 45, \"fifty\": 50, \"sixty\": 60, \"ninety\": 90,\n}\nclass OtpUnreadable(RuntimeError):\n    \"\"\"The document could not be turned into text (no pdftotext, or an image scan).\"\"\"",
+        "detail": "engine.otp",
+        "documentation": {}
+    },
+    {
+        "label": "_DAYS",
+        "kind": 5,
+        "importPath": "engine.otp",
+        "description": "engine.otp",
+        "peekOfCode": "_DAYS = r\"(\\d{1,3})\\s*(?:\\([A-Za-z ]+\\)\\s*)?(?:business\\s+|working\\s+)?days\"\n_WORD_NUMBERS = {\n    \"one\": 1, \"two\": 2, \"three\": 3, \"four\": 4, \"five\": 5, \"six\": 6, \"seven\": 7,\n    \"eight\": 8, \"nine\": 9, \"ten\": 10, \"fifteen\": 15, \"twenty\": 20, \"thirty\": 30,\n    \"forty\": 40, \"forty five\": 45, \"fifty\": 50, \"sixty\": 60, \"ninety\": 90,\n}\nclass OtpUnreadable(RuntimeError):\n    \"\"\"The document could not be turned into text (no pdftotext, or an image scan).\"\"\"\ndef pdf_text(path: \"str | Path\") -> str:\n    \"\"\"The OTP as laid-out text. Uses ``pdftotext -layout`` (poppler).\"\"\"",
+        "detail": "engine.otp",
+        "documentation": {}
+    },
+    {
+        "label": "_WORD_NUMBERS",
+        "kind": 5,
+        "importPath": "engine.otp",
+        "description": "engine.otp",
+        "peekOfCode": "_WORD_NUMBERS = {\n    \"one\": 1, \"two\": 2, \"three\": 3, \"four\": 4, \"five\": 5, \"six\": 6, \"seven\": 7,\n    \"eight\": 8, \"nine\": 9, \"ten\": 10, \"fifteen\": 15, \"twenty\": 20, \"thirty\": 30,\n    \"forty\": 40, \"forty five\": 45, \"fifty\": 50, \"sixty\": 60, \"ninety\": 90,\n}\nclass OtpUnreadable(RuntimeError):\n    \"\"\"The document could not be turned into text (no pdftotext, or an image scan).\"\"\"\ndef pdf_text(path: \"str | Path\") -> str:\n    \"\"\"The OTP as laid-out text. Uses ``pdftotext -layout`` (poppler).\"\"\"\n    path = Path(path)",
+        "detail": "engine.otp",
+        "documentation": {}
+    },
+    {
         "label": "extract_photos",
         "kind": 2,
         "importPath": "engine.photos",
@@ -6372,7 +6566,16 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class Viewing(_Base):\n    by_appointment: Optional[bool] = None\n    contact_public: Optional[str] = None  # Dynamic's number (safe to render)\n    contact_internal_only: Optional[str] = None  # occupant cell — POPIA, stripped\nclass SaleProcess(_Base):\n    method: Optional[str] = None  # \"offers_invited\" | \"auction\"\n    terms: Optional[List[str]] = None\n    viewing: Optional[Viewing] = None\n    # Auction specifics shown on auction ads only (D42), entered by marketing at\n    # gate 2. Free display text so each reads exactly as the ad should. On an",
+        "peekOfCode": "class Viewing(_Base):\n    by_appointment: Optional[bool] = None\n    contact_public: Optional[str] = None  # Dynamic's number (safe to render)\n    contact_internal_only: Optional[str] = None  # occupant cell — POPIA, stripped\nclass OtpTerms(_Base):\n    \"\"\"Sale terms read from the OTP / Conditions of Sale (fix list 3.2, D68).\n    The information pack used to print these as literal strings (\"10% deposit\",\n    \"45 days\", \"30 days confirmation\"), which were simply one property's values\n    baked into a template. Read from the numbered clauses instead: the sample OTP\n    carries a 20% deposit, a 60 day guarantee and a 7 day confirmation period, so",
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "OtpTerms",
+        "kind": 6,
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "peekOfCode": "class OtpTerms(_Base):\n    \"\"\"Sale terms read from the OTP / Conditions of Sale (fix list 3.2, D68).\n    The information pack used to print these as literal strings (\"10% deposit\",\n    \"45 days\", \"30 days confirmation\"), which were simply one property's values\n    baked into a template. Read from the numbered clauses instead: the sample OTP\n    carries a 20% deposit, a 60 day guarantee and a 7 day confirmation period, so\n    every hardcoded value was wrong for it.\n    ``clauses`` keeps the verbatim sentence each figure came from, so a human can\n    check the source rather than trust the number, and ``flags`` records anything\n    the document itself leaves ambiguous (the sample states its commission as",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -6381,7 +6584,7 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class SaleProcess(_Base):\n    method: Optional[str] = None  # \"offers_invited\" | \"auction\"\n    terms: Optional[List[str]] = None\n    viewing: Optional[Viewing] = None\n    # Auction specifics shown on auction ads only (D42), entered by marketing at\n    # gate 2. Free display text so each reads exactly as the ad should. On an\n    # auction ad the badge is \"<TYPE> AUCTION!\", the auction line is\n    # \"<CHANNEL> AUCTION | <DATE> @ <TIME>\", and ``terms`` becomes the terms strip\n    # (\"Vacant occupation cannot be guaranteed | Viewing not possible\").\n    auction_type: Optional[str] = None     # \"Insolvency\" | \"Liquidation\" | \"Deceased estate\" | ...",
+        "peekOfCode": "class SaleProcess(_Base):\n    method: Optional[str] = None  # \"offers_invited\" | \"auction\"\n    terms: Optional[List[str]] = None\n    # Read from the OTP when one has been uploaded; None means the pack falls\n    # back to the record's free-text terms rather than inventing figures.\n    otp: Optional[OtpTerms] = None\n    viewing: Optional[Viewing] = None\n    # Auction specifics shown on auction ads only (D42), entered by marketing at\n    # gate 2. Free display text so each reads exactly as the ad should. On an\n    # auction ad the badge is \"<TYPE> AUCTION!\", the auction line is",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -8123,6 +8326,78 @@
         "documentation": {}
     },
     {
+        "label": "test_reads_every_clause_off_the_real_otp",
+        "kind": 2,
+        "importPath": "tests.test_otp",
+        "description": "tests.test_otp",
+        "peekOfCode": "def test_reads_every_clause_off_the_real_otp():\n    terms = extract_terms(_require_sample())\n    assert terms[\"deposit_pct\"] == 20.0            # clause 3.1, not the old 10%\n    assert terms[\"deposit_due\"] == \"on signature date\"\n    assert terms[\"guarantee_days\"] == 60           # clause 3.2, not the old 45\n    assert terms[\"commission_pct\"] == 6.0          # clause 14.1\n    assert terms[\"commission_vat\"] is True\n    assert terms[\"commission_payable_by\"] == \"seller\"\n    assert terms[\"confirmation_days\"] == 7         # clause 21.1, not the old 30\ndef test_every_value_carries_the_clause_it_came_from():",
+        "detail": "tests.test_otp",
+        "documentation": {}
+    },
+    {
+        "label": "test_every_value_carries_the_clause_it_came_from",
+        "kind": 2,
+        "importPath": "tests.test_otp",
+        "description": "tests.test_otp",
+        "peekOfCode": "def test_every_value_carries_the_clause_it_came_from():\n    \"\"\"A figure a human cannot trace is a figure they have to take on faith.\"\"\"\n    terms = extract_terms(_require_sample())\n    clauses = terms[\"clauses\"]\n    assert \"20%\" in clauses[\"3.1\"] and \"deposit\" in clauses[\"3.1\"].lower()\n    assert \"60\" in clauses[\"3.2\"]\n    assert \"commission\" in clauses[\"14.1\"].lower()\n    assert \"7\" in clauses[\"21.1\"]\ndef test_flags_the_documents_own_contradiction():\n    \"\"\"Clause 14.1 reads \"6 % (SEVEN PERCENT POINT FIVE PERCENT)\".",
+        "detail": "tests.test_otp",
+        "documentation": {}
+    },
+    {
+        "label": "test_flags_the_documents_own_contradiction",
+        "kind": 2,
+        "importPath": "tests.test_otp",
+        "description": "tests.test_otp",
+        "peekOfCode": "def test_flags_the_documents_own_contradiction():\n    \"\"\"Clause 14.1 reads \"6 % (SEVEN PERCENT POINT FIVE PERCENT)\".\n    Their template contradicts itself. The figure is used and the disagreement is\n    raised for a human, rather than one of the two being picked silently.\n    \"\"\"\n    terms = extract_terms(_require_sample())\n    flags = \" \".join(terms.get(\"flags\") or [])\n    assert \"14.1\" in flags\n    assert \"6% in figures\" in flags and \"7 in words\" in flags\ndef test_a_missing_clause_leaves_its_term_unset_and_says_so():",
+        "detail": "tests.test_otp",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_missing_clause_leaves_its_term_unset_and_says_so",
+        "kind": 2,
+        "importPath": "tests.test_otp",
+        "description": "tests.test_otp",
+        "peekOfCode": "def test_a_missing_clause_leaves_its_term_unset_and_says_so():\n    \"\"\"No clause, no value: the pack omits the line rather than inventing it.\"\"\"\n    terms = extract_terms(_require_sample())\n    # Clause 20 has no body in this document.\n    assert \"outstanding_payable_by\" not in terms\n    assert any(\"20.1\" in f for f in terms.get(\"flags\") or [])\ndef test_the_wording_matches_the_reference_terms_box():\n    terms = extract_terms(_require_sample())\n    lines = terms_lines(terms)\n    assert lines[0] == \"20% deposit payable on signature date by way of EFT.\"",
+        "detail": "tests.test_otp",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_wording_matches_the_reference_terms_box",
+        "kind": 2,
+        "importPath": "tests.test_otp",
+        "description": "tests.test_otp",
+        "peekOfCode": "def test_the_wording_matches_the_reference_terms_box():\n    terms = extract_terms(_require_sample())\n    lines = terms_lines(terms)\n    assert lines[0] == \"20% deposit payable on signature date by way of EFT.\"\n    assert lines[1] == \"6% commission and VAT on the commission payable by the Seller.\"\n    assert lines[2] == \"Guarantee for balance within 60 days after confirmation.\"\n    assert lines[-1] == \"Occupation on date of registration of transfer of the property.\"\n    assert confirmation_pill(terms) == \"Subject To 7 days Confirmation By Seller\"\n    # Clause 20 was unreadable here, so the pill keeps the standing wording.\n    assert outstanding_pill(terms).endswith(\"Settled by the Seller.\")",
+        "detail": "tests.test_otp",
+        "documentation": {}
+    },
+    {
+        "label": "test_no_terms_at_all_rather_than_invented_ones",
+        "kind": 2,
+        "importPath": "tests.test_otp",
+        "description": "tests.test_otp",
+        "peekOfCode": "def test_no_terms_at_all_rather_than_invented_ones():\n    \"\"\"An empty document yields nothing: no line is better than a wrong line.\"\"\"\n    assert terms_lines({}) == [\n        \"Occupation on date of registration of transfer of the property.\"\n    ]\n    assert confirmation_pill({}) is None\ndef test_a_scanned_document_is_refused_not_guessed(tmp_path):\n    \"\"\"An image-only PDF must raise, so intake can ask for a text one.\"\"\"\n    if shutil.which(\"pdftotext\") is None:\n        pytest.skip(\"pdftotext (poppler) not installed\")",
+        "detail": "tests.test_otp",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_scanned_document_is_refused_not_guessed",
+        "kind": 2,
+        "importPath": "tests.test_otp",
+        "description": "tests.test_otp",
+        "peekOfCode": "def test_a_scanned_document_is_refused_not_guessed(tmp_path):\n    \"\"\"An image-only PDF must raise, so intake can ask for a text one.\"\"\"\n    if shutil.which(\"pdftotext\") is None:\n        pytest.skip(\"pdftotext (poppler) not installed\")\n    empty = tmp_path / \"scan.pdf\"\n    empty.write_bytes(b\"%PDF-1.4\\n%%EOF\\n\")\n    with pytest.raises(OtpUnreadable):\n        extract_terms(empty)",
+        "detail": "tests.test_otp",
+        "documentation": {}
+    },
+    {
+        "label": "SAMPLE",
+        "kind": 5,
+        "importPath": "tests.test_otp",
+        "description": "tests.test_otp",
+        "peekOfCode": "SAMPLE = Path(\"/Users/keegshaumann/Dev/claudecode/Dynamic/OTP/2383.1 OTP.pdf\")\ndef _require_sample() -> Path:\n    if shutil.which(\"pdftotext\") is None:\n        pytest.skip(\"pdftotext (poppler) not installed\")\n    if not SAMPLE.exists():\n        pytest.skip(f\"OTP sample not present: {SAMPLE}\")\n    return SAMPLE\ndef test_reads_every_clause_off_the_real_otp():\n    terms = extract_terms(_require_sample())\n    assert terms[\"deposit_pct\"] == 20.0            # clause 3.1, not the old 10%",
+        "detail": "tests.test_otp",
+        "documentation": {}
+    },
+    {
         "label": "test_icon_for_picks_the_right_picture",
         "kind": 2,
         "importPath": "tests.test_pack_icons",
@@ -8447,6 +8722,15 @@
         "documentation": {}
     },
     {
+        "label": "test_info_pack_terms_come_from_the_otp_when_there_is_one",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_info_pack_terms_come_from_the_otp_when_there_is_one(golden_record, tmp_path):\n    \"\"\"Deposit, commission, guarantee and confirmation follow the OTP's clauses.\n    The values were literal strings in the template - one property's terms baked\n    in - so a sale on a 20% deposit and a 7 day confirmation printed \"10%\" and\n    \"30 days\" on its buyer pack.\n    \"\"\"\n    from engine.schema import OtpTerms\n    golden_record.sale_process.otp = OtpTerms(\n        deposit_pct=20.0,\n        deposit_due=\"on signature date\",",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
         "label": "test_info_pack_schedule_pages_split_evenly",
         "kind": 2,
         "importPath": "tests.test_render",
@@ -8497,6 +8781,24 @@
         "importPath": "tests.test_render",
         "description": "tests.test_render",
         "peekOfCode": "def test_info_pack_without_photographs_has_no_band_or_gallery(golden_record, tmp_path):\n    \"\"\"No photographs on the record means no band and no gallery page.\n    An empty image box, or a gallery page with nothing on it, is worse than the\n    page simply not being there.\n    \"\"\"\n    golden_record.marketing.hero_photo = None\n    golden_record.marketing.gallery = []\n    html = _info_pack_html(golden_record, tmp_path)\n    assert 'class=\"band\"' not in html\n    assert 'class=\"grid3\"' not in html",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_no_ad_text_is_cut_off",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_no_ad_text_is_cut_off(design, golden_record, tmp_path):\n    \"\"\"Measured in Chromium: no run of text on an ad falls outside the canvas.\n    The canvas is a locked 1080x1350 with `overflow: hidden`, and the stat rows,\n    the tagline and the terms strip were `white-space: nowrap` with an ellipsis -\n    so a long real value was forced onto one line and then silently truncated,\n    or pushed past the edge and clipped away. Long values now wrap. This asserts\n    the outcome rather than the CSS, on every design in the library, because the\n    fault depends on the rendered width of real record text.\n    \"\"\"\n    from engine.render import rasterize",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_every_visual_artifact_is_a_pdf_at_its_own_size",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_every_visual_artifact_is_a_pdf_at_its_own_size(golden_record, tmp_path, monkeypatch):\n    \"\"\"The pack ships PDFs, each printed at its own canvas, text still text.\n    The team downloads the pack to send to a client and to import into Canva.\n    It used to hand them .html files: only the information pack was printed, and\n    printing an advert as A4 would letterbox a 1080x1350 canvas onto a portrait\n    sheet. Each visual format is now printed at the size of its own root element,\n    and its text stays selectable text rather than a picture of an advert.\n    \"\"\"\n    from engine.render import rasterize\n    if not rasterize.available():",
         "detail": "tests.test_render",
         "documentation": {}
     },
