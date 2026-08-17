@@ -1934,3 +1934,80 @@ def test_the_board_qr_is_rejected_when_it_is_not_an_image():
         assert store.get(dp).marketing.qr_code is None
     finally:
         store.close()
+
+
+# --- gate 2 batches its renders behind one Regenerate (D72) ---------------
+
+def _artifact_mtime(dp: str, fmt: str = "demo_ad"):
+    from webapp import models
+
+    root = Path(models.get_setting(DB_PATH, "output_root") or ".")
+    path = root / f"DP{dp}" / "artifacts" / f"{fmt}.html"
+    return path.stat().st_mtime if path.exists() else None
+
+
+def test_gate2_edits_batch_and_one_regenerate_does_the_work():
+    """Each click used to render: 5.0s a time once approved, measured over all
+    nine formats. Edits now batch and one explicit Regenerate renders once."""
+    _needs_golden()
+    dp = "9060"
+    _golden_clone(dp, state="approved")
+    _render_pack(dp)
+    before = _artifact_mtime(dp)
+    assert before is not None
+
+    client = _client()
+    _login_admin(client)
+
+    # Three separate edits, none of which renders.
+    for field, value in (("headline", "A tidy unit with a flatlet"),
+                         ("price_display", "R1 450 000"),
+                         ("suburb", "Pelham North")):
+        resp = client.post(f"/gates/{dp}/ads/copy", data={field: value})
+        assert resp.status_code == 200
+    assert _artifact_mtime(dp) == before, "an edit re-rendered instead of batching"
+
+    # The marketer is told the adverts are behind.
+    page = client.get(f"/gates/{dp}/ads")
+    assert "The adverts are older than your changes" in page.text
+
+    # One Regenerate catches everything up.
+    resp = client.post(f"/gates/{dp}/ads/regenerate")
+    assert resp.status_code == 200
+    assert "Regenerated" in resp.text
+    assert _artifact_mtime(dp) != before
+
+    page = client.get(f"/gates/{dp}/ads")
+    assert "The adverts are older than your changes" not in page.text
+
+
+def test_approving_renders_pending_changes_first():
+    """The risk batching introduces: signing off artifacts the edits never
+    reached. Approve renders anything pending before it advances the state."""
+    _needs_golden()
+    dp = "9061"
+    _golden_clone(dp, state="drafted")
+    _render_pack(dp)
+    before = _artifact_mtime(dp)
+
+    client = _client()
+    _login_admin(client)
+    client.post(f"/gates/{dp}/ads/copy", data={"headline": "Edited but never regenerated"})
+    assert _artifact_mtime(dp) == before          # still batched
+
+    resp = client.post(f"/gates/{dp}/ads/approve", follow_redirects=False)
+    assert resp.status_code in (204, 303)
+    assert _artifact_mtime(dp) != before, "approval signed off stale artifacts"
+    assert _state(dp) == "approved"
+
+
+def test_regenerate_with_nothing_pending_says_so():
+    _needs_golden()
+    dp = "9062"
+    _golden_clone(dp, state="approved")
+    _render_pack(dp)
+    client = _client()
+    _login_admin(client)
+    resp = client.post(f"/gates/{dp}/ads/regenerate")
+    assert resp.status_code == 200
+    assert "Nothing to regenerate" in resp.text

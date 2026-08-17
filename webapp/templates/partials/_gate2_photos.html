@@ -1,5 +1,23 @@
 {% import '_macros.html' as ui %}
 <div id="photos" class="stack"{% if oob %} hx-swap-oob="true"{% endif %}>
+  {# Pending changes (D72). Gate-2 actions no longer render on every click - they
+     batch here - so the one thing the marketer must be able to see is that the
+     adverts below are older than the record. Approving is safe either way: the
+     approve path renders anything pending before it signs off. #}
+  {% if stale %}
+  <div class="banner banner--note">
+    {{ ui.icon('clock') }}
+    <div class="banner__body">
+      <div class="banner__title">The adverts are older than your changes</div>
+      <div>Edits, photos and design picks are saved. Regenerate to rebuild every artifact once,
+        instead of waiting for a render on each click.</div>
+      <div class="row mt-1">
+        {{ ui.button('Regenerate now', variant='primary', icon_name='sparkles',
+           attrs='hx-post="/gates/' ~ dp ~ '/ads/regenerate" hx-target="#photos" hx-swap="outerHTML" data-gold-sweep') }}
+      </div>
+    </div>
+  </div>
+  {% endif %}
   <form hx-post="/gates/{{ dp }}/ads/photos/upload" hx-encoding="multipart/form-data"
         hx-target="#photos" hx-swap="outerHTML" class="stack" data-photo-form>
     <div class="field">

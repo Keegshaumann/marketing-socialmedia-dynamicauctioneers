@@ -153,6 +153,50 @@ _PRE_DRAFT_STATES = frozenset({"intake", "extracted", "flags_raised", "verified"
 AD_FORMAT = "demo_ad"
 
 
+# --- pending re-render (D72) ---------------------------------------------
+# Gate-2 actions used to render on every click: 5.0s each once a property is
+# approved (measured, all nine formats), so picking a design, swapping the lead
+# photo and fixing a headline cost fifteen seconds of watching a spinner. They
+# now mark the artifacts STALE and one explicit "Regenerate" does the work once.
+#
+# The marker is a file beside the artifacts it describes: it survives a restart,
+# it cannot drift out of sync with a database row, and rendering naturally
+# clears it. Nothing may be APPROVED or POSTED while it is set - that is the
+# whole risk of batching, and it is closed in the approve path rather than left
+# to the marketer to remember.
+
+_STALE_MARKER = ".stale"
+
+
+def _mark_stale(db_path: str, dp: str, reason: str) -> None:
+    art_dir = _artifacts_dir(db_path, dp)
+    try:
+        art_dir.mkdir(parents=True, exist_ok=True)
+        (art_dir / _STALE_MARKER).write_text(reason, encoding="utf-8")
+    except OSError:
+        pass          # a marker we cannot write must never fail the edit itself
+
+
+def _is_stale(db_path: str, dp: str) -> bool:
+    return (_artifacts_dir(db_path, dp) / _STALE_MARKER).exists()
+
+
+def _clear_stale(db_path: str, dp: str) -> None:
+    try:
+        (_artifacts_dir(db_path, dp) / _STALE_MARKER).unlink()
+    except OSError:
+        pass
+
+
+def _render_if_stale(db_path: str, dp: str) -> bool:
+    """Render pending changes and clear the marker. True when work was done."""
+    if not _is_stale(db_path, dp):
+        return False
+    _render(db_path, dp)
+    _clear_stale(db_path, dp)
+    return True
+
+
 def _formats_for_state(state: Optional[str]) -> Optional[List[str]]:
     """Which formats to render in ``state``: the ad only before approval, the
     full set (None) once approved (D39)."""
@@ -499,6 +543,7 @@ def gate_photos_page(dp: str, request: Request, user: dict = Depends(require_rol
             "photos": _photo_view(db_path, dp, record),
             "qr_src": _qr_view(db_path, dp, record),
             "max_photos": _MAX_PHOTOS_TOTAL,
+            "stale": _is_stale(db_path, dp),
             "max_photos": _MAX_PHOTOS_TOTAL,
         },
     )
@@ -685,6 +730,7 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
             "photos": _photo_view(db_path, dp, record),
             "qr_src": _qr_view(db_path, dp, record),
             "max_photos": _MAX_PHOTOS_TOTAL,
+            "stale": _is_stale(db_path, dp),
             "approval_email": email_html,
             "links": links,
             "email_subject": email_subject,
@@ -806,12 +852,10 @@ def _save_qr(db_path: str, dp: str, rel: str, user: str) -> None:
         record.marketing.qr_code = rel
         store.upsert(record)
         store.record_signoff(dp, gate="2", user=user, note=f"board QR attached: {rel}")
-        state = store.get_state(dp)
-        if state not in ("intake", "extracted", "photos"):
-            render_all(dp, store, output_root=_output_root(db_path),
-                       formats=_formats_for_state(state))
+        # No render here either (D72): the board picks the QR up on Regenerate.
     finally:
         store.close()
+    _mark_stale(db_path, dp, "QR code")
 
 
 def _load_record_for_write(store, dp: str):
@@ -877,9 +921,10 @@ def _save_photos(db_path: str, dp: str, full: List[str], user: str) -> None:
             apply_photos(dp, store, hero, gallery, user, output_root=_output_root(db_path), render=False)
         else:
             apply_photos(dp, store, hero, gallery, user,
-                         output_root=_output_root(db_path), formats=_formats_for_state(state))
+                         output_root=_output_root(db_path), formats=[])
     finally:
         store.close()
+    _mark_stale(db_path, dp, "photos")
 
 
 def _photo_result(request: Request, db_path: str, dp: str, toast: Dict[str, Any]):
@@ -1195,10 +1240,12 @@ def _save_edits(db_path: str, dp: str, fields: dict, user: str) -> None:
         return
     store = _store(db_path)
     try:
-        formats = _formats_for_state(store.get_state(dp))
-        apply_edits(dp, store, fields, user, output_root=_output_root(db_path), formats=formats)
+        # formats=[] applies the edit WITHOUT rendering (D72); the explicit
+        # Regenerate does the render once, for however many edits were made.
+        apply_edits(dp, store, fields, user, output_root=_output_root(db_path), formats=[])
     finally:
         store.close()
+    _mark_stale(db_path, dp, "edits")
 
 
 def _reopen_if_live(db_path: str, dp: str, user: str) -> None:
@@ -1342,7 +1389,12 @@ async def gate2_pick_template(dp: str, request: Request, user: dict = Depends(re
     value = "" if tid == ad_templates.DEFAULT_ID else tid
     _reopen_if_live(db_path, dp, user["email"])
     try:
+        # The ONE gate-2 action that still renders on the click (D72): a design
+        # is picked in order to look at it, so batching it behind Regenerate
+        # would mean choosing a design you cannot see. It is the ad only,
+        # measured at ~1.4s, and the copy cache means no model call (D56).
         _save_edits(db_path, dp, {"marketing.template_set": value}, user["email"])
+        _render(db_path, dp, formats=[AD_FORMAT])
         toast = {"tone": "ok", "title": "Design applied", "text": "The ad was re-rendered with the chosen design."}
     except Exception as exc:  # a render failure must not break the picker
         toast = {"tone": "block", "title": "Could not apply", "text": f"{type(exc).__name__}."}
@@ -1402,9 +1454,37 @@ def action_gate2_changes(db_path: str, dp: str, approver: str, note: str) -> str
     return _state(db_path, dp)
 
 
+@router.post("/{dp}/ads/regenerate", response_class=HTMLResponse)
+def gate2_regenerate(dp: str, request: Request,
+                     user: dict = Depends(require_role("approver", "marketing"))):
+    """Render everything the batched edits changed, once (D72).
+
+    Gate-2 actions no longer render on each click; they mark the artifacts stale.
+    This is the button that does the work - one render for however many changes
+    were made, instead of one per click at up to 5 seconds each.
+    """
+    db_path = _db(request)
+    if not _is_stale(db_path, dp):
+        toast = {"tone": "note", "title": "Nothing to regenerate",
+                 "text": "The artifacts already match the record."}
+    else:
+        try:
+            _render_if_stale(db_path, dp)
+            toast = {"tone": "ok", "title": "Regenerated",
+                     "text": "Every artifact now matches the record."}
+        except Exception as exc:
+            toast = {"tone": "block", "title": "Re-render failed",
+                     "text": f"The changes are saved, but rendering failed ({type(exc).__name__})."}
+    return _photo_result(request, db_path, dp, toast)
+
+
 @router.post("/{dp}/ads/approve")
 def gate2_approve(dp: str, request: Request, user: dict = Depends(require_role("approver", "marketing"))):
     db_path = _db(request)
+    # The one risk batching introduces: approving a pack the edits have not
+    # reached yet. Pending changes are rendered HERE, before the sign-off, so a
+    # marketer cannot approve yesterday's advert by forgetting a button (D72).
+    _render_if_stale(db_path, dp)
     state = action_gate2_approve(db_path, dp, user["email"])
     if state == "updated":
         target = f"/post/{dp}"          # small-edit repost: straight to distribution
