@@ -6602,7 +6602,7 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class Marketing(_Base):\n    headline: Optional[str] = None\n    price_display: Optional[str] = None\n    channel_routing: Optional[ChannelRouting] = None\n    hero_photo: Optional[str] = None\n    gallery: Optional[List[str]] = None\n    # The named design/template set the render backends use (the marketing\n    # team's pick on gate 2, D33). None = the default (first-configured) set.\n    template_set: Optional[str] = None\n    # Cached model-written copy + the fingerprint of the facts it was written",
+        "peekOfCode": "class Marketing(_Base):\n    # The auction board's QR code, as a path relative to the DP folder (like the\n    # photos). The team generates the code themselves - in GoHighLevel, so a scan\n    # lands on a tracked page - and uploads it at gate 2 (D69). GoHighLevel's QR\n    # generator is a page-builder element, not an API, so the engine cannot make\n    # this for them; it can only ask for it and print it.\n    qr_code: Optional[str] = None\n    headline: Optional[str] = None\n    price_display: Optional[str] = None\n    channel_routing: Optional[ChannelRouting] = None",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -10140,6 +10140,24 @@
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
         "peekOfCode": "def test_the_editor_link_is_not_offered_before_there_is_an_advert():\n    \"\"\"Nothing to edit yet at intake: the row shows its own next action only.\"\"\"\n    dp = \"9043\"\n    _seed_minimal(dp, state=\"extracted\")\n    client = _client()\n    _login_admin(client)\n    rows = client.get(\"/board/rows\")\n    assert rows.status_code == 200\n    row = [line for line in rows.text.splitlines() if dp in line or \"9043\" in line]\n    assert row, \"seeded row not found on the board\"",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_gate2_prompts_for_the_board_qr_and_accepts_one",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_gate2_prompts_for_the_board_qr_and_accepts_one():\n    \"\"\"The team generates the QR; the platform's job is to ask for it.\n    GoHighLevel's QR generator is a page-builder element, not an API, so the\n    engine cannot make the code. The board goes to print, and a missing code is\n    only noticed once it is standing on a pavement, so the prompt is a visible\n    banner until one is attached.\n    \"\"\"\n    import io\n    dp = \"9050\"\n    _seed_minimal(dp, state=\"drafted\")",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_board_qr_is_rejected_when_it_is_not_an_image",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_the_board_qr_is_rejected_when_it_is_not_an_image():\n    dp = \"9051\"\n    _seed_minimal(dp, state=\"drafted\")\n    client = _client()\n    _login_admin(client)\n    import io\n    resp = client.post(\n        f\"/gates/{dp}/ads/qr/upload\",\n        files={\"file\": (\"notes.txt\", io.BytesIO(b\"not an image\"), \"text/plain\")},\n    )",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
