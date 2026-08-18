@@ -472,6 +472,38 @@
         "documentation": {}
     },
     {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
         "label": "json",
         "kind": 6,
         "isExtraImport": true,
@@ -654,6 +686,54 @@
     },
     {
         "label": "PurePosixPath",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
         "importPath": "pathlib",
         "description": "pathlib",
         "isExtraImport": true,
@@ -1286,6 +1366,38 @@
     },
     {
         "label": "Union",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
         "importPath": "typing",
         "description": "typing",
         "isExtraImport": true,
@@ -3516,12 +3628,59 @@
         "documentation": {}
     },
     {
-        "label": "subprocess",
-        "kind": 6,
+        "label": "defaultdict",
+        "importPath": "collections",
+        "description": "collections",
         "isExtraImport": true,
-        "importPath": "subprocess",
-        "description": "subprocess",
-        "detail": "subprocess",
+        "detail": "collections",
+        "documentation": {}
+    },
+    {
+        "label": "defaultdict",
+        "importPath": "collections",
+        "description": "collections",
+        "isExtraImport": true,
+        "detail": "collections",
+        "documentation": {}
+    },
+    {
+        "label": "deque",
+        "importPath": "collections",
+        "description": "collections",
+        "isExtraImport": true,
+        "detail": "collections",
+        "documentation": {}
+    },
+    {
+        "label": "PdfUnreadable",
+        "importPath": "engine.pdftext",
+        "description": "engine.pdftext",
+        "isExtraImport": true,
+        "detail": "engine.pdftext",
+        "documentation": {}
+    },
+    {
+        "label": "layout_text",
+        "importPath": "engine.pdftext",
+        "description": "engine.pdftext",
+        "isExtraImport": true,
+        "detail": "engine.pdftext",
+        "documentation": {}
+    },
+    {
+        "label": "PdfUnreadable",
+        "importPath": "engine.pdftext",
+        "description": "engine.pdftext",
+        "isExtraImport": true,
+        "detail": "engine.pdftext",
+        "documentation": {}
+    },
+    {
+        "label": "layout_text",
+        "importPath": "engine.pdftext",
+        "description": "engine.pdftext",
+        "isExtraImport": true,
+        "detail": "engine.pdftext",
         "documentation": {}
     },
     {
@@ -4033,6 +4192,30 @@
         "documentation": {}
     },
     {
+        "label": "LeviesUnreadable",
+        "importPath": "engine.levies",
+        "description": "engine.levies",
+        "isExtraImport": true,
+        "detail": "engine.levies",
+        "documentation": {}
+    },
+    {
+        "label": "monthly_levy",
+        "importPath": "engine.levies",
+        "description": "engine.levies",
+        "isExtraImport": true,
+        "detail": "engine.levies",
+        "documentation": {}
+    },
+    {
+        "label": "read_statement",
+        "importPath": "engine.levies",
+        "description": "engine.levies",
+        "isExtraImport": true,
+        "detail": "engine.levies",
+        "documentation": {}
+    },
+    {
         "label": "OtpUnreadable",
         "importPath": "engine.otp",
         "description": "engine.otp",
@@ -4348,6 +4531,14 @@
     },
     {
         "label": "File",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "Form",
         "importPath": "fastapi",
         "description": "fastapi",
         "isExtraImport": true,
@@ -4827,22 +5018,6 @@
         "description": "starlette.middleware.sessions",
         "isExtraImport": true,
         "detail": "starlette.middleware.sessions",
-        "documentation": {}
-    },
-    {
-        "label": "defaultdict",
-        "importPath": "collections",
-        "description": "collections",
-        "isExtraImport": true,
-        "detail": "collections",
-        "documentation": {}
-    },
-    {
-        "label": "deque",
-        "importPath": "collections",
-        "description": "collections",
-        "isExtraImport": true,
-        "detail": "collections",
         "documentation": {}
     },
     {
@@ -5599,6 +5774,24 @@
         "documentation": {}
     },
     {
+        "label": "_DATE_FORMATS",
+        "kind": 5,
+        "importPath": "engine.render.html_backend",
+        "description": "engine.render.html_backend",
+        "peekOfCode": "_DATE_FORMATS = (\n    \"%d %B %Y\", \"%d %b %Y\", \"%-d %B %Y\", \"%d/%m/%Y\", \"%Y-%m-%d\", \"%d-%m-%Y\",\n    \"%B %d %Y\", \"%b %d %Y\", \"%d %B\", \"%d %b\",\n)\n# The three viewing states and the words each prints. The \"none\" wording is the\n# client's own, verbatim from the fix list: a buyer who cannot view must be told\n# so, and told why, before they bid.\nVIEWING_WORDS = {\n    \"by_arrangement\": (\"Viewing:\", \"By arrangement with Dynamic Auctioneers\"),\n    \"set_time\": (\"Viewing:\", \"\"),          # filled with the window",
+        "detail": "engine.render.html_backend",
+        "documentation": {}
+    },
+    {
+        "label": "VIEWING_WORDS",
+        "kind": 5,
+        "importPath": "engine.render.html_backend",
+        "description": "engine.render.html_backend",
+        "peekOfCode": "VIEWING_WORDS = {\n    \"by_arrangement\": (\"Viewing:\", \"By arrangement with Dynamic Auctioneers\"),\n    \"set_time\": (\"Viewing:\", \"\"),          # filled with the window\n    \"none\": (\"Viewing not possible.\", \"Vacant occupation cannot be guaranteed.\"),\n}\ndef _viewing(viewing: dict) -> dict:\n    \"\"\"The viewing block for every surface, from the record's mode.\n    Falls back to the old boolean for records written before the mode existed,\n    so nothing has to be migrated: by_appointment True reads as an arrangement.\n    \"\"\"",
+        "detail": "engine.render.html_backend",
+        "documentation": {}
+    },
+    {
         "label": "icon_for",
         "kind": 2,
         "importPath": "engine.render.pack_icons",
@@ -6197,7 +6390,7 @@
         "kind": 2,
         "importPath": "engine.intake",
         "description": "engine.intake",
-        "peekOfCode": "def classify_pdf(path: PathLike) -> str:\n    \"\"\"Classify a PDF by its content.\n    Returns ``\"lightstone_evm\"``, ``\"property_report\"``, ``\"valuation_report\"``\n    or ``\"unknown\"``. Page text is scored against the marker tables; the\n    filename is consulted only to break an exact tie, never as the sole signal.\n    \"\"\"\n    path = Path(path)\n    text = _read_text(path)\n    scores = {\n        \"lightstone_evm\": _score(text, LIGHTSTONE_MARKERS),",
+        "peekOfCode": "def classify_pdf(path: PathLike) -> str:\n    \"\"\"Classify a PDF by its content.\n    Returns ``\"lightstone_evm\"``, ``\"property_report\"``, ``\"valuation_report\"``,\n    ``\"otp\"``, ``\"levy_statement\"`` or ``\"unknown\"``. Page text is scored against the marker tables; the\n    filename is consulted only to break an exact tie, never as the sole signal.\n    \"\"\"\n    path = Path(path)\n    text = _read_text(path)\n    scores = {\n        \"lightstone_evm\": _score(text, LIGHTSTONE_MARKERS),",
         "detail": "engine.intake",
         "documentation": {}
     },
@@ -6242,7 +6435,16 @@
         "kind": 2,
         "importPath": "engine.intake",
         "description": "engine.intake",
-        "peekOfCode": "def build_jobs_from_dir(directory: PathLike) -> List[IntakeJob]:\n    \"\"\"Build intake jobs from every PDF found under ``directory`` (recursive).\"\"\"\n    root = Path(directory)\n    pdfs = sorted(root.rglob(\"*.pdf\"))\n    return build_jobs(list(pdfs))",
+        "peekOfCode": "def build_jobs_from_dir(directory: PathLike) -> List[IntakeJob]:\n    \"\"\"Build intake jobs from every PDF found under ``directory`` (recursive).\"\"\"\n    root = Path(directory)\n    pdfs = sorted(root.rglob(\"*.pdf\"))\n    return build_jobs(list(pdfs))\ndef attach_paperwork(record, job: \"IntakeJob\") -> List[str]:\n    \"\"\"Read the OTP and the levy statement onto ``record``. Returns the notes.\n    The two parsers (``engine.otp``, ``engine.levies``) were reachable only from\n    the renderer, which reads values already on a record - so a marketer who\n    uploaded an OTP got nothing at all from it. This is what puts them there.",
+        "detail": "engine.intake",
+        "documentation": {}
+    },
+    {
+        "label": "attach_paperwork",
+        "kind": 2,
+        "importPath": "engine.intake",
+        "description": "engine.intake",
+        "peekOfCode": "def attach_paperwork(record, job: \"IntakeJob\") -> List[str]:\n    \"\"\"Read the OTP and the levy statement onto ``record``. Returns the notes.\n    The two parsers (``engine.otp``, ``engine.levies``) were reachable only from\n    the renderer, which reads values already on a record - so a marketer who\n    uploaded an OTP got nothing at all from it. This is what puts them there.\n    Everything is best-effort: an unreadable or absent document leaves the field\n    unset, and the pack falls back (the record's own terms, \"Levies: TBC\"). A\n    parse failure must never fail an intake - the property is still marketable\n    without the paperwork, and a human can fill the gaps at gate 2.\n    \"\"\"",
         "detail": "engine.intake",
         "documentation": {}
     },
@@ -6292,20 +6494,92 @@
         "documentation": {}
     },
     {
+        "label": "OTP_MARKERS",
+        "kind": 5,
+        "importPath": "engine.intake",
+        "description": "engine.intake",
+        "peekOfCode": "OTP_MARKERS = {\n    \"conditions of sale\": 3,\n    \"offer to purchase\": 3,\n    \"agreement and conditions\": 3,\n    \"purchaser\": 2,\n    \"seller\": 1,\n    \"fall of the hammer\": 2,\n    \"signature date\": 2,\n    \"voetstoots\": 2,\n    \"confirmation period\": 2,",
+        "detail": "engine.intake",
+        "documentation": {}
+    },
+    {
+        "label": "LEVY_MARKERS",
+        "kind": 5,
+        "importPath": "engine.intake",
+        "description": "engine.intake",
+        "peekOfCode": "LEVY_MARKERS = {\n    \"levy statement\": 3,\n    \"body corporate\": 3,\n    \"levies\": 3,\n    \"csos\": 3,\n    \"reserve fund\": 2,\n    \"managing agent\": 2,\n    \"customer statement\": 2,\n    \"balance b/f\": 2,\n    \"arrears\": 1,",
+        "detail": "engine.intake",
+        "documentation": {}
+    },
+    {
+        "label": "LeviesUnreadable",
+        "kind": 6,
+        "importPath": "engine.levies",
+        "description": "engine.levies",
+        "peekOfCode": "class LeviesUnreadable(PdfUnreadable):\n    \"\"\"Kept as its own name so callers can catch this reader specifically.\"\"\"\ndef _read(path: \"str | Path\") -> str:\n    \"\"\"Text with its rows intact. Raises LeviesUnreadable when the document is a scan.\"\"\"\n    try:\n        return layout_text(path)\n    except PdfUnreadable as exc:\n        raise LeviesUnreadable(str(exc)) from exc\ndef _month_of(line: str) -> Optional[str]:\n    \"\"\"The row's month as YYYY-MM, from either date order.\"\"\"",
+        "detail": "engine.levies",
+        "documentation": {}
+    },
+    {
+        "label": "read_statement",
+        "kind": 2,
+        "importPath": "engine.levies",
+        "description": "engine.levies",
+        "peekOfCode": "def read_statement(pdf_path: \"str | Path\") -> Dict[str, object]:\n    \"\"\"Return the monthly levy, the month it came from, and its component lines.\n    ``{}`` when the statement carries no levy charge at all.\n    \"\"\"\n    text = _read(pdf_path)\n    by_month: Dict[str, List[Tuple[str, float]]] = defaultdict(list)\n    for raw in text.splitlines():\n        line = \" \".join(raw.split())\n        if not line or not _describes_a_levy(line):\n            continue",
+        "detail": "engine.levies",
+        "documentation": {}
+    },
+    {
+        "label": "monthly_levy",
+        "kind": 2,
+        "importPath": "engine.levies",
+        "description": "engine.levies",
+        "peekOfCode": "def monthly_levy(pdf_path: \"str | Path\") -> Optional[float]:\n    \"\"\"Just the figure, or None. Convenience for callers that want no detail.\"\"\"\n    result = read_statement(pdf_path)\n    total = result.get(\"monthly_total\")\n    return float(total) if total is not None else None",
+        "detail": "engine.levies",
+        "documentation": {}
+    },
+    {
+        "label": "_DATE",
+        "kind": 5,
+        "importPath": "engine.levies",
+        "description": "engine.levies",
+        "peekOfCode": "_DATE = re.compile(\n    r\"\\b(?P<iso>\\d{4}-\\d{2}-\\d{2})\\b|\\b(?P<dmy>\\d{1,2}[/-]\\d{1,2}[/-]\\d{2,4})\\b\"\n)\n# \"1 457.00\", \"1,457.00\", \"403.90\", \"19.14\" - SA statements group with a space.\n_AMOUNT = re.compile(r\"(?<![\\d.,])(\\d{1,3}(?:[ ,]\\d{3})*|\\d+)[.,](\\d{2})(?![\\d])\")\n_LEVY_WORDS = (\"levy\", \"levies\", \"csos\", \"reserve fund\", \"hoa\")\n# Lines that carry an amount but are not a levy charge. Order matters: an\n# \"Interest on arrears balance\" line mentions no levy word anyway, but a\n# \"Levy interest\" line must still be excluded.\n_NOT_A_CHARGE = (",
+        "detail": "engine.levies",
+        "documentation": {}
+    },
+    {
+        "label": "_AMOUNT",
+        "kind": 5,
+        "importPath": "engine.levies",
+        "description": "engine.levies",
+        "peekOfCode": "_AMOUNT = re.compile(r\"(?<![\\d.,])(\\d{1,3}(?:[ ,]\\d{3})*|\\d+)[.,](\\d{2})(?![\\d])\")\n_LEVY_WORDS = (\"levy\", \"levies\", \"csos\", \"reserve fund\", \"hoa\")\n# Lines that carry an amount but are not a levy charge. Order matters: an\n# \"Interest on arrears balance\" line mentions no levy word anyway, but a\n# \"Levy interest\" line must still be excluded.\n_NOT_A_CHARGE = (\n    \"interest\", \"arrear\", \"balance\", \"b/f\", \"brought forward\", \"payment\",\n    \"receipt\", \"credit\", \"refund\", \"discount\", \"vat on\", \"total\", \"sub-total\",\n    \"subtotal\", \"opening\", \"closing\",\n    # One-off corrections, not a month's levy. A statement that carries them has",
+        "detail": "engine.levies",
+        "documentation": {}
+    },
+    {
+        "label": "_LEVY_WORDS",
+        "kind": 5,
+        "importPath": "engine.levies",
+        "description": "engine.levies",
+        "peekOfCode": "_LEVY_WORDS = (\"levy\", \"levies\", \"csos\", \"reserve fund\", \"hoa\")\n# Lines that carry an amount but are not a levy charge. Order matters: an\n# \"Interest on arrears balance\" line mentions no levy word anyway, but a\n# \"Levy interest\" line must still be excluded.\n_NOT_A_CHARGE = (\n    \"interest\", \"arrear\", \"balance\", \"b/f\", \"brought forward\", \"payment\",\n    \"receipt\", \"credit\", \"refund\", \"discount\", \"vat on\", \"total\", \"sub-total\",\n    \"subtotal\", \"opening\", \"closing\",\n    # One-off corrections, not a month's levy. A statement that carries them has\n    # MORE levy lines than a normal month, so without this the \"fullest month\"",
+        "detail": "engine.levies",
+        "documentation": {}
+    },
+    {
+        "label": "_NOT_A_CHARGE",
+        "kind": 5,
+        "importPath": "engine.levies",
+        "description": "engine.levies",
+        "peekOfCode": "_NOT_A_CHARGE = (\n    \"interest\", \"arrear\", \"balance\", \"b/f\", \"brought forward\", \"payment\",\n    \"receipt\", \"credit\", \"refund\", \"discount\", \"vat on\", \"total\", \"sub-total\",\n    \"subtotal\", \"opening\", \"closing\",\n    # One-off corrections, not a month's levy. A statement that carries them has\n    # MORE levy lines than a normal month, so without this the \"fullest month\"\n    # rule below actively prefers the wrong month: sample 1776837465 read\n    # R2 606.92 where the monthly levy is R1 651.36.\n    \"backdated\", \"adjustment\", \"adjust\", \"correction\", \"reversal\", \"pro-rata\",\n    \"pro rata\", \"prorata\",",
+        "detail": "engine.levies",
+        "documentation": {}
+    },
+    {
         "label": "OtpUnreadable",
         "kind": 6,
         "importPath": "engine.otp",
         "description": "engine.otp",
-        "peekOfCode": "class OtpUnreadable(RuntimeError):\n    \"\"\"The document could not be turned into text (no pdftotext, or an image scan).\"\"\"\ndef pdf_text(path: \"str | Path\") -> str:\n    \"\"\"The OTP as laid-out text. Uses ``pdftotext -layout`` (poppler).\"\"\"\n    path = Path(path)\n    try:\n        out = subprocess.run(\n            [\"pdftotext\", \"-layout\", str(path), \"-\"],\n            capture_output=True, timeout=60,\n        )",
-        "detail": "engine.otp",
-        "documentation": {}
-    },
-    {
-        "label": "pdf_text",
-        "kind": 2,
-        "importPath": "engine.otp",
-        "description": "engine.otp",
-        "peekOfCode": "def pdf_text(path: \"str | Path\") -> str:\n    \"\"\"The OTP as laid-out text. Uses ``pdftotext -layout`` (poppler).\"\"\"\n    path = Path(path)\n    try:\n        out = subprocess.run(\n            [\"pdftotext\", \"-layout\", str(path), \"-\"],\n            capture_output=True, timeout=60,\n        )\n    except (OSError, subprocess.TimeoutExpired) as exc:\n        raise OtpUnreadable(f\"could not run pdftotext on {path.name}\") from exc",
+        "peekOfCode": "class OtpUnreadable(PdfUnreadable):\n    \"\"\"Kept as its own name so callers can catch this reader specifically.\"\"\"\ndef _read(path: \"str | Path\") -> str:\n    \"\"\"Text with its rows intact. Raises OtpUnreadable when the document is a scan.\"\"\"\n    try:\n        return layout_text(path)\n    except PdfUnreadable as exc:\n        raise OtpUnreadable(str(exc)) from exc\ndef _clause(text: str, number: str, stop: str) -> str:\n    \"\"\"The body of one numbered clause, from its number to the next one.",
         "detail": "engine.otp",
         "documentation": {}
     },
@@ -6314,7 +6588,7 @@
         "kind": 2,
         "importPath": "engine.otp",
         "description": "engine.otp",
-        "peekOfCode": "def extract_terms(pdf_path: \"str | Path\") -> Dict[str, object]:\n    \"\"\"Read the sale terms out of an OTP. Returns a dict shaped for the record.\n    Keys are left out entirely when the clause could not be read, so a caller can\n    tell \"not in this document\" from \"zero\". ``clauses`` carries the verbatim\n    text each value came from, and ``flags`` any disagreement a human must settle.\n    \"\"\"\n    text = pdf_text(pdf_path)\n    clauses = {\n        \"3.1\": _clause(text, \"3.1\", r\"3\\.2\"),\n        \"3.2\": _clause(text, \"3.2\", r\"3\\.3\"),",
+        "peekOfCode": "def extract_terms(pdf_path: \"str | Path\") -> Dict[str, object]:\n    \"\"\"Read the sale terms out of an OTP. Returns a dict shaped for the record.\n    Keys are left out entirely when the clause could not be read, so a caller can\n    tell \"not in this document\" from \"zero\". ``clauses`` carries the verbatim\n    text each value came from, and ``flags`` any disagreement a human must settle.\n    \"\"\"\n    text = _read(pdf_path)\n    clauses = {\n        \"3.1\": _clause(text, \"3.1\", r\"3\\.2\"),\n        \"3.2\": _clause(text, \"3.2\", r\"3\\.3\"),",
         "detail": "engine.otp",
         "documentation": {}
     },
@@ -6350,7 +6624,7 @@
         "kind": 5,
         "importPath": "engine.otp",
         "description": "engine.otp",
-        "peekOfCode": "_PCT = r\"(\\d{1,2}(?:[.,]\\d{1,2})?)\\s*%\"\n# \"60 (SIXTY) days\" / \"7 (SEVEN) days\"\n_DAYS = r\"(\\d{1,3})\\s*(?:\\([A-Za-z ]+\\)\\s*)?(?:business\\s+|working\\s+)?days\"\n_WORD_NUMBERS = {\n    \"one\": 1, \"two\": 2, \"three\": 3, \"four\": 4, \"five\": 5, \"six\": 6, \"seven\": 7,\n    \"eight\": 8, \"nine\": 9, \"ten\": 10, \"fifteen\": 15, \"twenty\": 20, \"thirty\": 30,\n    \"forty\": 40, \"forty five\": 45, \"fifty\": 50, \"sixty\": 60, \"ninety\": 90,\n}\nclass OtpUnreadable(RuntimeError):\n    \"\"\"The document could not be turned into text (no pdftotext, or an image scan).\"\"\"",
+        "peekOfCode": "_PCT = r\"(\\d{1,2}(?:[.,]\\d{1,2})?)\\s*%\"\n# \"60 (SIXTY) days\" / \"7 (SEVEN) days\"\n_DAYS = r\"(\\d{1,3})\\s*(?:\\([A-Za-z ]+\\)\\s*)?(?:business\\s+|working\\s+)?days\"\n_WORD_NUMBERS = {\n    \"one\": 1, \"two\": 2, \"three\": 3, \"four\": 4, \"five\": 5, \"six\": 6, \"seven\": 7,\n    \"eight\": 8, \"nine\": 9, \"ten\": 10, \"fifteen\": 15, \"twenty\": 20, \"thirty\": 30,\n    \"forty\": 40, \"forty five\": 45, \"fifty\": 50, \"sixty\": 60, \"ninety\": 90,\n}\nclass OtpUnreadable(PdfUnreadable):\n    \"\"\"Kept as its own name so callers can catch this reader specifically.\"\"\"",
         "detail": "engine.otp",
         "documentation": {}
     },
@@ -6359,7 +6633,7 @@
         "kind": 5,
         "importPath": "engine.otp",
         "description": "engine.otp",
-        "peekOfCode": "_DAYS = r\"(\\d{1,3})\\s*(?:\\([A-Za-z ]+\\)\\s*)?(?:business\\s+|working\\s+)?days\"\n_WORD_NUMBERS = {\n    \"one\": 1, \"two\": 2, \"three\": 3, \"four\": 4, \"five\": 5, \"six\": 6, \"seven\": 7,\n    \"eight\": 8, \"nine\": 9, \"ten\": 10, \"fifteen\": 15, \"twenty\": 20, \"thirty\": 30,\n    \"forty\": 40, \"forty five\": 45, \"fifty\": 50, \"sixty\": 60, \"ninety\": 90,\n}\nclass OtpUnreadable(RuntimeError):\n    \"\"\"The document could not be turned into text (no pdftotext, or an image scan).\"\"\"\ndef pdf_text(path: \"str | Path\") -> str:\n    \"\"\"The OTP as laid-out text. Uses ``pdftotext -layout`` (poppler).\"\"\"",
+        "peekOfCode": "_DAYS = r\"(\\d{1,3})\\s*(?:\\([A-Za-z ]+\\)\\s*)?(?:business\\s+|working\\s+)?days\"\n_WORD_NUMBERS = {\n    \"one\": 1, \"two\": 2, \"three\": 3, \"four\": 4, \"five\": 5, \"six\": 6, \"seven\": 7,\n    \"eight\": 8, \"nine\": 9, \"ten\": 10, \"fifteen\": 15, \"twenty\": 20, \"thirty\": 30,\n    \"forty\": 40, \"forty five\": 45, \"fifty\": 50, \"sixty\": 60, \"ninety\": 90,\n}\nclass OtpUnreadable(PdfUnreadable):\n    \"\"\"Kept as its own name so callers can catch this reader specifically.\"\"\"\ndef _read(path: \"str | Path\") -> str:\n    \"\"\"Text with its rows intact. Raises OtpUnreadable when the document is a scan.\"\"\"",
         "detail": "engine.otp",
         "documentation": {}
     },
@@ -6368,8 +6642,26 @@
         "kind": 5,
         "importPath": "engine.otp",
         "description": "engine.otp",
-        "peekOfCode": "_WORD_NUMBERS = {\n    \"one\": 1, \"two\": 2, \"three\": 3, \"four\": 4, \"five\": 5, \"six\": 6, \"seven\": 7,\n    \"eight\": 8, \"nine\": 9, \"ten\": 10, \"fifteen\": 15, \"twenty\": 20, \"thirty\": 30,\n    \"forty\": 40, \"forty five\": 45, \"fifty\": 50, \"sixty\": 60, \"ninety\": 90,\n}\nclass OtpUnreadable(RuntimeError):\n    \"\"\"The document could not be turned into text (no pdftotext, or an image scan).\"\"\"\ndef pdf_text(path: \"str | Path\") -> str:\n    \"\"\"The OTP as laid-out text. Uses ``pdftotext -layout`` (poppler).\"\"\"\n    path = Path(path)",
+        "peekOfCode": "_WORD_NUMBERS = {\n    \"one\": 1, \"two\": 2, \"three\": 3, \"four\": 4, \"five\": 5, \"six\": 6, \"seven\": 7,\n    \"eight\": 8, \"nine\": 9, \"ten\": 10, \"fifteen\": 15, \"twenty\": 20, \"thirty\": 30,\n    \"forty\": 40, \"forty five\": 45, \"fifty\": 50, \"sixty\": 60, \"ninety\": 90,\n}\nclass OtpUnreadable(PdfUnreadable):\n    \"\"\"Kept as its own name so callers can catch this reader specifically.\"\"\"\ndef _read(path: \"str | Path\") -> str:\n    \"\"\"Text with its rows intact. Raises OtpUnreadable when the document is a scan.\"\"\"\n    try:",
         "detail": "engine.otp",
+        "documentation": {}
+    },
+    {
+        "label": "PdfUnreadable",
+        "kind": 6,
+        "importPath": "engine.pdftext",
+        "description": "engine.pdftext",
+        "peekOfCode": "class PdfUnreadable(RuntimeError):\n    \"\"\"The document could not be turned into text (an image scan, or no PyMuPDF).\"\"\"\ndef layout_text(path: \"str | Path\", row_tolerance: float = 3.0, min_chars: int = 80) -> str:\n    \"\"\"The document as text, with words on the same visual line joined.\n    ``row_tolerance`` is how far apart (in points) two words may sit vertically\n    and still count as the same row; 3pt holds a table row together without\n    merging two lines of a paragraph.\n    \"\"\"\n    path = Path(path)\n    if fitz is None:  # pragma: no cover",
+        "detail": "engine.pdftext",
+        "documentation": {}
+    },
+    {
+        "label": "layout_text",
+        "kind": 2,
+        "importPath": "engine.pdftext",
+        "description": "engine.pdftext",
+        "peekOfCode": "def layout_text(path: \"str | Path\", row_tolerance: float = 3.0, min_chars: int = 80) -> str:\n    \"\"\"The document as text, with words on the same visual line joined.\n    ``row_tolerance`` is how far apart (in points) two words may sit vertically\n    and still count as the same row; 3pt holds a table row together without\n    merging two lines of a paragraph.\n    \"\"\"\n    path = Path(path)\n    if fitz is None:  # pragma: no cover\n        raise PdfUnreadable(\"PyMuPDF is not installed\")\n    try:",
+        "detail": "engine.pdftext",
         "documentation": {}
     },
     {
@@ -6521,7 +6813,7 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class Valuation(_Base):\n    evm_range: Optional[List[float]] = None  # [low, high]\n    suburb_bands: Optional[SuburbBands] = None\n    municipal_valuation: Optional[float] = None\n    municipal_valuation_year: Optional[int] = None\n    estimated_monthly_rates: Optional[float] = None\n    comparables_avg_sales_price: Optional[float] = None\n    same_scheme_sale: Optional[SameSchemeSale] = None\n    professional: Optional[ProfessionalValuation] = None\n# --- financials_internal (POPIA internal layer — never rendered) ---------",
+        "peekOfCode": "class Valuation(_Base):\n    evm_range: Optional[List[float]] = None  # [low, high]\n    suburb_bands: Optional[SuburbBands] = None\n    municipal_valuation: Optional[float] = None\n    municipal_valuation_year: Optional[int] = None\n    estimated_monthly_rates: Optional[float] = None\n    # Read off the managing agent's statement (engine/levies.py, D73). A running\n    # cost to the buyer like the rates, not a valuation, so it is public. None\n    # means no statement was supplied or it carried no levy charge, and the pack\n    # prints \"TBC\" rather than a figure nobody checked.",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -6566,7 +6858,7 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class Viewing(_Base):\n    by_appointment: Optional[bool] = None\n    contact_public: Optional[str] = None  # Dynamic's number (safe to render)\n    contact_internal_only: Optional[str] = None  # occupant cell — POPIA, stripped\nclass OtpTerms(_Base):\n    \"\"\"Sale terms read from the OTP / Conditions of Sale (fix list 3.2, D68).\n    The information pack used to print these as literal strings (\"10% deposit\",\n    \"45 days\", \"30 days confirmation\"), which were simply one property's values\n    baked into a template. Read from the numbered clauses instead: the sample OTP\n    carries a 20% deposit, a 60 day guarantee and a 7 day confirmation period, so",
+        "peekOfCode": "class Viewing(_Base):\n    \"\"\"How the property may be viewed (fix list 4.6, D76).\n    Three states, because \"by appointment\" cannot express the two that matter\n    commercially: a SET viewing window, which is the thing a buyer diarises, and\n    NO viewing at all, which on a liquidation or an occupied property is a fact\n    the buyer must be told before they bid rather than discover afterwards.\n    ``by_appointment`` is kept and derived from ``mode`` so every existing\n    record and every template that reads it keeps working.\n    \"\"\"\n    # \"by_arrangement\" | \"set_time\" | \"none\"",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -8236,6 +8528,60 @@
         "documentation": {}
     },
     {
+        "label": "test_intake_recognises_an_otp_and_a_levy_statement",
+        "kind": 2,
+        "importPath": "tests.test_intake",
+        "description": "tests.test_intake",
+        "peekOfCode": "def test_intake_recognises_an_otp_and_a_levy_statement():\n    \"\"\"Both are classified by content, like every other source document.\"\"\"\n    otp, levy = _paperwork()\n    from engine.intake import classify_pdf\n    assert classify_pdf(otp) == \"otp\"\n    assert classify_pdf(levy) == \"levy_statement\"\ndef test_neither_document_gates_completeness():\n    \"\"\"A property is marketable without its paperwork; the pack simply falls\n    back to the record's own terms and prints \"TBC\" for the levy.\"\"\"\n    otp, levy = _paperwork()",
+        "detail": "tests.test_intake",
+        "documentation": {}
+    },
+    {
+        "label": "test_neither_document_gates_completeness",
+        "kind": 2,
+        "importPath": "tests.test_intake",
+        "description": "tests.test_intake",
+        "peekOfCode": "def test_neither_document_gates_completeness():\n    \"\"\"A property is marketable without its paperwork; the pack simply falls\n    back to the record's own terms and prints \"TBC\" for the levy.\"\"\"\n    otp, levy = _paperwork()\n    from engine.intake import build_combined_job\n    job = build_combined_job([otp, levy], dp=\"3060\")\n    assert job.otps and job.levy_statements\n    assert job.is_complete is False                    # no EVM, no property report\n    assert \"otp\" not in job.missing and \"levy_statement\" not in job.missing\ndef test_the_paperwork_reaches_the_record():",
+        "detail": "tests.test_intake",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_paperwork_reaches_the_record",
+        "kind": 2,
+        "importPath": "tests.test_intake",
+        "description": "tests.test_intake",
+        "peekOfCode": "def test_the_paperwork_reaches_the_record():\n    \"\"\"The parsers were reachable only from the renderer, which reads values\n    already on a record - so an uploaded OTP produced nothing at all.\"\"\"\n    otp, levy = _paperwork()\n    from engine.intake import attach_paperwork, build_combined_job\n    from engine.schema import PropertyRecord\n    record = PropertyRecord(dp=\"3060\")\n    notes = attach_paperwork(record, build_combined_job([otp, levy], dp=\"3060\"))\n    assert record.sale_process.otp.deposit_pct == 20.0\n    assert record.sale_process.otp.confirmation_days == 7",
+        "detail": "tests.test_intake",
+        "documentation": {}
+    },
+    {
+        "label": "test_unreadable_paperwork_never_fails_an_intake",
+        "kind": 2,
+        "importPath": "tests.test_intake",
+        "description": "tests.test_intake",
+        "peekOfCode": "def test_unreadable_paperwork_never_fails_an_intake(tmp_path):\n    \"\"\"A property is still marketable when its contract will not parse.\"\"\"\n    from engine.intake import attach_paperwork, build_combined_job\n    from engine.schema import PropertyRecord\n    broken = tmp_path / \"2383 OTP.pdf\"\n    broken.write_bytes(b\"%PDF-1.4\\n%%EOF\\n\")\n    job = build_combined_job([broken], dp=\"3060\")\n    record = PropertyRecord(dp=\"3060\")\n    notes = attach_paperwork(record, job)          # must not raise\n    assert record.sale_process is None or record.sale_process.otp is None",
+        "detail": "tests.test_intake",
+        "documentation": {}
+    },
+    {
+        "label": "OTP_SAMPLE",
+        "kind": 5,
+        "importPath": "tests.test_intake",
+        "description": "tests.test_intake",
+        "peekOfCode": "OTP_SAMPLE = Path(\"/Users/keegshaumann/Dev/claudecode/Dynamic/OTP/2383.1 OTP.pdf\")\nLEVY_SAMPLE = Path(\"/Users/keegshaumann/Dev/claudecode/Dynamic/Levies/BPMW00051D.pdf\")\ndef _paperwork():\n    missing = [p for p in (OTP_SAMPLE, LEVY_SAMPLE) if not p.exists()]\n    if missing:\n        pytest.skip(f\"paperwork sample not present: {missing[0].name}\")\n    return OTP_SAMPLE, LEVY_SAMPLE\ndef test_intake_recognises_an_otp_and_a_levy_statement():\n    \"\"\"Both are classified by content, like every other source document.\"\"\"\n    otp, levy = _paperwork()",
+        "detail": "tests.test_intake",
+        "documentation": {}
+    },
+    {
+        "label": "LEVY_SAMPLE",
+        "kind": 5,
+        "importPath": "tests.test_intake",
+        "description": "tests.test_intake",
+        "peekOfCode": "LEVY_SAMPLE = Path(\"/Users/keegshaumann/Dev/claudecode/Dynamic/Levies/BPMW00051D.pdf\")\ndef _paperwork():\n    missing = [p for p in (OTP_SAMPLE, LEVY_SAMPLE) if not p.exists()]\n    if missing:\n        pytest.skip(f\"paperwork sample not present: {missing[0].name}\")\n    return OTP_SAMPLE, LEVY_SAMPLE\ndef test_intake_recognises_an_otp_and_a_levy_statement():\n    \"\"\"Both are classified by content, like every other source document.\"\"\"\n    otp, levy = _paperwork()\n    from engine.intake import classify_pdf",
+        "detail": "tests.test_intake",
+        "documentation": {}
+    },
+    {
         "label": "test_re_extraction_is_refused_once_gate_1_is_signed_off",
         "kind": 2,
         "importPath": "tests.test_jobs",
@@ -8278,6 +8624,69 @@
         "description": "tests.test_jobs",
         "peekOfCode": "def test_identical_documents_reuse_the_cached_extraction(tmp_path, monkeypatch):\n    \"\"\"Re-intaking the same PDFs must not pay for extraction twice.\n    Extraction is the most expensive call in the system (six calls carrying both\n    source PDFs). Deleting a property and dropping the same documents again - a\n    marketer fixing a mistake, or a tester repeating the flow - used to re-run\n    all six. It is a pure function of the documents, so the second run is served\n    from cache.\n    \"\"\"\n    db_path = str(tmp_path / \"engine.db\")\n    models.init_db(db_path)",
         "detail": "tests.test_jobs",
+        "documentation": {}
+    },
+    {
+        "label": "test_reads_each_real_statement",
+        "kind": 2,
+        "importPath": "tests.test_levies",
+        "description": "tests.test_levies",
+        "peekOfCode": "def test_reads_each_real_statement(name, expected):\n    \"\"\"Four different layouts, one reader.\"\"\"\n    assert monthly_levy(_sample(name)) == expected\ndef test_components_are_shown_not_just_a_total():\n    \"\"\"A figure on a buyer pack has to be checkable: the marketer sees\n    \"1268.00 Levies + 368.00 Reserve Fund + 15.36 CSOS\", not just a total.\"\"\"\n    result = read_statement(_sample(\"CustomerStatement-1776837465.pdf\"))\n    amounts = sorted(c[\"amount\"] for c in result[\"components\"])\n    assert amounts == [15.36, 368.00, 1268.00]\n    labels = \" \".join(c[\"label\"].lower() for c in result[\"components\"])",
+        "detail": "tests.test_levies",
+        "documentation": {}
+    },
+    {
+        "label": "test_components_are_shown_not_just_a_total",
+        "kind": 2,
+        "importPath": "tests.test_levies",
+        "description": "tests.test_levies",
+        "peekOfCode": "def test_components_are_shown_not_just_a_total():\n    \"\"\"A figure on a buyer pack has to be checkable: the marketer sees\n    \"1268.00 Levies + 368.00 Reserve Fund + 15.36 CSOS\", not just a total.\"\"\"\n    result = read_statement(_sample(\"CustomerStatement-1776837465.pdf\"))\n    amounts = sorted(c[\"amount\"] for c in result[\"components\"])\n    assert amounts == [15.36, 368.00, 1268.00]\n    labels = \" \".join(c[\"label\"].lower() for c in result[\"components\"])\n    assert \"levies\" in labels and \"reserve fund\" in labels and \"csos\" in labels\n    assert result[\"month\"] == \"2026-04\"\n    assert round(sum(amounts), 2) == result[\"monthly_total\"]",
+        "detail": "tests.test_levies",
+        "documentation": {}
+    },
+    {
+        "label": "test_interest_and_arrears_are_never_counted_as_levy",
+        "kind": 2,
+        "importPath": "tests.test_levies",
+        "description": "tests.test_levies",
+        "peekOfCode": "def test_interest_and_arrears_are_never_counted_as_levy():\n    \"\"\"The lines that would inflate the figure most are the ones a statement is\n    full of. One sample carries nothing but interest journals and must read as\n    no levy at all rather than as its arrears.\"\"\"\n    assert monthly_levy(_sample(\"CustomerStatement-1776929405.pdf\")) is None\n    for name in EXPECTED:\n        if EXPECTED[name] is None:\n            continue\n        result = read_statement(_sample(name))\n        for component in result[\"components\"]:",
+        "detail": "tests.test_levies",
+        "documentation": {}
+    },
+    {
+        "label": "test_one_off_backdated_corrections_are_excluded",
+        "kind": 2,
+        "importPath": "tests.test_levies",
+        "description": "tests.test_levies",
+        "peekOfCode": "def test_one_off_backdated_corrections_are_excluded():\n    \"\"\"Backdated increases and decreases are corrections, not a month's levy.\n    Sample 1776837465 carries three of them, and counting them read R2 606.92\n    where the monthly levy is R1 651.36. They also make that month the FULLEST\n    month, so an unguarded \"most complete month\" rule actively prefers it.\n    \"\"\"\n    result = read_statement(_sample(\"CustomerStatement-1776837465.pdf\"))\n    assert result[\"monthly_total\"] == 1651.36\n    assert not any(\"backdated\" in c[\"label\"].lower() for c in result[\"components\"])\ndef test_a_scan_is_refused_rather_than_guessed(tmp_path):",
+        "detail": "tests.test_levies",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_scan_is_refused_rather_than_guessed",
+        "kind": 2,
+        "importPath": "tests.test_levies",
+        "description": "tests.test_levies",
+        "peekOfCode": "def test_a_scan_is_refused_rather_than_guessed(tmp_path):\n    empty = tmp_path / \"scan.pdf\"\n    empty.write_bytes(b\"%PDF-1.4\\n%%EOF\\n\")\n    with pytest.raises(LeviesUnreadable):\n        read_statement(empty)",
+        "detail": "tests.test_levies",
+        "documentation": {}
+    },
+    {
+        "label": "SAMPLES",
+        "kind": 5,
+        "importPath": "tests.test_levies",
+        "description": "tests.test_levies",
+        "peekOfCode": "SAMPLES = Path(\"/Users/keegshaumann/Dev/claudecode/Dynamic/Levies\")\n# What each real statement should yield. Worked out by reading the documents:\n# the levy components of the most recent complete month, excluding interest,\n# arrears and one-off backdated corrections.\nEXPECTED = {\n    \"BPMW00051D.pdf\": 1283.12,                                     # 6 components\n    \"Crystal Reports - Tax Invoice & Statement (Standard).pdf\": 1075.93,\n    \"CustomerStatement-1776837465.pdf\": 1651.36,                   # 1268 + 368 + 15.36\n    \"CustomerStatement-1776866067.pdf\": 2170.72,\n    \"CustomerStatement-1776929405.pdf\": None,                      # interest only",
+        "detail": "tests.test_levies",
+        "documentation": {}
+    },
+    {
+        "label": "EXPECTED",
+        "kind": 5,
+        "importPath": "tests.test_levies",
+        "description": "tests.test_levies",
+        "peekOfCode": "EXPECTED = {\n    \"BPMW00051D.pdf\": 1283.12,                                     # 6 components\n    \"Crystal Reports - Tax Invoice & Statement (Standard).pdf\": 1075.93,\n    \"CustomerStatement-1776837465.pdf\": 1651.36,                   # 1268 + 368 + 15.36\n    \"CustomerStatement-1776866067.pdf\": 2170.72,\n    \"CustomerStatement-1776929405.pdf\": None,                      # interest only\n}\ndef _sample(name: str) -> Path:\n    path = SAMPLES / name\n    if not path.exists():",
+        "detail": "tests.test_levies",
         "documentation": {}
     },
     {
@@ -8375,7 +8784,7 @@
         "kind": 2,
         "importPath": "tests.test_otp",
         "description": "tests.test_otp",
-        "peekOfCode": "def test_no_terms_at_all_rather_than_invented_ones():\n    \"\"\"An empty document yields nothing: no line is better than a wrong line.\"\"\"\n    assert terms_lines({}) == [\n        \"Occupation on date of registration of transfer of the property.\"\n    ]\n    assert confirmation_pill({}) is None\ndef test_a_scanned_document_is_refused_not_guessed(tmp_path):\n    \"\"\"An image-only PDF must raise, so intake can ask for a text one.\"\"\"\n    if shutil.which(\"pdftotext\") is None:\n        pytest.skip(\"pdftotext (poppler) not installed\")",
+        "peekOfCode": "def test_no_terms_at_all_rather_than_invented_ones():\n    \"\"\"An empty document yields nothing: no line is better than a wrong line.\"\"\"\n    assert terms_lines({}) == [\n        \"Occupation on date of registration of transfer of the property.\"\n    ]\n    assert confirmation_pill({}) is None\ndef test_a_scanned_document_is_refused_not_guessed(tmp_path):\n    \"\"\"An image-only PDF must raise, so intake can ask for a text one.\"\"\"\n    empty = tmp_path / \"scan.pdf\"\n    empty.write_bytes(b\"%PDF-1.4\\n%%EOF\\n\")",
         "detail": "tests.test_otp",
         "documentation": {}
     },
@@ -8384,7 +8793,7 @@
         "kind": 2,
         "importPath": "tests.test_otp",
         "description": "tests.test_otp",
-        "peekOfCode": "def test_a_scanned_document_is_refused_not_guessed(tmp_path):\n    \"\"\"An image-only PDF must raise, so intake can ask for a text one.\"\"\"\n    if shutil.which(\"pdftotext\") is None:\n        pytest.skip(\"pdftotext (poppler) not installed\")\n    empty = tmp_path / \"scan.pdf\"\n    empty.write_bytes(b\"%PDF-1.4\\n%%EOF\\n\")\n    with pytest.raises(OtpUnreadable):\n        extract_terms(empty)",
+        "peekOfCode": "def test_a_scanned_document_is_refused_not_guessed(tmp_path):\n    \"\"\"An image-only PDF must raise, so intake can ask for a text one.\"\"\"\n    empty = tmp_path / \"scan.pdf\"\n    empty.write_bytes(b\"%PDF-1.4\\n%%EOF\\n\")\n    with pytest.raises(OtpUnreadable):\n        extract_terms(empty)",
         "detail": "tests.test_otp",
         "documentation": {}
     },
@@ -8393,7 +8802,7 @@
         "kind": 5,
         "importPath": "tests.test_otp",
         "description": "tests.test_otp",
-        "peekOfCode": "SAMPLE = Path(\"/Users/keegshaumann/Dev/claudecode/Dynamic/OTP/2383.1 OTP.pdf\")\ndef _require_sample() -> Path:\n    if shutil.which(\"pdftotext\") is None:\n        pytest.skip(\"pdftotext (poppler) not installed\")\n    if not SAMPLE.exists():\n        pytest.skip(f\"OTP sample not present: {SAMPLE}\")\n    return SAMPLE\ndef test_reads_every_clause_off_the_real_otp():\n    terms = extract_terms(_require_sample())\n    assert terms[\"deposit_pct\"] == 20.0            # clause 3.1, not the old 10%",
+        "peekOfCode": "SAMPLE = Path(\"/Users/keegshaumann/Dev/claudecode/Dynamic/OTP/2383.1 OTP.pdf\")\ndef _require_sample() -> Path:\n    if not SAMPLE.exists():\n        pytest.skip(f\"OTP sample not present: {SAMPLE}\")\n    return SAMPLE\ndef test_reads_every_clause_off_the_real_otp():\n    terms = extract_terms(_require_sample())\n    assert terms[\"deposit_pct\"] == 20.0            # clause 3.1, not the old 10%\n    assert terms[\"deposit_due\"] == \"on signature date\"\n    assert terms[\"guarantee_days\"] == 60           # clause 3.2, not the old 45",
         "detail": "tests.test_otp",
         "documentation": {}
     },
@@ -8440,6 +8849,78 @@
         "description": "tests.test_pack_icons",
         "peekOfCode": "def test_svg_is_self_contained_and_inherits_its_ink():\n    \"\"\"Glyphs print inside the HTML, take the surrounding colour, and scale.\"\"\"\n    markup = svg(\"bed\", \"9mm\")\n    assert markup.startswith(\"<svg\") and markup.endswith(\"</svg>\")\n    assert 'viewBox=\"0 0 24 24\"' in markup\n    assert 'fill=\"currentColor\"' in markup       # black on a row, white on the closing page\n    assert 'width=\"9mm\"' in markup\n    assert \"http\" not in markup                  # nothing fetched at render time\n    # An unknown name still returns a drawing rather than an empty element.\n    assert svg(\"no-such-glyph\").count(\"<svg\") == 1",
         "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "panel",
+        "kind": 2,
+        "importPath": "tests.test_photo_picker",
+        "description": "tests.test_photo_picker",
+        "peekOfCode": "def panel():\n    try:\n        from playwright.sync_api import sync_playwright\n    except Exception:  # pragma: no cover - environment without playwright\n        pytest.skip(\"Playwright not installed; the picker runs in a browser\")\n    with sync_playwright() as pw:\n        browser = pw.chromium.launch(args=[\"--no-sandbox\", \"--disable-gpu\"])\n        try:\n            page = browser.new_page()\n            page.set_content(PANEL)",
+        "detail": "tests.test_photo_picker",
+        "documentation": {}
+    },
+    {
+        "label": "test_each_drop_adds_to_the_ones_already_chosen",
+        "kind": 2,
+        "importPath": "tests.test_photo_picker",
+        "description": "tests.test_photo_picker",
+        "peekOfCode": "def test_each_drop_adds_to_the_ones_already_chosen(panel):\n    assert panel.evaluate(DROP, [\"kitchen.png\", \"lounge.png\"]) == [\"kitchen.png\", \"lounge.png\"]\n    assert panel.evaluate(DROP, [\"garden.png\"]) == [\"kitchen.png\", \"lounge.png\", \"garden.png\"]\n    assert panel.evaluate(DROP, [\"patio.png\", \"pool.png\"]) == [\n        \"kitchen.png\", \"lounge.png\", \"garden.png\", \"patio.png\", \"pool.png\"\n    ]\ndef test_the_same_photograph_twice_is_one_photograph(panel):\n    \"\"\"Keyed on name and size, not the timestamp: the same picture copied into\n    two folders has two timestamps and is still one picture.\"\"\"\n    panel.evaluate(DROP, [\"garden.png\", \"patio.png\"])",
+        "detail": "tests.test_photo_picker",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_same_photograph_twice_is_one_photograph",
+        "kind": 2,
+        "importPath": "tests.test_photo_picker",
+        "description": "tests.test_photo_picker",
+        "peekOfCode": "def test_the_same_photograph_twice_is_one_photograph(panel):\n    \"\"\"Keyed on name and size, not the timestamp: the same picture copied into\n    two folders has two timestamps and is still one picture.\"\"\"\n    panel.evaluate(DROP, [\"garden.png\", \"patio.png\"])\n    assert panel.evaluate(DROP, [\"garden.png\", \"pool.png\"]) == [\n        \"garden.png\", \"patio.png\", \"pool.png\"\n    ]\ndef test_the_running_total_is_what_the_marketer_sees(panel):\n    panel.evaluate(DROP, [\"a.png\", \"b.png\"])\n    panel.evaluate(DROP, [\"c.png\"])",
+        "detail": "tests.test_photo_picker",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_running_total_is_what_the_marketer_sees",
+        "kind": 2,
+        "importPath": "tests.test_photo_picker",
+        "description": "tests.test_photo_picker",
+        "peekOfCode": "def test_the_running_total_is_what_the_marketer_sees(panel):\n    panel.evaluate(DROP, [\"a.png\", \"b.png\"])\n    panel.evaluate(DROP, [\"c.png\"])\n    assert \"3 photos chosen\" in panel.inner_text(\"[data-photo-pending-title]\")\n    names = panel.inner_text(\"[data-photo-pending-names]\")\n    assert \"a.png\" in names and \"c.png\" in names\ndef test_clear_empties_the_selection(panel):\n    panel.evaluate(DROP, [\"a.png\", \"b.png\"])\n    panel.click(\"[data-photo-clear]\")\n    assert panel.evaluate(",
+        "detail": "tests.test_photo_picker",
+        "documentation": {}
+    },
+    {
+        "label": "test_clear_empties_the_selection",
+        "kind": 2,
+        "importPath": "tests.test_photo_picker",
+        "description": "tests.test_photo_picker",
+        "peekOfCode": "def test_clear_empties_the_selection(panel):\n    panel.evaluate(DROP, [\"a.png\", \"b.png\"])\n    panel.click(\"[data-photo-clear]\")\n    assert panel.evaluate(\n        \"() => Array.from(document.querySelector('[data-photo-input]').files).length\"\n    ) == 0",
+        "detail": "tests.test_photo_picker",
+        "documentation": {}
+    },
+    {
+        "label": "APP_JS",
+        "kind": 5,
+        "importPath": "tests.test_photo_picker",
+        "description": "tests.test_photo_picker",
+        "peekOfCode": "APP_JS = Path(__file__).resolve().parent.parent / \"webapp\" / \"static\" / \"app.js\"\nPANEL = \"\"\"<!doctype html><meta charset=\"utf-8\">\n<div id=\"photos\">\n  <div class=\"dropzone\" data-dropzone tabindex=\"0\">\n    <input type=\"file\" id=\"photo-files\" name=\"files\" accept=\"image/*\" multiple data-photo-input hidden>\n    <div class=\"dropzone__files\" data-dropzone-files></div>\n  </div>\n  <button data-photo-clear>Clear</button>\n  <div data-photo-pending hidden>\n    <div data-photo-pending-title></div><div data-photo-pending-names></div>",
+        "detail": "tests.test_photo_picker",
+        "documentation": {}
+    },
+    {
+        "label": "PANEL",
+        "kind": 5,
+        "importPath": "tests.test_photo_picker",
+        "description": "tests.test_photo_picker",
+        "peekOfCode": "PANEL = \"\"\"<!doctype html><meta charset=\"utf-8\">\n<div id=\"photos\">\n  <div class=\"dropzone\" data-dropzone tabindex=\"0\">\n    <input type=\"file\" id=\"photo-files\" name=\"files\" accept=\"image/*\" multiple data-photo-input hidden>\n    <div class=\"dropzone__files\" data-dropzone-files></div>\n  </div>\n  <button data-photo-clear>Clear</button>\n  <div data-photo-pending hidden>\n    <div data-photo-pending-title></div><div data-photo-pending-names></div>\n  </div>",
+        "detail": "tests.test_photo_picker",
+        "documentation": {}
+    },
+    {
+        "label": "DROP",
+        "kind": 5,
+        "importPath": "tests.test_photo_picker",
+        "description": "tests.test_photo_picker",
+        "peekOfCode": "DROP = \"\"\"(names) => {\n  const dt = new DataTransfer();\n  names.forEach(n => dt.items.add(new File([new Uint8Array(10)], n, {type: 'image/png'})));\n  document.querySelector('[data-dropzone]').dispatchEvent(\n    new DragEvent('drop', {bubbles: true, cancelable: true, dataTransfer: dt}));\n  return Array.from(document.querySelector('[data-photo-input]').files).map(f => f.name);\n}\"\"\"\n@pytest.fixture()\ndef panel():\n    try:",
+        "detail": "tests.test_photo_picker",
         "documentation": {}
     },
     {
@@ -8699,7 +9180,7 @@
         "kind": 2,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "def test_info_pack_sale_uses_offer_language_not_auction(golden_record, tmp_path):\n    \"\"\"A normal listing (offers invited) never uses auction / bid wording.\n    The cover badge is the tell: the reference packs put the method there in two\n    words, first word gold (playbook 5.1), and a listing that is not an auction\n    must read FOR SALE.\n    \"\"\"\n    golden_record.sale_process.method = \"offers_invited\"\n    html = _info_pack_html(golden_record, tmp_path)\n    assert \"<b>For</b> Sale\" in html\n    assert \"Offers invited\" in html",
+        "peekOfCode": "def test_info_pack_sale_uses_offer_language_not_auction(golden_record, tmp_path):\n    \"\"\"A normal listing (offers invited) never uses auction / bid wording.\n    The cover badge is the tell: the reference packs put the method there in two\n    words, first word gold (playbook 5.1), and a listing that is not an auction\n    must read FOR SALE.\n    \"\"\"\n    golden_record.sale_process.method = \"offers_invited\"\n    html = _info_pack_html(golden_record, tmp_path)\n    assert \"<b>For</b> Sale\" in html\n    # The sale basis is no longer an investment highlight (5.2), but the money",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -8708,7 +9189,7 @@
         "kind": 2,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "def test_info_pack_auction_uses_auction_language_and_details(golden_record, tmp_path):\n    \"\"\"An auction record frames the pack as an auction with its specifics.\"\"\"\n    golden_record.sale_process.method = \"auction\"\n    golden_record.sale_process.auction_type = \"Insolvency\"\n    golden_record.sale_process.auction_channel = \"Online\"\n    golden_record.sale_process.auction_date = \"28 May 2026\"\n    golden_record.sale_process.auction_time = \"10:00\"\n    html = _info_pack_html(golden_record, tmp_path)\n    assert \"<b>Online</b> Auction\" in html             # the cover badge\n    assert \"Offered on Auction\" in html                # the highlights row",
+        "peekOfCode": "def test_info_pack_auction_uses_auction_language_and_details(golden_record, tmp_path):\n    \"\"\"An auction record frames the pack as an auction with its specifics.\"\"\"\n    golden_record.sale_process.method = \"auction\"\n    golden_record.sale_process.auction_type = \"Insolvency\"\n    golden_record.sale_process.auction_channel = \"Online\"\n    golden_record.sale_process.auction_date = \"28 May 2026\"\n    golden_record.sale_process.auction_time = \"10:00\"\n    html = _info_pack_html(golden_record, tmp_path)\n    assert \"<b>Online</b> Auction\" in html             # the cover badge\n    assert \"Offered on Auction\" not in html            # not a highlight (5.2)",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -9006,6 +9487,114 @@
         "importPath": "tests.test_render",
         "description": "tests.test_render",
         "peekOfCode": "def test_info_pack_falls_back_to_html_without_chromium(golden_record, tmp_path, monkeypatch):\n    \"\"\"A host with no Chromium still gets the pack, as HTML - never a failed render.\"\"\"\n    from engine.render import rasterize\n    monkeypatch.setenv(\"ENGINE_PDF_EXPORT\", \"1\")\n    def _boom(*a, **k):\n        raise rasterize.RasterizeUnavailable(\"no chromium here\")\n    monkeypatch.setattr(rasterize, \"html_to_pdf\", _boom)\n    store = _store_with(golden_record)\n    try:\n        art = render_one(\"3060\", store, \"info_pack\", backend=\"html\", output_root=str(tmp_path))",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_auction_weekday_is_derived_from_the_date",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_auction_weekday_is_derived_from_the_date(typed, expected):\n    from engine.render.html_backend import _auction_weekday\n    assert _auction_weekday(typed) == expected\n@pytest.mark.parametrize(\"typed\", [\"next week\", \"TBC\", \"15 September\", \"\", None])\ndef test_an_unreadable_date_yields_no_weekday_rather_than_a_guess(typed):\n    \"\"\"A wrong day on a printed board sends people to a property on the wrong\n    morning, so an unparseable date (or one with no year) prints nothing.\"\"\"\n    from engine.render.html_backend import _auction_weekday\n    assert _auction_weekday(typed) is None\ndef test_the_ads_auction_line_does_not_carry_the_weekday(golden_record, tmp_path):",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_an_unreadable_date_yields_no_weekday_rather_than_a_guess",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_an_unreadable_date_yields_no_weekday_rather_than_a_guess(typed):\n    \"\"\"A wrong day on a printed board sends people to a property on the wrong\n    morning, so an unparseable date (or one with no year) prints nothing.\"\"\"\n    from engine.render.html_backend import _auction_weekday\n    assert _auction_weekday(typed) is None\ndef test_the_ads_auction_line_does_not_carry_the_weekday(golden_record, tmp_path):\n    \"\"\"The board prints the weekday; the adverts keep D42's wording.\n    One shared macro serving both would have changed every advert in the library.\n    \"\"\"\n    golden_record.sale_process.method = \"auction\"",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_ads_auction_line_does_not_carry_the_weekday",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_the_ads_auction_line_does_not_carry_the_weekday(golden_record, tmp_path):\n    \"\"\"The board prints the weekday; the adverts keep D42's wording.\n    One shared macro serving both would have changed every advert in the library.\n    \"\"\"\n    golden_record.sale_process.method = \"auction\"\n    golden_record.sale_process.auction_channel = \"Online\"\n    golden_record.sale_process.auction_date = \"28 May 2026\"\n    golden_record.sale_process.auction_time = \"10:00\"\n    store = _store_with(golden_record)\n    try:",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_board_carries_no_property_photograph",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_board_carries_no_property_photograph(golden_record, tmp_path):\n    \"\"\"6.1: a board is read from a pavement. It carries the facts that make\n    someone stop, not a picture they can see by looking up.\"\"\"\n    html = _board_html(golden_record, tmp_path)\n    assert 'alt=\"Property photograph\"' not in html\n    assert \"hero\" not in html.lower().split(\"<style>\")[0]\ndef test_residential_board_always_leads_with_bedrooms(golden_record, tmp_path):\n    \"\"\"6.6, and the bed count is not then repeated by the descriptor.\"\"\"\n    html = _board_html(golden_record, tmp_path)\n    assert \"3-BED\" in html",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_residential_board_always_leads_with_bedrooms",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_residential_board_always_leads_with_bedrooms(golden_record, tmp_path):\n    \"\"\"6.6, and the bed count is not then repeated by the descriptor.\"\"\"\n    html = _board_html(golden_record, tmp_path)\n    assert \"3-BED\" in html\n    assert \"3 Bedroom Apartment\" not in html      # would say it twice\n    assert \"Apartment\" in html\ndef test_a_board_without_bedrooms_leads_with_the_extent(golden_record, tmp_path):\n    \"\"\"6.5: commercial, industrial and agricultural boards must state the size.\"\"\"\n    golden_record.physical.bedrooms = None\n    golden_record.physical.unit_size_m2 = 599600.0        # 59.96 ha",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_board_without_bedrooms_leads_with_the_extent",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_a_board_without_bedrooms_leads_with_the_extent(golden_record, tmp_path):\n    \"\"\"6.5: commercial, industrial and agricultural boards must state the size.\"\"\"\n    golden_record.physical.bedrooms = None\n    golden_record.physical.unit_size_m2 = 599600.0        # 59.96 ha\n    html = _board_html(golden_record, tmp_path)\n    assert \"59.96 HA\" in html.upper()\n    assert \"-BED\" not in html\ndef test_board_prints_the_number_not_the_whole_contact_field(golden_record, tmp_path):\n    \"\"\"The contact field is free text and has held a name, a number and an email\n    at once; the board prints one number at 76px.\"\"\"",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_board_prints_the_number_not_the_whole_contact_field",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_board_prints_the_number_not_the_whole_contact_field(golden_record, tmp_path):\n    \"\"\"The contact field is free text and has held a name, a number and an email\n    at once; the board prints one number at 76px.\"\"\"\n    golden_record.sale_process.viewing.contact_public = (\n        \"Dynamic Auctioneers 084 702 3766 | properties@dynamicauctioneers.co.za\"\n    )\n    html = _board_html(golden_record, tmp_path)\n    assert \"084 702 3766\" in html\n    assert \"properties@dynamicauctioneers.co.za\" not in html\ndef test_board_shows_the_qr_only_when_there_is_one(golden_record, tmp_path):",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_board_shows_the_qr_only_when_there_is_one",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_board_shows_the_qr_only_when_there_is_one(golden_record, tmp_path):\n    \"\"\"An empty white square on a printed board is worse than no square (D69).\"\"\"\n    assert 'alt=\"Scan for this property\"' not in _board_html(golden_record, tmp_path)\n    golden_record.marketing.qr_code = \"photos/qr.png\"\n    assert 'alt=\"Scan for this property\"' in _board_html(golden_record, tmp_path)\ndef test_board_prints_one_reference_not_two(golden_record, tmp_path):\n    \"\"\"6.2: two numbers on a board read from six metres away is two numbers\n    nobody writes down. The master ref wins when the record carries one.\"\"\"\n    golden_record.identity.mandate_ref = \"G971/2024\"\n    html = _board_html(golden_record, tmp_path)",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_board_prints_one_reference_not_two",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_board_prints_one_reference_not_two(golden_record, tmp_path):\n    \"\"\"6.2: two numbers on a board read from six metres away is two numbers\n    nobody writes down. The master ref wins when the record carries one.\"\"\"\n    golden_record.identity.mandate_ref = \"G971/2024\"\n    html = _board_html(golden_record, tmp_path)\n    assert \"Master ref: G971/2024\" in html\n    assert \"DP3060\" not in html.split(\"<style>\")[1] if \"<style>\" in html else True\n    golden_record.identity.mandate_ref = None\n    assert \"Property ref: DP3060\" in _board_html(golden_record, tmp_path)\n# --- viewing modes reach every surface (4.6, D76) -------------------------",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_pack_states_the_viewing_arrangement",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_the_pack_states_the_viewing_arrangement(mode, extra, expected, golden_record, tmp_path):\n    golden_record.sale_process.viewing.mode = mode\n    for key, value in extra.items():\n        setattr(golden_record.sale_process.viewing, key, value)\n    html = _info_pack_html(golden_record, tmp_path)\n    assert expected in html\ndef test_no_viewing_reaches_the_facebook_post_too(golden_record, tmp_path):\n    \"\"\"A fact must reach every surface that mentions it - the D64 lesson. A\n    buyer told \"viewing by appointment\" on Facebook and \"not possible\" in the\n    pack has been told two different things about the same property.\"\"\"",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_no_viewing_reaches_the_facebook_post_too",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_no_viewing_reaches_the_facebook_post_too(golden_record, tmp_path):\n    \"\"\"A fact must reach every surface that mentions it - the D64 lesson. A\n    buyer told \"viewing by appointment\" on Facebook and \"not possible\" in the\n    pack has been told two different things about the same property.\"\"\"\n    golden_record.sale_process.viewing.mode = \"none\"\n    store = _store_with(golden_record)\n    try:\n        post = Path(render_one(\"3060\", store, \"facebook_post\", backend=\"html\",\n                               output_root=str(tmp_path)).path).read_text(encoding=\"utf-8\")\n    finally:",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_record_written_before_viewing_modes_still_reads",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_a_record_written_before_viewing_modes_still_reads(golden_record, tmp_path):\n    \"\"\"No migration: the old boolean still means an arrangement.\"\"\"\n    golden_record.sale_process.viewing.mode = None\n    golden_record.sale_process.viewing.by_appointment = True\n    html = _info_pack_html(golden_record, tmp_path)\n    assert \"By arrangement with Dynamic Auctioneers\" in html",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -10162,6 +10751,60 @@
         "documentation": {}
     },
     {
+        "label": "test_gate2_edits_batch_and_one_regenerate_does_the_work",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_gate2_edits_batch_and_one_regenerate_does_the_work():\n    \"\"\"Each click used to render: 5.0s a time once approved, measured over all\n    nine formats. Edits now batch and one explicit Regenerate renders once.\"\"\"\n    _needs_golden()\n    dp = \"9060\"\n    _golden_clone(dp, state=\"approved\")\n    _render_pack(dp)\n    before = _artifact_mtime(dp)\n    assert before is not None\n    client = _client()",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_approving_renders_pending_changes_first",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_approving_renders_pending_changes_first():\n    \"\"\"The risk batching introduces: signing off artifacts the edits never\n    reached. Approve renders anything pending before it advances the state.\"\"\"\n    _needs_golden()\n    dp = \"9061\"\n    _golden_clone(dp, state=\"drafted\")\n    _render_pack(dp)\n    before = _artifact_mtime(dp)\n    client = _client()\n    _login_admin(client)",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_regenerate_with_nothing_pending_says_so",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_regenerate_with_nothing_pending_says_so():\n    _needs_golden()\n    dp = \"9062\"\n    _golden_clone(dp, state=\"approved\")\n    _render_pack(dp)\n    client = _client()\n    _login_admin(client)\n    resp = client.post(f\"/gates/{dp}/ads/regenerate\")\n    assert resp.status_code == 200\n    assert \"Nothing to regenerate\" in resp.text",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_replacing_a_photo_keeps_its_position",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_replacing_a_photo_keeps_its_position():\n    \"\"\"Remove-and-re-upload appends to the end, so swapping the lead photo made\n    it no longer the lead and reordered the gallery under the marketer.\"\"\"\n    import io\n    dp = \"9070\"\n    _seed_minimal(dp, state=\"drafted\")\n    client = _client()\n    _login_admin(client)\n    png = b\"\\x89PNG\\r\\n\\x1a\\n\" + b\"\\x00\" * 64\n    for name in (\"one.png\", \"two.png\", \"three.png\"):",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_replacing_the_lead_photo_leaves_it_the_lead",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_replacing_the_lead_photo_leaves_it_the_lead():\n    import io\n    dp = \"9071\"\n    _seed_minimal(dp, state=\"drafted\")\n    client = _client()\n    _login_admin(client)\n    png = b\"\\x89PNG\\r\\n\\x1a\\n\" + b\"\\x00\" * 64\n    for name in (\"lead.png\", \"other.png\"):\n        client.post(f\"/gates/{dp}/ads/photos/upload\",\n                    files={\"files\": (name, io.BytesIO(png), \"image/png\")})",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_downloaded_pack_carries_nothing_internal",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_the_downloaded_pack_carries_nothing_internal():\n    \"\"\"A client receives the artifacts, not our bookkeeping.\n    The pending-render marker (.stale, D72) lives in the artifacts folder, and\n    the download walks that folder: with edits pending it was being zipped and\n    sent out with the pack.\n    \"\"\"\n    import io\n    import zipfile\n    _needs_golden()\n    dp = \"9080\"",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
         "label": "_TMP",
         "kind": 5,
         "importPath": "tests.test_webapp",
@@ -10661,7 +11304,16 @@
         "kind": 2,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "def action_gate2_changes(db_path: str, dp: str, approver: str, note: str) -> str:\n    \"\"\"Request changes via the email path: log the note and re-render.\"\"\"\n    _signoff(db_path, dp, gate=\"2\", user=approver, note=f\"changes requested: {note}\")\n    _render(db_path, dp)\n    return _state(db_path, dp)\n@router.post(\"/{dp}/ads/approve\")\ndef gate2_approve(dp: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    db_path = _db(request)\n    state = action_gate2_approve(db_path, dp, user[\"email\"])\n    if state == \"updated\":",
+        "peekOfCode": "def action_gate2_changes(db_path: str, dp: str, approver: str, note: str) -> str:\n    \"\"\"Request changes via the email path: log the note and re-render.\"\"\"\n    _signoff(db_path, dp, gate=\"2\", user=approver, note=f\"changes requested: {note}\")\n    _render(db_path, dp)\n    return _state(db_path, dp)\n@router.post(\"/{dp}/ads/regenerate\", response_class=HTMLResponse)\ndef gate2_regenerate(dp: str, request: Request,\n                     user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"Render everything the batched edits changed, once (D72).\n    Gate-2 actions no longer render on each click; they mark the artifacts stale.",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "gate2_regenerate",
+        "kind": 2,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "def gate2_regenerate(dp: str, request: Request,\n                     user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"Render everything the batched edits changed, once (D72).\n    Gate-2 actions no longer render on each click; they mark the artifacts stale.\n    This is the button that does the work - one render for however many changes\n    were made, instead of one per click at up to 5 seconds each.\n    \"\"\"\n    db_path = _db(request)\n    if not _is_stale(db_path, dp):\n        toast = {\"tone\": \"note\", \"title\": \"Nothing to regenerate\",",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -10670,7 +11322,7 @@
         "kind": 2,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "def gate2_approve(dp: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    db_path = _db(request)\n    state = action_gate2_approve(db_path, dp, user[\"email\"])\n    if state == \"updated\":\n        target = f\"/post/{dp}\"          # small-edit repost: straight to distribution\n    elif state == \"approved\":\n        target = f\"/gates/{dp}/client\"  # first-time: on to gate 3 (client approval)\n    else:\n        target = f\"/gates/{dp}/ads\"     # nothing moved (e.g. still live): back to editor\n    if request.headers.get(\"HX-Request\"):",
+        "peekOfCode": "def gate2_approve(dp: str, request: Request, user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    db_path = _db(request)\n    # The one risk batching introduces: approving a pack the edits have not\n    # reached yet. Pending changes are rendered HERE, before the sign-off, so a\n    # marketer cannot approve yesterday's advert by forgetting a button (D72).\n    _render_if_stale(db_path, dp)\n    state = action_gate2_approve(db_path, dp, user[\"email\"])\n    if state == \"updated\":\n        target = f\"/post/{dp}\"          # small-edit repost: straight to distribution\n    elif state == \"approved\":",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -10733,7 +11385,7 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_AD_ONLY_STATES = frozenset({\"extracted\", \"flags_raised\", \"verified\", \"photos\", \"drafted\"})\n# States BEFORE the photos step is finished: the advert is not rendered yet, so a\n# stray gallery/artifacts view must not lazily build a no-photo ad (D-log: photos\n# are mandatory before the first render, to avoid re-rendering and wasted tokens).\n_PRE_DRAFT_STATES = frozenset({\"intake\", \"extracted\", \"flags_raised\", \"verified\", \"photos\"})\nAD_FORMAT = \"demo_ad\"\ndef _formats_for_state(state: Optional[str]) -> Optional[List[str]]:\n    \"\"\"Which formats to render in ``state``: the ad only before approval, the\n    full set (None) once approved (D39).\"\"\"\n    return [AD_FORMAT] if state in _AD_ONLY_STATES else None",
+        "peekOfCode": "_AD_ONLY_STATES = frozenset({\"extracted\", \"flags_raised\", \"verified\", \"photos\", \"drafted\"})\n# States BEFORE the photos step is finished: the advert is not rendered yet, so a\n# stray gallery/artifacts view must not lazily build a no-photo ad (D-log: photos\n# are mandatory before the first render, to avoid re-rendering and wasted tokens).\n_PRE_DRAFT_STATES = frozenset({\"intake\", \"extracted\", \"flags_raised\", \"verified\", \"photos\"})\nAD_FORMAT = \"demo_ad\"\n# --- pending re-render (D72) ---------------------------------------------\n# Gate-2 actions used to render on every click: 5.0s each once a property is\n# approved (measured, all nine formats), so picking a design, swapping the lead\n# photo and fixing a headline cost fifteen seconds of watching a spinner. They",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -10742,7 +11394,7 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_PRE_DRAFT_STATES = frozenset({\"intake\", \"extracted\", \"flags_raised\", \"verified\", \"photos\"})\nAD_FORMAT = \"demo_ad\"\ndef _formats_for_state(state: Optional[str]) -> Optional[List[str]]:\n    \"\"\"Which formats to render in ``state``: the ad only before approval, the\n    full set (None) once approved (D39).\"\"\"\n    return [AD_FORMAT] if state in _AD_ONLY_STATES else None\ndef _render(db_path: str, dp: str, formats: Any = \"auto\") -> List[Any]:\n    \"\"\"Render the artifacts for ``dp`` from public_view. Never raises upward.\n    ``formats=\"auto\"`` (default) picks the set from the current lifecycle state\n    (ad-only before approval, full after, D39); pass an explicit list/None to",
+        "peekOfCode": "_PRE_DRAFT_STATES = frozenset({\"intake\", \"extracted\", \"flags_raised\", \"verified\", \"photos\"})\nAD_FORMAT = \"demo_ad\"\n# --- pending re-render (D72) ---------------------------------------------\n# Gate-2 actions used to render on every click: 5.0s each once a property is\n# approved (measured, all nine formats), so picking a design, swapping the lead\n# photo and fixing a headline cost fifteen seconds of watching a spinner. They\n# now mark the artifacts STALE and one explicit \"Regenerate\" does the work once.\n#\n# The marker is a file beside the artifacts it describes: it survives a restart,\n# it cannot drift out of sync with a database row, and rendering naturally",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -10751,7 +11403,16 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "AD_FORMAT = \"demo_ad\"\ndef _formats_for_state(state: Optional[str]) -> Optional[List[str]]:\n    \"\"\"Which formats to render in ``state``: the ad only before approval, the\n    full set (None) once approved (D39).\"\"\"\n    return [AD_FORMAT] if state in _AD_ONLY_STATES else None\ndef _render(db_path: str, dp: str, formats: Any = \"auto\") -> List[Any]:\n    \"\"\"Render the artifacts for ``dp`` from public_view. Never raises upward.\n    ``formats=\"auto\"`` (default) picks the set from the current lifecycle state\n    (ad-only before approval, full after, D39); pass an explicit list/None to\n    override.",
+        "peekOfCode": "AD_FORMAT = \"demo_ad\"\n# --- pending re-render (D72) ---------------------------------------------\n# Gate-2 actions used to render on every click: 5.0s each once a property is\n# approved (measured, all nine formats), so picking a design, swapping the lead\n# photo and fixing a headline cost fifteen seconds of watching a spinner. They\n# now mark the artifacts STALE and one explicit \"Regenerate\" does the work once.\n#\n# The marker is a file beside the artifacts it describes: it survives a restart,\n# it cannot drift out of sync with a database row, and rendering naturally\n# clears it. Nothing may be APPROVED or POSTED while it is set - that is the",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_STALE_MARKER",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "_STALE_MARKER = \".stale\"\ndef _mark_stale(db_path: str, dp: str, reason: str) -> None:\n    art_dir = _artifacts_dir(db_path, dp)\n    try:\n        art_dir.mkdir(parents=True, exist_ok=True)\n        (art_dir / _STALE_MARKER).write_text(reason, encoding=\"utf-8\")\n    except OSError:\n        pass          # a marker we cannot write must never fail the edit itself\ndef _is_stale(db_path: str, dp: str) -> bool:\n    return (_artifacts_dir(db_path, dp) / _STALE_MARKER).exists()",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -10769,7 +11430,7 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_CTYPE_EXT = {\"image/jpeg\": \".jpg\", \"image/png\": \".png\", \"image/webp\": \".webp\", \"image/gif\": \".gif\"}\n_MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image\n_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\n# The most photos a property may carry. An advert uses one lead photo plus up to\n# six more (2 stacked + 4 gallery = 7 used); 8 leaves a small buffer and keeps\n# the panel tidy. Uploads past this are rejected with a clear message.\n_MAX_PHOTOS_TOTAL = 8\n# A photo is flagged low-res (a non-blocking warning) when its shorter side is\n# under this. Social feeds render around 1080px wide, so smaller images upscale\n# and look soft. The photos extracted from a Property Report PDF are often tiny",
+        "peekOfCode": "_CTYPE_EXT = {\"image/jpeg\": \".jpg\", \"image/png\": \".png\", \"image/webp\": \".webp\", \"image/gif\": \".gif\"}\n_MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image\n_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\n# The most photos a property may carry. An advert uses one lead photo plus up to\n# six more (2 stacked + 4 gallery = 7 used); 8 leaves a small buffer and keeps\n# the panel tidy. Uploads past this are rejected with a clear message.\n_MAX_PHOTOS_TOTAL = 40  # owner's number (D70). Was 8, which rejected the second\n# batch of a multi-folder upload and made named galleries impossible (D52).\n# A photo is flagged low-res (a non-blocking warning) when its shorter side is\n# under this. Social feeds render around 1080px wide, so smaller images upscale",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -10778,7 +11439,7 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image\n_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\n# The most photos a property may carry. An advert uses one lead photo plus up to\n# six more (2 stacked + 4 gallery = 7 used); 8 leaves a small buffer and keeps\n# the panel tidy. Uploads past this are rejected with a clear message.\n_MAX_PHOTOS_TOTAL = 8\n# A photo is flagged low-res (a non-blocking warning) when its shorter side is\n# under this. Social feeds render around 1080px wide, so smaller images upscale\n# and look soft. The photos extracted from a Property Report PDF are often tiny\n# thumbnails (DP3060: ~276x207), which is exactly what this warns about.",
+        "peekOfCode": "_MAX_PHOTO_BYTES = 12 * 1024 * 1024  # 12 MB per image\n_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\n# The most photos a property may carry. An advert uses one lead photo plus up to\n# six more (2 stacked + 4 gallery = 7 used); 8 leaves a small buffer and keeps\n# the panel tidy. Uploads past this are rejected with a clear message.\n_MAX_PHOTOS_TOTAL = 40  # owner's number (D70). Was 8, which rejected the second\n# batch of a multi-folder upload and made named galleries impossible (D52).\n# A photo is flagged low-res (a non-blocking warning) when its shorter side is\n# under this. Social feeds render around 1080px wide, so smaller images upscale\n# and look soft. The photos extracted from a Property Report PDF are often tiny",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -10787,7 +11448,7 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\n# The most photos a property may carry. An advert uses one lead photo plus up to\n# six more (2 stacked + 4 gallery = 7 used); 8 leaves a small buffer and keeps\n# the panel tidy. Uploads past this are rejected with a clear message.\n_MAX_PHOTOS_TOTAL = 8\n# A photo is flagged low-res (a non-blocking warning) when its shorter side is\n# under this. Social feeds render around 1080px wide, so smaller images upscale\n# and look soft. The photos extracted from a Property Report PDF are often tiny\n# thumbnails (DP3060: ~276x207), which is exactly what this warns about.\n_MIN_PHOTO_PX = 1080",
+        "peekOfCode": "_MAX_PHOTOS_PER_UPLOAD = 40  # files processed per request; the excess is rejected\n# The most photos a property may carry. An advert uses one lead photo plus up to\n# six more (2 stacked + 4 gallery = 7 used); 8 leaves a small buffer and keeps\n# the panel tidy. Uploads past this are rejected with a clear message.\n_MAX_PHOTOS_TOTAL = 40  # owner's number (D70). Was 8, which rejected the second\n# batch of a multi-folder upload and made named galleries impossible (D52).\n# A photo is flagged low-res (a non-blocking warning) when its shorter side is\n# under this. Social feeds render around 1080px wide, so smaller images upscale\n# and look soft. The photos extracted from a Property Report PDF are often tiny\n# thumbnails (DP3060: ~276x207), which is exactly what this warns about.",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -10796,7 +11457,7 @@
         "kind": 5,
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
-        "peekOfCode": "_MAX_PHOTOS_TOTAL = 8\n# A photo is flagged low-res (a non-blocking warning) when its shorter side is\n# under this. Social feeds render around 1080px wide, so smaller images upscale\n# and look soft. The photos extracted from a Property Report PDF are often tiny\n# thumbnails (DP3060: ~276x207), which is exactly what this warns about.\n_MIN_PHOTO_PX = 1080\ndef _image_dimensions(path: Path) -> Optional[Tuple[int, int]]:\n    \"\"\"Return (width, height) of an image file, or None if it cannot be read.\n    Uses Pillow's lazy header read (no full decode). Any failure (missing file,\n    unreadable/corrupt image) returns None so the caller simply shows no warning",
+        "peekOfCode": "_MAX_PHOTOS_TOTAL = 40  # owner's number (D70). Was 8, which rejected the second\n# batch of a multi-folder upload and made named galleries impossible (D52).\n# A photo is flagged low-res (a non-blocking warning) when its shorter side is\n# under this. Social feeds render around 1080px wide, so smaller images upscale\n# and look soft. The photos extracted from a Property Report PDF are often tiny\n# thumbnails (DP3060: ~276x207), which is exactly what this warns about.\n_MIN_PHOTO_PX = 1080\ndef _image_dimensions(path: Path) -> Optional[Tuple[int, int]]:\n    \"\"\"Return (width, height) of an image file, or None if it cannot be read.\n    Uses Pillow's lazy header read (no full decode). Any failure (missing file,",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -10815,6 +11476,15 @@
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
         "peekOfCode": "_EDIT_TEXT_FIELDS = {\n    \"headline\": \"marketing.headline\",\n    \"price_display\": \"marketing.price_display\",\n    \"street_address\": \"identity.street_address\",\n    \"suburb\": \"identity.suburb\",\n    # Auction specifics (D42): shown on auction ads only. Blank inputs are\n    # skipped by _collect_edit_fields, so they never wipe an existing value.\n    # (auction_channel is validated against an allow-list separately, below.)\n    \"auction_type\": \"sale_process.auction_type\",\n    \"auction_date\": \"sale_process.auction_date\",",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_VIEWING_MODES",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "_VIEWING_MODES = (\"by_arrangement\", \"set_time\", \"none\")\n_SALE_METHODS = (\"offers_invited\", \"auction\")\n_AUCTION_CHANNELS = (\"Online\", \"On-site\")\ndef _design_sets() -> list:\n    \"\"\"The template-set names the gate-2 design picker offers (D33).\n    Empty (picker hidden) unless a choice is real: more than one set is\n    configured AND the active renderer actually routes formats through Canva\n    (``ENGINE_RENDERER`` is ``canva`` or ``mixed`` and the backend is\n    available). Otherwise a pick would be a silent no-op -- the html backend\n    ignores ``template_set`` -- while the UI promises a re-rendered design.",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
@@ -11184,6 +11854,15 @@
         "importPath": "webapp.jobs",
         "description": "webapp.jobs",
         "peekOfCode": "def drain(db_path: Optional[str] = None, max_jobs: int = 1000) -> int:\n    \"\"\"Synchronously process all queued jobs (no thread). Returns the count.\n    Handy for tests and for the self-check: enqueue, then ``drain`` to run the\n    queue to completion in-process.\n    \"\"\"\n    processed = 0\n    while processed < max_jobs:\n        job = _claim_next(db_path)\n        if job is None:\n            break",
+        "detail": "webapp.jobs",
+        "documentation": {}
+    },
+    {
+        "label": "log",
+        "kind": 5,
+        "importPath": "webapp.jobs",
+        "description": "webapp.jobs",
+        "peekOfCode": "log = logging.getLogger(__name__)\nJOB_KINDS = (\"extract\", \"verify\", \"render\", \"post\")\n# Lifecycle states in which re-running extraction over an EXISTING record is\n# safe: nothing has been signed off, drafted or published yet, so rewriting the\n# sourced facts cannot contradict a human decision. Past these, _handle_extract\n# refuses (see the comment there).\n_RE_EXTRACT_STATES = frozenset({\"intake\", \"extracted\", \"flags_raised\"})\n_POLL_INTERVAL = 0.25  # seconds between queue polls when idle\n# --- enqueue --------------------------------------------------------------\ndef enqueue(",
         "detail": "webapp.jobs",
         "documentation": {}
     },
