@@ -1,0 +1,153 @@
+{# Estate board: ONE board for several units sold under one instruction
+   (fix list 6.4, D79).
+
+   The client's rule: units in the same block are advertised together - "3
+   apartments for sale in Ten On Lane" - not as one board per front door. The
+   chrome is the auction board's (D74), because it stands in the same street; the
+   headline is what differs, leading with the COUNT and the scheme rather than
+   one unit's bedrooms.
+
+   Rendered only when the property has siblings sharing a scheme; a property that
+   stands alone has no estate board at all rather than a board reading "1
+   apartment". #}
+{% import "_adparts.html.j2" as parts %}
+
+{% set g = vm.group %}
+{% set is_auction = (vm.method == 'auction') %}
+{% set channel = (vm.auction_channel or 'Online') if is_auction else 'For sale' %}
+{% set box_lead = (vm.auction_type or 'Liquidation') if is_auction else 'For' %}
+{% set box_tail = 'Auction' if is_auction else 'Sale' %}
+
+{# "Apartments", "Units", "Homes" - the plural of what these actually are. #}
+{% set noun = vm.title_type_label or 'Properties' %}
+{% set noun_plural %}
+{%- if vm.descriptor_line and 'apartment' in vm.descriptor_line | lower %}Apartments
+{%- elif vm.descriptor_line and 'flat' in vm.descriptor_line | lower %}Flats
+{%- elif vm.title_type_label and 'sectional' in vm.title_type_label | lower %}Units
+{%- else %}Properties{% endif -%}
+{% endset %}
+
+{# The range across the set: "2 to 3 bed", "78 to 111m2". One value when every
+   unit matches, because "2 to 2 bed" is not a range. #}
+{% set beds_line %}
+{%- if g.beds_low and g.beds_high %}
+{%- if g.beds_low == g.beds_high %}{{ g.beds_low }}-BED{% else %}{{ g.beds_low }} TO {{ g.beds_high }} BED{% endif %}
+{%- endif -%}
+{% endset %}
+{% set size_line %}
+{%- if g.size_low and g.size_high %}
+{%- if (g.size_low | round) == (g.size_high | round) %}± {{ g.size_low | round | int }}M²
+{%- else %}± {{ g.size_low | round | int }} TO {{ g.size_high | round | int }}M²{% endif %}
+{%- endif -%}
+{% endset %}
+
+{% set place = g.suburb or vm.suburb or '' %}
+{% set phone = vm.board_phone or vm.brand_phone %}
+{% set scheme_px = 60 if (g.scheme | length) <= 18 else (48 if (g.scheme | length) <= 26 else 38) %}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Estate board {{ g.scheme }} | {{ vm.brand_name }}</title>
+<style>
+  :root { --ink:#000; --gold:#ac874a; --gold-2:#ddc689; --paper:#f4efe6; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; padding:0; background:#fff; }
+  body { font-family:'Montserrat','Avenir Next',Arial,sans-serif; -webkit-font-smoothing:antialiased; }
+
+  .board { position:relative; width:1200px; height:1600px; overflow:hidden;
+           background:var(--paper); display:flex; flex-direction:column;
+           -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .bd-ground { position:absolute; inset:0; z-index:0;
+    background:
+      linear-gradient(118deg, rgba(255,255,255,.95) 0 32%, rgba(255,255,255,0) 32% 44%,
+                              rgba(255,255,255,.75) 44% 58%, rgba(255,255,255,0) 58% 72%,
+                              rgba(255,255,255,.85) 72% 100%),
+      linear-gradient(160deg, #ffffff 0%, #f6f1e7 55%, #e8dcc6 100%); }
+
+  .bd-head { position:relative; z-index:2; flex:none; background:var(--ink); color:#fff;
+             padding:34px 40px 38px; text-align:center; }
+  .bd-head .l1 { font-size:76px; font-weight:900; line-height:1.02; text-transform:uppercase; }
+  .bd-head .l2 { margin-top:10px; font-size:70px; font-weight:900; line-height:1.02; text-transform:uppercase; }
+
+  .bd-body { position:relative; z-index:2; flex:1 1 auto; display:flex; flex-direction:column;
+             align-items:center; padding:26px 46px 30px; min-height:0; }
+  .bd-mid { margin-top:auto; margin-bottom:auto; display:flex; flex-direction:column; align-items:center; }
+  .bd-ref { align-self:flex-end; border:3px solid var(--ink); border-radius:999px; padding:12px 26px;
+            font-size:22px; font-weight:800; letter-spacing:.02em; text-transform:uppercase;
+            background:rgba(255,255,255,.75); }
+
+  .bd-stack { text-align:center; color:var(--ink); }
+  /* The count is the headline: it is the reason this board exists. */
+  .bd-stack .count { font-size:92px; font-weight:900; line-height:1.0; letter-spacing:-.02em; text-transform:uppercase; }
+  .bd-stack .scheme { margin-top:4px; font-weight:900; line-height:1.04; letter-spacing:-.01em; text-transform:uppercase; }
+  .bd-stack .range { margin-top:10px; font-size:44px; font-weight:800; letter-spacing:.01em; text-transform:uppercase; }
+  .bd-stack .place { margin-top:6px; font-size:46px; font-weight:900; text-transform:uppercase; }
+
+  .bd-method { margin-top:24px; display:flex; border:4px solid var(--ink); }
+  .bd-method span { padding:12px 22px; font-size:52px; font-weight:900; line-height:1; text-transform:uppercase; }
+  .bd-method .a { background:#fff; color:var(--ink); }
+  .bd-method .b { background:var(--ink); color:#fff; }
+
+  .bd-qr { margin-top:26px; width:330px; height:330px; border:4px solid var(--ink); background:#fff; padding:10px; }
+  .bd-qr img { width:100%; height:100%; object-fit:contain; display:block; }
+
+  .bd-tel { margin-top:34px; display:flex; align-items:center; gap:22px; font-size:76px;
+            font-weight:900; color:var(--ink); }
+  .bd-tel .dot { width:74px; height:74px; border-radius:50%; background:var(--ink);
+                 display:flex; align-items:center; justify-content:center; flex:none; }
+  .bd-tel .dot svg { width:42px; height:42px; fill:#fff; }
+
+  .bd-foot { position:relative; z-index:2; flex:none; background:var(--ink); padding:30px 40px;
+             display:flex; align-items:center; justify-content:center; }
+  .bd-foot img { height:118px; width:auto; display:block; }
+  .nb{white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div class="board ad">
+  <div class="bd-ground"></div>
+
+  <div class="bd-head">
+    <div class="l1">{{ channel | upper }}{% if vm.auction_weekday %} | {{ vm.auction_weekday }}{% endif %}</div>
+    {% if vm.auction_date or vm.auction_time %}
+    <div class="l2">{{ vm.auction_date | upper }}{% if vm.auction_time %} @ {{ vm.auction_time }}{% endif %}</div>
+    {% endif %}
+  </div>
+
+  <div class="bd-body">
+    {% if vm.public_ref %}<div class="bd-ref">Master ref: {{ vm.public_ref }}</div>{% endif %}
+
+    <div class="bd-mid">
+      <div class="bd-stack">
+        <div class="count nb">{{ g.count }} {{ noun_plural | trim }}</div>
+        <div class="scheme" style="font-size:{{ scheme_px }}px">In {{ g.scheme }}</div>
+        {% if beds_line | trim or size_line | trim %}
+        <div class="range nb">
+          {{- beds_line | trim }}{% if (beds_line | trim) and (size_line | trim) %} &middot; {% endif %}{{ size_line | trim -}}
+        </div>
+        {% endif %}
+        {% if place %}<div class="place">{{ place }}</div>{% endif %}
+      </div>
+
+      <div class="bd-method">
+        <span class="a">{{ box_lead }}</span><span class="b">{{ box_tail }}</span>
+      </div>
+
+      {% if vm.qr_src %}
+      <div class="bd-qr"><img src="{{ vm.qr_src }}" alt="Scan for these units"></div>
+      {% endif %}
+
+      <div class="bd-tel">
+        <span class="dot"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11 11 0 0 0 3.4.55 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.3a1 1 0 0 1 1 1 11 11 0 0 0 .55 3.4 1 1 0 0 1-.24 1z"/></svg></span>
+        <span class="nb">{{ phone }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bd-foot">{{ parts.brand_logo(vm, 'dark', 'auctioneers') }}</div>
+</div>
+
+</body>
+</html>

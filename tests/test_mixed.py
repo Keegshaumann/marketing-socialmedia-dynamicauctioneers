@@ -60,7 +60,9 @@ def test_mixed_uses_canva_for_demo_ad_and_html_for_the_rest(monkeypatch, tmp_pat
     assert by_fmt["demo_ad"].edit_url == "https://www.canva.com/design/DAF1/edit"
     assert all(a.backend == "html" for f, a in by_fmt.items() if f != "demo_ad")
     # A complete set in one pass: the canva one-pager + every html format.
-    assert len(arts) == len(FORMATS)
+    # estate_board renders only for a block of sub-lots (D79); these
+    # fixtures are single properties, so every OTHER format is expected.
+    assert {a.fmt for a in arts} == set(FORMATS) - {"estate_board"}
 
 
 def test_mixed_falls_back_to_html_when_canva_errors(monkeypatch, tmp_path, golden_record_path):
@@ -82,7 +84,9 @@ def test_mixed_falls_back_to_html_when_canva_errors(monkeypatch, tmp_path, golde
     by_fmt = {a.fmt: a for a in arts}
     # demo_ad's Canva render failed, so it fell back to html; the set is complete.
     assert by_fmt["demo_ad"].backend == "html"
-    assert len(arts) == len(FORMATS)
+    # estate_board renders only for a block of sub-lots (D79); these
+    # fixtures are single properties, so every OTHER format is expected.
+    assert {a.fmt for a in arts} == set(FORMATS) - {"estate_board"}
 
 
 def test_html_backend_unchanged_when_not_mixed(monkeypatch, tmp_path, golden_record_path):
@@ -93,7 +97,9 @@ def test_html_backend_unchanged_when_not_mixed(monkeypatch, tmp_path, golden_rec
     finally:
         store.close()
     assert {a.backend for a in arts} == {"html"}
-    assert len(arts) == len(FORMATS)
+    # estate_board renders only for a block of sub-lots (D79); these
+    # fixtures are single properties, so every OTHER format is expected.
+    assert {a.fmt for a in arts} == set(FORMATS) - {"estate_board"}
 
 
 def test_record_template_set_reaches_the_backend(monkeypatch, tmp_path, golden_record_path):

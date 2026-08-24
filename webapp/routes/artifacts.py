@@ -49,6 +49,7 @@ FORMAT_META: Dict[str, Dict[str, str]] = {
     "saia_banner": {"label": "SAIA banner", "kind": "page"},
     "alert_mailer": {"label": "Alert mailer", "kind": "page"},
     "auction_board": {"label": "Auction board", "kind": "page"},
+    "estate_board": {"label": "Estate board (all units)", "kind": "page"},
 }
 
 # Channel labels, keyed by the identifiers used across routing + the status log.

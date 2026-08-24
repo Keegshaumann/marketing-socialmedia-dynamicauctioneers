@@ -76,6 +76,7 @@ _FORMAT_SPEC: Dict[str, Tuple[str, str, str]] = {
     "saia_banner": ("saia_banner.html.j2", "html", "text/html"),
     "alert_mailer": ("alert_mailer.html.j2", "html", "text/html"),
     "auction_board": ("auction_board.html.j2", "html", "text/html"),
+    "estate_board": ("estate_board.html.j2", "html", "text/html"),
 }
 
 # Formats delivered as a PDF. These are documents a buyer or client receives as
@@ -101,6 +102,7 @@ _PDF_FORMATS: Dict[str, str] = {
     # The mailer is an email: nested tables with a 640px wrapper, no canvas.
     "alert_mailer": ".wrap",
     "auction_board": ".board",
+    "estate_board": ".board",
 }
 
 

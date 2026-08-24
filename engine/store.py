@@ -312,6 +312,35 @@ class RecordStore:
         ).fetchone()
         return row["state"] if row is not None else None
 
+    def lot_group(self, dp: str) -> List[str]:
+        """Every DP sold under the same instruction as ``dp``, itself included.
+
+        Sub-lots share a ``parent_dp`` (DP3035.1 and DP3035.2 both point at
+        DP3035), which is how a nine-unit block in one scheme is one instruction
+        with nine records. The column has been carried since D50 and never
+        queried; the estate board (fix list 6.4) is the first thing that needs
+        it. A property with no parent is its own group of one.
+
+        Returned in DP order so a board lists its units the way a human would.
+        """
+        row = self.conn.execute(
+            "SELECT parent_dp FROM records WHERE dp = ?", (dp,)
+        ).fetchone()
+        if row is None:
+            return []
+        parent = row["parent_dp"]
+        if not parent:
+            # It may itself be the parent of a set of lots.
+            kids = self.conn.execute(
+                "SELECT dp FROM records WHERE parent_dp = ? ORDER BY dp", (dp,)
+            ).fetchall()
+            return [dp] + [k["dp"] for k in kids] if kids else [dp]
+        rows = self.conn.execute(
+            "SELECT dp FROM records WHERE parent_dp = ? OR dp = ? ORDER BY dp",
+            (parent, parent),
+        ).fetchall()
+        return [r["dp"] for r in rows]
+
     def list_records(self) -> List[dict]:
         """Return a lightweight listing: dp, state, suburb, updated_at."""
         rows = self.conn.execute(

@@ -33,6 +33,9 @@ FORMATS: List[str] = [
     "saia_banner",      # SAIA alert banner (.html)
     "alert_mailer",     # alert-mailer HTML + audience list (.html)
     "auction_board",    # print-ready auction board (.html; PDF export later)
+    # One board for a whole block sold under one instruction (fix list 6.4).
+    # Rendered ONLY when the property has siblings sharing a scheme.
+    "estate_board",
 ]
 
 

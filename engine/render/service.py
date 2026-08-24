@@ -388,6 +388,19 @@ def render_all(
     _persist_generated_copy(record, _fresh_copy, store)
     template_set = _resolve_template_set(record)
 
+    # The estate board is one board for a whole block (6.4, D79), so it only
+    # exists when this property has siblings sharing a scheme. Dropping it from
+    # the targets - rather than rendering an empty board - keeps the pack a list
+    # of things that exist.
+    group = lot_group_summary(dp, store)
+    if group is None:
+        targets = [f for f in targets if f != "estate_board"]
+    elif copy is not None:
+        # ``copy`` is the existing channel for extra render context and lands
+        # straight on the view model, so the backend still receives only
+        # public_view dicts and never the store.
+        copy = {**copy, "group": group}
+
     artifacts: List[Artifact] = []
     for fmt in targets:
         request = RenderRequest(
@@ -626,3 +639,56 @@ def apply_photos(
         state=store.get_state(dp),
         artifacts=artifacts,
     )
+
+def lot_group_summary(dp: str, store: RecordStore) -> Optional[dict]:
+    """A collective view of every unit sold under one instruction (6.4, D79).
+
+    The client's rule: units in one block are advertised together - "Apartments
+    for sale in Ten On Lane" - not as one board per door. So the estate board
+    needs the SET, and it is assembled here rather than in a backend, because
+    the render contract is one record in, one artifact out and a backend is
+    given only ``public_view`` dicts, never the store.
+
+    ``None`` when the property stands alone (one board, the ordinary case) or
+    when its siblings do not share a scheme, because "3 apartments in" nothing
+    is not a headline.
+    """
+    dps = store.lot_group(dp)
+    if len(dps) < 2:
+        return None
+
+    views = []
+    for other in dps:
+        record = store.get(other)
+        if record is not None:
+            views.append(record.public_view())
+    if len(views) < 2:
+        return None
+
+    def _identity(view, key):
+        return ((view.get("identity") or {}).get(key)) or None
+
+    schemes = {_identity(v, "scheme") for v in views if _identity(v, "scheme")}
+    if len(schemes) != 1:
+        return None                      # not one block, so not one board
+
+    beds, sizes = [], []
+    for view in views:
+        physical = view.get("physical") or {}
+        if physical.get("bedrooms") is not None:
+            beds.append(int(physical["bedrooms"]))
+        if physical.get("unit_size_m2") is not None:
+            sizes.append(float(physical["unit_size_m2"]))
+
+    first = views[0]
+    return {
+        "count": len(views),
+        "scheme": next(iter(schemes)),
+        "suburb": _identity(first, "suburb"),
+        "municipality": _identity(first, "municipality"),
+        "beds_low": min(beds) if beds else None,
+        "beds_high": max(beds) if beds else None,
+        "size_low": min(sizes) if sizes else None,
+        "size_high": max(sizes) if sizes else None,
+        "dps": dps,
+    }
