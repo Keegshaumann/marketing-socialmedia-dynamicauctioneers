@@ -89,3 +89,21 @@ def resolve(template_id: Optional[str]) -> str:
         return _DEFAULT_TEMPLATE
     path = _ADS_DIR / f"{template_id}.html.j2"
     return f"ads/{path.name}" if path.is_file() else _DEFAULT_TEMPLATE
+
+
+def variation_ids(picked: Optional[str], count: int = 2) -> List[str]:
+    """The other designs to render beside ``picked`` (fix list 2.1).
+
+    The library in order, starting after the marketer's pick and wrapping, so
+    three variations are always three DIFFERENT designs and the set is stable
+    for a given pick rather than shuffling on every render.
+    """
+    # template_ids() is a SET; the rotation has to be stable or the same pick
+    # would yield different alternatives on different renders.
+    ids = sorted(template_ids())
+    if not ids:
+        return []
+    current = picked if picked in ids else DEFAULT_ID
+    start = ids.index(current) if current in ids else 0
+    rotated = ids[start + 1:] + ids[:start]
+    return rotated[:count]

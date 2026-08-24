@@ -1034,3 +1034,8 @@ tr:hover .iconbtn { opacity: 1; }
   max-width: 100%; max-height: 100%; object-fit: contain;
   border: 1px solid var(--line); box-shadow: 0 18px 60px rgba(0, 0, 0, .5);
 }
+
+/* --- photo drag-reorder (2.4) ----------------------------------------- */
+[data-photo-tile] { cursor: grab; }
+[data-photo-tile].is-dragging { opacity: .45; cursor: grabbing; }
+[data-photo-sort] { min-height: 40px; }

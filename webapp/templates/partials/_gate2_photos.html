@@ -89,9 +89,17 @@
   </div>
 
   {% if photos %}
-  <div class="gallery-grid">
+  {# Drag to reorder (2.4). The first photo is the LEAD on every advert and the
+     cover of the pack, so order is a decision, not decoration. #}
+  <form id="photo-order" hx-post="/gates/{{ dp }}/ads/photos/order"
+        hx-target="#photos" hx-swap="outerHTML" hx-trigger="reorder">
+  <datalist id="photo-groups">
+    {% for g in (photos | map(attribute='group') | select | unique | list) %}<option value="{{ g }}">{% endfor %}
+  </datalist>
+  <div class="gallery-grid" data-photo-sort>
     {% for p in photos %}
-    <div class="tile">
+    <div class="tile" draggable="true" data-photo-tile data-name="{{ p.name }}">
+      <input type="hidden" name="name" value="{{ p.name }}">
       <div class="tile__body" style="position:relative">
         <img src="{{ p.url }}" alt="{{ p.name }}" loading="lazy" data-lightbox
              title="Click to enlarge"
@@ -120,6 +128,14 @@
                  hx-vals='{{ {"name": p.name} | tojson }}'
                  hx-target="#photos" hx-swap="outerHTML" hx-trigger="change">
         </label>
+        {# The building this photo belongs to (1.4). The pack's gallery prints
+           each group under its own heading; blank means ungrouped. #}
+        <input class="input input--sm" name="group" value="{{ p.group }}"
+               placeholder="Group (e.g. Main House)" list="photo-groups"
+               hx-post="/gates/{{ dp }}/ads/photos/group" hx-trigger="change"
+               hx-vals='{{ {"name": p.name} | tojson }}'
+               hx-target="#photos" hx-swap="outerHTML"
+               style="width:100%;margin-top:4px;font-size:11px">
         <button class="btn btn--ghost btn--sm" hx-post="/gates/{{ dp }}/ads/photos/delete"
                 hx-vals='{{ {"name": p.name} | tojson }}' hx-target="#photos" hx-swap="outerHTML"
                 hx-confirm="Remove this photo from the adverts?">
@@ -128,6 +144,7 @@
     </div>
     {% endfor %}
   </div>
+  </form>
   {% else %}
   <div class="empty" data-photo-empty>
     <div class="empty__title">No photos yet</div>

@@ -65,6 +65,10 @@ _FORMAT_SPEC: Dict[str, Tuple[str, str, str]] = {
     "facebook_post": ("facebook_post.md.j2", "md", "text/markdown"),
     "email_blast": ("email_blast.md.j2", "md", "text/markdown"),
     "demo_ad": ("ads/hero_overlay.html.j2", "html", "text/html"),
+    # The template for these is chosen per record (see _resolve_ad_template):
+    # the designs after the marketer's pick, so the three are always different.
+    "demo_ad_2": ("ads/hero_overlay.html.j2", "html", "text/html"),
+    "demo_ad_3": ("ads/hero_overlay.html.j2", "html", "text/html"),
     # Rendered to HTML first, then printed to PDF (see _PDF_FORMATS below): the
     # buyer receives a PDF, so the artifact this backend returns is the PDF.
     "info_pack": ("info_pack.html.j2", "html", "text/html"),
@@ -91,6 +95,8 @@ _FORMAT_SPEC: Dict[str, Tuple[str, str, str]] = {
 _PDF_FORMATS: Dict[str, str] = {
     "info_pack": "",            # multi-page A4 landscape, its own @page rules
     "demo_ad": ".ig",           # 1080x1350 social canvas
+    "demo_ad_2": ".ig",
+    "demo_ad_3": ".ig",
     "saia_banner": ".bn",
     # The mailer is an email: nested tables with a 640px wrapper, no canvas.
     "alert_mailer": ".wrap",
@@ -377,10 +383,19 @@ class HtmlBackend(RenderBackend):
         # The ad (demo_ad) design is chosen from the ad-template library (D41);
         # the marketer's pick rides request.template_set and degrades to Classic.
         # Every other format keeps its single fixed template.
-        if request.fmt == "demo_ad":
+        if request.fmt in ("demo_ad", "demo_ad_2", "demo_ad_3"):
             from engine.render import ad_templates
 
-            template_name = ad_templates.resolve(request.template_set)
+            if request.fmt in ("demo_ad_2", "demo_ad_3"):
+                # Variation 2 and 3 (fix list 2.1): the next designs after the
+                # pick, so a marketer choosing Hero-overlay gets Stats-first and
+                # Collage beside it rather than three of the same advert.
+                index = 0 if request.fmt == "demo_ad_2" else 1
+                others = ad_templates.variation_ids(request.template_set)
+                pick = others[index] if index < len(others) else request.template_set
+                template_name = ad_templates.resolve(pick)
+            else:
+                template_name = ad_templates.resolve(request.template_set)
         template = self._env.get_template(template_name)
         context = self._view_model(request)
         rendered = template.render(vm=context)
@@ -415,6 +430,32 @@ class HtmlBackend(RenderBackend):
         )
 
     # --- view model ------------------------------------------------------
+
+    def _photo_groups(self, request, marketing: dict, photos: List[str]) -> List[tuple]:
+        """The gallery split into named groups, in the marketer's order.
+
+        The record stores group -> names; this resolves them to the same urls the
+        flat list uses, drops any name no longer on the record, and appends
+        whatever was never grouped so a photograph cannot vanish by being left
+        out of a group.
+        """
+        groups = marketing.get("photo_groups") or {}
+        gallery = photos[1:] if len(photos) > 1 else []
+        if not groups:
+            return [("", gallery)] if gallery else []
+
+        by_name = {PurePosixPath(url).name: url for url in gallery}
+        out, used = [], set()
+        for name, members in groups.items():
+            urls = [by_name[PurePosixPath(m).name] for m in (members or [])
+                    if PurePosixPath(m).name in by_name]
+            if urls:
+                out.append((str(name), urls))
+                used.update(urls)
+        leftover = [url for url in gallery if url not in used]
+        if leftover:
+            out.append(("", leftover))
+        return out
 
     def _view_model(self, request: RenderRequest) -> dict:
         """Build the template context from ``public_record`` (+ photos + copy).
@@ -563,8 +604,13 @@ class HtmlBackend(RenderBackend):
             "viewing": _viewing(viewing),
             "contact_public": viewing.get("contact_public"),
             # The single number the on-site board prints (D74).
-            "board_phone": _board_phone(viewing.get("contact_public"), BRAND["phone"]),
+            "board_phone": ((marketing.get("contact_phone") or "").strip()
+                            or _board_phone(viewing.get("contact_public"), BRAND["phone"])),
             "photos": photos,
+            # The gallery as NAMED groups (1.4, D78): [(name, [urls]), ...].
+            # A property with no groups yields one untitled group holding
+            # everything, so the pack's gallery pages are one code path.
+            "photo_groups": self._photo_groups(request, marketing, photos),
             # The board's QR code, uploaded by the team (D69). Resolved the
             # same way as a photo so it embeds for print; None until they
             # add one, and the board then omits the block rather than
@@ -577,8 +623,9 @@ class HtmlBackend(RenderBackend):
             "stack_photos": photos[1:3],
             "gallery_photos": photos[3:7],
             "brand_name": BRAND["name"],
-            "brand_phone": BRAND["phone"],
-            "brand_email": BRAND["email"],
+            "brand_phone": (marketing.get("contact_phone") or "").strip() or BRAND["phone"],
+            # A per-property mailbox when the marketer typed one (2.9, D78).
+            "brand_email": (marketing.get("contact_email") or "").strip() or BRAND["email"],
             "brand_email_admin": BRAND["email_admin"],
             "brand_web": BRAND["web"],
             "brand_address": BRAND["address"],

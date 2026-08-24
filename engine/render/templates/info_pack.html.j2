@@ -74,7 +74,16 @@
    same picture twice; with one photograph it takes that one. #}
 {% set circle_src = photos[1] if photos | length > 1 else hero %}
 {% set gallery = photos[1:] if photos | length > 1 else [] %}
-{% set gallery_pages = gallery | batch(9) | list %}
+{# Gallery pages, grouped (1.4): [(group name, [photos]), ...] paginated inside
+   each group, so a page never mixes two buildings and each is titled by the one
+   it shows. A property with no groups yields a single untitled group, which is
+   the old behaviour exactly. #}
+{% set gallery_pages = [] %}
+{% for group_name, group_photos in (vm.photo_groups or ([('', gallery)] if gallery else [])) %}
+{% for chunk in (group_photos | batch(9) | list) %}
+{% set _ = gallery_pages.append((group_name, chunk, loop.first)) %}
+{% endfor %}
+{% endfor %}
 {# The closing page's ground, and the bands that fill short sheets. #}
 {% set fill_photos = photos %}
 {% set pool = namespace(i=0) %}
@@ -652,13 +661,16 @@
   {% endfor %}
 
   {# ------------------------------------------------------------ 4 GALLERY #}
-  {% for chunk in gallery_pages %}
+  {% for group_name, chunk, group_first in gallery_pages %}
   <section class="page">
     
     <div class="page__body">
       <div class="gal-head">
         <div class="gal-badge">{{ parts.brand_logo(vm, 'dark', 'auctioneers') }}</div>
-        <h2 class="ptitle" style="margin:0">Gallery</h2>
+        <h2 class="ptitle" style="margin:0">
+          {%- if group_name %}{{ group_name }}{% if not group_first %} continued{% endif %}
+          {%- else %}Gallery{% if not group_first %} continued{% endif %}{% endif -%}
+        </h2>
       </div>
       {# Columns follow the count: two for a short gallery, three once there are
          five or more. The trailing part-row shares the six tracks equally. #}

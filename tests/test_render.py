@@ -1399,3 +1399,110 @@ def test_a_record_written_before_viewing_modes_still_reads(golden_record, tmp_pa
     golden_record.sale_process.viewing.by_appointment = True
     html = _info_pack_html(golden_record, tmp_path)
     assert "By arrangement with Dynamic Auctioneers" in html
+
+
+# --- three ad variations per pack (2.1, D78) ------------------------------
+
+def test_the_pack_carries_three_different_ad_designs(golden_record, tmp_path):
+    """2.1: the team picks one advert to post, so three to choose from is the
+    point - and three copies of the same design would not be a choice."""
+    golden_record.marketing.template_set = "hero_overlay"
+    store = _store_with(golden_record)
+    try:
+        arts = {a.fmt: a for a in render_all("3060", store, backend="html",
+                                             output_root=str(tmp_path))}
+    finally:
+        store.close()
+
+    for fmt in ("demo_ad", "demo_ad_2", "demo_ad_3"):
+        assert fmt in arts, f"{fmt} not rendered"
+    bodies = [Path(arts[f].path).read_text(encoding="utf-8")
+              for f in ("demo_ad", "demo_ad_2", "demo_ad_3")]
+    # Each design has its own root class, so three designs means three markups.
+    assert len(set(bodies)) == 3, "the variations are not three different designs"
+    assert "ho-hero" in bodies[0]          # the pick renders as the primary
+
+
+def test_the_variations_follow_the_marketers_pick(golden_record, tmp_path):
+    """Change the pick and the alternatives change with it, deterministically."""
+    from engine.render.ad_templates import variation_ids
+
+    first = variation_ids("hero_overlay")
+    assert variation_ids("hero_overlay") == first, "the rotation is not stable"
+    assert "hero_overlay" not in first, "a variation repeats the pick"
+    assert len(set(first)) == 2
+
+
+def test_the_pre_approval_render_is_still_one_advert(golden_record, tmp_path):
+    """D39 keeps gate 2 fast: before approval only the primary ad renders, so
+    the picker stays instant and three PDFs are not printed on every click."""
+    store = _store_with(golden_record)
+    try:
+        arts = {a.fmt for a in render_all("3060", store, backend="html",
+                                          output_root=str(tmp_path), formats=["demo_ad"])}
+    finally:
+        store.close()
+    assert arts == {"demo_ad"}
+
+
+# --- named photograph groups (1.4, D78) -----------------------------------
+
+def test_the_pack_titles_each_photograph_group(golden_record, tmp_path):
+    """1.4: "Main House", "Second House", "Greenhouses" - each group is its own
+    titled page, so a farm's pack does not present one undifferentiated pile."""
+    photos = ["photos/p6_img14_276x207.png", "photos/p6_img12_276x207.png",
+              "photos/p6_img09_276x207.png", "photos/p7_img15_276x207.png"]
+    golden_record.marketing.hero_photo = photos[0]
+    golden_record.marketing.gallery = photos[1:]
+    golden_record.marketing.photo_groups = {
+        "Main House": [photos[1]],
+        "Greenhouses": [photos[2]],
+    }
+    html = _info_pack_html(golden_record, tmp_path)
+
+    assert ">Main House" in html.replace("\n", "").replace("  ", "")
+    assert "Greenhouses" in html
+    # The ungrouped one still prints rather than vanishing.
+    assert html.count('alt="Property photograph"') >= 3
+
+
+def test_a_property_with_no_groups_renders_exactly_as_before(golden_record, tmp_path):
+    """No migration, no behaviour change for the ordinary single-building case."""
+    golden_record.marketing.photo_groups = None
+    html = _info_pack_html(golden_record, tmp_path)
+    assert "Gallery" in html
+
+
+def test_an_ungrouped_photograph_is_never_dropped():
+    """A photo left out of every group must still reach the pack."""
+    from engine.render.base import RenderRequest
+    from engine.render.html_backend import HtmlBackend
+
+    pub = {"marketing": {
+        "hero_photo": "photos/h.png",
+        "gallery": ["photos/a.png", "photos/b.png", "photos/c.png"],
+        "photo_groups": {"Main House": ["photos/a.png"]},
+    }}
+    vm = HtmlBackend()._view_model(
+        RenderRequest(dp="1", fmt="info_pack", public_record=pub, output_root="/tmp"))
+
+    names = [n for _, urls in vm["photo_groups"] for n in urls]
+    assert len(names) == 3, "a photograph was lost between the groups"
+    assert vm["photo_groups"][0][0] == "Main House"
+    assert vm["photo_groups"][-1][0] == "", "the leftovers need an untitled group"
+
+
+def test_a_group_naming_a_photo_the_record_lost_is_ignored():
+    """Groups reference names; a removed photo must not leave a phantom entry."""
+    from engine.render.base import RenderRequest
+    from engine.render.html_backend import HtmlBackend
+
+    pub = {"marketing": {
+        "hero_photo": "photos/h.png",
+        "gallery": ["photos/a.png"],
+        "photo_groups": {"Main House": ["photos/a.png", "photos/deleted.png"]},
+    }}
+    vm = HtmlBackend()._view_model(
+        RenderRequest(dp="1", fmt="info_pack", public_record=pub, output_root="/tmp"))
+
+    assert [n.split("/")[-1] for _, urls in vm["photo_groups"] for n in urls] == ["a.png"]

@@ -143,6 +143,22 @@
                 </div>
               </div>
             </div>
+            {# Contacts for THIS property (2.9, D78). Typed, not auto-filled:
+               different properties are handled by different people. Left blank
+               they fall back to 086 155 2288 and properties@. #}
+            <div class="row">
+              <div class="field" style="flex:1">
+                <label class="label label--sm" for="contact_email">Contact email on artifacts</label>
+                <input class="input" type="email" id="contact_email" name="contact_email"
+                       value="{{ contact_email }}" placeholder="properties@dynamicauctioneers.co.za">
+              </div>
+              <div class="field" style="flex:1">
+                <label class="label label--sm" for="contact_phone">Contact number</label>
+                <input class="input" id="contact_phone" name="contact_phone"
+                       value="{{ contact_phone }}" placeholder="086 155 2288">
+                <div class="hint">Used on the adverts and printed large on the auction board.</div>
+              </div>
+            </div>
             {# Viewing (fix list 4.6, D76). Three states, because "by appointment"
                cannot say the two that matter to a buyer: a window they can
                diarise, and no viewing at all - which on an occupied or

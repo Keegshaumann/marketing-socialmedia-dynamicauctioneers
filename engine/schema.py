@@ -331,6 +331,28 @@ class ChannelRouting(_Base):
 
 
 class Marketing(_Base):
+    # Contact details for THIS property's artifacts (fix list 2.9, D78).
+    # The client asked for the ad email to be typed rather than auto-populated:
+    # different properties are handled by different people. Both fall back to the
+    # brand values when unset, so nothing has to be filled in to render.
+    #
+    # POPIA: these are the marketer's own entries for a staff mailbox and a work
+    # number. The occupant's cell lives in the internal layer and is never
+    # offered here, so a typed contact cannot become a private individual's.
+    # Named photograph groups (fix list 1.4, D78): "Main House", "Second House",
+    # "Greenhouses". The pack's gallery prints each group under its own heading.
+    #
+    # A MAP of group name -> photo paths, deliberately not a new list of objects:
+    # ``gallery`` stays exactly as it was, so every record ever written still
+    # loads and every renderer that reads the flat list keeps working. A photo
+    # named here must also be in ``gallery``; anything ungrouped simply prints in
+    # the untitled first group, which is what a single-building property wants.
+    #
+    # Names are free text. They are the marketer's words for the buildings on
+    # THIS property, and no fixed vocabulary survives contact with a farm.
+    photo_groups: Optional[Dict[str, List[str]]] = None
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
     # The auction board's QR code, as a path relative to the DP folder (like the
     # photos). The team generates the code themselves - in GoHighLevel, so a scan
     # lands on a tracked page - and uploads it at gate 2 (D69). GoHighLevel's QR

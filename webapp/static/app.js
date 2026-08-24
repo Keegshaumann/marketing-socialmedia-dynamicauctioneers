@@ -139,6 +139,48 @@
   // The viewing window only makes sense for a set time (D76).
   // Click a photo to see it full size (1.2). The tiles are 120px, so "is this
   // the right photo?" could not be answered from the panel at all.
+  // Drag a photo tile to reorder (2.4). The first tile is the lead photo, so
+  // this is how a marketer says which picture leads and which follows.
+  function wirePhotoSort(root) {
+    (root || document).querySelectorAll('[data-photo-sort]').forEach(function (grid) {
+      if (grid.__sort) return;
+      grid.__sort = true;
+      var dragging = null;
+
+      grid.addEventListener('dragstart', function (e) {
+        var tile = e.target.closest('[data-photo-tile]');
+        if (!tile) return;
+        dragging = tile;
+        tile.classList.add('is-dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        // Firefox will not start a drag without data set.
+        try { e.dataTransfer.setData('text/plain', tile.dataset.name || ''); } catch (err) {}
+      });
+
+      grid.addEventListener('dragover', function (e) {
+        if (!dragging) return;
+        e.preventDefault();
+        var over = e.target.closest('[data-photo-tile]');
+        if (!over || over === dragging) return;
+        var box = over.getBoundingClientRect();
+        var after = (e.clientX - box.left) > box.width / 2;
+        grid.insertBefore(dragging, after ? over.nextSibling : over);
+      });
+
+      function drop(e) {
+        if (!dragging) return;
+        if (e) e.preventDefault();
+        dragging.classList.remove('is-dragging');
+        dragging = null;
+        // The hidden inputs are now in DOM order, which is the new order.
+        var form = grid.closest('form');
+        if (form && window.htmx) window.htmx.trigger(form, 'reorder');
+      }
+      grid.addEventListener('drop', drop);
+      grid.addEventListener('dragend', drop);
+    });
+  }
+
   function wireLightbox(root) {
     (root || document).querySelectorAll('[data-lightbox]').forEach(function (img) {
       if (img.__lightbox) return;
@@ -531,7 +573,7 @@
     });
   }
 
-  function init(root) { wireDropzones(root); armToasts(root); wireSweeps(root); wireEmailAd(root); wireAdtpl(root); wireAuctionPanel(root); wirePhotoPicker(root); wirePreviewScale(root); wireViewing(root); wireLightbox(root); }
+  function init(root) { wireDropzones(root); armToasts(root); wireSweeps(root); wireEmailAd(root); wireAdtpl(root); wireAuctionPanel(root); wirePhotoPicker(root); wirePreviewScale(root); wireViewing(root); wireLightbox(root); wirePhotoSort(root); }
 
   // A plain (non-HTMX) form submit does a full-page nav; swap the submit
   // button's label for its spinner so the click has immediate feedback. HTMX

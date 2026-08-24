@@ -23,6 +23,11 @@ FORMATS: List[str] = [
     "facebook_post",    # FB post + boost notes (.md)
     "email_blast",      # subject A/B + body (.md)
     "demo_ad",          # branded one-pager, print-ready A4 + web (.html)
+    # Two alternative designs of the same advert (fix list 2.1). The team picks
+    # one to post; having three to choose from is the point. Rendered with the
+    # full pack only, so the pre-approval ad-only render stays a single design.
+    "demo_ad_2",
+    "demo_ad_3",
     "info_pack",        # buyer-facing Property Report variant (.html)
     "webapp_icon",      # upcoming-auction tile/icon (.svg or .png)
     "saia_banner",      # SAIA alert banner (.html)

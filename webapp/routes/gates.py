@@ -720,6 +720,8 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
             "viewing_mode": ((sale.get("viewing") or {}).get("mode")
                              or ("by_arrangement" if (sale.get("viewing") or {}).get("by_appointment") is not False else "none")),
             "viewing_at": (sale.get("viewing") or {}).get("viewing_at") or "",
+            "contact_email": marketing_pv.get("contact_email") or "",
+            "contact_phone": marketing_pv.get("contact_phone") or "",
             # Design picker (D33): hidden unless more than one set is
             # configured AND the active renderer routes through Canva; the
             # first configured set is the default a blank pick follows.
@@ -883,6 +885,15 @@ def _qr_view(db_path: str, dp: str, record: PropertyRecord) -> Optional[str]:
     return f"/gates/{dp}/ads/photos/{name}" if (_photos_dir(db_path, dp) / name).exists() else None
 
 
+def _group_of(record: PropertyRecord, name: str) -> str:
+    """The named group a photograph belongs to, or "" (1.4, D78)."""
+    marketing = getattr(record, "marketing", None)
+    for group, members in ((getattr(marketing, "photo_groups", None) or {}) if marketing else {}).items():
+        if any(Path(m).name == name for m in (members or [])):
+            return str(group)
+    return ""
+
+
 def _photo_view(db_path: str, dp: str, record: PropertyRecord) -> List[Dict[str, Any]]:
     """Panel view-model: one tile per photo (name, url, is_hero, low-res warning).
 
@@ -903,6 +914,7 @@ def _photo_view(db_path: str, dp: str, record: PropertyRecord) -> List[Dict[str,
                 "is_hero": i == 0,
                 "dims": f"{dims[0]}x{dims[1]}" if dims else None,
                 "low_res": low_res,
+                "group": _group_of(record, name),
             }
         )
     return tiles
@@ -1084,6 +1096,84 @@ async def gate2_photo_hero(dp: str, request: Request, user: dict = Depends(requi
     return _photo_result(request, db_path, dp, toast)
 
 
+@router.post("/{dp}/ads/photos/group", response_class=HTMLResponse)
+async def gate2_photo_group(
+    dp: str, request: Request,
+    user: dict = Depends(require_role("approver", "marketing")),
+):
+    """Put one photograph in a named group (fix list 1.4, D78).
+
+    Groups are the buildings on the property - "Main House", "Second House",
+    "Greenhouses" - and the pack's gallery prints each under its own heading.
+    Names are free text: no fixed vocabulary survives contact with a farm.
+
+    A blank name removes the photo from every group, which is how a mistake is
+    undone. Groups that end up empty are dropped, so the record never carries a
+    heading with nothing under it.
+    """
+    db_path = _db(request)
+    form = await request.form()
+    name = Path(str(form.get("name", ""))).name
+    group = " ".join(str(form.get("group", "")).split())[:40]
+
+    record = _load(db_path, dp)
+    known = {Path(rel).name for rel in _photo_list(record)}
+    if name not in known:
+        return _photo_result(request, db_path, dp,
+                             {"tone": "note", "title": "Photo not found", "text": ""})
+
+    groups = dict((record.marketing.photo_groups or {}) if record.marketing else {})
+    for key in list(groups):
+        groups[key] = [m for m in groups[key] if Path(m).name != name]
+    if group:
+        groups.setdefault(group, []).append(f"photos/{name}")
+    groups = {k: v for k, v in groups.items() if v}          # no empty headings
+
+    _reopen_if_live(db_path, dp, user["email"])
+    _save_edits(db_path, dp, {"marketing.photo_groups": groups or None}, user["email"])
+    return _photo_result(request, db_path, dp,
+                         {"tone": "ok", "title": "Group updated",
+                          "text": f"{name} is in \u201c{group}\u201d." if group
+                                  else f"{name} is no longer grouped."})
+
+
+@router.post("/{dp}/ads/photos/order", response_class=HTMLResponse)
+async def gate2_photo_order(
+    dp: str, request: Request,
+    user: dict = Depends(require_role("approver", "marketing")),
+):
+    """Reorder the photographs by drag and drop (fix list 2.4, D78).
+
+    Order is not decoration: the FIRST photo is the lead on every advert and the
+    cover of the pack, and the rest fill the gallery in sequence. Until now the
+    only way to change it was the "Lead" button, which could promote one photo
+    but never say which should be second.
+
+    The posted order is validated against what the record actually holds - a
+    name that is not on the record is ignored, and anything the browser left out
+    is appended in its existing order - so a stale panel or a crafted POST can
+    neither invent a photograph nor silently drop one.
+    """
+    db_path = _db(request)
+    form = await request.form()
+    posted = [Path(n).name for n in form.getlist("name")]
+
+    current = _photo_list(_load(db_path, dp))
+    by_name = {Path(rel).name: rel for rel in current}
+    ordered = [by_name[n] for n in posted if n in by_name]
+    ordered += [rel for rel in current if rel not in ordered]   # never lose one
+
+    if ordered == current:
+        return _photo_result(request, db_path, dp,
+                             {"tone": "note", "title": "Order unchanged", "text": ""})
+
+    _reopen_if_live(db_path, dp, user["email"])
+    _save_photos(db_path, dp, ordered, user["email"])
+    return _photo_result(request, db_path, dp,
+                         {"tone": "ok", "title": "Order saved",
+                          "text": f"{Path(ordered[0]).name} is the lead photo."})
+
+
 @router.post("/{dp}/ads/photos/replace", response_class=HTMLResponse)
 async def gate2_photo_replace(
     dp: str, request: Request,
@@ -1182,6 +1272,11 @@ _EDIT_TEXT_FIELDS = {
     # The viewing window, when the mode is "set_time" (D76). Free display text,
     # like the auction date, so it reads exactly as the marketer wants it.
     "viewing_at": "sale_process.viewing.viewing_at",
+    # Per-property contacts (2.9, D78): the client asked for the ad email to be
+    # typed rather than auto-populated, because different properties are handled
+    # by different people. Blank falls back to the brand values.
+    "contact_email": "marketing.contact_email",
+    "contact_phone": "marketing.contact_phone",
 }
 # The three viewing states (fix list 4.6). Validated like the sale method so a
 # crafted POST cannot store an off-list value that then fails to round-trip.
