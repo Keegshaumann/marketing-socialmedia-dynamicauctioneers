@@ -504,119 +504,28 @@
         "documentation": {}
     },
     {
-        "label": "json",
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "sys",
         "kind": 6,
         "isExtraImport": true,
-        "importPath": "json",
-        "description": "json",
-        "detail": "json",
-        "documentation": {}
-    },
-    {
-        "label": "logging",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "logging",
-        "description": "logging",
-        "detail": "logging",
-        "documentation": {}
-    },
-    {
-        "label": "os",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "os",
-        "description": "os",
-        "detail": "os",
-        "documentation": {}
-    },
-    {
-        "label": "re",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "re",
-        "description": "re",
-        "detail": "re",
-        "documentation": {}
-    },
-    {
-        "label": "dataclass",
-        "importPath": "dataclasses",
-        "description": "dataclasses",
-        "isExtraImport": true,
-        "detail": "dataclasses",
-        "documentation": {}
-    },
-    {
-        "label": "field",
-        "importPath": "dataclasses",
-        "description": "dataclasses",
-        "isExtraImport": true,
-        "detail": "dataclasses",
-        "documentation": {}
-    },
-    {
-        "label": "dataclass",
-        "importPath": "dataclasses",
-        "description": "dataclasses",
-        "isExtraImport": true,
-        "detail": "dataclasses",
-        "documentation": {}
-    },
-    {
-        "label": "field",
-        "importPath": "dataclasses",
-        "description": "dataclasses",
-        "isExtraImport": true,
-        "detail": "dataclasses",
-        "documentation": {}
-    },
-    {
-        "label": "dataclass",
-        "importPath": "dataclasses",
-        "description": "dataclasses",
-        "isExtraImport": true,
-        "detail": "dataclasses",
-        "documentation": {}
-    },
-    {
-        "label": "field",
-        "importPath": "dataclasses",
-        "description": "dataclasses",
-        "isExtraImport": true,
-        "detail": "dataclasses",
-        "documentation": {}
-    },
-    {
-        "label": "dataclass",
-        "importPath": "dataclasses",
-        "description": "dataclasses",
-        "isExtraImport": true,
-        "detail": "dataclasses",
-        "documentation": {}
-    },
-    {
-        "label": "field",
-        "importPath": "dataclasses",
-        "description": "dataclasses",
-        "isExtraImport": true,
-        "detail": "dataclasses",
-        "documentation": {}
-    },
-    {
-        "label": "dataclass",
-        "importPath": "dataclasses",
-        "description": "dataclasses",
-        "isExtraImport": true,
-        "detail": "dataclasses",
-        "documentation": {}
-    },
-    {
-        "label": "field",
-        "importPath": "dataclasses",
-        "description": "dataclasses",
-        "isExtraImport": true,
-        "detail": "dataclasses",
+        "importPath": "sys",
+        "description": "sys",
+        "detail": "sys",
         "documentation": {}
     },
     {
@@ -625,6 +534,14 @@
         "isExtraImport": true,
         "importPath": "pathlib",
         "description": "pathlib",
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
         "detail": "pathlib",
         "documentation": {}
     },
@@ -954,6 +871,147 @@
         "description": "pathlib",
         "isExtraImport": true,
         "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "markdown",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "markdown",
+        "description": "markdown",
+        "detail": "markdown",
+        "documentation": {}
+    },
+    {
+        "label": "sync_playwright",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "json",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "json",
+        "description": "json",
+        "detail": "json",
+        "documentation": {}
+    },
+    {
+        "label": "logging",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "logging",
+        "description": "logging",
+        "detail": "logging",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "re",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "re",
+        "description": "re",
+        "detail": "re",
+        "documentation": {}
+    },
+    {
+        "label": "dataclass",
+        "importPath": "dataclasses",
+        "description": "dataclasses",
+        "isExtraImport": true,
+        "detail": "dataclasses",
+        "documentation": {}
+    },
+    {
+        "label": "field",
+        "importPath": "dataclasses",
+        "description": "dataclasses",
+        "isExtraImport": true,
+        "detail": "dataclasses",
+        "documentation": {}
+    },
+    {
+        "label": "dataclass",
+        "importPath": "dataclasses",
+        "description": "dataclasses",
+        "isExtraImport": true,
+        "detail": "dataclasses",
+        "documentation": {}
+    },
+    {
+        "label": "field",
+        "importPath": "dataclasses",
+        "description": "dataclasses",
+        "isExtraImport": true,
+        "detail": "dataclasses",
+        "documentation": {}
+    },
+    {
+        "label": "dataclass",
+        "importPath": "dataclasses",
+        "description": "dataclasses",
+        "isExtraImport": true,
+        "detail": "dataclasses",
+        "documentation": {}
+    },
+    {
+        "label": "field",
+        "importPath": "dataclasses",
+        "description": "dataclasses",
+        "isExtraImport": true,
+        "detail": "dataclasses",
+        "documentation": {}
+    },
+    {
+        "label": "dataclass",
+        "importPath": "dataclasses",
+        "description": "dataclasses",
+        "isExtraImport": true,
+        "detail": "dataclasses",
+        "documentation": {}
+    },
+    {
+        "label": "field",
+        "importPath": "dataclasses",
+        "description": "dataclasses",
+        "isExtraImport": true,
+        "detail": "dataclasses",
+        "documentation": {}
+    },
+    {
+        "label": "dataclass",
+        "importPath": "dataclasses",
+        "description": "dataclasses",
+        "isExtraImport": true,
+        "detail": "dataclasses",
+        "documentation": {}
+    },
+    {
+        "label": "field",
+        "importPath": "dataclasses",
+        "description": "dataclasses",
+        "isExtraImport": true,
+        "detail": "dataclasses",
         "documentation": {}
     },
     {
@@ -2383,6 +2441,46 @@
         "documentation": {}
     },
     {
+        "label": "Identity",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "Marketing",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "Physical",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "PropertyRecord",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
+        "label": "SaleProcess",
+        "importPath": "engine.schema",
+        "description": "engine.schema",
+        "isExtraImport": true,
+        "detail": "engine.schema",
+        "documentation": {}
+    },
+    {
         "label": "FinancialsInternal",
         "importPath": "engine.schema",
         "description": "engine.schema",
@@ -2922,15 +3020,6 @@
         "documentation": {}
     },
     {
-        "label": "sys",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "sys",
-        "description": "sys",
-        "detail": "sys",
-        "documentation": {}
-    },
-    {
         "label": "time",
         "kind": 6,
         "isExtraImport": true,
@@ -3450,6 +3539,14 @@
         "documentation": {}
     },
     {
+        "label": "RecordStore",
+        "importPath": "engine.store",
+        "description": "engine.store",
+        "isExtraImport": true,
+        "detail": "engine.store",
+        "documentation": {}
+    },
+    {
         "label": "IllegalTransition",
         "importPath": "engine.store",
         "description": "engine.store",
@@ -3793,6 +3890,22 @@
     },
     {
         "label": "apply_photos",
+        "importPath": "engine.render.service",
+        "description": "engine.render.service",
+        "isExtraImport": true,
+        "detail": "engine.render.service",
+        "documentation": {}
+    },
+    {
+        "label": "lot_group_summary",
+        "importPath": "engine.render.service",
+        "description": "engine.render.service",
+        "isExtraImport": true,
+        "detail": "engine.render.service",
+        "documentation": {}
+    },
+    {
+        "label": "render_all",
         "importPath": "engine.render.service",
         "description": "engine.render.service",
         "isExtraImport": true,
@@ -5045,6 +5158,87 @@
         "documentation": {}
     },
     {
+        "label": "cover",
+        "kind": 2,
+        "importPath": "docs.development.build-pdfs",
+        "description": "docs.development.build-pdfs",
+        "peekOfCode": "def cover(title: str, subtitle: str) -> str:\n    return f\"\"\"\n<div class=\"cover\">\n  <div class=\"rule\"></div>\n  <div class=\"eyebrow\">Development Documentation</div>\n  <h1>{title}</h1>\n  <div class=\"sub\">{subtitle}</div>\n  <div class=\"meta\">\n    <strong>Dynamic Auctioneers Marketing Platform</strong><br>\n    Built by Keegan Haumann, Cognexa<br>",
+        "detail": "docs.development.build-pdfs",
+        "documentation": {}
+    },
+    {
+        "label": "build",
+        "kind": 2,
+        "importPath": "docs.development.build-pdfs",
+        "description": "docs.development.build-pdfs",
+        "peekOfCode": "def build(md_path: Path) -> Path:\n    raw = md_path.read_text(encoding=\"utf-8\")\n    # The first \"# \" line becomes the cover title and is dropped from the body,\n    # so the title is not printed twice.\n    lines = raw.splitlines()\n    title = md_path.stem\n    for i, line in enumerate(lines):\n        if line.startswith(\"# \"):\n            title = line[2:].strip()\n            lines = lines[i + 1:]",
+        "detail": "docs.development.build-pdfs",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "docs.development.build-pdfs",
+        "description": "docs.development.build-pdfs",
+        "peekOfCode": "def main() -> int:\n    OUT.mkdir(exist_ok=True)\n    wanted = sys.argv[1] if len(sys.argv) > 1 else \"\"\n    sources = sorted(p for p in HERE.glob(\"*.md\") if wanted in p.stem)\n    if not sources:\n        print(f\"No documents matched {wanted!r}\")\n        return 1\n    for md_path in sources:\n        out = build(md_path)\n        print(f\"  {md_path.name:38s} -> {out.relative_to(HERE.parent.parent)}\"",
+        "detail": "docs.development.build-pdfs",
+        "documentation": {}
+    },
+    {
+        "label": "HERE",
+        "kind": 5,
+        "importPath": "docs.development.build-pdfs",
+        "description": "docs.development.build-pdfs",
+        "peekOfCode": "HERE = Path(__file__).resolve().parent\nOUT = HERE / \"pdf\"\n# Brand tokens, mirroring docs/DESIGN-SYSTEM.md.\nCSS = \"\"\"\n@page { size: A4; margin: 20mm 16mm 18mm 16mm; }\n:root {\n  --gold:#B08D4A; --gold-deep:#8C6D33; --gold-pale:#F1E8D6;\n  --ink:#191613; --body:#2B2620; --muted:#877E70;\n  --hairline:#E5DFD4; --ground:#EFEBE3; --sheet:#FFFFFF;\n  --block:#9A3B2E; --note:#A8792E; --ok:#4F6B45;",
+        "detail": "docs.development.build-pdfs",
+        "documentation": {}
+    },
+    {
+        "label": "OUT",
+        "kind": 5,
+        "importPath": "docs.development.build-pdfs",
+        "description": "docs.development.build-pdfs",
+        "peekOfCode": "OUT = HERE / \"pdf\"\n# Brand tokens, mirroring docs/DESIGN-SYSTEM.md.\nCSS = \"\"\"\n@page { size: A4; margin: 20mm 16mm 18mm 16mm; }\n:root {\n  --gold:#B08D4A; --gold-deep:#8C6D33; --gold-pale:#F1E8D6;\n  --ink:#191613; --body:#2B2620; --muted:#877E70;\n  --hairline:#E5DFD4; --ground:#EFEBE3; --sheet:#FFFFFF;\n  --block:#9A3B2E; --note:#A8792E; --ok:#4F6B45;\n}",
+        "detail": "docs.development.build-pdfs",
+        "documentation": {}
+    },
+    {
+        "label": "CSS",
+        "kind": 5,
+        "importPath": "docs.development.build-pdfs",
+        "description": "docs.development.build-pdfs",
+        "peekOfCode": "CSS = \"\"\"\n@page { size: A4; margin: 20mm 16mm 18mm 16mm; }\n:root {\n  --gold:#B08D4A; --gold-deep:#8C6D33; --gold-pale:#F1E8D6;\n  --ink:#191613; --body:#2B2620; --muted:#877E70;\n  --hairline:#E5DFD4; --ground:#EFEBE3; --sheet:#FFFFFF;\n  --block:#9A3B2E; --note:#A8792E; --ok:#4F6B45;\n}\n* { box-sizing: border-box; }\nbody {",
+        "detail": "docs.development.build-pdfs",
+        "documentation": {}
+    },
+    {
+        "label": "HEADER",
+        "kind": 5,
+        "importPath": "docs.development.build-pdfs",
+        "description": "docs.development.build-pdfs",
+        "peekOfCode": "HEADER = \"\"\"\n<div style=\"font-family:Montserrat,Arial,sans-serif;font-size:6.6pt;color:#877E70;\n     width:100%;padding:0 16mm;display:flex;justify-content:space-between;\n     border-bottom:1px solid #E5DFD4;padding-bottom:2mm;\">\n  <span style=\"letter-spacing:.12em;text-transform:uppercase;\">Dynamic Auctioneers Marketing Platform</span>\n  <span>__DOCTITLE__</span>\n</div>\n\"\"\"\nFOOTER = \"\"\"\n<div style=\"font-family:Montserrat,Arial,sans-serif;font-size:6.6pt;color:#877E70;",
+        "detail": "docs.development.build-pdfs",
+        "documentation": {}
+    },
+    {
+        "label": "FOOTER",
+        "kind": 5,
+        "importPath": "docs.development.build-pdfs",
+        "description": "docs.development.build-pdfs",
+        "peekOfCode": "FOOTER = \"\"\"\n<div style=\"font-family:Montserrat,Arial,sans-serif;font-size:6.6pt;color:#877E70;\n     width:100%;padding:0 16mm;display:flex;justify-content:space-between;\">\n  <span>Development documentation &middot; 20 August 2026 &middot; Cognexa</span>\n  <span>Page <span class=\"pageNumber\"></span> of <span class=\"totalPages\"></span></span>\n</div>\n\"\"\"\ndef cover(title: str, subtitle: str) -> str:\n    return f\"\"\"\n<div class=\"cover\">",
+        "detail": "docs.development.build-pdfs",
+        "documentation": {}
+    },
+    {
+        "label": "SUBTITLES",
+        "kind": 5,
+        "importPath": "docs.development.build-pdfs",
+        "description": "docs.development.build-pdfs",
+        "peekOfCode": "SUBTITLES = {\n    \"00\": \"Index and reading order\",\n    \"01\": \"What the system is, who uses it, and what it produces\",\n    \"02\": \"Modules, data model, lifecycle and technology\",\n    \"03\": \"The pipeline, step by step, documents in to posts out\",\n    \"04\": \"Server, deployment, users and troubleshooting\",\n    \"05\": \"Local setup, tests, conventions and how to extend it\",\n    \"06\": \"What is done, what is outstanding, and the known risks\",\n}\ndef build(md_path: Path) -> Path:",
+        "detail": "docs.development.build-pdfs",
+        "documentation": {}
+    },
+    {
         "label": "PlannerResult",
         "kind": 6,
         "importPath": "engine.distribute.ghl",
@@ -5283,7 +5477,16 @@
         "kind": 2,
         "importPath": "engine.render.ad_templates",
         "description": "engine.render.ad_templates",
-        "peekOfCode": "def resolve(template_id: Optional[str]) -> str:\n    \"\"\"Return the Jinja template name for a pick, falling back to Classic.\n    An unknown or empty pick (e.g. a design later removed from the library)\n    degrades to the default rather than failing the render.\n    \"\"\"\n    if not template_id:\n        return _DEFAULT_TEMPLATE\n    path = _ADS_DIR / f\"{template_id}.html.j2\"\n    return f\"ads/{path.name}\" if path.is_file() else _DEFAULT_TEMPLATE",
+        "peekOfCode": "def resolve(template_id: Optional[str]) -> str:\n    \"\"\"Return the Jinja template name for a pick, falling back to Classic.\n    An unknown or empty pick (e.g. a design later removed from the library)\n    degrades to the default rather than failing the render.\n    \"\"\"\n    if not template_id:\n        return _DEFAULT_TEMPLATE\n    path = _ADS_DIR / f\"{template_id}.html.j2\"\n    return f\"ads/{path.name}\" if path.is_file() else _DEFAULT_TEMPLATE\ndef variation_ids(picked: Optional[str], count: int = 2) -> List[str]:",
+        "detail": "engine.render.ad_templates",
+        "documentation": {}
+    },
+    {
+        "label": "variation_ids",
+        "kind": 2,
+        "importPath": "engine.render.ad_templates",
+        "description": "engine.render.ad_templates",
+        "peekOfCode": "def variation_ids(picked: Optional[str], count: int = 2) -> List[str]:\n    \"\"\"The other designs to render beside ``picked`` (fix list 2.1).\n    The library in order, starting after the marketer's pick and wrapping, so\n    three variations are always three DIFFERENT designs and the set is stable\n    for a given pick rather than shuffling on every render.\n    \"\"\"\n    # template_ids() is a SET; the rotation has to be stable or the same pick\n    # would yield different alternatives on different renders.\n    ids = sorted(template_ids())\n    if not ids:",
         "detail": "engine.render.ad_templates",
         "documentation": {}
     },
@@ -5959,6 +6162,15 @@
         "importPath": "engine.render.service",
         "description": "engine.render.service",
         "peekOfCode": "def apply_photos(\n    dp: str,\n    store: RecordStore,\n    hero: Optional[str],\n    gallery: List[str],\n    user: str,\n    backend: Optional[str] = None,\n    output_root: str = \".\",\n    client=None,\n    formats: Optional[List[str]] = None,",
+        "detail": "engine.render.service",
+        "documentation": {}
+    },
+    {
+        "label": "lot_group_summary",
+        "kind": 2,
+        "importPath": "engine.render.service",
+        "description": "engine.render.service",
+        "peekOfCode": "def lot_group_summary(dp: str, store: RecordStore) -> Optional[dict]:\n    \"\"\"A collective view of every unit sold under one instruction (6.4, D79).\n    The client's rule: units in one block are advertised together - \"Apartments\n    for sale in Ten On Lane\" - not as one board per door. So the estate board\n    needs the SET, and it is assembled here rather than in a backend, because\n    the render contract is one record in, one artifact out and a backend is\n    given only ``public_view`` dicts, never the store.\n    ``None`` when the property stands alone (one board, the ordinary case) or\n    when its siblings do not share a scheme, because \"3 apartments in\" nothing\n    is not a headline.",
         "detail": "engine.render.service",
         "documentation": {}
     },
@@ -6894,7 +7106,7 @@
         "kind": 6,
         "importPath": "engine.schema",
         "description": "engine.schema",
-        "peekOfCode": "class Marketing(_Base):\n    # The auction board's QR code, as a path relative to the DP folder (like the\n    # photos). The team generates the code themselves - in GoHighLevel, so a scan\n    # lands on a tracked page - and uploads it at gate 2 (D69). GoHighLevel's QR\n    # generator is a page-builder element, not an API, so the engine cannot make\n    # this for them; it can only ask for it and print it.\n    qr_code: Optional[str] = None\n    headline: Optional[str] = None\n    price_display: Optional[str] = None\n    channel_routing: Optional[ChannelRouting] = None",
+        "peekOfCode": "class Marketing(_Base):\n    # Contact details for THIS property's artifacts (fix list 2.9, D78).\n    # The client asked for the ad email to be typed rather than auto-populated:\n    # different properties are handled by different people. Both fall back to the\n    # brand values when unset, so nothing has to be filled in to render.\n    #\n    # POPIA: these are the marketer's own entries for a staff mailbox and a work\n    # number. The occupant's cell lives in the internal layer and is never\n    # offered here, so a typed contact cannot become a private individual's.\n    # Named photograph groups (fix list 1.4, D78): \"Main House\", \"Second House\",",
         "detail": "engine.schema",
         "documentation": {}
     },
@@ -8204,6 +8416,60 @@
         "documentation": {}
     },
     {
+        "label": "store",
+        "kind": 2,
+        "importPath": "tests.test_estate_board",
+        "description": "tests.test_estate_board",
+        "peekOfCode": "def store():\n    s = RecordStore(db_path=\":memory:\")\n    try:\n        yield s\n    finally:\n        s.close()\ndef test_a_block_is_summarised_across_its_units(store):\n    _block(store)\n    group = lot_group_summary(\"2948.1\", store)\n    assert group[\"count\"] == 3",
+        "detail": "tests.test_estate_board",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_block_is_summarised_across_its_units",
+        "kind": 2,
+        "importPath": "tests.test_estate_board",
+        "description": "tests.test_estate_board",
+        "peekOfCode": "def test_a_block_is_summarised_across_its_units(store):\n    _block(store)\n    group = lot_group_summary(\"2948.1\", store)\n    assert group[\"count\"] == 3\n    assert group[\"scheme\"] == \"TEN ON LANE\"\n    assert (group[\"beds_low\"], group[\"beds_high\"]) == (2, 3)\n    assert (group[\"size_low\"], group[\"size_high\"]) == (78.0, 111.0)\ndef test_a_property_that_stands_alone_has_no_estate_board(store, tmp_path):\n    \"\"\"\"1 apartment in\" nothing is not a headline: the board is simply absent.\"\"\"\n    store.upsert(PropertyRecord(dp=\"3060\", identity=Identity(suburb=\"Pelham North\")),",
+        "detail": "tests.test_estate_board",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_property_that_stands_alone_has_no_estate_board",
+        "kind": 2,
+        "importPath": "tests.test_estate_board",
+        "description": "tests.test_estate_board",
+        "peekOfCode": "def test_a_property_that_stands_alone_has_no_estate_board(store, tmp_path):\n    \"\"\"\"1 apartment in\" nothing is not a headline: the board is simply absent.\"\"\"\n    store.upsert(PropertyRecord(dp=\"3060\", identity=Identity(suburb=\"Pelham North\")),\n                 state=\"extracted\")\n    assert lot_group_summary(\"3060\", store) is None\n    fmts = {a.fmt for a in render_all(\"3060\", store, backend=\"html\",\n                                      output_root=str(tmp_path))}\n    assert \"estate_board\" not in fmts\n    assert \"auction_board\" in fmts, \"the single-property board must still render\"\ndef test_units_in_different_schemes_are_not_one_board(store):",
+        "detail": "tests.test_estate_board",
+        "documentation": {}
+    },
+    {
+        "label": "test_units_in_different_schemes_are_not_one_board",
+        "kind": 2,
+        "importPath": "tests.test_estate_board",
+        "description": "tests.test_estate_board",
+        "peekOfCode": "def test_units_in_different_schemes_are_not_one_board(store):\n    \"\"\"Sub-lots of one instruction can be scattered; a board says \"in <scheme>\",\n    so it is only honest when there is one scheme.\"\"\"\n    _block(store)\n    stray = store.get(\"2948.2\")\n    stray.identity.scheme = \"SOMEWHERE ELSE\"\n    store.upsert(stray)\n    assert lot_group_summary(\"2948.1\", store) is None\ndef test_the_board_leads_with_the_count_and_the_scheme(store, tmp_path):\n    _block(store)",
+        "detail": "tests.test_estate_board",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_board_leads_with_the_count_and_the_scheme",
+        "kind": 2,
+        "importPath": "tests.test_estate_board",
+        "description": "tests.test_estate_board",
+        "peekOfCode": "def test_the_board_leads_with_the_count_and_the_scheme(store, tmp_path):\n    _block(store)\n    arts = {a.fmt: a for a in render_all(\"2948.1\", store, backend=\"html\",\n                                         output_root=str(tmp_path))}\n    html = Path(arts[\"estate_board\"].path).read_text(encoding=\"utf-8\")\n    assert \"3 Apartments\" in html or \"3 APARTMENTS\" in html.upper()\n    assert \"TEN ON LANE\" in html.upper()\n    assert \"2 TO 3 BED\" in html.upper()\n    assert \"78 TO 111\" in html.replace(\"&plusmn;\", \"\").upper()\n    # It is a board, so no property photograph and one reference only.",
+        "detail": "tests.test_estate_board",
+        "documentation": {}
+    },
+    {
+        "label": "test_one_bed_size_across_the_block_reads_as_one_value",
+        "kind": 2,
+        "importPath": "tests.test_estate_board",
+        "description": "tests.test_estate_board",
+        "peekOfCode": "def test_one_bed_size_across_the_block_reads_as_one_value(store, tmp_path):\n    \"\"\"\"2 to 2 bed\" is not a range.\"\"\"\n    _block(store)\n    for dp in (\"2948\", \"2948.1\", \"2948.2\"):\n        rec = store.get(dp)\n        rec.physical.bedrooms = 2\n        rec.physical.unit_size_m2 = 80.0\n        store.upsert(rec)\n    arts = {a.fmt: a for a in render_all(\"2948.1\", store, backend=\"html\",\n                                         output_root=str(tmp_path))}",
+        "detail": "tests.test_estate_board",
+        "documentation": {}
+    },
+    {
         "label": "_FakeToolUse",
         "kind": 6,
         "importPath": "tests.test_extract",
@@ -8712,7 +8978,7 @@
         "kind": 2,
         "importPath": "tests.test_mixed",
         "description": "tests.test_mixed",
-        "peekOfCode": "def test_html_backend_unchanged_when_not_mixed(monkeypatch, tmp_path, golden_record_path):\n    # An explicit backend still renders every format through that one backend.\n    store = _seed(\"9502\", golden_record_path)\n    try:\n        arts = render_all(\"9502\", store, backend=\"html\", output_root=str(tmp_path))\n    finally:\n        store.close()\n    assert {a.backend for a in arts} == {\"html\"}\n    assert len(arts) == len(FORMATS)\ndef test_record_template_set_reaches_the_backend(monkeypatch, tmp_path, golden_record_path):",
+        "peekOfCode": "def test_html_backend_unchanged_when_not_mixed(monkeypatch, tmp_path, golden_record_path):\n    # An explicit backend still renders every format through that one backend.\n    store = _seed(\"9502\", golden_record_path)\n    try:\n        arts = render_all(\"9502\", store, backend=\"html\", output_root=str(tmp_path))\n    finally:\n        store.close()\n    assert {a.backend for a in arts} == {\"html\"}\n    # estate_board renders only for a block of sub-lots (D79); these\n    # fixtures are single properties, so every OTHER format is expected.",
         "detail": "tests.test_mixed",
         "documentation": {}
     },
@@ -9594,7 +9860,70 @@
         "kind": 2,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "def test_a_record_written_before_viewing_modes_still_reads(golden_record, tmp_path):\n    \"\"\"No migration: the old boolean still means an arrangement.\"\"\"\n    golden_record.sale_process.viewing.mode = None\n    golden_record.sale_process.viewing.by_appointment = True\n    html = _info_pack_html(golden_record, tmp_path)\n    assert \"By arrangement with Dynamic Auctioneers\" in html",
+        "peekOfCode": "def test_a_record_written_before_viewing_modes_still_reads(golden_record, tmp_path):\n    \"\"\"No migration: the old boolean still means an arrangement.\"\"\"\n    golden_record.sale_process.viewing.mode = None\n    golden_record.sale_process.viewing.by_appointment = True\n    html = _info_pack_html(golden_record, tmp_path)\n    assert \"By arrangement with Dynamic Auctioneers\" in html\n# --- three ad variations per pack (2.1, D78) ------------------------------\ndef test_the_pack_carries_three_different_ad_designs(golden_record, tmp_path):\n    \"\"\"2.1: the team picks one advert to post, so three to choose from is the\n    point - and three copies of the same design would not be a choice.\"\"\"",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_pack_carries_three_different_ad_designs",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_the_pack_carries_three_different_ad_designs(golden_record, tmp_path):\n    \"\"\"2.1: the team picks one advert to post, so three to choose from is the\n    point - and three copies of the same design would not be a choice.\"\"\"\n    golden_record.marketing.template_set = \"hero_overlay\"\n    store = _store_with(golden_record)\n    try:\n        arts = {a.fmt: a for a in render_all(\"3060\", store, backend=\"html\",\n                                             output_root=str(tmp_path))}\n    finally:\n        store.close()",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_variations_follow_the_marketers_pick",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_the_variations_follow_the_marketers_pick(golden_record, tmp_path):\n    \"\"\"Change the pick and the alternatives change with it, deterministically.\"\"\"\n    from engine.render.ad_templates import variation_ids\n    first = variation_ids(\"hero_overlay\")\n    assert variation_ids(\"hero_overlay\") == first, \"the rotation is not stable\"\n    assert \"hero_overlay\" not in first, \"a variation repeats the pick\"\n    assert len(set(first)) == 2\ndef test_the_pre_approval_render_is_still_one_advert(golden_record, tmp_path):\n    \"\"\"D39 keeps gate 2 fast: before approval only the primary ad renders, so\n    the picker stays instant and three PDFs are not printed on every click.\"\"\"",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_pre_approval_render_is_still_one_advert",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_the_pre_approval_render_is_still_one_advert(golden_record, tmp_path):\n    \"\"\"D39 keeps gate 2 fast: before approval only the primary ad renders, so\n    the picker stays instant and three PDFs are not printed on every click.\"\"\"\n    store = _store_with(golden_record)\n    try:\n        arts = {a.fmt for a in render_all(\"3060\", store, backend=\"html\",\n                                          output_root=str(tmp_path), formats=[\"demo_ad\"])}\n    finally:\n        store.close()\n    assert arts == {\"demo_ad\"}",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_pack_titles_each_photograph_group",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_the_pack_titles_each_photograph_group(golden_record, tmp_path):\n    \"\"\"1.4: \"Main House\", \"Second House\", \"Greenhouses\" - each group is its own\n    titled page, so a farm's pack does not present one undifferentiated pile.\"\"\"\n    photos = [\"photos/p6_img14_276x207.png\", \"photos/p6_img12_276x207.png\",\n              \"photos/p6_img09_276x207.png\", \"photos/p7_img15_276x207.png\"]\n    golden_record.marketing.hero_photo = photos[0]\n    golden_record.marketing.gallery = photos[1:]\n    golden_record.marketing.photo_groups = {\n        \"Main House\": [photos[1]],\n        \"Greenhouses\": [photos[2]],",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_property_with_no_groups_renders_exactly_as_before",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_a_property_with_no_groups_renders_exactly_as_before(golden_record, tmp_path):\n    \"\"\"No migration, no behaviour change for the ordinary single-building case.\"\"\"\n    golden_record.marketing.photo_groups = None\n    html = _info_pack_html(golden_record, tmp_path)\n    assert \"Gallery\" in html\ndef test_an_ungrouped_photograph_is_never_dropped():\n    \"\"\"A photo left out of every group must still reach the pack.\"\"\"\n    from engine.render.base import RenderRequest\n    from engine.render.html_backend import HtmlBackend\n    pub = {\"marketing\": {",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_an_ungrouped_photograph_is_never_dropped",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_an_ungrouped_photograph_is_never_dropped():\n    \"\"\"A photo left out of every group must still reach the pack.\"\"\"\n    from engine.render.base import RenderRequest\n    from engine.render.html_backend import HtmlBackend\n    pub = {\"marketing\": {\n        \"hero_photo\": \"photos/h.png\",\n        \"gallery\": [\"photos/a.png\", \"photos/b.png\", \"photos/c.png\"],\n        \"photo_groups\": {\"Main House\": [\"photos/a.png\"]},\n    }}\n    vm = HtmlBackend()._view_model(",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_group_naming_a_photo_the_record_lost_is_ignored",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_a_group_naming_a_photo_the_record_lost_is_ignored():\n    \"\"\"Groups reference names; a removed photo must not leave a phantom entry.\"\"\"\n    from engine.render.base import RenderRequest\n    from engine.render.html_backend import HtmlBackend\n    pub = {\"marketing\": {\n        \"hero_photo\": \"photos/h.png\",\n        \"gallery\": [\"photos/a.png\"],\n        \"photo_groups\": {\"Main House\": [\"photos/a.png\", \"photos/deleted.png\"]},\n    }}\n    vm = HtmlBackend()._view_model(",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -11007,7 +11336,7 @@
         "kind": 5,
         "importPath": "webapp.routes.artifacts",
         "description": "webapp.routes.artifacts",
-        "peekOfCode": "router = APIRouter()\n_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / \"templates\"\ntemplates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# Human labels + a coarse kind per format, for the gallery tiles.\nFORMAT_META: Dict[str, Dict[str, str]] = {\n    \"portal_listing\": {\"label\": \"Portal listing\", \"kind\": \"text\"},\n    \"facebook_post\": {\"label\": \"Facebook post\", \"kind\": \"text\"},\n    \"email_blast\": {\"label\": \"Email blast\", \"kind\": \"text\"},\n    \"demo_ad\": {\"label\": \"Demo advert\", \"kind\": \"page\"},\n    \"info_pack\": {\"label\": \"Info pack\", \"kind\": \"page\"},",
+        "peekOfCode": "router = APIRouter()\n_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / \"templates\"\ntemplates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# Human labels + a coarse kind per format, for the gallery tiles.\nFORMAT_META: Dict[str, Dict[str, str]] = {\n    \"portal_listing\": {\"label\": \"Portal listing\", \"kind\": \"text\"},\n    \"facebook_post\": {\"label\": \"Facebook post\", \"kind\": \"text\"},\n    \"email_blast\": {\"label\": \"Email blast\", \"kind\": \"text\"},\n    \"demo_ad\": {\"label\": \"Advert (primary)\", \"kind\": \"page\"},\n    \"demo_ad_2\": {\"label\": \"Advert variation 2\", \"kind\": \"page\"},",
         "detail": "webapp.routes.artifacts",
         "documentation": {}
     },
@@ -11016,7 +11345,7 @@
         "kind": 5,
         "importPath": "webapp.routes.artifacts",
         "description": "webapp.routes.artifacts",
-        "peekOfCode": "_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / \"templates\"\ntemplates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# Human labels + a coarse kind per format, for the gallery tiles.\nFORMAT_META: Dict[str, Dict[str, str]] = {\n    \"portal_listing\": {\"label\": \"Portal listing\", \"kind\": \"text\"},\n    \"facebook_post\": {\"label\": \"Facebook post\", \"kind\": \"text\"},\n    \"email_blast\": {\"label\": \"Email blast\", \"kind\": \"text\"},\n    \"demo_ad\": {\"label\": \"Demo advert\", \"kind\": \"page\"},\n    \"info_pack\": {\"label\": \"Info pack\", \"kind\": \"page\"},\n    \"webapp_icon\": {\"label\": \"Website tile\", \"kind\": \"image\"},",
+        "peekOfCode": "_TEMPLATES_DIR = Path(__file__).resolve().parent.parent / \"templates\"\ntemplates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# Human labels + a coarse kind per format, for the gallery tiles.\nFORMAT_META: Dict[str, Dict[str, str]] = {\n    \"portal_listing\": {\"label\": \"Portal listing\", \"kind\": \"text\"},\n    \"facebook_post\": {\"label\": \"Facebook post\", \"kind\": \"text\"},\n    \"email_blast\": {\"label\": \"Email blast\", \"kind\": \"text\"},\n    \"demo_ad\": {\"label\": \"Advert (primary)\", \"kind\": \"page\"},\n    \"demo_ad_2\": {\"label\": \"Advert variation 2\", \"kind\": \"page\"},\n    \"demo_ad_3\": {\"label\": \"Advert variation 3\", \"kind\": \"page\"},",
         "detail": "webapp.routes.artifacts",
         "documentation": {}
     },
@@ -11025,7 +11354,7 @@
         "kind": 5,
         "importPath": "webapp.routes.artifacts",
         "description": "webapp.routes.artifacts",
-        "peekOfCode": "templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# Human labels + a coarse kind per format, for the gallery tiles.\nFORMAT_META: Dict[str, Dict[str, str]] = {\n    \"portal_listing\": {\"label\": \"Portal listing\", \"kind\": \"text\"},\n    \"facebook_post\": {\"label\": \"Facebook post\", \"kind\": \"text\"},\n    \"email_blast\": {\"label\": \"Email blast\", \"kind\": \"text\"},\n    \"demo_ad\": {\"label\": \"Demo advert\", \"kind\": \"page\"},\n    \"info_pack\": {\"label\": \"Info pack\", \"kind\": \"page\"},\n    \"webapp_icon\": {\"label\": \"Website tile\", \"kind\": \"image\"},\n    \"saia_banner\": {\"label\": \"SAIA banner\", \"kind\": \"page\"},",
+        "peekOfCode": "templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))\n# Human labels + a coarse kind per format, for the gallery tiles.\nFORMAT_META: Dict[str, Dict[str, str]] = {\n    \"portal_listing\": {\"label\": \"Portal listing\", \"kind\": \"text\"},\n    \"facebook_post\": {\"label\": \"Facebook post\", \"kind\": \"text\"},\n    \"email_blast\": {\"label\": \"Email blast\", \"kind\": \"text\"},\n    \"demo_ad\": {\"label\": \"Advert (primary)\", \"kind\": \"page\"},\n    \"demo_ad_2\": {\"label\": \"Advert variation 2\", \"kind\": \"page\"},\n    \"demo_ad_3\": {\"label\": \"Advert variation 3\", \"kind\": \"page\"},\n    \"info_pack\": {\"label\": \"Info pack\", \"kind\": \"page\"},",
         "detail": "webapp.routes.artifacts",
         "documentation": {}
     },
