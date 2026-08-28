@@ -570,6 +570,78 @@ def test_a_photo_the_disk_does_not_have_never_reaches_an_artifact(golden_record,
     assert "real.png" in html              # the one that exists still is
 
 
+def test_the_otp_owns_its_figures_on_every_artifact(golden_record, tmp_path):
+    """One property must not quote two different deposits (D83).
+
+    Found by reviewing the real designs: the information pack read the OTP (20%)
+    while the advert, the email and the portal listing read a stale free-text
+    term (10%), for the same property at the same moment. Same class of fault as
+    D64 (a price change reaching every artifact), in the terms.
+
+    The regression guard is deliberately the WHOLE SET, not the ad alone: the
+    first fix reconciled the view model and was silently undone further down,
+    where the copy bundle merges over it.
+    """
+    import re
+    from engine.schema import OtpTerms
+    from engine.store import RecordStore
+
+    _stage_photos(golden_record, tmp_path)
+    golden_record.sale_process.terms = [
+        "10% deposit on the purchase price payable by the purchaser on submitting an offer",
+        "5% commission on the purchase price plus VAT, payable by the seller",
+        "Electrical COC, SPLUMA and all certificates for successful registration",
+    ]
+    golden_record.sale_process.otp = OtpTerms(
+        deposit_pct=20.0, deposit_due="on the fall of the hammer",
+        commission_pct=7.5, commission_vat=True, commission_payable_by="purchaser",
+        guarantee_days=45, confirmation_days=7,
+    )
+    store = RecordStore(db_path=":memory:")
+    try:
+        store.upsert(golden_record, state="approved")
+        arts = render_all("3060", store, backend="html", output_root=str(tmp_path))
+    finally:
+        store.close()
+
+    for art in arts:
+        body = Path(art.path).read_text(encoding="utf-8", errors="ignore")
+        flat = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", body))
+        # The lookbehind matters: "7.5% commission" CONTAINS "5% commission",
+        # so an unanchored pattern fails on the correct output.
+        assert not re.search(r"(?<![\d.])10\s*%\s*deposit", flat, re.I), f"{art.fmt}: stale deposit"
+        assert not re.search(r"(?<![\d.])5\s*%\s*commission", flat, re.I), f"{art.fmt}: stale commission"
+        assert not re.search(r"(?<![\d.])30\s*days? for guarantees", flat, re.I), f"{art.fmt}: stale guarantee"
+
+    # The contract's own figure reaches the surfaces that print terms.
+    listing = Path(next(a for a in arts if a.fmt == "portal_listing").path).read_text(encoding="utf-8")
+    assert "20% deposit" in listing
+    assert ".." not in listing            # a term ending in "." got a second one
+    # (Which artifacts print WHICH terms is unchanged: the pack shows the
+    # contract terms only, per D68; only the collage ad design carries a strip.)
+
+
+def test_terms_are_untouched_when_there_is_no_otp(golden_record, tmp_path):
+    """Reconciliation only applies where the contract actually speaks."""
+    from engine.render.html_backend import _reconciled_terms
+
+    typed = ["10% deposit payable on offer", "Vacant occupation cannot be guaranteed"]
+    assert _reconciled_terms({"terms": typed}) == typed
+    assert _reconciled_terms({"terms": typed, "otp": {"source_file": "otp.pdf"}}) == typed
+
+    # With an OTP, only the lines stating a figure it also states are replaced.
+    # A condition the contract is silent about is a real term and must survive:
+    # dropping "Electrical COC, SPLUMA..." would quietly remove a sale condition.
+    out = _reconciled_terms({
+        "terms": typed + ["Electrical COC, SPLUMA and all certificates"],
+        "otp": {"deposit_pct": 20.0},
+    })
+    assert "Vacant occupation cannot be guaranteed" in out
+    assert "Electrical COC, SPLUMA and all certificates" in out
+    assert not any("10% deposit" in line for line in out)
+    assert any("20% deposit" in line for line in out)
+
+
 def _with_portions(record, n: int):
     """Give a record ``n`` land portions (the multi-portion intake case)."""
     from engine.schema import Portion

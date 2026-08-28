@@ -274,6 +274,52 @@ def _fmt_size(value: object) -> Optional[str]:
     return format(whole, ",").replace(",", " ")
 
 
+# A free-text term that states one of the figures the OTP also states. These are
+# the lines that go stale: somebody typed "10% deposit" onto the record months
+# before the signed OTP said 20%.
+_TERM_STATES_A_FIGURE = re.compile(
+    r"\d+(?:[.,]\d+)?\s*%\s*(?:deposit|commission)"
+    r"|\bdeposit\b[^.]{0,30}?\d+(?:[.,]\d+)?\s*%"
+    r"|\bcommission\b[^.]{0,30}?\d+(?:[.,]\d+)?\s*%"
+    r"|\d+\s*(?:\([a-z ]+\)\s*)?days?\b[^.]{0,40}?\bguarantee"
+    r"|\bguarantee[^.]{0,40}?\d+\s*(?:\([a-z ]+\)\s*)?days?\b",
+    re.I,
+)
+
+
+def _reconciled_terms(sale: dict) -> List[str]:
+    """The terms strip, with the OTP owning every figure it states (D83).
+
+    A property carries terms in two places: ``sale_process.terms``, free text a
+    human typed, which the advert, the email and the portal listing print; and
+    ``sale_process.otp``, read from the signed contract, which the information
+    pack prints. Nothing reconciled them, so one property told a buyer a 10%
+    deposit on the advert and a 20% deposit in the pack, at the same moment.
+
+    Where the OTP states a figure, its own wording replaces any free-text line
+    stating a deposit, commission or guarantee period; every other typed term
+    (occupation, certificates, vacant occupation) is kept exactly as written,
+    because the OTP says nothing about those and dropping them would lose real
+    conditions. With no OTP the free text is returned untouched.
+    """
+    # Imported here rather than at module scope, like the other engine.otp uses
+    # in this file (the module is only needed when a record carries an OTP).
+    from engine.otp import has_terms, terms_lines
+
+    typed = [str(t) for t in (sale.get("terms") or []) if str(t).strip()]
+    otp = sale.get("otp") or {}
+    if not has_terms(otp):
+        return typed
+    kept = [t for t in typed if not _TERM_STATES_A_FIGURE.search(t)]
+    # terms_lines closes with a fixed occupation sentence; the strip only wants
+    # the figures, and an occupation term the human typed is already in `kept`.
+    contract = [
+        line for line in terms_lines(otp)
+        if not line.lower().startswith("occupation on date of registration")
+    ]
+    return contract + kept
+
+
 def _ad_features(
     features: List[str],
     *,
@@ -590,7 +636,13 @@ class HtmlBackend(RenderBackend):
                 garages=_fmt_num(physical.get("garages")),
             ),
             "features_complex": list(physical.get("features_complex") or []),
-            "terms": list(sale.get("terms") or []),
+            # The OTP is the contract, so where it states a figure it OWNS that
+            # figure on every surface (D83). Without this the same property told
+            # a buyer two different deposits at the same moment: the pack read
+            # the OTP (20%) while the advert, the email and the portal listing
+            # read a stale free-text line (10%). Same fault D64 fixed for price,
+            # in the terms.
+            "terms": _reconciled_terms(sale),
             # Sale terms read from the OTP's clauses (D68). Empty when no OTP has
             # been uploaded, and the pack then falls back to the record's own
             # free-text terms rather than printing a default that would be wrong.
@@ -650,6 +702,13 @@ class HtmlBackend(RenderBackend):
         # re-renders preserve edits. Only non-null values override.
         if request.copy:
             vm.update({k: v for k, v in request.copy.items() if v is not None})
+
+        # ...except the sale terms, where the OTP has the last word (D83). The
+        # merge above can carry the record's stale free-text terms back in over
+        # the reconciled ones, which is how the advert came to say 10% deposit
+        # while the pack said 20%. Re-run it on whatever `terms` survived, so
+        # the contract's figure wins whichever source supplied the list.
+        vm["terms"] = _reconciled_terms({"terms": vm.get("terms"), "otp": sale.get("otp")})
 
         return vm
 

@@ -18,7 +18,7 @@
 {% if vm.features_complex %}The complex offers {{ vm.features_complex | join('; ') | lower }}.
 
 {% endif %}
-{% if vm.badge_label == "Offers Invited" %}Offers are invited.{% elif vm.badge_label == "On Auction" %}This property goes on auction.{% endif %}{% if vm.terms %} {{ vm.terms[0] }}.{% endif %}
+{% if vm.badge_label == "Offers Invited" %}Offers are invited.{% elif vm.badge_label == "On Auction" %}This property goes on auction.{% endif %}{% if vm.terms %} {{ vm.terms[0] }}{% if not vm.terms[0].endswith(".") %}.{% endif %}{% endif %}
 
 {% if vm.viewing_by_appt %}Viewing strictly by appointment.
 
