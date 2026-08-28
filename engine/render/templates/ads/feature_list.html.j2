@@ -66,6 +66,9 @@
   .fl-featbox { flex:1 1 auto; min-height:0; min-width:0; border:2.5px solid var(--gline); border-radius:20px;
                 background:rgba(14,11,8,.42); padding:22px 30px; display:flex; flex-direction:column;
                 justify-content:space-around; }
+  /* The box heading the reference ads carry (D86), gold, above the icon rows. */
+  .fl-feathead { font-size:34px; font-weight:900; color:var(--g2); text-transform:uppercase;
+                 letter-spacing:.02em; line-height:1; }
   .fl-item { display:flex; align-items:center; gap:16px; font-size:25px; font-weight:800; color:#fff;
              text-transform:uppercase; letter-spacing:0; line-height:1.02; min-width:0; }
   .fl-item span { overflow-wrap:anywhere; min-width:0; }
@@ -118,6 +121,7 @@
     <div class="fl-body">
       <div class="fl-left">
         <div class="fl-featbox">
+          <div class="fl-feathead">{{ 'Property Features:' }}</div>
           {% if vm.size_str %}<div class="fl-item">{{ parts.icon_size() }}<span><span class="nb">&plusmn;{% if vm.size_ha %}{{ vm.size_ha }}<span class="un"> ha</span>{% else %}{{ vm.size_str }}<span class="un">m&sup2;</span>{% endif %}</span> Property</span></div>{% endif %}
           {% if vm.beds %}<div class="fl-item">{{ parts.icon_bed() }}<span>{{ vm.beds }} Bedroom{{ 's' if vm.beds != '1' }}</span></div>{% endif %}
           {% if vm.baths %}<div class="fl-item">{{ parts.icon_bath() }}<span>{{ vm.baths }} Bathroom{{ 's' if vm.baths != '1' }}</span></div>{% endif %}
