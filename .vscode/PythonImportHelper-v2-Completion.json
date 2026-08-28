@@ -520,6 +520,14 @@
         "documentation": {}
     },
     {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
         "label": "sys",
         "kind": 6,
         "isExtraImport": true,
@@ -4329,6 +4337,54 @@
         "documentation": {}
     },
     {
+        "label": "_collect_typed_fields",
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "isExtraImport": true,
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_parse_number",
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "isExtraImport": true,
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "action_gate2_approve",
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "isExtraImport": true,
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "action_gate2_changes",
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "isExtraImport": true,
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "has_terms",
+        "importPath": "engine.otp",
+        "description": "engine.otp",
+        "isExtraImport": true,
+        "detail": "engine.otp",
+        "documentation": {}
+    },
+    {
+        "label": "terms_lines",
+        "importPath": "engine.otp",
+        "description": "engine.otp",
+        "isExtraImport": true,
+        "detail": "engine.otp",
+        "documentation": {}
+    },
+    {
         "label": "OtpUnreadable",
         "importPath": "engine.otp",
         "description": "engine.otp",
@@ -5016,22 +5072,6 @@
         "description": "starlette.templating",
         "isExtraImport": true,
         "detail": "starlette.templating",
-        "documentation": {}
-    },
-    {
-        "label": "action_gate2_approve",
-        "importPath": "webapp.routes.gates",
-        "description": "webapp.routes.gates",
-        "isExtraImport": true,
-        "detail": "webapp.routes.gates",
-        "documentation": {}
-    },
-    {
-        "label": "action_gate2_changes",
-        "importPath": "webapp.routes.gates",
-        "description": "webapp.routes.gates",
-        "isExtraImport": true,
-        "detail": "webapp.routes.gates",
         "documentation": {}
     },
     {
@@ -6805,6 +6845,15 @@
         "documentation": {}
     },
     {
+        "label": "has_terms",
+        "kind": 2,
+        "importPath": "engine.otp",
+        "description": "engine.otp",
+        "peekOfCode": "def has_terms(terms: Optional[Dict[str, object]]) -> bool:\n    \"\"\"Whether there is a term worth printing a terms box for.\n    ``terms_lines`` always appends the fixed occupation line, so an empty dict\n    still yields one line: without this check a property with no OTP at all\n    would print a lone \"Occupation on date of registration\" as though it were\n    the sale terms. Deliberately ANY of the four rather than the deposit alone -\n    the deposit is the usual first value, but a marketer typing the terms by\n    hand (D80) may know the commission and the confirmation period and not the\n    deposit, and their entry must not be silently dropped.\n    \"\"\"",
+        "detail": "engine.otp",
+        "documentation": {}
+    },
+    {
         "label": "terms_lines",
         "kind": 2,
         "importPath": "engine.otp",
@@ -6855,6 +6904,15 @@
         "importPath": "engine.otp",
         "description": "engine.otp",
         "peekOfCode": "_WORD_NUMBERS = {\n    \"one\": 1, \"two\": 2, \"three\": 3, \"four\": 4, \"five\": 5, \"six\": 6, \"seven\": 7,\n    \"eight\": 8, \"nine\": 9, \"ten\": 10, \"fifteen\": 15, \"twenty\": 20, \"thirty\": 30,\n    \"forty\": 40, \"forty five\": 45, \"fifty\": 50, \"sixty\": 60, \"ninety\": 90,\n}\nclass OtpUnreadable(PdfUnreadable):\n    \"\"\"Kept as its own name so callers can catch this reader specifically.\"\"\"\ndef _read(path: \"str | Path\") -> str:\n    \"\"\"Text with its rows intact. Raises OtpUnreadable when the document is a scan.\"\"\"\n    try:",
+        "detail": "engine.otp",
+        "documentation": {}
+    },
+    {
+        "label": "TERM_KEYS",
+        "kind": 5,
+        "importPath": "engine.otp",
+        "description": "engine.otp",
+        "peekOfCode": "TERM_KEYS = (\"deposit_pct\", \"commission_pct\", \"guarantee_days\", \"confirmation_days\")\ndef has_terms(terms: Optional[Dict[str, object]]) -> bool:\n    \"\"\"Whether there is a term worth printing a terms box for.\n    ``terms_lines`` always appends the fixed occupation line, so an empty dict\n    still yields one line: without this check a property with no OTP at all\n    would print a lone \"Occupation on date of registration\" as though it were\n    the sale terms. Deliberately ANY of the four rather than the deposit alone -\n    the deposit is the usual first value, but a marketer typing the terms by\n    hand (D80) may know the commission and the confirmation period and not the\n    deposit, and their entry must not be silently dropped.",
         "detail": "engine.otp",
         "documentation": {}
     },
@@ -8956,6 +9014,105 @@
         "documentation": {}
     },
     {
+        "label": "_Form",
+        "kind": 6,
+        "importPath": "tests.test_manual_terms",
+        "description": "tests.test_manual_terms",
+        "peekOfCode": "class _Form(dict):\n    \"\"\"A submitted form: dict-like, which is all the collector asks of it.\"\"\"\n# --- reading what a person actually types ---------------------------------\n@pytest.mark.parametrize(\n    \"typed, expected\",\n    [\n        (\"20\", 20.0),\n        (\"7.5\", 7.5),\n        (\"7,5\", 7.5),            # SA keyboard: the comma IS the decimal point\n        (\" 10 % \", 10.0),",
+        "detail": "tests.test_manual_terms",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_figure_is_read_the_way_it_was_typed",
+        "kind": 2,
+        "importPath": "tests.test_manual_terms",
+        "description": "tests.test_manual_terms",
+        "peekOfCode": "def test_a_figure_is_read_the_way_it_was_typed(typed, expected):\n    assert _parse_number(typed, float, 0.0, 10_000_000.0) == expected\n@pytest.mark.parametrize(\"typed\", [\"\", \"abc\", \"ten\", \"-\", \"1.2.3\", \"R\", \"%\"])\ndef test_nonsense_is_refused_rather_than_guessed(typed):\n    assert _parse_number(typed, float, 0.0, 100.0) is None\n@pytest.mark.parametrize(\"typed\", [\"200\", \"2026\", \"-5\", \"101\"])\ndef test_a_slipped_keystroke_is_refused(typed):\n    \"\"\"A percentage is bounded, so \"200\" for \"20\" and \"2026\" for \"20\" are\n    refused rather than printed on a document a buyer relies on.\"\"\"\n    assert _parse_number(typed, float, 0.0, 100.0) is None",
+        "detail": "tests.test_manual_terms",
+        "documentation": {}
+    },
+    {
+        "label": "test_nonsense_is_refused_rather_than_guessed",
+        "kind": 2,
+        "importPath": "tests.test_manual_terms",
+        "description": "tests.test_manual_terms",
+        "peekOfCode": "def test_nonsense_is_refused_rather_than_guessed(typed):\n    assert _parse_number(typed, float, 0.0, 100.0) is None\n@pytest.mark.parametrize(\"typed\", [\"200\", \"2026\", \"-5\", \"101\"])\ndef test_a_slipped_keystroke_is_refused(typed):\n    \"\"\"A percentage is bounded, so \"200\" for \"20\" and \"2026\" for \"20\" are\n    refused rather than printed on a document a buyer relies on.\"\"\"\n    assert _parse_number(typed, float, 0.0, 100.0) is None\ndef test_day_counts_come_back_as_whole_numbers():\n    assert _parse_number(\"45\", int, 0, 365) == 45\n    assert isinstance(_parse_number(\"45\", int, 0, 365), int)",
+        "detail": "tests.test_manual_terms",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_slipped_keystroke_is_refused",
+        "kind": 2,
+        "importPath": "tests.test_manual_terms",
+        "description": "tests.test_manual_terms",
+        "peekOfCode": "def test_a_slipped_keystroke_is_refused(typed):\n    \"\"\"A percentage is bounded, so \"200\" for \"20\" and \"2026\" for \"20\" are\n    refused rather than printed on a document a buyer relies on.\"\"\"\n    assert _parse_number(typed, float, 0.0, 100.0) is None\ndef test_day_counts_come_back_as_whole_numbers():\n    assert _parse_number(\"45\", int, 0, 365) == 45\n    assert isinstance(_parse_number(\"45\", int, 0, 365), int)\n    assert _parse_number(\"7.6\", int, 0, 365) == 8\n# --- what the collector stores --------------------------------------------\ndef test_terms_are_stored_as_numbers_not_strings():",
+        "detail": "tests.test_manual_terms",
+        "documentation": {}
+    },
+    {
+        "label": "test_day_counts_come_back_as_whole_numbers",
+        "kind": 2,
+        "importPath": "tests.test_manual_terms",
+        "description": "tests.test_manual_terms",
+        "peekOfCode": "def test_day_counts_come_back_as_whole_numbers():\n    assert _parse_number(\"45\", int, 0, 365) == 45\n    assert isinstance(_parse_number(\"45\", int, 0, 365), int)\n    assert _parse_number(\"7.6\", int, 0, 365) == 8\n# --- what the collector stores --------------------------------------------\ndef test_terms_are_stored_as_numbers_not_strings():\n    \"\"\"The whole reason this machinery exists: the pack formats a percentage\n    with ``:g``, which raises on a string. A typed \"20\" stored verbatim would\n    make the information pack unbuildable rather than slightly wrong.\"\"\"\n    rejected: list = []",
+        "detail": "tests.test_manual_terms",
+        "documentation": {}
+    },
+    {
+        "label": "test_terms_are_stored_as_numbers_not_strings",
+        "kind": 2,
+        "importPath": "tests.test_manual_terms",
+        "description": "tests.test_manual_terms",
+        "peekOfCode": "def test_terms_are_stored_as_numbers_not_strings():\n    \"\"\"The whole reason this machinery exists: the pack formats a percentage\n    with ``:g``, which raises on a string. A typed \"20\" stored verbatim would\n    make the information pack unbuildable rather than slightly wrong.\"\"\"\n    rejected: list = []\n    fields = _collect_typed_fields(\n        _Form({\"deposit_pct\": \"20\", \"guarantee_days\": \"60\", \"monthly_levy\": \"R1 480\"}),\n        full=True,\n        rejected=rejected,\n    )",
+        "detail": "tests.test_manual_terms",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_refused_figure_leaves_its_field_alone_and_is_named",
+        "kind": 2,
+        "importPath": "tests.test_manual_terms",
+        "description": "tests.test_manual_terms",
+        "peekOfCode": "def test_a_refused_figure_leaves_its_field_alone_and_is_named():\n    \"\"\"One mistyped percentage must not discard the marketer's other edits, and\n    must not silently vanish either: the field is untouched and the toast says\n    which one.\"\"\"\n    rejected: list = []\n    fields = _collect_typed_fields(\n        _Form({\"deposit_pct\": \"two hundred\", \"commission_pct\": \"6\"}),\n        full=True,\n        rejected=rejected,\n    )",
+        "detail": "tests.test_manual_terms",
+        "documentation": {}
+    },
+    {
+        "label": "test_blank_clears_only_on_a_complete_form",
+        "kind": 2,
+        "importPath": "tests.test_manual_terms",
+        "description": "tests.test_manual_terms",
+        "peekOfCode": "def test_blank_clears_only_on_a_complete_form():\n    \"\"\"The gate-2 form posts every field, so a blank box there is a deliberate\n    clear. A partial POST keeps the safer rule that blank never wipes, so a\n    crafted or half-built request cannot empty a live listing's terms.\"\"\"\n    cleared = _collect_typed_fields(_Form({\"deposit_pct\": \"\"}), full=True, rejected=[])\n    assert cleared[\"sale_process.otp.deposit_pct\"] is None\n    partial = _collect_typed_fields(_Form({\"deposit_pct\": \"\"}), full=False, rejected=[])\n    assert partial == {}\ndef test_choices_are_validated_and_vat_keeps_three_states():\n    fields = _collect_typed_fields(",
+        "detail": "tests.test_manual_terms",
+        "documentation": {}
+    },
+    {
+        "label": "test_choices_are_validated_and_vat_keeps_three_states",
+        "kind": 2,
+        "importPath": "tests.test_manual_terms",
+        "description": "tests.test_manual_terms",
+        "peekOfCode": "def test_choices_are_validated_and_vat_keeps_three_states():\n    fields = _collect_typed_fields(\n        _Form({\"commission_payable_by\": \"purchaser\", \"commission_vat\": \"yes\"}),\n        full=True,\n        rejected=[],\n    )\n    assert fields[\"sale_process.otp.commission_payable_by\"] == \"purchaser\"\n    assert fields[\"sale_process.otp.commission_vat\"] is True\n    # An off-list value cannot land on the record.\n    crafted = _collect_typed_fields(",
+        "detail": "tests.test_manual_terms",
+        "documentation": {}
+    },
+    {
+        "label": "test_typed_terms_print_even_without_a_deposit",
+        "kind": 2,
+        "importPath": "tests.test_manual_terms",
+        "description": "tests.test_manual_terms",
+        "peekOfCode": "def test_typed_terms_print_even_without_a_deposit():\n    \"\"\"The old guard was \"print the box if there is a deposit percentage\",\n    which is the usual FIRST value on an OTP but not the only one a marketer\n    may know. Typing a commission and a confirmation period and getting an\n    empty terms box would look exactly like the app ignoring the entry.\"\"\"\n    assert has_terms({\"commission_pct\": 6.0}) is True\n    assert has_terms({\"confirmation_days\": 7}) is True\n    assert \"6% commission\" in \" \".join(terms_lines({\"commission_pct\": 6.0}))\ndef test_no_terms_at_all_prints_no_terms_box():\n    \"\"\"``terms_lines`` always appends the fixed occupation line, so without this",
+        "detail": "tests.test_manual_terms",
+        "documentation": {}
+    },
+    {
+        "label": "test_no_terms_at_all_prints_no_terms_box",
+        "kind": 2,
+        "importPath": "tests.test_manual_terms",
+        "description": "tests.test_manual_terms",
+        "peekOfCode": "def test_no_terms_at_all_prints_no_terms_box():\n    \"\"\"``terms_lines`` always appends the fixed occupation line, so without this\n    guard a property with no OTP would print a lone \"Occupation on date of\n    registration\" as though it were the sale terms.\"\"\"\n    assert has_terms({}) is False\n    assert has_terms(None) is False\n    # Provenance alone is not a term.\n    assert has_terms({\"source_file\": \"OTP.pdf\", \"clauses\": {\"3.1\": \"...\"}}) is False",
+        "detail": "tests.test_manual_terms",
+        "documentation": {}
+    },
+    {
         "label": "test_mixed_uses_canva_for_demo_ad_and_html_for_the_rest",
         "kind": 2,
         "importPath": "tests.test_mixed",
@@ -9478,6 +9635,33 @@
         "documentation": {}
     },
     {
+        "label": "test_info_pack_prints_terms_typed_by_hand_without_an_otp",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_info_pack_prints_terms_typed_by_hand_without_an_otp(golden_record, tmp_path):\n    \"\"\"A marketer with no OTP can still put the terms on the pack (D80).\n    Two things this proves at once: a term typed WITHOUT a deposit percentage\n    still prints (the old guard was \"deposit or nothing\", which would have\n    silently dropped an entry), and the levy typed by hand replaces the \"TBC\"\n    the pack prints when no statement was supplied.\n    \"\"\"\n    from engine.schema import OtpTerms\n    golden_record.sale_process.otp = OtpTerms(\n        commission_pct=6.0, commission_payable_by=\"purchaser\", confirmation_days=14",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_info_pack_prints_no_terms_box_when_nothing_is_known",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_info_pack_prints_no_terms_box_when_nothing_is_known(golden_record, tmp_path):\n    \"\"\"``terms_lines`` always appends the occupation line, so an unguarded box\n    would print that one line as though it were the sale terms.\"\"\"\n    from engine.schema import OtpTerms\n    golden_record.sale_process.otp = OtpTerms(source_file=\"OTP.pdf\")   # provenance only\n    golden_record.sale_process.terms = None\n    html = _info_pack_html(golden_record, tmp_path)\n    assert \"Occupation on date of registration\" not in html\ndef test_a_photo_the_disk_does_not_have_never_reaches_an_artifact(golden_record, tmp_path):\n    \"\"\"A pick whose file is gone is SKIPPED, not printed as an empty frame (D81).",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_photo_the_disk_does_not_have_never_reaches_an_artifact",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_a_photo_the_disk_does_not_have_never_reaches_an_artifact(golden_record, tmp_path):\n    \"\"\"A pick whose file is gone is SKIPPED, not printed as an empty frame (D81).\n    Found by driving the real app end to end, not by this suite: every unit\n    render here uses photos that exist, so nothing had ever asked what happens\n    when one does not. The advert rendered with four empty frames showing their\n    alt text, printed to PDF, and passed gate 2 without a warning - and six real\n    uploaded photographs were skipped in favour of the dead picks, because the\n    missing ones sort first in the gallery.\n    \"\"\"\n    import shutil",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
         "label": "test_info_pack_schedule_pages_split_evenly",
         "kind": 2,
         "importPath": "tests.test_render",
@@ -9905,7 +10089,7 @@
         "kind": 2,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "def test_a_property_with_no_groups_renders_exactly_as_before(golden_record, tmp_path):\n    \"\"\"No migration, no behaviour change for the ordinary single-building case.\"\"\"\n    golden_record.marketing.photo_groups = None\n    html = _info_pack_html(golden_record, tmp_path)\n    assert \"Gallery\" in html\ndef test_an_ungrouped_photograph_is_never_dropped():\n    \"\"\"A photo left out of every group must still reach the pack.\"\"\"\n    from engine.render.base import RenderRequest\n    from engine.render.html_backend import HtmlBackend\n    pub = {\"marketing\": {",
+        "peekOfCode": "def test_a_property_with_no_groups_renders_exactly_as_before(golden_record, tmp_path):\n    \"\"\"No migration, no behaviour change for the ordinary single-building case.\"\"\"\n    golden_record.marketing.photo_groups = None\n    html = _info_pack_html(golden_record, tmp_path)\n    assert \"Gallery\" in html\ndef test_an_ungrouped_photograph_is_never_dropped(tmp_path):\n    \"\"\"A photo left out of every group must still reach the pack.\"\"\"\n    from engine.render.base import RenderRequest\n    from engine.render.html_backend import HtmlBackend\n    _write_photos(tmp_path, \"1\", \"h.png\", \"a.png\", \"b.png\", \"c.png\")",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -9914,7 +10098,7 @@
         "kind": 2,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "def test_an_ungrouped_photograph_is_never_dropped():\n    \"\"\"A photo left out of every group must still reach the pack.\"\"\"\n    from engine.render.base import RenderRequest\n    from engine.render.html_backend import HtmlBackend\n    pub = {\"marketing\": {\n        \"hero_photo\": \"photos/h.png\",\n        \"gallery\": [\"photos/a.png\", \"photos/b.png\", \"photos/c.png\"],\n        \"photo_groups\": {\"Main House\": [\"photos/a.png\"]},\n    }}\n    vm = HtmlBackend()._view_model(",
+        "peekOfCode": "def test_an_ungrouped_photograph_is_never_dropped(tmp_path):\n    \"\"\"A photo left out of every group must still reach the pack.\"\"\"\n    from engine.render.base import RenderRequest\n    from engine.render.html_backend import HtmlBackend\n    _write_photos(tmp_path, \"1\", \"h.png\", \"a.png\", \"b.png\", \"c.png\")\n    pub = {\"marketing\": {\n        \"hero_photo\": \"photos/h.png\",\n        \"gallery\": [\"photos/a.png\", \"photos/b.png\", \"photos/c.png\"],\n        \"photo_groups\": {\"Main House\": [\"photos/a.png\"]},\n    }}",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -9923,7 +10107,7 @@
         "kind": 2,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "def test_a_group_naming_a_photo_the_record_lost_is_ignored():\n    \"\"\"Groups reference names; a removed photo must not leave a phantom entry.\"\"\"\n    from engine.render.base import RenderRequest\n    from engine.render.html_backend import HtmlBackend\n    pub = {\"marketing\": {\n        \"hero_photo\": \"photos/h.png\",\n        \"gallery\": [\"photos/a.png\"],\n        \"photo_groups\": {\"Main House\": [\"photos/a.png\", \"photos/deleted.png\"]},\n    }}\n    vm = HtmlBackend()._view_model(",
+        "peekOfCode": "def test_a_group_naming_a_photo_the_record_lost_is_ignored(tmp_path):\n    \"\"\"Groups reference names; a removed photo must not leave a phantom entry.\"\"\"\n    from engine.render.base import RenderRequest\n    from engine.render.html_backend import HtmlBackend\n    # deleted.png is deliberately NOT written: it is the photo the record lost.\n    _write_photos(tmp_path, \"1\", \"h.png\", \"a.png\")\n    pub = {\"marketing\": {\n        \"hero_photo\": \"photos/h.png\",\n        \"gallery\": [\"photos/a.png\"],\n        \"photo_groups\": {\"Main House\": [\"photos/a.png\", \"photos/deleted.png\"]},",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -9968,7 +10152,16 @@
         "kind": 5,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "_LEGAL_DISCLAIMER = (\n    \"Whilst all reasonable care has been taken to provide accurate information, \"\n    \"neither Dynamic Solutions 1068 (Pty) LTD Trading As Dynamic Auctioneers\"\n)\ndef _info_pack_html(record, tmp_path):\n    store = _store_with(record)\n    try:\n        art = render_one(record.dp, store, \"info_pack\", backend=\"html\", output_root=str(tmp_path))\n        return Path(art.path).read_text(encoding=\"utf-8\")\n    finally:",
+        "peekOfCode": "_LEGAL_DISCLAIMER = (\n    \"Whilst all reasonable care has been taken to provide accurate information, \"\n    \"neither Dynamic Solutions 1068 (Pty) LTD Trading As Dynamic Auctioneers\"\n)\ndef _stage_photos(record, tmp_path) -> None:\n    \"\"\"Put every photograph the record references onto disk under ``tmp_path``.\n    Since D81 the renderer skips a pick whose file is not there, which is the\n    point of that change - so a test that sets photo paths has to write the\n    files too, exactly as an upload would. Real DP3060 photographs are copied\n    where the name matches one; anything else gets a valid 1x1 PNG.",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "_PNG_1x1",
+        "kind": 5,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "_PNG_1x1 = bytes.fromhex(\n    \"89504e470d0a1a0a0000000d4948445200000001000000010806000000\"\n    \"1f15c4890000000a49444154789c6360000002000100ffff0300000600\"\n    \"05fefe8b990000000049454e44ae426082\"\n)\ndef _write_photos(tmp_path, dp: str, *names: str) -> None:\n    \"\"\"Write valid 1x1 PNGs at ``tmp_path/DP<dp>/photos/<name>``, as an upload would.\"\"\"\n    photos = Path(tmp_path) / f\"DP{dp}\" / \"photos\"\n    photos.mkdir(parents=True, exist_ok=True)\n    for name in names:",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -10635,6 +10828,24 @@
         "importPath": "tests.test_webapp",
         "description": "tests.test_webapp",
         "peekOfCode": "def test_live_edit_reopens_and_applies_override():\n    dp = \"7101\"\n    _seed_golden_live(dp)\n    client = _client()\n    _login_admin(client)\n    # The editor shows the update-cycle delete caveat for a live listing.\n    page = client.get(f\"/gates/{dp}/ads\")\n    assert page.status_code == 200, page.text\n    assert \"Editing a live listing\" in page.text\n    # Save a small edit: address (a human_overrides fact) + price.",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_sale_terms_can_be_typed_when_there_is_no_otp",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_sale_terms_can_be_typed_when_there_is_no_otp():\n    \"\"\"The gate-2 terms panel writes real numbers onto the record (D80).\n    The round trip is what matters here: the form posts strings, the pack\n    formats percentages with ``:g`` (which raises on a string), so this asserts\n    the TYPES that reach the record, not just the values.\n    \"\"\"\n    dp = \"7118\"\n    _golden_clone(dp, state=\"drafted\")\n    client = _client()\n    _login_admin(client)",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_mistyped_percentage_is_refused_and_says_so",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_a_mistyped_percentage_is_refused_and_says_so():\n    \"\"\"One bad figure must not discard the other edits, and must not be stored:\n    a deposit of 2026% on a buyer's information pack is a misrepresentation.\"\"\"\n    dp = \"7119\"\n    _golden_clone(dp, state=\"drafted\")\n    client = _client()\n    _login_admin(client)\n    resp = client.post(\n        f\"/gates/{dp}/ads/copy\",\n        data={\"deposit_pct\": \"2026\", \"suburb\": \"Riverbend\"},",
         "detail": "tests.test_webapp",
         "documentation": {}
     },
@@ -11805,6 +12016,51 @@
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
         "peekOfCode": "_EDIT_TEXT_FIELDS = {\n    \"headline\": \"marketing.headline\",\n    \"price_display\": \"marketing.price_display\",\n    \"street_address\": \"identity.street_address\",\n    \"suburb\": \"identity.suburb\",\n    # Auction specifics (D42): shown on auction ads only. Blank inputs are\n    # skipped by _collect_edit_fields, so they never wipe an existing value.\n    # (auction_channel is validated against an allow-list separately, below.)\n    \"auction_type\": \"sale_process.auction_type\",\n    \"auction_date\": \"sale_process.auction_date\",",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_EDIT_NUMBER_FIELDS",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "_EDIT_NUMBER_FIELDS = {\n    \"deposit_pct\": (\"sale_process.otp.deposit_pct\", float, 0.0, 100.0),\n    \"commission_pct\": (\"sale_process.otp.commission_pct\", float, 0.0, 100.0),\n    \"guarantee_days\": (\"sale_process.otp.guarantee_days\", int, 0, 365),\n    \"confirmation_days\": (\"sale_process.otp.confirmation_days\", int, 0, 365),\n    \"monthly_rates\": (\"valuation.estimated_monthly_rates\", float, 0.0, 10_000_000.0),\n    \"monthly_levy\": (\"valuation.monthly_levy\", float, 0.0, 10_000_000.0),\n}\n# Terms that are a fixed choice. Validated against the allow-list like the sale\n# method, so a crafted POST cannot store a value the select cannot show back.",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_PAYER_CHOICES",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "_PAYER_CHOICES = (\"seller\", \"purchaser\")\n_EDIT_CHOICE_FIELDS = {\n    \"commission_payable_by\": (\"sale_process.otp.commission_payable_by\", _PAYER_CHOICES),\n    \"outstanding_payable_by\": (\"sale_process.otp.outstanding_payable_by\", _PAYER_CHOICES),\n}\n# Yes / no terms, posted as \"yes\" / \"no\" / \"\" so the three states stay distinct:\n# VAT applies, VAT does not apply, and the document did not say.\n_EDIT_BOOL_FIELDS = {\n    \"commission_vat\": \"sale_process.otp.commission_vat\",\n}",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_EDIT_CHOICE_FIELDS",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "_EDIT_CHOICE_FIELDS = {\n    \"commission_payable_by\": (\"sale_process.otp.commission_payable_by\", _PAYER_CHOICES),\n    \"outstanding_payable_by\": (\"sale_process.otp.outstanding_payable_by\", _PAYER_CHOICES),\n}\n# Yes / no terms, posted as \"yes\" / \"no\" / \"\" so the three states stay distinct:\n# VAT applies, VAT does not apply, and the document did not say.\n_EDIT_BOOL_FIELDS = {\n    \"commission_vat\": \"sale_process.otp.commission_vat\",\n}\n# The human labels the toast uses when it names a value it would not accept.",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_EDIT_BOOL_FIELDS",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "_EDIT_BOOL_FIELDS = {\n    \"commission_vat\": \"sale_process.otp.commission_vat\",\n}\n# The human labels the toast uses when it names a value it would not accept.\n_FIELD_LABELS = {\n    \"deposit_pct\": \"Deposit %\",\n    \"commission_pct\": \"Commission %\",\n    \"guarantee_days\": \"Guarantee (days)\",\n    \"confirmation_days\": \"Confirmation (days)\",\n    \"monthly_rates\": \"Monthly rates\",",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_FIELD_LABELS",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "_FIELD_LABELS = {\n    \"deposit_pct\": \"Deposit %\",\n    \"commission_pct\": \"Commission %\",\n    \"guarantee_days\": \"Guarantee (days)\",\n    \"confirmation_days\": \"Confirmation (days)\",\n    \"monthly_rates\": \"Monthly rates\",\n    \"monthly_levy\": \"Monthly levy\",\n}\n# The three viewing states (fix list 4.6). Validated like the sale method so a\n# crafted POST cannot store an off-list value that then fails to round-trip.",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
