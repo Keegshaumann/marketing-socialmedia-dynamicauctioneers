@@ -6035,6 +6035,15 @@
         "documentation": {}
     },
     {
+        "label": "_TERM_STATES_A_FIGURE",
+        "kind": 5,
+        "importPath": "engine.render.html_backend",
+        "description": "engine.render.html_backend",
+        "peekOfCode": "_TERM_STATES_A_FIGURE = re.compile(\n    r\"\\d+(?:[.,]\\d+)?\\s*%\\s*(?:deposit|commission)\"\n    r\"|\\bdeposit\\b[^.]{0,30}?\\d+(?:[.,]\\d+)?\\s*%\"\n    r\"|\\bcommission\\b[^.]{0,30}?\\d+(?:[.,]\\d+)?\\s*%\"\n    r\"|\\d+\\s*(?:\\([a-z ]+\\)\\s*)?days?\\b[^.]{0,40}?\\bguarantee\"\n    r\"|\\bguarantee[^.]{0,40}?\\d+\\s*(?:\\([a-z ]+\\)\\s*)?days?\\b\",\n    re.I,\n)\ndef _tagline(features: List[str], limit: int = 3) -> List[str]:\n    \"\"\"The short pipe-separated strip the reference ads carry (D84).",
+        "detail": "engine.render.html_backend",
+        "documentation": {}
+    },
+    {
         "label": "icon_for",
         "kind": 2,
         "importPath": "engine.render.pack_icons",
@@ -6075,7 +6084,7 @@
         "kind": 5,
         "importPath": "engine.render.pack_icons",
         "description": "engine.render.pack_icons",
-        "peekOfCode": "_SPLIT = re.compile(r\"\\s*(?:,|\\(|\\bwith\\b|\\bplus\\b|\\bincluding\\b|\\s-\\s)\\s*\", re.I)\ndef split_label(text: str) -> Tuple[str, str]:\n    \"\"\"Split a feature line into (label, sub-line). The sub-line may be empty.\n    Never adds a word: both halves come out of ``text``. A line short enough to\n    print whole is returned as the label with no sub-line, because a one word\n    qualifier under a two word label reads as a mistake rather than a detail.\n    \"\"\"\n    line = (text or \"\").strip().rstrip(\".\")\n    if len(line) <= 26:\n        return line.upper(), \"\"",
+        "peekOfCode": "_SPLIT = re.compile(\n    r\"\\s*(?:(?<!\\d),|,(?!\\d)|\\(|\\bwith\\b|\\bplus\\b|\\bincluding\\b|\\s-\\s)\\s*\", re.I\n)\ndef split_label(text: str) -> Tuple[str, str]:\n    \"\"\"Split a feature line into (label, sub-line). The sub-line may be empty.\n    Never adds a word: both halves come out of ``text``. A line short enough to\n    print whole is returned as the label with no sub-line, because a one word\n    qualifier under a two word label reads as a mistake rather than a detail.\n    \"\"\"\n    line = (text or \"\").strip().rstrip(\".\")",
         "detail": "engine.render.pack_icons",
         "documentation": {}
     },
@@ -9275,6 +9284,33 @@
         "documentation": {}
     },
     {
+        "label": "test_a_thousands_comma_is_not_a_place_to_break_a_line",
+        "kind": 2,
+        "importPath": "tests.test_pack_icons",
+        "description": "tests.test_pack_icons",
+        "peekOfCode": "def test_a_thousands_comma_is_not_a_place_to_break_a_line():\n    \"\"\"Found on a LIVE client pack (DP2987, already client-approved).\n    The feature read \"Boreholes: 14,000 L (drinking water), 40,000 L\n    (irrigation) and two 75,000 L\". The splitter broke at the comma inside\n    14,000 and printed the headline \"BOREHOLES: 14\" - telling a buyer the farm\n    has fourteen boreholes, when the number is a water capacity. A wrong fact on\n    a buyer's information pack is a misrepresentation, not a formatting nit.\n    \"\"\"\n    label, detail = split_label(\n        \"Boreholes: 14,000 L (drinking water), 40,000 L (irrigation) and two 75,000 L\"",
+        "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_decimal_comma_survives_too",
+        "kind": 2,
+        "importPath": "tests.test_pack_icons",
+        "description": "tests.test_pack_icons",
+        "peekOfCode": "def test_a_decimal_comma_survives_too():\n    \"\"\"SA keyboards write 1,8 m for 1.8 m; splitting there loses the number.\"\"\"\n    label, detail = split_label(\"Security fencing, electrified, 1,8 m, 16 strands\")\n    assert label == \"SECURITY FENCING\"\n    assert \"1,8 M\" in detail\ndef test_a_list_comma_after_a_number_still_splits():\n    \"\"\"The guard must protect thousands separators without refusing every comma\n    that happens to follow a digit.\"\"\"\n    label, detail = split_label(\"Erf 1234, 1,250 m2 in extent\")\n    assert label == \"ERF 1234\"",
+        "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_list_comma_after_a_number_still_splits",
+        "kind": 2,
+        "importPath": "tests.test_pack_icons",
+        "description": "tests.test_pack_icons",
+        "peekOfCode": "def test_a_list_comma_after_a_number_still_splits():\n    \"\"\"The guard must protect thousands separators without refusing every comma\n    that happens to follow a digit.\"\"\"\n    label, detail = split_label(\"Erf 1234, 1,250 m2 in extent\")\n    assert label == \"ERF 1234\"\n    assert detail == \"1,250 M2 IN EXTENT\"",
+        "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
         "label": "panel",
         "kind": 2,
         "importPath": "tests.test_photo_picker",
@@ -9567,7 +9603,7 @@
         "kind": 2,
         "importPath": "tests.test_render",
         "description": "tests.test_render",
-        "peekOfCode": "def test_collage_is_method_aware(golden_record, tmp_path):\n    # For Sale -> Real Estate brand + \"For Sale\" badge; Auction -> Auctioneers\n    # brand + \"On Auction\" badge. Same record, only the method differs (D41).\n    from engine.render.html_backend import _asset_data_uri\n    # Collage is on the dark canvas, so it uses the on-dark (gold-only) logo.\n    auct_logo = _asset_data_uri(\"ads/_assets/logo-auctioneers-on-dark.png\")\n    re_logo = _asset_data_uri(\"ads/_assets/logo-realestate-on-dark.png\")\n    assert auct_logo and re_logo and auct_logo != re_logo  # the two brands differ\n    for method, badge, want, other in [\n        (\"offers_invited\", \"FOR SALE\", re_logo, auct_logo),",
+        "peekOfCode": "def test_collage_is_method_aware(golden_record, tmp_path):\n    # For Sale -> Real Estate brand + \"For Sale\" badge; Auction -> Auctioneers\n    # brand + \"On Auction\" badge. Same record, only the method differs (D41).\n    from engine.render.html_backend import _asset_data_uri\n    # Collage carries the white shield lockup, like every reference ad (D84), so\n    # its logo is the ON-LIGHT artwork: the gold-only mark would vanish on white.\n    auct_logo = _asset_data_uri(\"ads/_assets/logo-auctioneers-on-light.png\")\n    re_logo = _asset_data_uri(\"ads/_assets/logo-realestate-on-light.png\")\n    assert auct_logo and re_logo and auct_logo != re_logo  # the two brands differ\n    for method, badge, want, other in [",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -9658,6 +9694,24 @@
         "importPath": "tests.test_render",
         "description": "tests.test_render",
         "peekOfCode": "def test_a_photo_the_disk_does_not_have_never_reaches_an_artifact(golden_record, tmp_path):\n    \"\"\"A pick whose file is gone is SKIPPED, not printed as an empty frame (D81).\n    Found by driving the real app end to end, not by this suite: every unit\n    render here uses photos that exist, so nothing had ever asked what happens\n    when one does not. The advert rendered with four empty frames showing their\n    alt text, printed to PDF, and passed gate 2 without a warning - and six real\n    uploaded photographs were skipped in favour of the dead picks, because the\n    missing ones sort first in the gallery.\n    \"\"\"\n    import shutil",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_otp_owns_its_figures_on_every_artifact",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_the_otp_owns_its_figures_on_every_artifact(golden_record, tmp_path):\n    \"\"\"One property must not quote two different deposits (D83).\n    Found by reviewing the real designs: the information pack read the OTP (20%)\n    while the advert, the email and the portal listing read a stale free-text\n    term (10%), for the same property at the same moment. Same class of fault as\n    D64 (a price change reaching every artifact), in the terms.\n    The regression guard is deliberately the WHOLE SET, not the ad alone: the\n    first fix reconciled the view model and was silently undone further down,\n    where the copy bundle merges over it.\n    \"\"\"",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_terms_are_untouched_when_there_is_no_otp",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_terms_are_untouched_when_there_is_no_otp(golden_record, tmp_path):\n    \"\"\"Reconciliation only applies where the contract actually speaks.\"\"\"\n    from engine.render.html_backend import _reconciled_terms\n    typed = [\"10% deposit payable on offer\", \"Vacant occupation cannot be guaranteed\"]\n    assert _reconciled_terms({\"terms\": typed}) == typed\n    assert _reconciled_terms({\"terms\": typed, \"otp\": {\"source_file\": \"otp.pdf\"}}) == typed\n    # With an OTP, only the lines stating a figure it also states are replaced.\n    # A condition the contract is silent about is a real term and must survive:\n    # dropping \"Electrical COC, SPLUMA...\" would quietly remove a sale condition.\n    out = _reconciled_terms({",
         "detail": "tests.test_render",
         "documentation": {}
     },
