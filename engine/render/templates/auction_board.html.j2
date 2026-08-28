@@ -84,12 +84,14 @@
   }
 
   /* The diagonal sheen of the reference: pale bands across an ivory ground. */
+  /* ONE gradient layer, not two stacked ones (D85). Chromium rasterises every
+     gradient - measured - so each layer became its own full-page bitmap, and a
+     board opened in Canva arrived as three stacked pictures to click through
+     before reaching anything editable. The diagonal sheen of the reference
+     board is kept; it is simply drawn once. */
   .bd-ground { position:absolute; inset:0; z-index:0;
-    background:
-      linear-gradient(118deg, rgba(255,255,255,.95) 0 32%, rgba(255,255,255,0) 32% 44%,
-                              rgba(255,255,255,.75) 44% 58%, rgba(255,255,255,0) 58% 72%,
-                              rgba(255,255,255,.85) 72% 100%),
-      linear-gradient(160deg, #ffffff 0%, #f6f1e7 55%, #e8dcc6 100%);
+    background:linear-gradient(118deg, #ffffff 0 30%, #f6f1e7 38% 52%,
+                                       #efe8da 60% 72%, #e8dcc6 100%);
   }
 
   .bd-head {
