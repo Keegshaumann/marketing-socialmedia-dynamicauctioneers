@@ -951,6 +951,73 @@ def test_live_edit_reopens_and_applies_override():
     assert pv["marketing"]["price_display"] == "R900 000"  # typed number formatted
 
 
+def test_sale_terms_can_be_typed_when_there_is_no_otp():
+    """The gate-2 terms panel writes real numbers onto the record (D80).
+
+    The round trip is what matters here: the form posts strings, the pack
+    formats percentages with ``:g`` (which raises on a string), so this asserts
+    the TYPES that reach the record, not just the values.
+    """
+    dp = "7118"
+    _golden_clone(dp, state="drafted")
+    client = _client()
+    _login_admin(client)
+
+    resp = client.post(
+        f"/gates/{dp}/ads/copy",
+        data={
+            "deposit_pct": "20",
+            "deposit_due": "on the fall of the hammer",
+            "commission_pct": "7,5",          # SA comma decimal
+            "commission_vat": "yes",
+            "commission_payable_by": "purchaser",
+            "guarantee_days": "45",
+            "confirmation_days": "7",
+            "monthly_levy": "R1 480",         # typed as money
+        },
+    )
+    assert resp.status_code == 200, resp.text
+
+    otp = _public_view(dp)["sale_process"]["otp"]
+    assert otp["deposit_pct"] == 20.0 and isinstance(otp["deposit_pct"], float)
+    assert otp["commission_pct"] == 7.5
+    assert otp["commission_vat"] is True
+    assert otp["commission_payable_by"] == "purchaser"
+    assert otp["guarantee_days"] == 45 and isinstance(otp["guarantee_days"], int)
+    assert otp["deposit_due"] == "on the fall of the hammer"
+    assert _public_view(dp)["valuation"]["monthly_levy"] == 1480.0
+
+    # And the panel shows them back, so a colleague opening the page sees what
+    # was entered - including "7.5" for a value typed "7,5" and stored as 7.5,
+    # which a naive str() would have rendered as "7.5" only by luck.
+    page = client.get(f"/gates/{dp}/ads")
+    filled = dict(re.findall(r'name="(\w+)"[^>]*?value="([^"]*)"', page.text))
+    assert filled["deposit_pct"] == "20"
+    assert filled["commission_pct"] == "7.5"
+    assert filled["guarantee_days"] == "45"
+    assert filled["monthly_levy"] == "1480"
+
+
+def test_a_mistyped_percentage_is_refused_and_says_so():
+    """One bad figure must not discard the other edits, and must not be stored:
+    a deposit of 2026% on a buyer's information pack is a misrepresentation."""
+    dp = "7119"
+    _golden_clone(dp, state="drafted")
+    client = _client()
+    _login_admin(client)
+
+    resp = client.post(
+        f"/gates/{dp}/ads/copy",
+        data={"deposit_pct": "2026", "suburb": "Riverbend"},
+    )
+    assert resp.status_code == 200, resp.text
+    assert "Deposit %" in resp.text          # named in the toast, not silent
+
+    pv = _public_view(dp)
+    assert (pv["sale_process"].get("otp") or {}).get("deposit_pct") != 2026
+    assert pv["identity"]["suburb"] == "Riverbend"   # the good edit still saved
+
+
 def test_repost_requires_internal_approval_then_delete_ack():
     dp = "7102"
     _seed_golden_live(dp)

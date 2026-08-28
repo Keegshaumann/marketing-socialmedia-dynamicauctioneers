@@ -494,10 +494,13 @@ class HtmlBackend(RenderBackend):
         # OTP-derived sale terms (D68). Built here so the template stays free of
         # wording logic, and so a record with no OTP yields empty values that the
         # pack can fall back from.
-        from engine.otp import confirmation_pill, outstanding_pill, terms_lines
+        from engine.otp import confirmation_pill, has_terms, outstanding_pill, terms_lines
 
         otp = sale.get("otp") or {}
-        otp_lines = terms_lines(otp) if otp.get("deposit_pct") is not None else []
+        # ANY term, not the deposit alone: a marketer typing the terms by hand
+        # (D80) may know the commission and not the deposit, and the box has to
+        # print what they entered rather than nothing.
+        otp_lines = terms_lines(otp) if has_terms(otp) else []
         otp_confirmation = confirmation_pill(otp) if otp else None
         otp_outstanding = outstanding_pill(otp)
 

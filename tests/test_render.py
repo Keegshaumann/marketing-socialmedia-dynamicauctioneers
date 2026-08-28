@@ -450,6 +450,40 @@ def test_info_pack_terms_come_from_the_otp_when_there_is_one(golden_record, tmp_
         assert stale not in html
 
 
+def test_info_pack_prints_terms_typed_by_hand_without_an_otp(golden_record, tmp_path):
+    """A marketer with no OTP can still put the terms on the pack (D80).
+
+    Two things this proves at once: a term typed WITHOUT a deposit percentage
+    still prints (the old guard was "deposit or nothing", which would have
+    silently dropped an entry), and the levy typed by hand replaces the "TBC"
+    the pack prints when no statement was supplied.
+    """
+    from engine.schema import OtpTerms
+
+    golden_record.sale_process.otp = OtpTerms(
+        commission_pct=6.0, commission_payable_by="purchaser", confirmation_days=14
+    )
+    golden_record.valuation.monthly_levy = 1480.0
+    html = _info_pack_html(golden_record, tmp_path)
+
+    assert "6% commission payable by the Purchaser" in html
+    assert "Subject To 14 days Confirmation By Seller" in html
+    assert "1 480" in html                       # the levy chip, formatted
+    assert "Levies:</span> TBC" not in html
+
+
+def test_info_pack_prints_no_terms_box_when_nothing_is_known(golden_record, tmp_path):
+    """``terms_lines`` always appends the occupation line, so an unguarded box
+    would print that one line as though it were the sale terms."""
+    from engine.schema import OtpTerms
+
+    golden_record.sale_process.otp = OtpTerms(source_file="OTP.pdf")   # provenance only
+    golden_record.sale_process.terms = None
+    html = _info_pack_html(golden_record, tmp_path)
+
+    assert "Occupation on date of registration" not in html
+
+
 def _with_portions(record, n: int):
     """Give a record ``n`` land portions (the multi-portion intake case)."""
     from engine.schema import Portion

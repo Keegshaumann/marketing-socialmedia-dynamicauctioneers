@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 from datetime import date
 from pathlib import Path
@@ -389,6 +390,51 @@ def _gate2_prefill(record: PropertyRecord) -> Dict[str, str]:
     }
 
 
+def _num_str(value: Any) -> str:
+    """A stored number as a person would type it: ``20.0`` -> ``20``, ``7.5`` kept."""
+    if value is None or isinstance(value, bool):
+        return ""
+    if isinstance(value, (int, float)):
+        return f"{value:g}"
+    return str(value)
+
+
+def _terms_view(record: PropertyRecord) -> Dict[str, Any]:
+    """The sale terms and running costs as the gate-2 panel shows them (D80).
+
+    Every one of these comes from a document the marketer may simply not have -
+    the OTP for the terms, the managing agent's statement for the levy - so each
+    is a field they can type. The panel prefills from the record and says where
+    each half came from, because "R1 480" a colleague can trace to a statement
+    and "R1 480" somebody remembered are different facts to put in a buyer's
+    hands. Read from ``public_view`` so an existing human override shows rather
+    than the sourced value underneath it.
+    """
+    public = record.public_view()
+    sale = public.get("sale_process") or {}
+    otp = sale.get("otp") or {}
+    valuation = public.get("valuation") or {}
+    vat = otp.get("commission_vat")
+    return {
+        "deposit_pct": _num_str(otp.get("deposit_pct")),
+        "deposit_due": otp.get("deposit_due") or "",
+        "commission_pct": _num_str(otp.get("commission_pct")),
+        "commission_vat": "" if vat is None else ("yes" if vat else "no"),
+        "commission_payable_by": otp.get("commission_payable_by") or "",
+        "guarantee_days": _num_str(otp.get("guarantee_days")),
+        "confirmation_days": _num_str(otp.get("confirmation_days")),
+        "outstanding_payable_by": otp.get("outstanding_payable_by") or "",
+        "monthly_rates": _num_str(valuation.get("estimated_monthly_rates")),
+        "monthly_levy": _num_str(valuation.get("monthly_levy")),
+        # Provenance, shown as a hint above each half of the panel.
+        "otp_source": otp.get("source_file") or "",
+        # The document's own contradictions (a figure that disagrees with its
+        # words), surfaced so a typed correction is an informed one.
+        "otp_flags": otp.get("flags") or [],
+        "levy_note": valuation.get("monthly_levy_note") or "",
+    }
+
+
 def _email_view(record: PropertyRecord) -> Dict[str, Any]:
     """View-model for both gate emails, from public_view only (no PII)."""
     public = record.public_view()
@@ -722,6 +768,9 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
             "viewing_at": (sale.get("viewing") or {}).get("viewing_at") or "",
             "contact_email": marketing_pv.get("contact_email") or "",
             "contact_phone": marketing_pv.get("contact_phone") or "",
+            # Sale terms and running costs (D80): read from the OTP and the levy
+            # statement when those were uploaded, typed when they were not.
+            "terms_view": _terms_view(record),
             # Design picker (D33): hidden unless more than one set is
             # configured AND the active renderer routes through Canva; the
             # first configured set is the default a blank pick follows.
@@ -1277,6 +1326,54 @@ _EDIT_TEXT_FIELDS = {
     # by different people. Blank falls back to the brand values.
     "contact_email": "marketing.contact_email",
     "contact_phone": "marketing.contact_phone",
+    # Sale terms typed by hand when there is no OTP to read them from (D80).
+    # Free text because the document's own wording varies ("on the fall of the
+    # hammer", "on signature date", "within 48 hours of acceptance").
+    "deposit_due": "sale_process.otp.deposit_due",
+}
+
+# Terms and running costs that are NUMBERS. Separate from the text fields
+# because they must be stored as numbers: the pack formats a percentage with
+# ``f"{value:g}"``, which raises on a string, so a typed "20" saved verbatim
+# would render the whole information pack unbuildable (D80).
+#
+#   form field -> (public-view path, python type, minimum, maximum)
+#
+# The bounds are sanity rails, not business rules: they exist so a slipped
+# keystroke ("200" for "20", "2026" for "20") is refused rather than printed on
+# a document a buyer relies on. A value outside them leaves the field untouched
+# and is named in the toast.
+_EDIT_NUMBER_FIELDS = {
+    "deposit_pct": ("sale_process.otp.deposit_pct", float, 0.0, 100.0),
+    "commission_pct": ("sale_process.otp.commission_pct", float, 0.0, 100.0),
+    "guarantee_days": ("sale_process.otp.guarantee_days", int, 0, 365),
+    "confirmation_days": ("sale_process.otp.confirmation_days", int, 0, 365),
+    "monthly_rates": ("valuation.estimated_monthly_rates", float, 0.0, 10_000_000.0),
+    "monthly_levy": ("valuation.monthly_levy", float, 0.0, 10_000_000.0),
+}
+
+# Terms that are a fixed choice. Validated against the allow-list like the sale
+# method, so a crafted POST cannot store a value the select cannot show back.
+_PAYER_CHOICES = ("seller", "purchaser")
+_EDIT_CHOICE_FIELDS = {
+    "commission_payable_by": ("sale_process.otp.commission_payable_by", _PAYER_CHOICES),
+    "outstanding_payable_by": ("sale_process.otp.outstanding_payable_by", _PAYER_CHOICES),
+}
+
+# Yes / no terms, posted as "yes" / "no" / "" so the three states stay distinct:
+# VAT applies, VAT does not apply, and the document did not say.
+_EDIT_BOOL_FIELDS = {
+    "commission_vat": "sale_process.otp.commission_vat",
+}
+
+# The human labels the toast uses when it names a value it would not accept.
+_FIELD_LABELS = {
+    "deposit_pct": "Deposit %",
+    "commission_pct": "Commission %",
+    "guarantee_days": "Guarantee (days)",
+    "confirmation_days": "Confirmation (days)",
+    "monthly_rates": "Monthly rates",
+    "monthly_levy": "Monthly levy",
 }
 # The three viewing states (fix list 4.6). Validated like the sale method so a
 # crafted POST cannot store an off-list value that then fails to round-trip.
@@ -1323,10 +1420,88 @@ def _ad_templates_list() -> list:
     return tpls if len(tpls) > 1 else []
 
 
+def _parse_number(raw: str, kind, low, high):
+    """Read a typed figure, or ``None`` when it is not one we will print.
+
+    Accepts what a person actually types into a money or percentage box: spaces
+    and thousands separators ("1 250", "1,250"), a leading R or a trailing %,
+    and a comma decimal ("7,5" - SA keyboards). Returns ``None`` for anything
+    unparseable or out of range, and the caller leaves that field untouched and
+    names it in the toast, because silently storing a misread figure is how a
+    wrong deposit reaches a buyer's information pack.
+    """
+    text = re.sub(r"[\s R%]", "", str(raw), flags=re.I)
+    # A comma is a decimal point here ("7,5") EXCEPT when it groups thousands
+    # ("1,250"), which is a comma followed by exactly three digits. Getting this
+    # backwards turns R1 250 of rates into R1.25, which is the kind of wrong that
+    # looks entirely plausible on the page.
+    if "." in text:
+        text = text.replace(",", "")           # the dot is the decimal point
+    elif re.fullmatch(r"-?\d{1,3}(,\d{3})+", text):
+        text = text.replace(",", "")           # pure thousands grouping
+    else:
+        text = text.replace(",", ".")
+    if not text:
+        return None
+    try:
+        value = float(text)
+    except ValueError:
+        return None
+    if value != value or value in (float("inf"), float("-inf")):  # NaN / inf
+        return None
+    if not (low <= value <= high):
+        return None
+    return int(round(value)) if kind is int else round(value, 2)
+
+
+def _collect_typed_fields(form, full: bool, rejected: list) -> dict:
+    """The typed sale-terms and running-cost fields (D80).
+
+    Kept apart from the text fields because each needs its own coercion: a
+    number has to be stored AS a number (the pack formats it with ``:g``), a
+    choice is validated against its allow-list, and a yes/no keeps three states
+    so "the document did not say" stays different from "no".
+    """
+    fields: dict = {}
+    for name, (path, kind, low, high) in _EDIT_NUMBER_FIELDS.items():
+        if name not in form:
+            continue
+        raw = str(form.get(name, "")).strip()
+        if not raw:
+            # Blank in a complete form is a deliberate clear; in a partial POST
+            # it keeps the safer rule that blank never wipes.
+            if full:
+                fields[path] = None
+            continue
+        value = _parse_number(raw, kind, low, high)
+        if value is None:
+            rejected.append(_FIELD_LABELS.get(name, name))
+            continue
+        fields[path] = value
+    for name, (path, choices) in _EDIT_CHOICE_FIELDS.items():
+        if name not in form:
+            continue
+        value = str(form.get(name, "")).strip().lower()
+        if value in choices:
+            fields[path] = value
+        elif full and not value:
+            fields[path] = None
+    for name, path in _EDIT_BOOL_FIELDS.items():
+        if name not in form:
+            continue
+        value = str(form.get(name, "")).strip().lower()
+        if value in ("yes", "no"):
+            fields[path] = value == "yes"
+        elif full and not value:
+            fields[path] = None
+    return fields
+
+
 def _collect_edit_fields(
     form,
     current_template_set: "str | None" = None,
     prefill: "Dict[str, str] | None" = None,
+    rejected: "list | None" = None,
 ) -> dict:
     """Build the public-view edit map from a submitted form (non-empty only).
 
@@ -1394,6 +1569,8 @@ def _collect_edit_fields(
         # Emptying the terms box clears the strip, same rule as the text fields.
         if lines or full:
             fields["sale_process.terms"] = lines or None
+    # The typed sale terms and running costs (D80), each coerced to its own type.
+    fields.update(_collect_typed_fields(form, full, rejected if rejected is not None else []))
     return fields
 
 
@@ -1437,8 +1614,15 @@ async def gate2_copy(dp: str, request: Request, user: dict = Depends(require_rol
     form = await request.form()
     record = _load(db_path, dp)
     current_pick = record.marketing.template_set if record.marketing else None
+    # Figures the parser would not accept (D80). Everything else still saves:
+    # refusing the whole form over one mistyped percentage would lose the
+    # marketer's other edits, so the bad value is named and left as it was.
+    rejected: List[str] = []
     fields = _collect_edit_fields(
-        form, current_template_set=current_pick, prefill=_gate2_prefill(record)
+        form,
+        current_template_set=current_pick,
+        prefill=_gate2_prefill(record),
+        rejected=rejected,
     )
     if fields:
         # Only a real edit reopens a live listing into the update cycle.
@@ -1460,6 +1644,18 @@ async def gate2_copy(dp: str, request: Request, user: dict = Depends(require_rol
             }
     else:
         toast = {"tone": "note", "title": "No changes", "text": "Nothing to save. A blank field keeps its current value."}
+    if rejected:
+        # Said plainly and last, so it is not buried under a green "Saved":
+        # a figure the marketer believes they entered is not on the record.
+        toast = {
+            "tone": "block",
+            "title": "Not saved: " + ", ".join(rejected),
+            "text": (
+                "That is not a figure we will print. Type a plain number "
+                "(20, 7.5, 1250) within a sensible range; the field is unchanged."
+                + (" Your other changes were saved." if fields else "")
+            ),
+        }
     return templates.TemplateResponse(
         request,
         "partials/_gate2_gallery.html",

@@ -192,6 +192,27 @@ def extract_terms(pdf_path: "str | Path") -> Dict[str, object]:
     return terms
 
 
+# The values that are a TERM. Everything else on an OtpTerms is provenance
+# (``clauses``, ``flags``, ``source_file``) or a qualifier on one of these.
+TERM_KEYS = ("deposit_pct", "commission_pct", "guarantee_days", "confirmation_days")
+
+
+def has_terms(terms: Optional[Dict[str, object]]) -> bool:
+    """Whether there is a term worth printing a terms box for.
+
+    ``terms_lines`` always appends the fixed occupation line, so an empty dict
+    still yields one line: without this check a property with no OTP at all
+    would print a lone "Occupation on date of registration" as though it were
+    the sale terms. Deliberately ANY of the four rather than the deposit alone -
+    the deposit is the usual first value, but a marketer typing the terms by
+    hand (D80) may know the commission and the confirmation period and not the
+    deposit, and their entry must not be silently dropped.
+    """
+    if not terms:
+        return False
+    return any(terms.get(key) is not None for key in TERM_KEYS)
+
+
 def terms_lines(terms: Dict[str, object]) -> List[str]:
     """The terms box, in the reference pack's wording, from extracted values.
 

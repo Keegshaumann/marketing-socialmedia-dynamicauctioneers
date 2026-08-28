@@ -189,6 +189,98 @@
               <div class="hint">Which Canva design the branded artifacts are built from. Save re-renders with the chosen design; "Follow the default" tracks the first configured set.</div>
             </div>
             {% endif %}
+            {# Sale terms and running costs (D80). Every figure here comes from a
+               document we may not have been given - the OTP for the terms, the
+               managing agent's statement for the levy - so each one is typeable.
+               A value read from a document prefills; the hint says which. #}
+            <div class="field">
+              <div class="label">Sale terms &amp; monthly costs <span class="hint hint--inline">printed on the information pack</span></div>
+              <div class="hint">
+                {% if terms_view.otp_source %}
+                  Read from {{ terms_view.otp_source }}. Correct anything that is wrong.
+                {% else %}
+                  No offer to purchase uploaded, so type the terms. Blank leaves the line off the pack rather than printing a default.
+                {% endif %}
+              </div>
+              {% for flag in terms_view.otp_flags %}
+              <div class="hint hint--warn">The document contradicts itself &mdash; {{ flag }}</div>
+              {% endfor %}
+              {# Paired two to a row: the grid is two columns, so an odd
+                 group leaves a hole beside it. Each pair also belongs together
+                 - the deposit and when it falls due, the two day counts, the
+                 commission and its VAT, who pays what, the two monthly costs. #}
+              <div class="field-grid">
+                <div>
+                  <label class="label label--sm" for="deposit_pct">Deposit %</label>
+                  <input class="input" id="deposit_pct" name="deposit_pct" inputmode="decimal"
+                         value="{{ terms_view.deposit_pct }}" placeholder="10">
+                </div>
+                <div>
+                  <label class="label label--sm" for="deposit_due">Deposit payable</label>
+                  <input class="input" id="deposit_due" name="deposit_due"
+                         value="{{ terms_view.deposit_due }}" placeholder="on the fall of the hammer">
+                </div>
+              </div>
+              <div class="field-grid">
+                <div>
+                  <label class="label label--sm" for="guarantee_days">Guarantee (days)</label>
+                  <input class="input" id="guarantee_days" name="guarantee_days" inputmode="numeric"
+                         value="{{ terms_view.guarantee_days }}" placeholder="45">
+                </div>
+                <div>
+                  <label class="label label--sm" for="confirmation_days">Confirmation (days)</label>
+                  <input class="input" id="confirmation_days" name="confirmation_days" inputmode="numeric"
+                         value="{{ terms_view.confirmation_days }}" placeholder="7">
+                </div>
+              </div>
+              <div class="field-grid">
+                <div>
+                  <label class="label label--sm" for="commission_pct">Commission %</label>
+                  <input class="input" id="commission_pct" name="commission_pct" inputmode="decimal"
+                         value="{{ terms_view.commission_pct }}" placeholder="6">
+                </div>
+                <div>
+                  <label class="label label--sm" for="commission_vat">VAT on commission</label>
+                  <select class="input" id="commission_vat" name="commission_vat">
+                    <option value=""{% if not terms_view.commission_vat %} selected{% endif %}>&mdash; not stated &mdash;</option>
+                    <option value="yes"{% if terms_view.commission_vat == 'yes' %} selected{% endif %}>Plus VAT</option>
+                    <option value="no"{% if terms_view.commission_vat == 'no' %} selected{% endif %}>No VAT</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field-grid">
+                <div>
+                  <label class="label label--sm" for="commission_payable_by">Commission paid by</label>
+                  <select class="input" id="commission_payable_by" name="commission_payable_by">
+                    <option value=""{% if not terms_view.commission_payable_by %} selected{% endif %}>&mdash; not stated &mdash;</option>
+                    <option value="seller"{% if terms_view.commission_payable_by == 'seller' %} selected{% endif %}>Seller</option>
+                    <option value="purchaser"{% if terms_view.commission_payable_by == 'purchaser' %} selected{% endif %}>Purchaser</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="label label--sm" for="outstanding_payable_by">Outstanding fees paid by</label>
+                  <select class="input" id="outstanding_payable_by" name="outstanding_payable_by">
+                    <option value=""{% if not terms_view.outstanding_payable_by %} selected{% endif %}>Seller (default wording)</option>
+                    <option value="seller"{% if terms_view.outstanding_payable_by == 'seller' %} selected{% endif %}>Seller</option>
+                    <option value="purchaser"{% if terms_view.outstanding_payable_by == 'purchaser' %} selected{% endif %}>Purchaser</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field-grid">
+                <div>
+                  <label class="label label--sm" for="monthly_rates">Monthly rates (R)</label>
+                  <input class="input" id="monthly_rates" name="monthly_rates" inputmode="decimal"
+                         value="{{ terms_view.monthly_rates }}" placeholder="1250">
+                </div>
+                <div>
+                  <label class="label label--sm" for="monthly_levy">Monthly levy (R)</label>
+                  <input class="input" id="monthly_levy" name="monthly_levy" inputmode="decimal"
+                         value="{{ terms_view.monthly_levy }}" placeholder="1480">
+                  {% if terms_view.levy_note %}<div class="hint">{{ terms_view.levy_note }}</div>{% endif %}
+                </div>
+              </div>
+              <div class="hint">Left blank, the pack prints "TBC" rather than a figure nobody checked.</div>
+            </div>
             <div class="field">
               <label class="label" for="terms">Terms (one per line)</label>
               <textarea class="textarea" id="terms" name="terms" rows="3">{{ terms }}</textarea>
