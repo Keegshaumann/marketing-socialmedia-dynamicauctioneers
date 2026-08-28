@@ -83,3 +83,37 @@ def test_svg_is_self_contained_and_inherits_its_ink():
     assert "http" not in markup                  # nothing fetched at render time
     # An unknown name still returns a drawing rather than an empty element.
     assert svg("no-such-glyph").count("<svg") == 1
+
+
+# --- a number is never broken in half (D82) -------------------------------
+
+def test_a_thousands_comma_is_not_a_place_to_break_a_line():
+    """Found on a LIVE client pack (DP2987, already client-approved).
+
+    The feature read "Boreholes: 14,000 L (drinking water), 40,000 L
+    (irrigation) and two 75,000 L". The splitter broke at the comma inside
+    14,000 and printed the headline "BOREHOLES: 14" - telling a buyer the farm
+    has fourteen boreholes, when the number is a water capacity. A wrong fact on
+    a buyer's information pack is a misrepresentation, not a formatting nit.
+    """
+    label, detail = split_label(
+        "Boreholes: 14,000 L (drinking water), 40,000 L (irrigation) and two 75,000 L"
+    )
+    assert label == "BOREHOLES: 14,000 L"
+    assert "14" != label.split(": ")[-1]
+    assert detail.startswith("DRINKING WATER")
+
+
+def test_a_decimal_comma_survives_too():
+    """SA keyboards write 1,8 m for 1.8 m; splitting there loses the number."""
+    label, detail = split_label("Security fencing, electrified, 1,8 m, 16 strands")
+    assert label == "SECURITY FENCING"
+    assert "1,8 M" in detail
+
+
+def test_a_list_comma_after_a_number_still_splits():
+    """The guard must protect thousands separators without refusing every comma
+    that happens to follow a digit."""
+    label, detail = split_label("Erf 1234, 1,250 m2 in extent")
+    assert label == "ERF 1234"
+    assert detail == "1,250 M2 IN EXTENT"

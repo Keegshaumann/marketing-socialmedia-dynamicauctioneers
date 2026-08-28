@@ -378,7 +378,20 @@ def svg(name: str, size: str = "9mm", extra_class: str = "") -> str:
 # comma, a bracket, a dash or the words "with"/"plus", so the split is on the
 # FIRST of those - and only when what follows is long enough to be worth a
 # second line.
-_SPLIT = re.compile(r"\s*(?:,|\(|\bwith\b|\bplus\b|\bincluding\b|\s-\s)\s*", re.I)
+# A comma BETWEEN DIGITS is a thousands separator, not a list separator, so it
+# is not a place to break a line (D82). Found on a live client pack: the feature
+# "Boreholes: 14,000 L (drinking water), 40,000 L (irrigation)..." split at the
+# comma inside 14,000 and printed the headline "BOREHOLES: 14" - telling a buyer
+# the farm has fourteen boreholes when the number is a water capacity. The
+# lookarounds also protect a decimal comma ("7,5"), which SA keyboards produce.
+#
+# "not between digits" needs both alternatives: ``(?<!\d),(?!\d)`` alone would
+# also refuse to split "Erf 1234, 1 250 m2", where the comma follows a number
+# but is a list separator. A comma is protected only when a digit sits on BOTH
+# sides of it.
+_SPLIT = re.compile(
+    r"\s*(?:(?<!\d),|,(?!\d)|\(|\bwith\b|\bplus\b|\bincluding\b|\s-\s)\s*", re.I
+)
 
 
 def split_label(text: str) -> Tuple[str, str]:
