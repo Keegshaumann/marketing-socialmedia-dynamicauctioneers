@@ -620,8 +620,13 @@ class HtmlBackend(RenderBackend):
             # same way as a photo so it embeds for print; None until they
             # add one, and the board then omits the block rather than
             # printing an empty white square.
+            # ``next(..., None)`` rather than ``[0]``: since D81 a reference
+            # whose file is missing is skipped, so this list can now come back
+            # empty and indexing it would crash the whole render. Coming back
+            # None is also the right answer - it is what makes the board omit
+            # the block instead of printing the empty square.
             "qr_src": (
-                self._photo_refs(request, {"hero_photo": marketing.get("qr_code")})[0]
+                next(iter(self._photo_refs(request, {"hero_photo": marketing.get("qr_code")})), None)
                 if marketing.get("qr_code") else None
             ),
             "hero_src": photos[0] if photos else None,
@@ -756,6 +761,14 @@ class HtmlBackend(RenderBackend):
             else:
                 # record paths are relative to the DP folder
                 candidate = Path(request.output_root) / f"DP{request.dp}" / raw
+            # A photograph the record lists but the disk does not have is SKIPPED,
+            # never referenced (D81). An <img> pointing at a missing file prints
+            # as an empty frame with its alt text showing, and the advert is a
+            # client-facing document: one fewer photograph is a smaller fault
+            # than a hole where a photograph should be. Found by driving the real
+            # app - the unit suite only ever renders photos that exist.
+            if not candidate.is_file():
+                continue
             rel = os.path.relpath(str(candidate), str(art_dir))
             refs.append(str(PurePosixPath(*Path(rel).parts)))
         return refs

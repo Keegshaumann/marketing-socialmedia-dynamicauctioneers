@@ -184,6 +184,13 @@ def _resolve_photos(record: PropertyRecord, output_root: str) -> List[str]:
         candidate = Path(raw)
         if not candidate.is_absolute():
             candidate = base / raw
+        # Only photographs that are actually on disk (D81). A pick whose file is
+        # gone - the output root was repointed, a record was restored, a file was
+        # pruned - would be uploaded as a missing path by the Canva backend and
+        # printed as an empty frame by the html one. Missing is skipped, so an
+        # artifact carries fewer photographs rather than holes.
+        if not candidate.is_file():
+            continue
         resolved.append(str(candidate))
     return resolved
 

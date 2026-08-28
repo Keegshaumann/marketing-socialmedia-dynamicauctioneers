@@ -964,6 +964,12 @@ def _photo_view(db_path: str, dp: str, record: PropertyRecord) -> List[Dict[str,
                 "dims": f"{dims[0]}x{dims[1]}" if dims else None,
                 "low_res": low_res,
                 "group": _group_of(record, name),
+                # The record lists it, the disk does not have it (D81). The
+                # renderer skips these, so without saying so the panel shows a
+                # blank tile - and if it is the lead, a blank tile wearing the
+                # LEAD badge - while the advert quietly renders with fewer
+                # photographs than the marketer believes they chose.
+                "missing": not (photos_dir / name).is_file(),
             }
         )
     return tiles

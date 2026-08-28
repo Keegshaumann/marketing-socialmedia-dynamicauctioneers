@@ -44,3 +44,4 @@ def test_rank_photos_picks_a_hero(property_report_3060, tmp_path):
     assert ranked["hero"] in ranked["gallery"]
     # The hero is the largest-area non-banner image, so it heads the gallery.
     assert ranked["gallery"][0] == ranked["hero"]
+

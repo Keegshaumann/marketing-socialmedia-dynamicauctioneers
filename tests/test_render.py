@@ -333,7 +333,60 @@ _LEGAL_DISCLAIMER = (
 )
 
 
+def _stage_photos(record, tmp_path) -> None:
+    """Put every photograph the record references onto disk under ``tmp_path``.
+
+    Since D81 the renderer skips a pick whose file is not there, which is the
+    point of that change - so a test that sets photo paths has to write the
+    files too, exactly as an upload would. Real DP3060 photographs are copied
+    where the name matches one; anything else gets a valid 1x1 PNG.
+    """
+    import shutil
+    from tests.conftest import REPO_ROOT
+
+    marketing = record.marketing
+    if marketing is None:
+        return
+    names = list(marketing.gallery or [])
+    for extra in (marketing.hero_photo, getattr(marketing, "qr_code", None)):
+        if extra:
+            names.append(extra)
+    for group in (getattr(marketing, "photo_groups", None) or {}).values():
+        names.extend(group or [])
+
+    dest_dir = Path(tmp_path) / f"DP{record.dp}" / "photos"
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    source_dir = REPO_ROOT / "DP3060" / "photos"
+    for raw in names:
+        name = Path(raw).name
+        dest = dest_dir / name
+        if dest.exists():
+            continue
+        source = source_dir / name
+        if source.exists():
+            shutil.copy(source, dest)
+        else:
+            dest.write_bytes(_PNG_1x1)
+
+
+# A valid 1x1 PNG, for a referenced photograph with no real counterpart.
+_PNG_1x1 = bytes.fromhex(
+    "89504e470d0a1a0a0000000d4948445200000001000000010806000000"
+    "1f15c4890000000a49444154789c6360000002000100ffff0300000600"
+    "05fefe8b990000000049454e44ae426082"
+)
+
+
+def _write_photos(tmp_path, dp: str, *names: str) -> None:
+    """Write valid 1x1 PNGs at ``tmp_path/DP<dp>/photos/<name>``, as an upload would."""
+    photos = Path(tmp_path) / f"DP{dp}" / "photos"
+    photos.mkdir(parents=True, exist_ok=True)
+    for name in names:
+        (photos / name).write_bytes(_PNG_1x1)
+
+
 def _info_pack_html(record, tmp_path):
+    _stage_photos(record, tmp_path)
     store = _store_with(record)
     try:
         art = render_one(record.dp, store, "info_pack", backend="html", output_root=str(tmp_path))
@@ -482,6 +535,39 @@ def test_info_pack_prints_no_terms_box_when_nothing_is_known(golden_record, tmp_
     html = _info_pack_html(golden_record, tmp_path)
 
     assert "Occupation on date of registration" not in html
+
+
+def test_a_photo_the_disk_does_not_have_never_reaches_an_artifact(golden_record, tmp_path):
+    """A pick whose file is gone is SKIPPED, not printed as an empty frame (D81).
+
+    Found by driving the real app end to end, not by this suite: every unit
+    render here uses photos that exist, so nothing had ever asked what happens
+    when one does not. The advert rendered with four empty frames showing their
+    alt text, printed to PDF, and passed gate 2 without a warning - and six real
+    uploaded photographs were skipped in favour of the dead picks, because the
+    missing ones sort first in the gallery.
+    """
+    import shutil
+    from engine.store import RecordStore
+
+    photos = tmp_path / "DP3060" / "photos"
+    photos.mkdir(parents=True)
+    from tests.conftest import REPO_ROOT
+    shutil.copy(REPO_ROOT / "DP3060" / "photos" / "p1_img01_1241x303.png", photos / "real.png")
+
+    golden_record.marketing.hero_photo = "photos/gone.png"        # never written
+    golden_record.marketing.gallery = ["photos/also-gone.png", "photos/real.png"]
+
+    store = RecordStore(str(tmp_path / "t.db"))
+    try:
+        store.upsert(golden_record, state="approved")
+        art = render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path))
+    finally:
+        store.close()
+
+    html = Path(art.path).read_text(encoding="utf-8")
+    assert "gone.png" not in html          # neither missing pick is referenced
+    assert "real.png" in html              # the one that exists still is
 
 
 def _with_portions(record, n: int):
@@ -1322,6 +1408,7 @@ def test_the_ads_auction_line_does_not_carry_the_weekday(golden_record, tmp_path
 # --- the on-site auction board, rebuilt to DP2817.3 (D74) -----------------
 
 def _board_html(record, tmp_path) -> str:
+    _stage_photos(record, tmp_path)
     store = _store_with(record)
     try:
         art = render_one(record.dp, store, "auction_board", backend="html",
@@ -1507,18 +1594,19 @@ def test_a_property_with_no_groups_renders_exactly_as_before(golden_record, tmp_
     assert "Gallery" in html
 
 
-def test_an_ungrouped_photograph_is_never_dropped():
+def test_an_ungrouped_photograph_is_never_dropped(tmp_path):
     """A photo left out of every group must still reach the pack."""
     from engine.render.base import RenderRequest
     from engine.render.html_backend import HtmlBackend
 
+    _write_photos(tmp_path, "1", "h.png", "a.png", "b.png", "c.png")
     pub = {"marketing": {
         "hero_photo": "photos/h.png",
         "gallery": ["photos/a.png", "photos/b.png", "photos/c.png"],
         "photo_groups": {"Main House": ["photos/a.png"]},
     }}
     vm = HtmlBackend()._view_model(
-        RenderRequest(dp="1", fmt="info_pack", public_record=pub, output_root="/tmp"))
+        RenderRequest(dp="1", fmt="info_pack", public_record=pub, output_root=str(tmp_path)))
 
     names = [n for _, urls in vm["photo_groups"] for n in urls]
     assert len(names) == 3, "a photograph was lost between the groups"
@@ -1526,17 +1614,19 @@ def test_an_ungrouped_photograph_is_never_dropped():
     assert vm["photo_groups"][-1][0] == "", "the leftovers need an untitled group"
 
 
-def test_a_group_naming_a_photo_the_record_lost_is_ignored():
+def test_a_group_naming_a_photo_the_record_lost_is_ignored(tmp_path):
     """Groups reference names; a removed photo must not leave a phantom entry."""
     from engine.render.base import RenderRequest
     from engine.render.html_backend import HtmlBackend
 
+    # deleted.png is deliberately NOT written: it is the photo the record lost.
+    _write_photos(tmp_path, "1", "h.png", "a.png")
     pub = {"marketing": {
         "hero_photo": "photos/h.png",
         "gallery": ["photos/a.png"],
         "photo_groups": {"Main House": ["photos/a.png", "photos/deleted.png"]},
     }}
     vm = HtmlBackend()._view_model(
-        RenderRequest(dp="1", fmt="info_pack", public_record=pub, output_root="/tmp"))
+        RenderRequest(dp="1", fmt="info_pack", public_record=pub, output_root=str(tmp_path)))
 
     assert [n.split("/")[-1] for _, urls in vm["photo_groups"] for n in urls] == ["a.png"]
