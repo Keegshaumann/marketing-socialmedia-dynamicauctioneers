@@ -1,7 +1,7 @@
 {# name: Collage #}
 {# Dynamic Auctioneers / Real Estate flagship social ad (D41), rebuilt from the
    real "AD 1" design: 1080x1350 dark canvas, gold chrome, stacked gold-accent
-   headline, 1-big-plus-4 photo collage, price/auction bar, gold stat pill.
+   headline, 1-big-plus-3 photo collage, price/auction bar, gold stat pill.
    Method-aware: For Sale vs Auction swaps the badge, brand and price block.
    Every value fills from the view model; the DP shows as PROPERTY REF (D42). #}
 {% import "_brand.html.j2" as brand %}
@@ -12,7 +12,8 @@
 {# Brand by sale method: Auction -> Dynamic Auctioneers, everything else ->
    Dynamic Real Estate (the estate-agency department). Dark-bg (white) logo,
    since the header sits on the dark canvas. #}
-{% set logo = asset_uri('ads/_assets/logo-' ~ ('auctioneers' if is_auction else 'realestate') ~ '-on-dark.png') %}
+{# The shield is white, so the logo on it is the ON-LIGHT artwork. #}
+{% set logo = asset_uri('ads/_assets/logo-' ~ ('auctioneers' if is_auction else 'realestate') ~ '-on-light.png') %}
 <title>{{ vm.headline }} | {{ vm.brand_name }}</title>
 <style>
   {{ brand.tokens_css() }}
@@ -33,8 +34,14 @@
   h1 .em { color:var(--g2); }
   .ig-badge { display:inline-block; margin-top:16px; padding:10px 22px; font-size:22px; font-weight:800;
               letter-spacing:.04em; text-transform:uppercase; color:#191613; }
-  .ig-logo { width:210px; flex:none; }
-  .ig-logo img { width:100%; display:block; }
+  /* The white shield lockup, as every reference ad carries it (not a bare
+     logo on the dark ground). drop-shadow rather than box-shadow: clip-path
+     discards a box-shadow, which is drawn outside the clip (D78). */
+  .ig-logo { flex:none; width:200px; height:225px; background:#fff; display:flex; align-items:center;
+             justify-content:center; padding:18px 22px 54px;
+             filter:drop-shadow(0 10px 18px rgba(0,0,0,.42));
+             clip-path:path('M8,0 H192 Q200,0 200,8 V143 Q200,187 100,225 Q0,187 0,143 V8 Q0,0 8,0 Z'); }
+  .ig-logo img { width:100%; height:auto; display:block; }
 
   /* 560px is the PREFERRED height, not a fixed one. ``min-height:0`` is what
      lets it give way: a flex item defaults to ``min-height:auto``, which for a
@@ -43,18 +50,26 @@
      canvas that is ``overflow:hidden`` - measured at 1379px on a 1350px canvas,
      which sliced the phone number and email in half (D83). Losing a few pixels
      of photograph is nothing; losing the number a buyer rings is the ad. */
+  /* `flex:1 1 auto` in BOTH directions: it grows into whatever the rest of the
+     column leaves over, so the ad fills its canvas the way the reference ads do
+     rather than ending in a band of dead space above the footer, and it still
+     gives way when the content is long (D83/D84). */
   .ig-collage { display:grid; grid-template-columns:1.55fr 1fr; gap:12px; padding:16px 40px;
-                height:560px; min-height:0; flex-shrink:1; }
+                height:560px; min-height:0; flex:1 1 auto; }
   .ig-collage .hero { width:100%; height:100%; object-fit:cover; display:block; border:3px solid var(--gline); border-radius:10px; }
-  .ig-collage .col { display:grid; grid-template-rows:repeat(4,1fr); gap:12px; min-height:0; }
+  .ig-collage .col { display:grid; grid-template-rows:repeat(3,1fr); gap:12px; min-height:0; }
   .ig-collage .col img { width:100%; height:100%; object-fit:cover; display:block; border:3px solid var(--gline); border-radius:10px; min-height:0; }
 
   .ig-price { margin:14px 40px 0; border:2px solid var(--g3); border-radius:10px; padding:16px;
-              text-align:center; font-size:42px; font-weight:800; color:#fff; letter-spacing:.01em; }
+              text-align:center; font-size:52px; font-weight:900; color:#fff; letter-spacing:.01em;
+              text-transform:uppercase; }
   .ig-price small { display:block; font-size:20px; font-weight:800; letter-spacing:.14em; color:var(--g2); }
   .ig-auction { margin:14px 40px 0; border:2px solid var(--g3); border-radius:10px; padding:16px 14px;
                 text-align:center; font-size:34px; font-weight:800; color:#fff; letter-spacing:.01em; text-transform:uppercase; }
-  .ig-terms { margin:12px 40px 0; border:1.5px solid var(--g3); border-radius:999px; padding:12px 20px;
+  /* A bottom margin so the strip breathes above the gold footer instead of
+     sitting on it. Free: the collage grows to fill whatever is left over, so
+     this costs photo height, not overflow. */
+  .ig-terms { margin:12px 40px 16px; border:1.5px solid var(--g3); border-radius:999px; padding:12px 20px;
               text-align:center; font-size:17px; font-weight:800; letter-spacing:.04em; color:#e9dcc0; text-transform:uppercase;
               overflow-wrap:anywhere; }
   .ig-tag { padding:18px 40px 6px; text-align:center; font-size:23px; font-weight:800; letter-spacing:.02em;
@@ -92,7 +107,7 @@
   <div class="ig-collage">
     <img class="hero" src="{{ photos[0] }}" alt="{{ vm.headline }}"/>
     <div class="col">
-      {% for src in photos[1:5] %}<img src="{{ src }}" alt="Property photo"/>{% endfor %}
+      {% for src in photos[1:4] %}<img src="{{ src }}" alt="Property photo"/>{% endfor %}
     </div>
   </div>
   {% endif %}
@@ -103,8 +118,9 @@
   <div class="ig-price">{{ vm.price_display or 'Offers invited' }}</div>
   {% endif %}
 
-  {% if vm.features_main or vm.features_complex %}
-  <div class="ig-tag">{{ ((vm.features_main or []) + (vm.features_complex or []))[:3] | join('  |  ') }}</div>
+  {# The reference ads' short strip: three punchy phrases, not three sentences. #}
+  {% if vm.tagline %}
+  <div class="ig-tag">{{ vm.tagline | join('  |  ') }}</div>
   {% endif %}
 
   <div class="ig-stats">

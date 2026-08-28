@@ -287,6 +287,27 @@ _TERM_STATES_A_FIGURE = re.compile(
 )
 
 
+def _tagline(features: List[str], limit: int = 3) -> List[str]:
+    """The short pipe-separated strip the reference ads carry (D84).
+
+    Their taglines are three punchy phrases - "FAMILY RETREAT | ENTERTAINER'S
+    PATIO | POOL & GARDEN" - while a record's features are full sentences
+    ("3 bedrooms, main with en-suite (bath, toilet, basin)"). Taking the first
+    three verbatim filled the strip with one long clause and wrapped it over two
+    lines, which is not what the strip is.
+
+    So: prefer the SHORT features, in the record's own order, and only fall back
+    to longer ones when a property has nothing short to say. Nothing is invented
+    or shortened - a phrase is either printed as written or not chosen.
+    """
+    clean = [f.strip().rstrip(".") for f in (features or []) if f and f.strip()]
+    short = [f for f in clean if len(f) <= 30]
+    picked = short[:limit]
+    if len(picked) < limit:
+        picked += [f for f in clean if f not in picked][: limit - len(picked)]
+    return picked[:limit]
+
+
 def _reconciled_terms(sale: dict) -> List[str]:
     """The terms strip, with the OTP owning every figure it states (D83).
 
@@ -636,6 +657,12 @@ class HtmlBackend(RenderBackend):
                 garages=_fmt_num(physical.get("garages")),
             ),
             "features_complex": list(physical.get("features_complex") or []),
+            # The short strip the reference ads carry, not the first three
+            # feature sentences (D84).
+            "tagline": _tagline(
+                list(physical.get("features_main") or [])
+                + list(physical.get("features_complex") or [])
+            ),
             # The OTP is the contract, so where it states a figure it OWNS that
             # figure on every surface (D83). Without this the same property told
             # a buyer two different deposits at the same moment: the pack read

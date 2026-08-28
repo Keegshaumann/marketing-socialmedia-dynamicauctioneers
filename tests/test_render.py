@@ -222,9 +222,10 @@ def test_collage_is_method_aware(golden_record, tmp_path):
     # brand + "On Auction" badge. Same record, only the method differs (D41).
     from engine.render.html_backend import _asset_data_uri
 
-    # Collage is on the dark canvas, so it uses the on-dark (gold-only) logo.
-    auct_logo = _asset_data_uri("ads/_assets/logo-auctioneers-on-dark.png")
-    re_logo = _asset_data_uri("ads/_assets/logo-realestate-on-dark.png")
+    # Collage carries the white shield lockup, like every reference ad (D84), so
+    # its logo is the ON-LIGHT artwork: the gold-only mark would vanish on white.
+    auct_logo = _asset_data_uri("ads/_assets/logo-auctioneers-on-light.png")
+    re_logo = _asset_data_uri("ads/_assets/logo-realestate-on-light.png")
     assert auct_logo and re_logo and auct_logo != re_logo  # the two brands differ
 
     for method, badge, want, other in [
@@ -260,7 +261,7 @@ def test_logo_matches_its_background_in_every_design(golden_record, tmp_path):
 
     # design -> the surface colour its logo sits on
     surface = {
-        "collage": "dark",        # the dark canvas, logo direct on it
+        "collage": "light",       # white shield, as the reference ads have (D84)
         "feature_list": "light",  # logo sits in a white shield
         "stats_first": "light",   # logo sits in a white shield
         "hero_overlay": "light",  # logo sits in a white shield
