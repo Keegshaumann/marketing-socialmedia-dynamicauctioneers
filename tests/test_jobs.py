@@ -237,3 +237,67 @@ def test_identical_documents_reuse_the_cached_extraction(tmp_path, monkeypatch):
     evm.write_bytes(b"%PDF-a-different-property")
     run("3072")
     assert len(calls) == 2
+
+
+# --- a valuation satisfies the inspection half (D88) -----------------------
+
+def test_a_lightstone_plus_a_valuation_is_enough_to_extract(tmp_path, monkeypatch):
+    """Reported from production: intake job 18 (DP 2677) was SKIPPED after a
+    Lightstone EVM and a professional valuer's report were uploaded, because the
+    gate demanded a Property Report specifically.
+
+    D35 ranks a valuation ABOVE a property report for physical facts, so that
+    combination is a BETTER pair than the one the gate insisted on.
+    """
+    from webapp import jobs
+
+    seen = {}
+
+    def _fake_extract(*a, **kw):
+        seen.update(kw)
+        raise RuntimeError("stop after the gate")
+
+    monkeypatch.setattr("engine.extract.extract_record", _fake_extract, raising=False)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key-not-used")
+
+    # Reaching the stub at all proves the gate let it through; the stub raises
+    # so no real extraction is attempted.
+    try:
+        state, detail = jobs._handle_extract(
+            str(tmp_path / "t.db"),
+            {"dp": "2677", "payload": {
+                "dp": "2677",
+                "lightstones": [str(tmp_path / "ls.pdf")],
+                "property_reports": [],
+                "valuations": [str(tmp_path / "val.pdf")],
+                "output_root": str(tmp_path),
+            }},
+        )
+        assert "incomplete sources" not in (state or ""), detail
+    except RuntimeError as exc:
+        assert "stop after the gate" in str(exc)
+
+    # And the valuation reached extraction as the valuer's source.
+    assert seen, "extraction was never called: the gate still refuses the pair"
+    assert "val.pdf" in str(seen.get("valuation_pdf"))
+
+
+def test_the_skip_message_says_what_is_missing(tmp_path, monkeypatch):
+    """The old message read "no source pair on the job payload" under a heading
+    that said "Pair received" - it contradicted itself and named neither the
+    document that was missing nor what to do about it."""
+    from webapp import jobs
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key-not-used")
+    state, detail = jobs._handle_extract(
+        str(tmp_path / "t.db"),
+        {"dp": "2677", "payload": {
+            "dp": "2677", "lightstones": [], "property_reports": [],
+            "valuations": [str(tmp_path / "val.pdf")],
+            "output_root": str(tmp_path),
+        }},
+    )
+    assert "incomplete sources" in state
+    assert "Lightstone EVM" in detail          # names what is missing
+    assert "valuation" in detail               # names what did arrive
+    assert "uploads folder" in detail          # says what to do next

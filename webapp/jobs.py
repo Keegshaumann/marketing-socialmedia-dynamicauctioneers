@@ -146,10 +146,24 @@ def _handle_extract(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, s
     lightstones = _paths("lightstones", "lightstone")
     reports = _paths("property_reports", "property_report")
     valuations = _paths("valuations", "valuation")  # optional 3rd source (D35)
-    if not (dp and lightstones and reports):
+    # A VALUATION SATISFIES THE INSPECTION HALF (D88). The rule used to demand a
+    # Property Report specifically, so a Lightstone plus a professional valuer's
+    # report - which D35 ranks ABOVE a property report for physical facts - was
+    # refused as "no source pair". Lightstone stays mandatory: it owns the deeds,
+    # the legal description and the market data, and nothing else carries them.
+    inspection = reports or valuations
+    if not (dp and lightstones and inspection):
+        have = [n for n, c in (("Lightstone EVM", len(lightstones)),
+                               ("Property Report", len(reports)),
+                               ("valuation", len(valuations))) if c]
+        missing = "a Lightstone EVM" if not lightstones else (
+            "a Property Report or a valuer's report")
         return (
             "skipped: incomplete sources",
-            "no source pair on the job payload; nothing to extract.",
+            f"Nothing to extract: this intake needs {missing}. "
+            + (f"Received: {', '.join(have)}." if have else "No documents were classified.")
+            + " The files are saved in the property's uploads folder, so adding "
+              "the missing document and running the intake again picks them up.",
         )
 
     from engine.extract import extract_record, prompt_version

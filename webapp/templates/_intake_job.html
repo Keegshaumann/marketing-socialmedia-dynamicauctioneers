@@ -28,7 +28,7 @@
         {{ ui.icon('check' if tone == 'ok' else ('block' if tone == 'error' else 'note')) }}
         <div class="banner__body">
           <div class="banner__title">
-            {% if tone == 'ok' %}Record extracted{% elif tone == 'error' %}Job failed{% else %}Pair received{% endif %}
+            {% if tone == 'ok' %}Record extracted{% elif tone == 'error' %}Job failed{% else %}Documents received, not extracted{% endif %}
           </div>
           <div>{{ job.detail or 'No further detail.' }}</div>
         </div>
