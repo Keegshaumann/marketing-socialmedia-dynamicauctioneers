@@ -708,6 +708,11 @@ class HtmlBackend(RenderBackend):
                 next(iter(self._photo_refs(request, {"hero_photo": marketing.get("qr_code")})), None)
                 if marketing.get("qr_code") else None
             ),
+            # The advert's own photographs (D90): the marketer's pick when she
+            # has made one, otherwise the lead plus the next three, which is
+            # what the ads took before. Deliberately NOT `photos`, which the
+            # information pack uses - the pack shows everything.
+            "ad_photos": self._ad_photo_refs(request, marketing, photos),
             "hero_src": photos[0] if photos else None,
             "stack_photos": photos[1:3],
             "gallery_photos": photos[3:7],
@@ -818,6 +823,23 @@ class HtmlBackend(RenderBackend):
             return f"{beds} Bedroom {dwelling}"
         label = HtmlBackend._title_type_label(identity.get("title_type"))
         return label or "Property"
+
+    @staticmethod
+    def _ad_photo_refs(request: "RenderRequest", marketing: dict, photos: List[str]) -> List[str]:
+        """The photographs the ADVERTS use, in the marketer's chosen order (D90).
+
+        ``marketing.ad_photos`` names them; anything it names that is not on the
+        record (renamed, removed) is skipped, and an empty or absent pick falls
+        back to ``photos`` - the lead plus the gallery, which is what the adverts
+        used before. The names are matched against the already-resolved refs, so
+        a missing FILE is still excluded by ``_photo_refs`` (D81).
+        """
+        picked = [PurePosixPath(str(n)).name for n in (marketing.get("ad_photos") or [])]
+        if not picked:
+            return list(photos)
+        by_name = {PurePosixPath(url).name: url for url in photos}
+        chosen = [by_name[n] for n in picked if n in by_name]
+        return chosen or list(photos)
 
     @staticmethod
     def _photo_refs(request: RenderRequest, marketing: dict) -> List[str]:

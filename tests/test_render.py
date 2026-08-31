@@ -643,6 +643,55 @@ def test_terms_are_untouched_when_there_is_no_otp(golden_record, tmp_path):
     assert any("20% deposit" in line for line in out)
 
 
+def test_the_marketer_picks_which_photos_go_on_the_advert(golden_record, tmp_path):
+    """With 28 photos on a record, the advert took the first four in gallery
+    order, so getting the fourth-best photo onto it meant dragging it to the
+    front - which reorders the information pack's gallery as a side effect
+    (D90). The pick is its own list.
+    """
+    from engine.store import RecordStore
+
+    names = [f"photos/p{i}.png" for i in range(1, 9)]
+    golden_record.marketing.hero_photo = names[0]
+    golden_record.marketing.gallery = names[1:]
+    _stage_photos(golden_record, tmp_path)
+
+    # Pick three from the BACK of the gallery, in a deliberate order.
+    golden_record.marketing.ad_photos = ["p7.png", "p2.png", "p8.png"]
+
+    store = RecordStore(db_path=":memory:")
+    try:
+        store.upsert(golden_record, state="approved")
+        arts = {a.fmt: a for a in render_all("3060", store, backend="html",
+                                             output_root=str(tmp_path))}
+    finally:
+        store.close()
+
+    ad = Path(arts["demo_ad"].path).read_text(encoding="utf-8")
+    assert "p7.png" in ad and "p2.png" in ad and "p8.png" in ad
+    # and the ones NOT picked stay off it
+    for absent in ("p3.png", "p4.png", "p5.png", "p6.png"):
+        assert absent not in ad, f"{absent} reached the advert without being picked"
+
+    # The information pack still shows everything: the pick is advert-only.
+    pack = Path(arts["info_pack"].path).read_text(encoding="utf-8")
+    for name in ("p3.png", "p4.png", "p5.png"):
+        assert name in pack, f"{name} vanished from the pack"
+
+
+def test_an_unpicked_property_renders_exactly_as_before(golden_record, tmp_path):
+    """No record needs migrating: an absent pick keeps the old behaviour."""
+    from engine.render.html_backend import HtmlBackend
+
+    photos = ["../photos/a.png", "../photos/b.png", "../photos/c.png"]
+    assert HtmlBackend._ad_photo_refs(None, {}, photos) == photos
+    assert HtmlBackend._ad_photo_refs(None, {"ad_photos": []}, photos) == photos
+    # A pick naming a photo the record no longer has falls back rather than
+    # rendering an advert with no photographs at all.
+    assert HtmlBackend._ad_photo_refs(None, {"ad_photos": ["gone.png"]}, photos) == photos
+    assert HtmlBackend._ad_photo_refs(None, {"ad_photos": ["c.png"]}, photos) == ["../photos/c.png"]
+
+
 def _with_portions(record, n: int):
     """Give a record ``n`` land portions (the multi-portion intake case)."""
     from engine.schema import Portion

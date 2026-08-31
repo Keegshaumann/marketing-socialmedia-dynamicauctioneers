@@ -364,6 +364,13 @@ class Marketing(_Base):
     channel_routing: Optional[ChannelRouting] = None
     hero_photo: Optional[str] = None
     gallery: Optional[List[str]] = None
+    # Which photographs the ADVERTS use, in order (D90). An advert shows the
+    # lead plus three; the information pack shows everything. With 28 photos on
+    # a record, "the first four in gallery order" meant dragging a photo to the
+    # front to get it onto the ad, which reorders the pack's gallery as a side
+    # effect. None = unset = the old behaviour (lead + the next three), so no
+    # record needs migrating and a property nobody curates still renders.
+    ad_photos: Optional[List[str]] = None
     # The named design/template set the render backends use (the marketing
     # team's pick on gate 2, D33). None = the default (first-configured) set.
     template_set: Optional[str] = None

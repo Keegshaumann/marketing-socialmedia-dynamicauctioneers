@@ -8,7 +8,9 @@
 {% import "_brand.html.j2" as brand %}
 {% import "_adparts.html.j2" as parts %}
 {% set is_auction = (vm.method == 'auction') %}
-{% set photos = ([vm.hero_src] if vm.hero_src else []) + (vm.stack_photos or []) + (vm.gallery_photos or []) %}
+{# The marketer's pick for the adverts when she has made one (D90),
+   otherwise the lead plus the gallery, exactly as before. #}
+{% set photos = vm.ad_photos or (([vm.hero_src] if vm.hero_src else []) + (vm.stack_photos or []) + (vm.gallery_photos or [])) %}
 {# Stat-free features: the grid above already prints beds, baths and garages. #}
 {% set feats = vm.features_ad or ((vm.features_main or []) + (vm.features_complex or [])) %}
 <title>{{ vm.place_line or vm.suburb }} | {{ vm.brand_name }}</title>

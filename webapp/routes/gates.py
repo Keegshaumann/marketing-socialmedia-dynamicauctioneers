@@ -951,6 +951,7 @@ def _photo_view(db_path: str, dp: str, record: PropertyRecord) -> List[Dict[str,
     Dimensions that cannot be read leave ``low_res`` False (no false alarm).
     """
     photos_dir = _photos_dir(db_path, dp)
+    ad_pick = [Path(n).name for n in ((record.marketing.ad_photos if record.marketing else None) or [])]
     tiles: List[Dict[str, Any]] = []
     for i, path in enumerate(_photo_list(record)):
         name = Path(path).name
@@ -970,6 +971,10 @@ def _photo_view(db_path: str, dp: str, record: PropertyRecord) -> List[Dict[str,
                 # LEAD badge - while the advert quietly renders with fewer
                 # photographs than the marketer believes they chose.
                 "missing": not (photos_dir / name).is_file(),
+                # Which advert slot this photograph holds, 1-based (D90); None
+                # when it is not picked. Shown on the tile so the marketer can
+                # see the advert's four at a glance among twenty-eight.
+                "ad_slot": (ad_pick.index(name) + 1) if name in ad_pick else None,
             }
         )
     return tiles
@@ -1148,6 +1153,65 @@ async def gate2_photo_hero(dp: str, request: Request, user: dict = Depends(requi
     else:
         toast = {"tone": "note", "title": "No change",
                  "text": "That photo is already the lead, or was not found."}
+    return _photo_result(request, db_path, dp, toast)
+
+
+# An advert shows four photographs. More than that is not a bigger advert, it is
+# a smaller one per picture, so the pick is capped where the designs stop.
+_MAX_AD_PHOTOS = 4
+
+
+@router.post("/{dp}/ads/photos/onad", response_class=HTMLResponse)
+async def gate2_photo_on_ad(dp: str, request: Request,
+                            user: dict = Depends(require_role("approver", "marketing"))):
+    """Toggle whether a photograph appears on the ADVERTS (D90).
+
+    Before this the adverts took the lead plus the next three in gallery order,
+    so choosing the fourth-best photo of 28 meant dragging it to the front - and
+    that reorders the information pack's gallery as a side effect. The pick is
+    its own list: the pack still shows every photograph, in its own order.
+
+    An empty pick clears back to the default, so a marketer can always get back
+    to "just use the first few" by unticking everything.
+    """
+    db_path = _db(request)
+    form = await request.form()
+    name = Path(str(form.get("name", ""))).name
+    record = _load(db_path, dp)
+    known = {Path(p).name for p in _photo_list(record)}
+    if name not in known:
+        return _photo_result(request, db_path, dp, {
+            "tone": "note", "title": "No change",
+            "text": "That photograph is not on this property."})
+
+    current = [Path(n).name for n in ((record.marketing.ad_photos if record.marketing else None) or [])]
+    if name in current:
+        chosen = [n for n in current if n != name]
+        toast = {"tone": "ok", "title": "Removed from the advert",
+                 "text": f"{len(chosen) or 'No'} photo(s) picked. Press Regenerate to rebuild."}
+    else:
+        if len(current) >= _MAX_AD_PHOTOS:
+            return _photo_result(request, db_path, dp, {
+                "tone": "note", "title": f"That is {_MAX_AD_PHOTOS} already",
+                "text": f"An advert shows {_MAX_AD_PHOTOS} photographs. Remove one first."})
+        chosen = current + [name]
+        toast = {"tone": "ok", "title": "Added to the advert",
+                 "text": f"{len(chosen)} of {_MAX_AD_PHOTOS} picked. Press Regenerate to rebuild."}
+
+    store = _store(db_path)
+    try:
+        rec = store.get(dp)
+        if rec.marketing is None:
+            from engine.schema import Marketing
+            rec.marketing = Marketing()
+        rec.marketing.ad_photos = chosen or None
+        store.upsert(rec, state=store.get_state(dp))
+        store.record_signoff(dp, gate="edit", user=user["email"],
+                             note=f"advert photos: {', '.join(chosen) if chosen else '(default)'}")
+    finally:
+        store.close()
+    _reopen_if_live(db_path, dp, user["email"])
+    _mark_stale(db_path, dp, "ad photos")
     return _photo_result(request, db_path, dp, toast)
 
 

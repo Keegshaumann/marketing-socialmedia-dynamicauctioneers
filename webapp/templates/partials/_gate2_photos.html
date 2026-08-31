@@ -111,6 +111,12 @@
              title="Click to enlarge"
              style="width:100%;height:120px;object-fit:cover;display:block;background:#f2efe9;cursor:zoom-in">
         {% endif %}
+        {# Which of the advert's four this photograph is (D90). #}
+        {% if p.ad_slot %}
+        <span class="badge badge--ok" style="position:absolute;top:6px;right:6px"
+              title="This photograph is number {{ p.ad_slot }} on the adverts.">
+          {{ ui.icon('check', 'icon--sm') }}<span>Ad {{ p.ad_slot }}</span></span>
+        {% endif %}
         {# A pick the record lists but the disk does not have (D81). Said on the
            tile, because the alternative is a blank square - and if it is the
            lead, a blank square wearing the LEAD badge - while the adverts
@@ -133,6 +139,13 @@
                   hx-vals='{{ {"name": p.name} | tojson }}' hx-target="#photos" hx-swap="outerHTML">
             {{ ui.icon('check', 'icon--sm') }}<span>Lead</span><span class="spinner" aria-hidden="true"></span></button>
         {% endif %}
+        {# Put this photograph on the adverts (D90). Separate from the gallery
+           order, so choosing the advert's four does not reorder the pack. #}
+        <button class="btn btn--ghost btn--sm" type="button"
+                hx-post="/gates/{{ dp }}/ads/photos/onad"
+                hx-vals='{{ {"name": p.name} | tojson }}' hx-target="#photos" hx-swap="outerHTML"
+                title="{% if p.ad_slot %}Take this photograph off the adverts{% else %}Put this photograph on the adverts{% endif %}">
+          {{ ui.icon('sparkles', 'icon--sm') }}<span>{% if p.ad_slot %}On ad{% else %}Use on ad{% endif %}</span><span class="spinner" aria-hidden="true"></span></button>
         {# Replace keeps the photo's PLACE: removing and re-uploading appends to
            the end, so a swapped lead photo stopped being the lead and the
            gallery order changed under the marketer (2.5). #}
