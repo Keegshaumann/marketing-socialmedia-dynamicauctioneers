@@ -117,3 +117,66 @@ def test_a_list_comma_after_a_number_still_splits():
     label, detail = split_label("Erf 1234, 1,250 m2 in extent")
     assert label == "ERF 1234"
     assert detail == "1,250 M2 IN EXTENT"
+
+
+# --- the icon set learns the farm vocabulary (D87) -------------------------
+
+def test_agricultural_features_get_a_real_icon_not_the_generic_mark():
+    """The glyph rules were written from RESIDENTIAL reference packs, so a farm
+    fell through them: 7 of DP2987's 25 features drew the neutral mark, which
+    on a buyer's pack is a row of shrugs beside the property's best assets.
+
+    Every glyph needed already existed - this was a vocabulary gap, not missing
+    artwork.
+    """
+    cases = {
+        "Staff accommodation for approximately 75 people": "staff",
+        "Produce packaging facility / packhouse": "workshop",
+        "Cold room": "aircon",
+        "Boiler rooms": "fire",
+        "Multiple dams (cement and gravel dams)": "water",
+        "Pump houses": "water",
+        "Sandy to rocky soils with good drainage": "land",
+        "Gradual western slope": "land",
+    }
+    for text, want in cases.items():
+        got = icon_for(text)
+        assert got == want, f"{text!r} drew {got!r}, expected {want!r}"
+        assert got != "mark"
+
+
+def test_a_line_is_not_matched_on_the_wrong_word():
+    """Two lines were matching a later rule for the wrong reason, which is worse
+    than the generic mark because it draws a confidently wrong picture:
+    a greenhouse says "temperature/climate control" and drew an AIR CONDITIONER;
+    "natural grazing (2 camps with water points)" drew a WATER DROP.
+    """
+    assert icon_for(
+        "Extensive greenhouse tunnels (twelve tunnels with irrigation and "
+        "temperature/climate control)"
+    ) == "garden"
+    assert icon_for("Natural grazing (2 camps with water points)") == "land"
+
+
+def test_every_dwelling_in_the_family_draws_the_same_glyph():
+    """"Second dwelling" matched; "Third dwelling" fell through to the bed rule,
+    because its line also says "3 bedrooms" - so two identical rows on one pack
+    drew different pictures."""
+    for n in ("Second", "Third", "Fourth", "Additional"):
+        assert icon_for(f"{n} dwelling: 3 bedrooms, 2 bathrooms") == "flatlet"
+
+
+def test_the_residential_vocabulary_is_unchanged():
+    """The rules are ordered and first-match-wins, so a new rule inserted in the
+    wrong place silently re-points existing lines."""
+    for text, want in {
+        "3 bedrooms, main with en-suite (bath, toilet, basin)": "bed",
+        "Full family bathroom plus separate toilet": "bath",
+        "Open-plan living and dining room": "lounge",
+        "Double lock-up garage": "garage",
+        "Swimming pool and playground": "pool",
+        "Air conditioning throughout": "aircon",
+        "Prepaid water meter": "water",
+        "Solar geyser and inverter": "solar",
+    }.items():
+        assert icon_for(text) == want, f"{text!r} changed to {icon_for(text)!r}"

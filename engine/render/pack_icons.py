@@ -305,8 +305,8 @@ ICONS: Dict[str, str] = {
 # Every pattern is matched against the lower-cased feature line.
 
 _RULES: List[Tuple[str, str]] = [
-    (r"\bflatlet|granny|cottage|second dwelling", "flatlet"),
-    (r"\bstaff quarter|domestic quarter|servant", "staff"),
+    (r"\bflatlet|granny|cottage|(?:second|third|fourth|additional) dwelling", "flatlet"),
+    (r"\bstaff quarter|staff accommodation|staff building|domestic quarter|servant", "staff"),
     (r"\bswimming pool|\bpool\b|splash", "pool"),
     (r"\bbraai|barbecue|boma", "braai"),
     (r"\blapa|thatch", "lapa"),
@@ -315,10 +315,16 @@ _RULES: List[Tuple[str, str]] = [
     (r"\bcarport|covered parking", "carport"),
     (r"\bparking|\bbay\b", "parking"),
     (r"\bcanopy|canopies", "canopy"),
-    (r"\bworkshop|factory|industrial", "workshop"),
+    (r"\bworkshop|factory|industrial|packhouse|pack ?house|packing|produce", "workshop"),
     (r"\bstoreroom|storage|shelv", "storeroom"),
     (r"\boffice|reception", "office"),
     (r"\boutbuilding|shed\b|barn", "building"),
+    # Agricultural lines, placed BEFORE the rules that would otherwise catch
+    # them for the wrong reason (D87): a greenhouse tunnel is described with
+    # "temperature/climate control" and was drawing an air conditioner, and
+    # "natural grazing (2 camps with water points)" was drawing a water drop.
+    (r"\bgreenhouse|\btunnels?\b|nursery|hydroponic|shade ?net", "garden"),
+    (r"\bgrazing|pasture|\bveld\b|arable|\bsoils?\b|drainage|\bslopes?\b|topograph|contour", "land"),
     (r"\bbedroom|\bbed\b|\bsleeper", "bed"),
     (r"\bbathroom|\bbath\b|en-suite|ensuite|ablution", "bath"),
     (r"\bshower", "shower"),
@@ -333,10 +339,10 @@ _RULES: List[Tuple[str, str]] = [
     # space and takes the sofa, not a dining table.
     (r"\blounge|living|family room|tv room|open.?plan", "lounge"),
     (r"\bdining", "dining"),
-    (r"\bfire ?place|\bfire pit|sunken fire", "fire"),
-    (r"\bair.?con|climate", "aircon"),
+    (r"\bfire ?place|\bfire pit|sunken fire|\bboiler", "fire"),
+    (r"\bair.?con|climate|cold room|cold storage|refrigerat|freezer", "aircon"),
     (r"\bsolar|inverter|\bpv\b", "solar"),
-    (r"\bborehole|\bwater\b|jojo|tank\b|well\b|irrigation", "water"),
+    (r"\bborehole|\bwater\b|jojo|tank\b|well\b|irrigation|\bdams?\b|\bpump", "water"),
     (r"\belectric|\bpower\b|eskom|prepaid|generator|three.?phase", "power"),
     (r"\bcamera|cctv|surveillance", "camera"),
     (r"\bsecurity|alarm|guard|access control|beams|burglar", "security"),
