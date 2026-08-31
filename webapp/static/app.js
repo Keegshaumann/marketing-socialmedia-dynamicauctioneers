@@ -141,6 +141,47 @@
   // the right photo?" could not be answered from the panel at all.
   // Drag a photo tile to reorder (2.4). The first tile is the lead photo, so
   // this is how a marketer says which picture leads and which follows.
+  // Auto-scroll while dragging (D91). HTML5 drag does not scroll the page, so a
+  // property with forty photos could only be reordered within one screenful:
+  // moving the last picture to the front meant dragging it up one slot,
+  // dropping, scrolling, and doing it again. State is MODULE-level and the
+  // document listener is registered ONCE, because wirePhotoSort runs again on
+  // every htmx swap and a per-grid listener would stack up copies.
+  var dragState = { tile: null, y: 0, raf: null };
+
+  function edgeScroll() {
+    if (!dragState.tile) { dragState.raf = null; return; }
+    var EDGE = 120;          // how close to an edge starts the scroll
+    var MAX = 26;            // pixels per frame at the very edge
+    var y = dragState.y, dy = 0;
+    if (y < EDGE) dy = -MAX * (1 - y / EDGE);
+    else if (y > window.innerHeight - EDGE) dy = MAX * (1 - (window.innerHeight - y) / EDGE);
+    if (dy) window.scrollBy(0, dy);
+    dragState.raf = window.requestAnimationFrame(edgeScroll);
+  }
+
+  function startEdgeScroll(tile, y) {
+    dragState.tile = tile; dragState.y = y;
+    if (!dragState.raf) dragState.raf = window.requestAnimationFrame(edgeScroll);
+  }
+
+  function stopEdgeScroll() {
+    dragState.tile = null;
+    if (dragState.raf) { window.cancelAnimationFrame(dragState.raf); dragState.raf = null; }
+  }
+
+  // Tracked on the DOCUMENT: near the top of the window the pointer is over the
+  // header, not the grid, so a grid-only listener stops firing exactly where the
+  // scrolling is needed most.
+  if (!window.__daDragScroll) {
+    window.__daDragScroll = true;
+    document.addEventListener('dragover', function (e) {
+      if (dragState.tile) { dragState.y = e.clientY; e.preventDefault(); }
+    });
+    document.addEventListener('drop', stopEdgeScroll);
+    document.addEventListener('dragend', stopEdgeScroll);
+  }
+
   function wirePhotoSort(root) {
     (root || document).querySelectorAll('[data-photo-sort]').forEach(function (grid) {
       if (grid.__sort) return;
@@ -152,6 +193,7 @@
         if (!tile) return;
         dragging = tile;
         tile.classList.add('is-dragging');
+        startEdgeScroll(tile, e.clientY);
         e.dataTransfer.effectAllowed = 'move';
         // Firefox will not start a drag without data set.
         try { e.dataTransfer.setData('text/plain', tile.dataset.name || ''); } catch (err) {}
@@ -172,6 +214,7 @@
         if (e) e.preventDefault();
         dragging.classList.remove('is-dragging');
         dragging = null;
+        stopEdgeScroll();
         // The hidden inputs are now in DOM order, which is the new order.
         var form = grid.closest('form');
         if (form && window.htmx) window.htmx.trigger(form, 'reorder');

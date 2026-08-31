@@ -1042,4 +1042,19 @@ tr:hover .iconbtn { opacity: 1; }
 /* --- photo drag-reorder (2.4) ----------------------------------------- */
 [data-photo-tile] { cursor: grab; }
 [data-photo-tile].is-dragging { opacity: .45; cursor: grabbing; }
+/* Drag-to-reorder has worked since D78 but nothing on screen said so, and the
+   photograph itself shows a zoom-in cursor, which signals "click me" instead.
+   The grab cursor and the handle are the whole discoverability fix (D91). */
+[data-photo-tile] { cursor: grab; }
+[data-photo-tile] .tile__grip {
+  /* Bottom-left: top-left is the low-res / file-missing flag and top-right is
+     the "Ad N" badge, so the grip had both to collide with. */
+  position: absolute; bottom: 6px; left: 6px; z-index: 3;
+  width: 26px; height: 26px; border-radius: 7px;
+  background: rgba(12, 10, 8, .62); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .12s ease; pointer-events: none;
+}
+[data-photo-tile]:hover .tile__grip { opacity: 1; }
+[data-photo-tile] .tile__grip svg { width: 15px; height: 15px; }
 [data-photo-sort] { min-height: 40px; }

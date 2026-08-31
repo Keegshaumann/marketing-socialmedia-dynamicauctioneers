@@ -96,11 +96,17 @@
   <datalist id="photo-groups">
     {% for g in (photos | map(attribute='group') | select | unique | list) %}<option value="{{ g }}">{% endfor %}
   </datalist>
+  <div class="hint" style="margin-bottom:8px">
+    <strong>Drag a photo to reorder.</strong> The first one is the lead: it heads the
+    adverts and the pack's cover. Use <em>Use on ad</em> to choose the advert's four
+    without changing this order.
+  </div>
   <div class="gallery-grid" data-photo-sort>
     {% for p in photos %}
     <div class="tile" draggable="true" data-photo-tile data-name="{{ p.name }}">
       <input type="hidden" name="name" value="{{ p.name }}">
       <div class="tile__body" style="position:relative">
+        <span class="tile__grip" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg></span>
         {# A missing file is drawn as an empty frame rather than requested: an
            <img> we already know 404s just fetches to fail, and cannot be
            enlarged either (D81). #}
