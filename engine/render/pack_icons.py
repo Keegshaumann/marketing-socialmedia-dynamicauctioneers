@@ -73,6 +73,17 @@ ICONS: Dict[str, str] = {
         '<path d="M12.8 2h4.4a2 2 0 0 1 2 2v4h-2V4.6h-4.4z"/>'
         '<circle cx="12" cy="13.6" r="2" fill="#fff"/>'
     ),
+    # An open-plan space: one room whose top and bottom walls stop short of the
+    # middle, so two areas read as running into each other. The sofa said
+    # "lounge", which is the one thing an open-plan line is saying it is not.
+    "openplan": (
+        '<rect x="3" y="5" width="2.2" height="14"/>'
+        '<rect x="18.8" y="5" width="2.2" height="14"/>'
+        '<rect x="3" y="5" width="6.4" height="2.2"/>'
+        '<rect x="14.6" y="5" width="6.4" height="2.2"/>'
+        '<rect x="3" y="16.8" width="6.4" height="2.2"/>'
+        '<rect x="14.6" y="16.8" width="6.4" height="2.2"/>'
+    ),
     "lounge": (
         '<path d="M3 11.6a2.6 2.6 0 0 1 5.2 0v1.6H3z"/>'
         '<path d="M15.8 11.6a2.6 2.6 0 0 1 5.2 0V16H3v-2.8h18"/>'
@@ -331,6 +342,7 @@ _RULES: List[Tuple[str, str]] = [
     (r"\btoilet|\bwc\b|cloakroom|guest loo", "toilet"),
     # Kitchen before scullery: "kitchen with separate scullery" is a kitchen
     # line with a qualifier, and the reference pack draws the kitchen.
+    (r"open.?plan", "openplan"),
     (r"\bkitchen|kitchenette", "kitchen"),
     (r"\bscullery|\bsink\b", "scullery"),
     (r"\blaundry|washing", "laundry"),

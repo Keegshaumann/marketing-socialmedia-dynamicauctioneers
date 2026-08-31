@@ -21,7 +21,9 @@ from engine.render.pack_icons import ICONS, icon_for, split_label, svg
     [
         ("3 bedrooms, main with en-suite (bath, toilet, basin)", "bed"),
         ("Full family bathroom plus separate toilet", "bath"),
-        ("Open-plan living and dining room", "lounge"),
+        # Open-plan is its own glyph since D92: the sofa said "lounge",
+        # which is the one thing an open-plan line says it is not.
+        ("Open-plan living and dining room", "openplan"),
         ("Kitchen with separate scullery", "kitchen"),
         ("Swimming pool and playground", "pool"),
         ("Communal braai area", "braai"),
@@ -172,7 +174,7 @@ def test_the_residential_vocabulary_is_unchanged():
     for text, want in {
         "3 bedrooms, main with en-suite (bath, toilet, basin)": "bed",
         "Full family bathroom plus separate toilet": "bath",
-        "Open-plan living and dining room": "lounge",
+        "Open-plan living and dining room": "openplan",   # D92
         "Double lock-up garage": "garage",
         "Swimming pool and playground": "pool",
         "Air conditioning throughout": "aircon",

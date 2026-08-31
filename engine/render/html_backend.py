@@ -341,6 +341,92 @@ def _reconciled_terms(sale: dict) -> List[str]:
     return contract + kept
 
 
+# The order the owner reads an advert in (D92). Rank 0 first. Everything the
+# stat rows already print (extent, beds, baths) is normally suppressed by
+# _ad_features, but it is ranked here too so a property that prints them as
+# bullets still runs in the right order.
+_FEATURE_RANK: List[Tuple["re.Pattern[str]", int]] = [
+    (re.compile(r"\bextent|\bstand\b|\berf\b|hectare|\bm2\b|\bm²|square met", re.I), 0),
+    (re.compile(r"\bbedroom|\bbeds?\b", re.I), 1),
+    (re.compile(r"\bbathroom|en.?suite|\bshower|\btoilet|ablution", re.I), 2),
+    (re.compile(r"\bkitchen|scullery|pantry", re.I), 3),
+    # Living space, dining included. An open-plan line already says both, so it
+    # sits here as ONE row; a property with separate rooms keeps its two rows,
+    # adjacent, because they share this rank.
+    (re.compile(r"open.?plan|\blounge|\bliving|\bdining|family room|tv room", re.I), 4),
+    # The nice-to-haves.
+    (re.compile(r"entertain|\bbraai|\bbar\b|\bboma|\blapa|\bpool\b|\bpatio|balcon|veranda|"
+                r"\bdeck\b|\bstoep|garden|\bview\b|jacuzzi|\bgym\b|playground", re.I), 5),
+    # The practical tail, last by the owner's order.
+    (re.compile(r"\bgarage|carport|\bparking|storeroom|storage|\bstaff\b|domestic|laundry", re.I), 7),
+]
+_FEATURE_RANK_OTHER = 6
+
+
+def _feature_rank(text: str) -> int:
+    """Where a feature line sits in the advert's running order (D92).
+
+    Ranked on the line's SUBJECT - the opening words - not on any word in it.
+    "Balcony leading from the lounge" is a balcony; matching anywhere put it with
+    the living spaces because the sentence happens to end in "lounge".
+    """
+    head = " ".join(str(text or "").split()[:5])
+    for pattern, rank in _FEATURE_RANK:
+        if pattern.search(head):
+            return rank
+    # Nothing in the opening words: fall back to the whole line before giving up,
+    # so a long clause still lands somewhere sensible.
+    for pattern, rank in _FEATURE_RANK:
+        if pattern.search(str(text or "")):
+            return rank
+    return _FEATURE_RANK_OTHER
+
+
+def _drop_rooms_the_open_plan_line_covers(features: List[str]) -> List[str]:
+    """"If open plan living and dining then one line" (owner's rule, D92).
+
+    A record can carry "Open-plan living and dining room" AND a standalone
+    "Dining room", which prints the same space twice on one advert. When an
+    open-plan line already names a room, a bare line for that room is dropped.
+    Only a BARE line goes: "Dining room with a built-in bar" says something the
+    open-plan line does not, so it stays.
+    """
+    covered: set = set()
+    for f in features:
+        low = (f or "").lower()
+        if "open-plan" in low or "open plan" in low:
+            for room in ("living", "lounge", "dining", "kitchen"):
+                if room in low:
+                    covered.add(room)
+    if not covered:
+        return list(features)
+
+    kept = []
+    for f in features:
+        low = (f or "").lower()
+        if "open-plan" in low or "open plan" in low:
+            kept.append(f)
+            continue
+        # a bare room line: the subject is the room and little else
+        subject = re.split(r"[,(;]", low, maxsplit=1)[0].strip()
+        words = [w for w in re.split(r"\W+", subject) if w and w not in ("room", "area", "the", "and")]
+        if len(words) <= 2 and any(w in covered for w in words):
+            continue
+        kept.append(f)
+    return kept
+
+
+def _ordered_features(features: List[str]) -> List[str]:
+    """The advert's rows in the owner's running order, de-duplicated (D92).
+
+    ``sorted`` is stable, so lines sharing a rank keep the record's own order -
+    which is what keeps a separate lounge and dining room adjacent and in the
+    order the record states them.
+    """
+    trimmed = _drop_rooms_the_open_plan_line_covers([f for f in features if f])
+    return sorted(trimmed, key=_feature_rank)
+
+
 def _ad_features(
     features: List[str],
     *,
@@ -370,14 +456,14 @@ def _ad_features(
     if garages and garages != "0":
         skip += ["garage", "carport"]
     if not skip:
-        return list(features)
+        return _ordered_features(features)
     kept = []
     for feature in features:
         subject = re.split(r"[,(;]", feature, maxsplit=1)[0].lower()
         if any(word in subject for word in skip):
             continue
         kept.append(feature)
-    return kept
+    return _ordered_features(kept)
 
 
 def _fmt_ha(value: object) -> Optional[str]:
@@ -802,14 +888,20 @@ class HtmlBackend(RenderBackend):
     def _place_line(identity: dict) -> Optional[str]:
         """The prominent locality line for the feature-list / stats-first ads:
         suburb, plus the municipality when it adds a recognisable town/city."""
+        # The AREA alone (owner's rule, D92): "Vorna Valley", not "Vorna Valley,
+        # City of Johannesburg Metropolitan". The municipality is an
+        # administrative fact, not how anyone says where a property is, and on a
+        # 1080px advert it pushed the headline to three lines to say nothing a
+        # buyer uses. It still stands in when there is no suburb - a farm often
+        # has only a municipality - with the bureaucratic suffix dropped
+        # ("Msunduzi Local Municipality" -> "Msunduzi").
         suburb = identity.get("suburb")
+        if suburb:
+            return suburb
         muni = identity.get("municipality")
-        if suburb and muni and muni.lower() not in suburb.lower():
-            # Drop bureaucratic suffixes so "Msunduzi Local Municipality" -> "Msunduzi".
-            town = muni.split(" Municipality")[0].split(" Local")[0].strip()
-            if town and town.lower() != suburb.lower():
-                return f"{suburb}, {town}"
-        return suburb or identity.get("municipality") or identity.get("province")
+        if muni:
+            return muni.split(" Municipality")[0].split(" Local")[0].strip() or muni
+        return identity.get("province")
 
     @staticmethod
     def _descriptor_line(physical: dict, identity: dict) -> Optional[str]:

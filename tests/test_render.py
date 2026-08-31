@@ -1752,3 +1752,67 @@ def test_a_group_naming_a_photo_the_record_lost_is_ignored(tmp_path):
         RenderRequest(dp="1", fmt="info_pack", public_record=pub, output_root=str(tmp_path)))
 
     assert [n.split("/")[-1] for _, urls in vm["photo_groups"] for n in urls] == ["a.png"]
+
+
+# --- the advert's rows run in the owner's order (D92) ---------------------
+
+def test_ad_features_follow_the_owners_running_order():
+    """Extent, bedrooms, bathrooms, kitchen, living space, the nice-to-haves,
+    then the practical tail (garage, storeroom, staff)."""
+    from engine.render.html_backend import _ad_features
+
+    out = _ad_features([
+        "Double garage", "Swimming pool", "Dining room", "Lounge", "Kitchen",
+        "Staff accommodation", "Entertainment area", "2 bathrooms",
+    ])
+    assert out == [
+        "2 bathrooms", "Kitchen", "Dining room", "Lounge",
+        "Swimming pool", "Entertainment area", "Double garage", "Staff accommodation",
+    ]
+
+
+def test_separate_living_rooms_stay_two_adjacent_rows():
+    """"If open plan then one line, separate 2 line items" - separate rooms keep
+    both rows, next to each other, in the record's own order."""
+    from engine.render.html_backend import _ad_features
+
+    out = _ad_features(["Swimming pool", "Lounge", "Dining room", "Kitchen"])
+    assert out.index("Lounge") == out.index("Dining room") - 1
+    assert out.index("Kitchen") < out.index("Lounge")
+
+
+def test_an_open_plan_line_is_not_repeated_by_a_bare_room():
+    """A record carrying both "Open-plan lounge and kitchen" and "Kitchen"
+    printed the same space twice on one advert."""
+    from engine.render.html_backend import _ad_features
+
+    out = _ad_features(["Kitchen", "Open-plan lounge and kitchen", "Lounge"])
+    assert out == ["Open-plan lounge and kitchen"]
+
+    # ...but a bare room line that SAYS something more survives.
+    out2 = _ad_features(["Open-plan lounge and kitchen", "Kitchen with a walk-in pantry and scullery"])
+    assert len(out2) == 2
+
+
+def test_a_feature_is_ranked_on_its_subject_not_any_word_in_it():
+    """"Balcony leading from the lounge" is a balcony. Matching anywhere put it
+    with the living spaces because the sentence ends in "lounge"."""
+    from engine.render.html_backend import _ad_features
+
+    out = _ad_features(["Balcony leading from the lounge", "Open-plan lounge and kitchen"])
+    assert out == ["Open-plan lounge and kitchen", "Balcony leading from the lounge"]
+
+
+def test_the_title_carries_the_area_not_the_municipality():
+    """"Say x bedroom house - Vorna Valley, not the whole address, just the
+    area" - the municipality is administrative, and on a 1080px canvas it pushed
+    the headline to three lines to say nothing a buyer uses."""
+    from engine.render.html_backend import HtmlBackend
+
+    assert HtmlBackend._place_line(
+        {"suburb": "Vorna Valley", "municipality": "City of Johannesburg Metropolitan"}
+    ) == "Vorna Valley"
+    # A farm often has no suburb: the municipality stands in, suffix dropped.
+    assert HtmlBackend._place_line(
+        {"municipality": "Mogale City Local Municipality"}
+    ) == "Mogale City"
