@@ -269,3 +269,35 @@ def test_apply_photos_clears_when_empty(live_store, tmp_path):
     rec = live_store.get("9100")
     assert rec.marketing.hero_photo is None
     assert rec.marketing.gallery == []
+
+
+# --- a price phrase is not eaten for its digits (D89) ----------------------
+
+def test_a_phrase_containing_a_number_is_kept_as_typed():
+    """Reported from production (DP2880.1): the marketer typed
+    "On Site Auction 20 October" into Price and the record stored "R20".
+
+    The formatter stripped every non-digit, so ANY phrase carrying a figure
+    became a rand amount. Its own docstring promised non-numeric phrases were
+    kept verbatim; a phrase with a number in it was not.
+    """
+    from engine.render.service import _format_price
+
+    assert _format_price("On Site Auction 20 October") == "On Site Auction 20 October"
+    assert _format_price("Auction 7 May 2026 at 10:00") == "Auction 7 May 2026 at 10:00"
+    # This is also what lets a marketer write the reference ads' own wording.
+    assert _format_price("Offers from R3 500 000") == "Offers from R3 500 000"
+
+
+def test_a_real_figure_still_formats():
+    """The guard must not stop the field doing its main job: the hint under it
+    tells the marketer to "type a number like 900000"."""
+    from engine.render.service import _format_price
+
+    assert _format_price("900000") == "R900 000"
+    assert _format_price("2500000") == "R2 500 000"
+    assert _format_price("R2 500 000") == "R2 500 000"
+    assert _format_price("2,500,000") == "R2 500 000"
+    assert _format_price("900000.50") == "R900 000"
+    assert _format_price(2500000) == "R2 500 000"
+    assert _format_price("Offers invited") == "Offers invited"

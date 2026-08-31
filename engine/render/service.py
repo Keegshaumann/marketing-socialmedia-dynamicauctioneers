@@ -100,9 +100,14 @@ def _format_price(amount: Union[int, float, str]) -> str:
     # Drop a decimal fraction first, so "900000.50" formats as R900 000, not the
     # cents-concatenated R90 000 050.
     whole = re.split(r"\.\d+", text, maxsplit=1)[0]
-    digits = re.sub(r"[^\d]", "", whole)
-    if digits:
-        return _rand(int(digits))
+    # Only a value that IS a number becomes a formatted price. Stripping every
+    # non-digit used to turn any phrase carrying a figure into a rand amount:
+    # "On Site Auction 20 October" was stored as "R20" on a live property (D89).
+    # A phrase is kept exactly as typed, which is also what lets a marketer write
+    # the reference ads' own wording ("Offers from R3 500 000").
+    bare = re.sub(r"[R\s,]", "", whole, flags=re.I)
+    if bare.isdigit():
+        return _rand(int(bare))
     return text
 
 

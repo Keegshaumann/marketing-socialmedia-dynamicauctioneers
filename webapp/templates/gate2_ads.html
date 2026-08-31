@@ -286,7 +286,13 @@
               <textarea class="textarea" id="terms" name="terms" rows="3">{{ terms }}</textarea>
               <div class="hint">The terms strip on the ad, e.g. Vacant occupation cannot be guaranteed. The auction date/time has its own fields above. Blank is left unchanged.</div>
             </div>
-            {{ ui.button('Save and re-render', variant='primary', icon_name='check', type='submit') }}
+            {# Saving does NOT render: since D72 it batches and marks the
+               artifacts stale, and the Regenerate button does the work. The old
+               label promised a re-render, so a marketer changed the callout,
+               pressed it, saw the same advert and reported that re-rendering was
+               broken (D89). #}
+            {{ ui.button('Save changes', variant='primary', icon_name='check', type='submit') }}
+            <div class="hint">Saved changes are applied to the record. Press <strong>Regenerate</strong> in the banner above to rebuild the adverts and the pack.</div>
           </form>
         </div>
       </div>
