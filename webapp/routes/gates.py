@@ -1036,9 +1036,20 @@ def _save_photos(db_path: str, dp: str, full: List[str], user: str) -> None:
         else:
             apply_photos(dp, store, hero, gallery, user,
                          output_root=_output_root(db_path), formats=[])
+        # The advert redraws immediately for a photo change too (D101), the way
+        # an icon does: reordering, setting a lead or picking the advert's four
+        # are all done in order to LOOK at the result, and the ad-only render is
+        # free (D93) and about a second. Without this, dragging a photograph
+        # changed the panel and left the advert showing the old order - which is
+        # exactly the inconsistency the icon fix introduced by fixing only half.
+        # The add-photos step is excluded: it does not show an advert yet, and
+        # builds one once on "continue" (D47).
+        redraw = state != "photos"
     finally:
         store.close()
     _mark_stale(db_path, dp, "photos")
+    if redraw:
+        _redraw_ad(db_path, dp)
 
 
 def _photo_result(request: Request, db_path: str, dp: str, toast: Dict[str, Any]):
@@ -1187,7 +1198,7 @@ async def gate2_photo_hero(dp: str, request: Request, user: dict = Depends(requi
         full = [chosen] + [p for p in full if p != chosen]
         _reopen_if_live(db_path, dp, user["email"])
         _save_photos(db_path, dp, full, user["email"])
-        toast = {"tone": "ok", "title": "Lead photo set", "text": "Press Regenerate to rebuild the adverts with the new lead image."}
+        toast = {"tone": "ok", "title": "Lead photo set", "text": "The advert below is redrawn with the new lead image."}
     else:
         toast = {"tone": "note", "title": "No change",
                  "text": "That photo is already the lead, or was not found."}
@@ -1431,7 +1442,7 @@ async def gate2_photo_on_ad(dp: str, request: Request,
     if name in current:
         chosen = [n for n in current if n != name]
         toast = {"tone": "ok", "title": "Removed from the advert",
-                 "text": f"{len(chosen) or 'No'} photo(s) picked. Press Regenerate to rebuild."}
+                 "text": f"{len(chosen) or 'No'} photo(s) picked. The advert below is redrawn."}
     else:
         if len(current) >= _MAX_AD_PHOTOS:
             return _photo_result(request, db_path, dp, {
@@ -1439,7 +1450,7 @@ async def gate2_photo_on_ad(dp: str, request: Request,
                 "text": f"An advert shows {_MAX_AD_PHOTOS} photographs. Remove one first."})
         chosen = current + [name]
         toast = {"tone": "ok", "title": "Added to the advert",
-                 "text": f"{len(chosen)} of {_MAX_AD_PHOTOS} picked. Press Regenerate to rebuild."}
+                 "text": f"{len(chosen)} of {_MAX_AD_PHOTOS} picked. The advert below is redrawn."}
 
     store = _store(db_path)
     try:
@@ -1611,7 +1622,7 @@ async def gate2_photo_delete(dp: str, request: Request, user: dict = Depends(req
     elif len(full) != len(current):
         _reopen_if_live(db_path, dp, user["email"])
         _save_photos(db_path, dp, full, user["email"])
-        toast = {"tone": "ok", "title": "Photo removed", "text": "Press Regenerate to rebuild the adverts without it."}
+        toast = {"tone": "ok", "title": "Photo removed", "text": "The advert below is redrawn without it."}
     else:
         toast = {"tone": "note", "title": "No change", "text": "That photo was not found."}
     return _photo_result(request, db_path, dp, toast)

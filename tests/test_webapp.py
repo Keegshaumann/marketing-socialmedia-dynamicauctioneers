@@ -2299,3 +2299,75 @@ def test_the_icons_form_applies_on_change_not_only_on_submit():
            / "webapp" / "templates" / "gate2_ads.html").read_text()
     form = tpl[tpl.index('hx-post="/gates/{{ dp }}/ads/icons"'):][:400]
     assert 'hx-trigger="change' in form, "an icon click would not apply"
+
+
+def test_reordering_photos_redraws_the_advert():
+    """Reported: "the window image is sitting 5th - why is it still showing 3rd
+    on the advert?" (D101).
+
+    The renderer was right and the ARTIFACT was stale: dragging a photograph
+    saved the new order and left the advert as it was. Icon clicks redrew
+    instantly (D99/D100) and photo changes did not, which is a worse state than
+    neither doing so - the marketer cannot tell which controls take effect.
+    """
+    import re
+    from pathlib import Path
+
+    import shutil
+
+    dp = "7135"
+    _golden_clone(dp, state="drafted")
+
+    # Put real photo FILES on disk: since D81 a pick whose file is missing is
+    # skipped, so a record with dangling paths renders an advert with none.
+    photos = _TMP / f"DP{dp}" / "photos"
+    photos.mkdir(parents=True, exist_ok=True)
+    src = sorted((REPO_ROOT / "DP3060" / "photos").glob("p5_img*.png"))[:5]
+    names = []
+    for i, f in enumerate(src, 1):
+        shutil.copy(f, photos / f"shot{i}.png")
+        names.append(f"photos/shot{i}.png")
+    store = RecordStore(DB_PATH)
+    try:
+        rec = store.get(dp)
+        rec.marketing.hero_photo = names[0]
+        rec.marketing.gallery = names[1:]
+        store.upsert(rec, state="drafted")
+    finally:
+        store.close()
+
+    client = _client()
+    _login_admin(client)
+
+    def strip_order():
+        html = Path(_TMP / f"DP{dp}" / "artifacts" / "demo_ad.html").read_text(
+            encoding="utf-8", errors="ignore")
+        return re.findall(r"\.\./photos/([^\"]+)", html)
+
+    client.post(f"/gates/{dp}/ads/regenerate")
+    before = strip_order()
+    assert before, "no photos on the advert to reorder"
+
+    # Reverse the gallery, exactly as a drag posts it.
+    # A repeated form field needs a LIST VALUE; a list of tuples is not encoded
+    # as repeated keys, which silently posted nothing and read as "unchanged".
+    resp = client.post(f"/gates/{dp}/ads/photos/order",
+                       data={"name": [Path(n).name for n in reversed(names)]})
+    assert resp.status_code == 200, resp.text
+
+    store = RecordStore(DB_PATH)
+    try:
+        assert store.get(dp).marketing.hero_photo.endswith("shot5.png")
+    finally:
+        store.close()
+
+    after = strip_order()
+    assert after != before, f"the advert kept the old photo order: {after}"
+
+
+def _gallery_names(client, dp):
+    """The photo tiles currently on the panel, in order."""
+    import re
+
+    page = client.get(f"/gates/{dp}/ads").text
+    return [{"name": m} for m in re.findall(r'data-name="([^"]+)"', page)]
