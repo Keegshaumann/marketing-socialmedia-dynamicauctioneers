@@ -1086,3 +1086,16 @@ tr:hover .iconbtn { opacity: 1; }
 /* An uploaded glyph is a picture, not a font: it cannot take the accent colour,
    so the selected state is carried by the tile alone. */
 .btn.is-active { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+
+
+/* The gate-2 preview column, pinned while the editing column scrolls (D99).
+   `align-self: start` matters: a grid item stretches to the row height by
+   default, and a stretched item has nothing to stick within - the rule is
+   silently ignored without it. Dropped on narrow screens, where the columns
+   stack and a pinned panel would eat the viewport. */
+@media (min-width: 981px) {
+  .stickyish { position: sticky; top: 84px; align-self: start; max-height: calc(100vh - 104px); overflow: auto; }
+  /* The scrollbar is the panel's own, so keep it off the rounded corner. */
+  .stickyish::-webkit-scrollbar { width: 8px; }
+  .stickyish::-webkit-scrollbar-thumb { background: var(--line); border-radius: 8px; }
+}

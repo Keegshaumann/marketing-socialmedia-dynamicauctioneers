@@ -189,6 +189,32 @@ def _clear_stale(db_path: str, dp: str) -> None:
         pass
 
 
+def _redraw_ad(db_path: str, dp: str) -> None:
+    """Re-render the ADVERT only, right now, for a change made to look at (D99).
+
+    D72 batches gate-2 edits because a full pack costs about five seconds. An
+    advert on its own costs about one and a half, and since D93 it costs no
+    model call at all - so a choice whose entire purpose is to be looked at
+    (a design, an icon, an icon style) redraws immediately, exactly as the
+    design picker already did.
+
+    The stale marker is left alone when there is more than the advert to
+    rebuild, so the pack still waits for Regenerate; on a property whose only
+    artifact IS the advert, it is cleared, because nothing is pending.
+    """
+    store = _store(db_path)
+    try:
+        formats = _formats_for_state(store.get_state(dp))
+    finally:
+        store.close()
+    try:
+        _render(db_path, dp, formats=[AD_FORMAT])
+    except Exception:
+        return                      # leave it stale; Regenerate will retry
+    if formats == [AD_FORMAT]:
+        _clear_stale(db_path, dp)
+
+
 def _render_if_stale(db_path: str, dp: str) -> bool:
     """Render pending changes and clear the marker. True when work was done."""
     if not _is_stale(db_path, dp):
@@ -1314,9 +1340,10 @@ async def gate2_upload_icon(dp: str, request: Request,
     finally:
         store.close()
     _mark_stale(db_path, dp, "icons")
+    _redraw_ad(db_path, dp)
     return _photo_result(request, db_path, dp, {
         "tone": "ok", "title": "Icon uploaded",
-        "text": f'"{label}" is now in the picker. Choose it on a line, then Regenerate.'})
+        "text": f'"{label}" is now in the picker. Choose it on a line to see it.'})
 
 
 @router.post("/{dp}/ads/icons", response_class=HTMLResponse)
@@ -1365,12 +1392,15 @@ async def gate2_feature_icons(dp: str, request: Request,
 
     if picks:
         toast = {"tone": "ok", "title": "Icons set",
-                 "text": f"{len(picks)} chosen. Press Regenerate to rebuild the artifacts."}
+                 "text": f"{len(picks)} chosen. The advert below is redrawn; Regenerate rebuilds the rest."}
     else:
         toast = {"tone": "ok", "title": "Icons back to automatic",
-                 "text": "The wording picks the icon again. Press Regenerate to rebuild."}
+                 "text": "The wording picks the icon again. The advert below is redrawn."}
     _reopen_if_live(db_path, dp, user["email"])
     _mark_stale(db_path, dp, "icons")
+    # An icon is chosen in order to LOOK at it, so the advert redraws now
+    # (free since D93, about a second and a half).
+    _redraw_ad(db_path, dp)
     return _photo_result(request, db_path, dp, toast)
 
 

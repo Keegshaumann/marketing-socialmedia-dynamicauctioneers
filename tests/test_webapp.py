@@ -2235,3 +2235,35 @@ def test_html_pages_are_never_cached():
     css = client.get("/static/app.css")
     assert css.status_code == 200
     assert "no-store" not in css.headers.get("cache-control", "").lower()
+
+
+def test_an_icon_change_redraws_the_advert_without_a_model_call():
+    """A choice made in order to LOOK at it redraws now, and costs nothing (D99).
+
+    The redraw renders the advert alone, and an ad-only render takes the draft
+    path - so no model call, even on an approved property whose pack would use
+    generated copy when it is next rebuilt. D93 proved the advert is identical
+    either way, so the preview is not a lesser picture.
+    """
+    import engine.render.service as service
+
+    dp = "7131"
+    _golden_clone(dp, state="drafted")
+    client = _client()
+    _login_admin(client)
+
+    calls = []
+    original = service.generate_copy
+    service.generate_copy = lambda record, client=None: calls.append(1) or original(record, client=client)
+    try:
+        resp = client.post(f"/gates/{dp}/ads/icons",
+                           data={"icon:stat:bedrooms": "pool", "icon_style": "bold"})
+    finally:
+        service.generate_copy = original
+
+    assert resp.status_code == 200, resp.text
+    assert not calls, "the redraw called the model"
+
+    pv = _public_view(dp)
+    assert (pv["marketing"] or {}).get("feature_icons", {}).get("stat:bedrooms") == "pool"
+    assert (pv["marketing"] or {}).get("icon_style") == "bold"
