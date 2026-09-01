@@ -1816,3 +1816,85 @@ def test_the_title_carries_the_area_not_the_municipality():
     assert HtmlBackend._place_line(
         {"municipality": "Mogale City Local Municipality"}
     ) == "Mogale City"
+
+
+def test_the_draft_advert_is_identical_without_model_copy(golden_record, tmp_path):
+    """"Does it still do a decent ad?" - the draft skips the paid call (D93),
+    so this pins WHY that costs nothing: the advert is built from record facts,
+    not from model prose, and comes out byte-identical either way.
+
+    If someone later makes the ad depend on the generated headline or summary,
+    this fails - which is the point. The draft would otherwise degrade silently.
+    """
+    import re
+    import engine.render.service as service
+    from engine.render.copy import _template_copy
+    from engine.store import RecordStore
+
+    _stage_photos(golden_record, tmp_path)
+    golden_record.marketing.generated_copy = None
+    golden_record.marketing.headline = None
+
+    def loud_model_copy(record, client=None):
+        bundle = dict(_template_copy(record))
+        bundle["headline"] = "ZZ_MODEL_HEADLINE"
+        bundle["summary"] = "ZZ_MODEL_SUMMARY"
+        return bundle
+
+    def render(ai: bool, out):
+        store = RecordStore(db_path=":memory:")
+        try:
+            store.upsert(golden_record, state="approved")
+            arts = render_all("3060", store, backend="html", output_root=str(out),
+                              formats=["demo_ad", "portal_listing"], ai_copy=ai)
+        finally:
+            store.close()
+        return {a.fmt: Path(a.path).read_text(encoding="utf-8", errors="ignore") for a in arts}
+
+    original = service.generate_copy
+    service.generate_copy = loud_model_copy
+    try:
+        draft = render(False, tmp_path / "draft")
+        pack = render(True, tmp_path / "pack")
+    finally:
+        service.generate_copy = original
+
+    def visible(html):
+        return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))
+
+    # The ADVERT does not change: no model call is needed to draft one.
+    assert visible(draft["demo_ad"]) == visible(pack["demo_ad"])
+    assert "ZZ_MODEL" not in draft["demo_ad"] and "ZZ_MODEL" not in pack["demo_ad"]
+
+    # The long-form channel copy is where the model actually earns its keep.
+    assert "ZZ_MODEL_HEADLINE" in pack["portal_listing"]
+    assert "ZZ_MODEL_HEADLINE" not in draft["portal_listing"]
+
+
+def test_the_draft_never_calls_the_model(golden_record, tmp_path):
+    """The saving is only real if nothing on the draft path reaches the API."""
+    import engine.render.service as service
+    from engine.store import RecordStore
+
+    _stage_photos(golden_record, tmp_path)
+    golden_record.marketing.generated_copy = None
+
+    def explode(record, client=None):
+        raise AssertionError("the draft render called the model")
+
+    original = service.generate_copy
+    service.generate_copy = explode
+    try:
+        store = RecordStore(db_path=":memory:")
+        try:
+            store.upsert(golden_record, state="drafted")
+            arts = render_all("3060", store, backend="html", output_root=str(tmp_path),
+                              formats=["demo_ad"], ai_copy=False)
+        finally:
+            store.close()
+    finally:
+        service.generate_copy = original
+    assert arts and arts[0].fmt == "demo_ad"
+
+    # And nothing was cached, so the pack phase still generates its own copy.
+    assert not (golden_record.marketing and golden_record.marketing.generated_copy)
