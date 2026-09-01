@@ -17,7 +17,7 @@ from typing import Optional
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from engine.render import ad_templates
-from engine.render.html_backend import BRAND, _asset_data_uri, _split3
+from engine.render.html_backend import BRAND, configure_template_env
 from engine.render.rasterize import available, html_to_png
 
 _TEMPLATE_DIR = ad_templates._TEMPLATE_DIR
@@ -25,8 +25,10 @@ _env = Environment(
     loader=FileSystemLoader(str(_TEMPLATE_DIR)),
     autoescape=select_autoescape(["html", "svg", "j2"]),
 )
-_env.globals["asset_uri"] = _asset_data_uri
-_env.filters["split3"] = _split3
+# The SAME configuration the render backend uses (D97): a global added to one
+# environment and forgotten in the other is what turned three design previews
+# into broken images.
+configure_template_env(_env)
 
 _placeholder_cache: Optional[str] = None
 

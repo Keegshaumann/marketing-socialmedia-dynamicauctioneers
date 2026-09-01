@@ -150,6 +150,65 @@ def _asset_data_uri(relative_path: str) -> str:
     return f"data:{mime};base64," + base64.b64encode(data).decode()
 
 
+def configure_template_env(env) -> None:
+    """Register every global and filter the render templates rely on (D97).
+
+    TWO Jinja environments load these templates: this backend, and the
+    gate-2 thumbnail renderer (``ad_thumbs``), which builds its own. They
+    were configured separately, so D95's new ``ad_glyph``/``ad_icon_for``
+    globals reached the backend and not the thumbnails - and three of the
+    four design previews turned into broken images the moment they were
+    next rendered. One function now configures both.
+    """
+        # Let templates embed a bundled asset (logo, etc.) as a data URI, so the
+    # rendered ad is self-contained for rasterising (D41).
+    env.globals["asset_uri"] = _asset_data_uri
+    # The info pack prints a black glyph beside every feature line and splits
+    # a line into label + qualifier (playbook 3). Both are pure functions of
+    # record wording, so the template calls them directly rather than the
+    # view model carrying a second, parallel copy of every feature list.
+    env.globals["glyph"] = lambda name, size="9mm": Markup(pack_icons.svg(name, size))
+    # The pack's glyph chooser, honouring the marketer's picks (D94). Only a
+    # name the pack actually HAS is used: the advert's set has four glyphs
+    # the pack does not (size, feature, bar, sofa), and an unknown name must
+    # fall back to the rules rather than draw nothing.
+    def _icon_for(text, picks=None):
+        pick = (picks or {}).get(text)
+        if pick and pick in pack_icons.ICONS:
+            return pick
+        return pack_icons.icon_for(text)
+
+    env.globals["icon_for"] = _icon_for
+    # The advert's own stroked set, shared with the gate-2 picker (D95).
+    def _ad_glyph(name, style=None, custom=None, output_root=None, dp=None):
+        """One advert glyph: a built-in drawing, or an uploaded file (D96).
+
+        An uploaded glyph is embedded as a data URI inside an ``<img>``, so
+        the artifact stays self-contained for printing AND a script inside
+        an uploaded SVG cannot run (it does not, inside an <img>).
+        """
+        if isinstance(name, str) and name.startswith("custom:"):
+            label = name[7:]
+            filename = (custom or {}).get(label)
+            if filename:
+                path = Path(output_root or ".") / f"DP{dp}" / "icons" / Path(filename).name
+                uri = _file_data_uri(path)
+                if uri:
+                    return Markup(f'<img src="{uri}" alt="" class="adglyph"/>')
+            return Markup(ad_icons.svg("feature", style=style))
+        return Markup(ad_icons.svg(name, style=style))
+
+    env.globals["ad_glyph"] = _ad_glyph
+    env.globals["ad_icon_for"] = ad_icons.icon_for
+    env.globals["split_label"] = pack_icons.split_label
+    env.filters["split3"] = _split3
+    # "3 Bedroom Apartment" -> "Apartment", for surfaces that state the bed
+    # count separately (the board's stacked headline).
+    env.filters["regex_strip_beds"] = lambda t: re.sub(
+        r"^\s*\d+\s*(?:-|\s)?bed(?:room)?s?\s+", "", str(t or ""), flags=re.I
+    ).strip() or str(t or "")
+
+
 def _file_data_uri(path: Path) -> str:
     """Read a file and return it as a base64 data URI, or "" when absent."""
     try:
@@ -531,53 +590,7 @@ class HtmlBackend(RenderBackend):
             lstrip_blocks=True,
             keep_trailing_newline=True,
         )
-        # Let templates embed a bundled asset (logo, etc.) as a data URI, so the
-        # rendered ad is self-contained for rasterising (D41).
-        self._env.globals["asset_uri"] = _asset_data_uri
-        # The info pack prints a black glyph beside every feature line and splits
-        # a line into label + qualifier (playbook 3). Both are pure functions of
-        # record wording, so the template calls them directly rather than the
-        # view model carrying a second, parallel copy of every feature list.
-        self._env.globals["glyph"] = lambda name, size="9mm": Markup(pack_icons.svg(name, size))
-        # The pack's glyph chooser, honouring the marketer's picks (D94). Only a
-        # name the pack actually HAS is used: the advert's set has four glyphs
-        # the pack does not (size, feature, bar, sofa), and an unknown name must
-        # fall back to the rules rather than draw nothing.
-        def _icon_for(text, picks=None):
-            pick = (picks or {}).get(text)
-            if pick and pick in pack_icons.ICONS:
-                return pick
-            return pack_icons.icon_for(text)
-
-        self._env.globals["icon_for"] = _icon_for
-        # The advert's own stroked set, shared with the gate-2 picker (D95).
-        def _ad_glyph(name, style=None, custom=None, output_root=None, dp=None):
-            """One advert glyph: a built-in drawing, or an uploaded file (D96).
-
-            An uploaded glyph is embedded as a data URI inside an ``<img>``, so
-            the artifact stays self-contained for printing AND a script inside
-            an uploaded SVG cannot run (it does not, inside an <img>).
-            """
-            if isinstance(name, str) and name.startswith("custom:"):
-                label = name[7:]
-                filename = (custom or {}).get(label)
-                if filename:
-                    path = Path(output_root or ".") / f"DP{dp}" / "icons" / Path(filename).name
-                    uri = _file_data_uri(path)
-                    if uri:
-                        return Markup(f'<img src="{uri}" alt="" class="adglyph"/>')
-                return Markup(ad_icons.svg("feature", style=style))
-            return Markup(ad_icons.svg(name, style=style))
-
-        self._env.globals["ad_glyph"] = _ad_glyph
-        self._env.globals["ad_icon_for"] = ad_icons.icon_for
-        self._env.globals["split_label"] = pack_icons.split_label
-        self._env.filters["split3"] = _split3
-        # "3 Bedroom Apartment" -> "Apartment", for surfaces that state the bed
-        # count separately (the board's stacked headline).
-        self._env.filters["regex_strip_beds"] = lambda t: re.sub(
-            r"^\s*\d+\s*(?:-|\s)?bed(?:room)?s?\s+", "", str(t or ""), flags=re.I
-        ).strip() or str(t or "")
+        configure_template_env(self._env)
 
     # --- backend contract ------------------------------------------------
 
