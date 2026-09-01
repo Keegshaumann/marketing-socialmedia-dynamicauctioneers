@@ -103,7 +103,7 @@
     {% if vm.beds %}<div class="sf-item">{{ parts.icon_bed() }}<span>{{ vm.beds }} Bedroom{{ 's' if vm.beds != '1' }}</span></div>{% endif %}
     {% if vm.baths %}<div class="sf-item">{{ parts.icon_bath() }}<span>{{ vm.baths }} Bathroom{{ 's' if vm.baths != '1' }}</span></div>{% endif %}
     {% if vm.garages and vm.garages != '0' %}<div class="sf-item">{{ parts.icon_garage() }}<span>{{ parts.garage_word(vm.garages) }}</span></div>{% endif %}
-    {% for f in feats[:2] %}<div class="sf-item">{{ parts.feature_icon(f) }}<span>{{ f }}</span></div>{% endfor %}
+    {% for f in feats[:2] %}<div class="sf-item">{{ parts.feature_icon(f, vm.feature_icons) }}<span>{{ f }}</span></div>{% endfor %}
   </div>
 
   <div class="ig-money {{ 'auction' if is_auction else 'price' }}">{{ parts.money_text(vm) }}</div>

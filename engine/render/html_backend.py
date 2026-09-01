@@ -427,6 +427,23 @@ def _ordered_features(features: List[str]) -> List[str]:
     return sorted(trimmed, key=_feature_rank)
 
 
+def _count(value: object) -> Optional[str]:
+    """A countable quantity for display, or None when there is none of it.
+
+    Zero is not a feature: "0 bathrooms" on an advert says less than nothing,
+    and reads as a fault in the listing rather than a fact about the property.
+    """
+    text = _fmt_num(value)
+    if text is None:
+        return None
+    try:
+        if float(str(text).replace(" ", "")) == 0:
+            return None
+    except (TypeError, ValueError):
+        pass
+    return text
+
+
 def _ad_features(
     features: List[str],
     *,
@@ -509,7 +526,17 @@ class HtmlBackend(RenderBackend):
         # record wording, so the template calls them directly rather than the
         # view model carrying a second, parallel copy of every feature list.
         self._env.globals["glyph"] = lambda name, size="9mm": Markup(pack_icons.svg(name, size))
-        self._env.globals["icon_for"] = pack_icons.icon_for
+        # The pack's glyph chooser, honouring the marketer's picks (D94). Only a
+        # name the pack actually HAS is used: the advert's set has four glyphs
+        # the pack does not (size, feature, bar, sofa), and an unknown name must
+        # fall back to the rules rather than draw nothing.
+        def _icon_for(text, picks=None):
+            pick = (picks or {}).get(text)
+            if pick and pick in pack_icons.ICONS:
+                return pick
+            return pack_icons.icon_for(text)
+
+        self._env.globals["icon_for"] = _icon_for
         self._env.globals["split_label"] = pack_icons.split_label
         self._env.filters["split3"] = _split3
         # "3 Bedroom Apartment" -> "Apartment", for surfaces that state the bed
@@ -722,9 +749,15 @@ class HtmlBackend(RenderBackend):
                 }
                 for p in portions
             ],
-            "beds": _fmt_num(physical.get("bedrooms")),
-            "baths": _fmt_num(physical.get("bathrooms_main_unit")),
-            "garages": _fmt_num(physical.get("garages")),
+            # A count of ZERO is not a feature (D94). `_fmt_num(0)` returns the
+            # string "0", which is TRUTHY in Jinja, so `{% if vm.baths %}` passed
+            # and a warehouse advertised "0 BATHROOMS". Fixed here rather than by
+            # adding `!= '0'` to each template - that guard existed on garages
+            # and had been forgotten on beds and baths, which is exactly how this
+            # reached a client-facing advert.
+            "beds": _count(physical.get("bedrooms")),
+            "baths": _count(physical.get("bathrooms_main_unit")),
+            "garages": _count(physical.get("garages")),
             "separate_toilet": bool(physical.get("separate_toilet")),
             "zoning": physical.get("zoning"),
             "flatlet_present": flatlet_present,
@@ -743,6 +776,9 @@ class HtmlBackend(RenderBackend):
                 garages=_fmt_num(physical.get("garages")),
             ),
             "features_complex": list(physical.get("features_complex") or []),
+            # The marketer's per-line icon picks (D94). The advert reads them
+            # directly; the pack reads them through icon_for below.
+            "feature_icons": dict(marketing.get("feature_icons") or {}),
             # The short strip the reference ads carry, not the first three
             # feature sentences (D84).
             "tagline": _tagline(

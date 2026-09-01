@@ -90,7 +90,28 @@
 {% macro icon_openplan() %}<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 5v3M12 16v3"/></svg>{% endmacro %}
 {% macro icon_patio() %}<svg viewBox="0 0 24 24"><path d="M12 4v16"/><path d="M4 11a8 8 0 0 1 16 0z"/></svg>{% endmacro %}
 
-{% macro feature_icon(text) -%}
+{# ``icons`` is the marketer's per-line pick (D94); the keyword rules below
+   choose when there is none. #}
+{% macro feature_icon(text, icons=None) -%}
+  {%- set pick = (icons or {}).get(text) -%}
+  {%- if pick == 'bed' -%}{{ icon_bed() }}
+  {%- elif pick == 'bath' -%}{{ icon_bath() }}
+  {%- elif pick == 'garage' -%}{{ icon_garage() }}
+  {%- elif pick == 'size' -%}{{ icon_size() }}
+  {%- elif pick == 'kitchen' -%}{{ icon_kitchen() }}
+  {%- elif pick == 'study' -%}{{ icon_study() }}
+  {%- elif pick == 'garden' -%}{{ icon_garden() }}
+  {%- elif pick == 'bar' -%}{{ icon_bar() }}
+  {%- elif pick == 'pool' -%}{{ icon_pool() }}
+  {%- elif pick == 'sofa' -%}{{ icon_sofa() }}
+  {%- elif pick == 'dining' -%}{{ icon_dining() }}
+  {%- elif pick == 'openplan' -%}{{ icon_openplan() }}
+  {%- elif pick == 'patio' -%}{{ icon_patio() }}
+  {%- elif pick == 'feature' -%}{{ icon_feature() }}
+  {%- else -%}{{ _auto_feature_icon(text) }}{%- endif -%}
+{%- endmacro %}
+
+{% macro _auto_feature_icon(text) -%}
   {%- set t = (text or '') | lower -%}
   {%- if 'open-plan' in t or 'open plan' in t -%}{{ icon_openplan() }}
   {%- elif 'kitchen' in t or 'scullery' in t or 'pantry' in t -%}{{ icon_kitchen() }}

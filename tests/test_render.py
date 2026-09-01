@@ -1898,3 +1898,96 @@ def test_the_draft_never_calls_the_model(golden_record, tmp_path):
 
     # And nothing was cached, so the pack phase still generates its own copy.
     assert not (golden_record.marketing and golden_record.marketing.generated_copy)
+
+
+def test_a_chosen_icon_overrides_the_keyword_rules(golden_record, tmp_path):
+    """The marketer can overrule the glyph on a feature line, and clear it back
+    to automatic (D94). The rules are good but no vocabulary covers every
+    property - D87 proved that on a farm.
+    """
+    from engine.store import RecordStore
+
+    _stage_photos(golden_record, tmp_path)
+    line = "Swimming pool"
+    golden_record.physical.features_main = [line]
+    golden_record.marketing.template_set = "feature_list"
+
+    def ad_html(picks):
+        golden_record.marketing.feature_icons = picks
+        store = RecordStore(db_path=":memory:")
+        try:
+            store.upsert(golden_record, state="approved")
+            art = render_one("3060", store, "demo_ad", backend="html",
+                             output_root=str(tmp_path), ai_copy=False)
+        finally:
+            store.close()
+        return Path(art.path).read_text(encoding="utf-8")
+
+    automatic = ad_html(None)
+    chosen = ad_html({line: "study"})
+    assert automatic != chosen, "the pick did not reach the advert"
+
+    # Clearing it returns to exactly the automatic drawing.
+    assert ad_html(None) == automatic
+
+
+def test_an_icon_pick_reaches_the_information_pack_too(golden_record, tmp_path):
+    """One pick, both surfaces: the names are shared between the advert's set
+    and the pack's, so a marketer does not choose an icon twice."""
+    from engine.store import RecordStore
+
+    _stage_photos(golden_record, tmp_path)
+    line = "Swimming pool"
+    golden_record.physical.features_main = [line]
+
+    def pack_html(picks):
+        golden_record.marketing.feature_icons = picks
+        store = RecordStore(db_path=":memory:")
+        try:
+            store.upsert(golden_record, state="approved")
+            art = render_one("3060", store, "info_pack", backend="html",
+                             output_root=str(tmp_path), ai_copy=False)
+        finally:
+            store.close()
+        return Path(art.path).read_text(encoding="utf-8")
+
+    assert pack_html({line: "study"}) != pack_html(None)
+
+    # A name the PACK does not have (advert-only glyphs) falls back to the rules
+    # rather than drawing nothing at all.
+    assert pack_html({line: "sofa"}) == pack_html(None)
+
+
+def test_a_count_of_zero_is_never_printed(golden_record, tmp_path):
+    """Reported from a live advert (DP3074, a warehouse): "0 BATHROOMS".
+
+    `_fmt_num(0)` returns the string "0", which is TRUTHY in Jinja, so every
+    `{% if vm.baths %}` guard passed. `garages` carried an extra `!= '0'` check
+    and beds and baths did not - which is how a zero reached a client-facing
+    advert while another zero never could.
+    """
+    import re
+    from engine.store import RecordStore
+
+    _stage_photos(golden_record, tmp_path)
+    golden_record.physical.bathrooms_main_unit = 0
+    golden_record.physical.garages = 0
+    golden_record.physical.bedrooms = 2
+
+    store = RecordStore(db_path=":memory:")
+    try:
+        store.upsert(golden_record, state="approved")
+        arts = render_all("3060", store, backend="html", output_root=str(tmp_path),
+                          ai_copy=False)
+    finally:
+        store.close()
+
+    for art in arts:
+        body = Path(art.path).read_text(encoding="utf-8", errors="ignore")
+        flat = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", body))
+        assert not re.search(r"\b0 bathroom", flat, re.I), f"{art.fmt} prints a zero"
+        assert not re.search(r"\b0 garage", flat, re.I), f"{art.fmt} prints a zero"
+        assert not re.search(r"\b0[- ]bed", flat, re.I), f"{art.fmt} prints a zero"
+    # ...while a real count still prints.
+    ad = Path(next(a for a in arts if a.fmt == "demo_ad").path).read_text(encoding="utf-8")
+    assert "2" in re.sub(r"<[^>]+>", " ", ad)

@@ -371,6 +371,13 @@ class Marketing(_Base):
     # effect. None = unset = the old behaviour (lead + the next three), so no
     # record needs migrating and a property nobody curates still renders.
     ad_photos: Optional[List[str]] = None
+    # Icon the marketer chose for a feature line, overriding the keyword rules
+    # (D94): feature text -> glyph name. The rules are good but a vocabulary can
+    # never cover every property, and "regenerate" here means clearing the pick
+    # and letting the rules choose again. Names are shared between the advert's
+    # set and the pack's, so one pick drives both surfaces, each drawing in its
+    # own style.
+    feature_icons: Optional[Dict[str, str]] = None
     # The named design/template set the render backends use (the marketing
     # team's pick on gate 2, D33). None = the default (first-configured) set.
     template_set: Optional[str] = None

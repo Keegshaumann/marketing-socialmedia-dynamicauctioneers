@@ -789,6 +789,9 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
             "current_ad_template": marketing_pv.get("template_set") or "classic",
             "is_update": state in ("live", "updated"),
             "delete_caveat": DELETE_CAVEAT,
+            # The advert's feature lines and the glyph each draws (D94).
+            "feature_rows": _feature_rows(record),
+            "icon_choices": AD_ICON_CHOICES,
             "photos": _photo_view(db_path, dp, record),
             "qr_src": _qr_view(db_path, dp, record),
             "max_photos": _MAX_PHOTOS_TOTAL,
@@ -1166,6 +1169,84 @@ async def gate2_photo_hero(dp: str, request: Request, user: dict = Depends(requi
 # An advert shows four photographs. More than that is not a bigger advert, it is
 # a smaller one per picture, so the pick is capped where the designs stop.
 _MAX_AD_PHOTOS = 4
+
+
+# The glyphs a marketer may choose for a feature line (D94). Names shared with
+# the pack's set where one exists, so a single pick drives both surfaces; the
+# four that are advert-only fall back to the pack's own rules there.
+AD_ICON_CHOICES = [
+    ("", "Automatic"), ("bed", "Bed"), ("bath", "Bath"), ("kitchen", "Kitchen"),
+    ("openplan", "Open-plan room"), ("sofa", "Lounge"), ("dining", "Dining"),
+    ("patio", "Patio / balcony"), ("pool", "Pool"), ("garden", "Garden"),
+    ("bar", "Braai / bar"), ("garage", "Garage"), ("study", "Study / office"),
+    ("size", "Extent"), ("feature", "Plain mark"),
+]
+_AD_ICON_NAMES = {name for name, _ in AD_ICON_CHOICES if name}
+
+
+def _feature_rows(record: PropertyRecord) -> List[Dict[str, Any]]:
+    """The advert's feature lines with the glyph each currently draws (D94)."""
+    from engine.render.html_backend import _ad_features, _fmt_num
+
+    public = record.public_view()
+    physical = public.get("physical") or {}
+    picks = ((record.marketing.feature_icons if record.marketing else None) or {})
+    lines = _ad_features(
+        list(physical.get("features_main") or []) + list(physical.get("features_complex") or []),
+        beds=_fmt_num(physical.get("bedrooms")),
+        baths=_fmt_num(physical.get("bathrooms_main_unit")),
+        garages=_fmt_num(physical.get("garages")),
+    )
+    return [{"text": line, "pick": picks.get(line, "")} for line in lines]
+
+
+@router.post("/{dp}/ads/icons", response_class=HTMLResponse)
+async def gate2_feature_icons(dp: str, request: Request,
+                              user: dict = Depends(require_role("approver", "marketing"))):
+    """Set (or clear) the glyph for each advert feature line (D94).
+
+    "Regenerate" is the empty choice: it drops the pick and lets the keyword
+    rules choose again, which is also the repair when a record's wording changes
+    and an old pick no longer suits it.
+    """
+    db_path = _db(request)
+    form = await request.form()
+    record = _load(db_path, dp)
+    rows = {r["text"] for r in _feature_rows(record)}
+
+    picks: Dict[str, str] = {}
+    for key, value in form.multi_items():
+        if not key.startswith("icon:"):
+            continue
+        line = key[5:]
+        # Only a line the advert actually prints, and only a glyph we offer.
+        if line in rows and str(value).strip() in _AD_ICON_NAMES:
+            picks[line] = str(value).strip()
+
+    store = _store(db_path)
+    try:
+        rec = store.get(dp)
+        if rec.marketing is None:
+            from engine.schema import Marketing
+            rec.marketing = Marketing()
+        before = rec.marketing.feature_icons or {}
+        rec.marketing.feature_icons = picks or None
+        store.upsert(rec, state=store.get_state(dp))
+        if before != (picks or None):
+            store.record_signoff(dp, gate="edit", user=user["email"],
+                                 note=f"feature icons: {picks or '(automatic)'}")
+    finally:
+        store.close()
+
+    if picks:
+        toast = {"tone": "ok", "title": "Icons set",
+                 "text": f"{len(picks)} chosen. Press Regenerate to rebuild the artifacts."}
+    else:
+        toast = {"tone": "ok", "title": "Icons back to automatic",
+                 "text": "The wording picks the icon again. Press Regenerate to rebuild."}
+    _reopen_if_live(db_path, dp, user["email"])
+    _mark_stale(db_path, dp, "icons")
+    return _photo_result(request, db_path, dp, toast)
 
 
 @router.post("/{dp}/ads/photos/onad", response_class=HTMLResponse)

@@ -202,7 +202,7 @@
 {% macro frow(text, pad='') %}
   {% set parts_ = split_label(text) %}
   <div class="frow"{% if pad %} style="--frowpad: {{ pad }}"{% endif %}>
-    <span class="g">{{ glyph(icon_for(text)) }}</span>
+    <span class="g">{{ glyph(icon_for(text, vm.feature_icons)) }}</span>
     <span class="t">{{ parts_[0] }}{% if parts_[1] %}<span class="s">{{ parts_[1] }}</span>{% endif %}</span>
   </div>
 {% endmacro %}
