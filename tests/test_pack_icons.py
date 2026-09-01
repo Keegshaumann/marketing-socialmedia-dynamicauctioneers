@@ -182,3 +182,60 @@ def test_the_residential_vocabulary_is_unchanged():
         "Solar geyser and inverter": "solar",
     }.items():
         assert icon_for(text) == want, f"{text!r} changed to {icon_for(text)!r}"
+
+
+# --- the advert's glyph set (D95) -----------------------------------------
+
+def test_the_picker_offers_exactly_what_the_advert_can_draw():
+    """The picker shows the glyph's own drawing, so the picture a marketer
+    clicks IS the picture that prints. That only holds while the two read the
+    same dict - the whole reason the drawings moved out of the template."""
+    from engine.render import ad_icons
+
+    offered = {name for name, _, _ in ad_icons.CHOICES if name}
+    assert offered == set(ad_icons.ICONS), "the picker and the renderer disagree"
+    for name in offered:
+        assert ad_icons.svg(name).startswith("<svg"), name
+
+
+def test_a_commercial_property_has_icons_that_fit_it():
+    """Reported from a live warehouse advert: every glyph on offer was
+    residential, so "Workshop with industrial sliding doors" could choose
+    between a bed and a swimming pool."""
+    from engine.render.ad_icons import icon_for
+
+    assert icon_for("Warehouse facilities") == "warehouse"
+    assert icon_for("Workshop with industrial sliding doors") == "workshop"
+    assert icon_for("1 x Reception Area") == "office"
+    assert icon_for("2 x Storage") == "storeroom"
+    assert icon_for("1 x Undercover Parking Area") == "parking"
+    assert icon_for("No security, property currently empty") == "security"
+    # None of them fell through to the generic mark.
+    for line in ("Warehouse facilities", "2 x Storage", "1 x Reception Area"):
+        assert icon_for(line) != "feature"
+
+
+def test_the_residential_advert_vocabulary_did_not_move():
+    """Commercial rules are tested first, so this pins that they do not steal a
+    home's lines on the way past."""
+    from engine.render.ad_icons import icon_for
+
+    for line, want in {
+        "3 bedrooms, main with en-suite": "bed",
+        "2 bathrooms": "bath",
+        "Open-plan lounge and kitchen": "openplan",
+        "Swimming pool": "pool",
+        "Balcony leading from the lounge": "patio",
+        "Double garage": "garage",
+        "Landscaped gardens": "garden",
+    }.items():
+        assert icon_for(line) == want, f"{line!r} drew {icon_for(line)!r}"
+
+
+def test_a_marketers_pick_beats_the_rules_and_clears_cleanly():
+    from engine.render.ad_icons import icon_for
+
+    line = "Warehouse facilities"
+    assert icon_for(line, {line: "pool"}) == "pool"
+    assert icon_for(line, {}) == "warehouse"
+    assert icon_for(line, {line: "not-a-glyph"}) == "warehouse"

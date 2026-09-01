@@ -1058,3 +1058,26 @@ tr:hover .iconbtn { opacity: 1; }
 [data-photo-tile]:hover .tile__grip { opacity: 1; }
 [data-photo-tile] .tile__grip svg { width: 15px; height: 15px; }
 [data-photo-sort] { min-height: 40px; }
+
+
+/* --- the advert's icon picker (D95) ---------------------------------------
+   A grid of the real glyphs rather than a dropdown of words: the picture in
+   the picker is the picture that prints, which a list of names cannot show. */
+.iconrow { padding: 10px 0; border-top: 1px solid var(--line); }
+.iconrow:first-child { border-top: 0; }
+.iconrow__label { font-size: 13px; font-weight: 600; margin-bottom: 7px; color: var(--ink-2); }
+.iconrow__picks { display: flex; flex-wrap: wrap; gap: 5px; }
+.iconpick {
+  width: 34px; height: 34px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--panel-2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted); transition: border-color .12s ease, color .12s ease, background .12s ease;
+}
+.iconpick:hover { border-color: var(--accent-bd); color: var(--ink); }
+.iconpick input { position: absolute; opacity: 0; width: 0; height: 0; }
+.iconpick svg { width: 19px; height: 19px; }
+.iconpick__auto { font-size: 8.5px; font-weight: 800; letter-spacing: .04em; }
+.iconpick.is-on, .iconpick:has(input:checked) {
+  border-color: var(--accent); color: var(--accent);
+  background: var(--accent-bg); box-shadow: var(--glow);
+}

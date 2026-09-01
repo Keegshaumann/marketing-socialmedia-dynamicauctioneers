@@ -34,7 +34,7 @@ from typing import Dict, List, Optional, Tuple
 from jinja2 import Environment, FileSystemLoader
 from markupsafe import Markup
 
-from engine.render import pack_icons
+from engine.render import ad_icons, pack_icons
 from engine.render.base import FORMATS, Artifact, RenderBackend, RenderRequest
 
 
@@ -537,6 +537,9 @@ class HtmlBackend(RenderBackend):
             return pack_icons.icon_for(text)
 
         self._env.globals["icon_for"] = _icon_for
+        # The advert's own stroked set, shared with the gate-2 picker (D95).
+        self._env.globals["ad_glyph"] = lambda name: Markup(ad_icons.svg(name))
+        self._env.globals["ad_icon_for"] = ad_icons.icon_for
         self._env.globals["split_label"] = pack_icons.split_label
         self._env.filters["split3"] = _split3
         # "3 Bedroom Apartment" -> "Apartment", for surfaces that state the bed

@@ -791,7 +791,7 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
             "delete_caveat": DELETE_CAVEAT,
             # The advert's feature lines and the glyph each draws (D94).
             "feature_rows": _feature_rows(record),
-            "icon_choices": AD_ICON_CHOICES,
+            "icon_choices": _icon_choices(),
             "photos": _photo_view(db_path, dp, record),
             "qr_src": _qr_view(db_path, dp, record),
             "max_photos": _MAX_PHOTOS_TOTAL,
@@ -1174,14 +1174,28 @@ _MAX_AD_PHOTOS = 4
 # The glyphs a marketer may choose for a feature line (D94). Names shared with
 # the pack's set where one exists, so a single pick drives both surfaces; the
 # four that are advert-only fall back to the pack's own rules there.
-AD_ICON_CHOICES = [
-    ("", "Automatic"), ("bed", "Bed"), ("bath", "Bath"), ("kitchen", "Kitchen"),
-    ("openplan", "Open-plan room"), ("sofa", "Lounge"), ("dining", "Dining"),
-    ("patio", "Patio / balcony"), ("pool", "Pool"), ("garden", "Garden"),
-    ("bar", "Braai / bar"), ("garage", "Garage"), ("study", "Study / office"),
-    ("size", "Extent"), ("feature", "Plain mark"),
-]
-_AD_ICON_NAMES = {name for name, _ in AD_ICON_CHOICES if name}
+def _icon_choices() -> List[Dict[str, Any]]:
+    """The picker's tiles: name, label, group and the glyph's own drawing (D95).
+
+    The drawing comes from the same module the advert renders from, so the
+    picture in the picker IS the picture that prints - a dropdown of words could
+    not show that, which is why choosing an icon meant guessing.
+    """
+    from markupsafe import Markup
+    from engine.render import ad_icons
+
+    return [
+        {"name": name, "label": label, "group": group,
+         "svg": Markup(ad_icons.svg(name)) if name else ""}
+        for name, label, group in ad_icons.CHOICES
+    ]
+
+
+def _valid_icon_names() -> set:
+    """Glyph names the picker offers, so a crafted post cannot store another."""
+    from engine.render import ad_icons
+
+    return set(ad_icons.NAMES)
 
 
 def _feature_rows(record: PropertyRecord) -> List[Dict[str, Any]]:
@@ -1220,7 +1234,7 @@ async def gate2_feature_icons(dp: str, request: Request,
             continue
         line = key[5:]
         # Only a line the advert actually prints, and only a glyph we offer.
-        if line in rows and str(value).strip() in _AD_ICON_NAMES:
+        if line in rows and str(value).strip() in _valid_icon_names():
             picks[line] = str(value).strip()
 
     store = _store(db_path)

@@ -92,38 +92,8 @@
 
 {# ``icons`` is the marketer's per-line pick (D94); the keyword rules below
    choose when there is none. #}
-{% macro feature_icon(text, icons=None) -%}
-  {%- set pick = (icons or {}).get(text) -%}
-  {%- if pick == 'bed' -%}{{ icon_bed() }}
-  {%- elif pick == 'bath' -%}{{ icon_bath() }}
-  {%- elif pick == 'garage' -%}{{ icon_garage() }}
-  {%- elif pick == 'size' -%}{{ icon_size() }}
-  {%- elif pick == 'kitchen' -%}{{ icon_kitchen() }}
-  {%- elif pick == 'study' -%}{{ icon_study() }}
-  {%- elif pick == 'garden' -%}{{ icon_garden() }}
-  {%- elif pick == 'bar' -%}{{ icon_bar() }}
-  {%- elif pick == 'pool' -%}{{ icon_pool() }}
-  {%- elif pick == 'sofa' -%}{{ icon_sofa() }}
-  {%- elif pick == 'dining' -%}{{ icon_dining() }}
-  {%- elif pick == 'openplan' -%}{{ icon_openplan() }}
-  {%- elif pick == 'patio' -%}{{ icon_patio() }}
-  {%- elif pick == 'feature' -%}{{ icon_feature() }}
-  {%- else -%}{{ _auto_feature_icon(text) }}{%- endif -%}
-{%- endmacro %}
+{# One source of truth for the advert's glyphs (D95): the drawings and the
+   keyword rules live in engine/render/ad_icons.py, so the gate-2 picker can
+   show the very same pictures the advert prints. #}
+{% macro feature_icon(text, icons=None) -%}{{ ad_glyph(ad_icon_for(text, icons)) }}{%- endmacro %}
 
-{% macro _auto_feature_icon(text) -%}
-  {%- set t = (text or '') | lower -%}
-  {%- if 'open-plan' in t or 'open plan' in t -%}{{ icon_openplan() }}
-  {%- elif 'kitchen' in t or 'scullery' in t or 'pantry' in t -%}{{ icon_kitchen() }}
-  {%- elif 'study' in t or 'office' in t -%}{{ icon_study() }}
-  {%- elif 'garden' in t or 'lawn' in t or 'yard' in t -%}{{ icon_garden() }}
-  {%- elif 'bar' in t or 'bbq' in t or 'braai' in t or 'entertain' in t -%}{{ icon_bar() }}
-  {%- elif 'pool' in t -%}{{ icon_pool() }}
-  {# Patio and balcony BEFORE lounge/living: "Balcony leading from the lounge"
-     is a balcony, and matching anywhere drew it a sofa (D92). #}
-  {%- elif 'patio' in t or 'balcon' in t or 'veranda' in t or 'deck' in t or 'stoep' in t -%}{{ icon_patio() }}
-  {%- elif 'lounge' in t or 'living' in t or 'tv room' in t or 'family room' in t -%}{{ icon_sofa() }}
-  {%- elif 'dining' in t -%}{{ icon_dining() }}
-  {%- else -%}{{ icon_feature() }}
-  {%- endif -%}
-{%- endmacro %}
