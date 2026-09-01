@@ -99,10 +99,10 @@
   </div>
 
   <div class="sf-stats">
-    {% if vm.size_str %}<div class="sf-item">{{ parts.icon_size() }}<span><span class="nb">&plusmn;{% if vm.size_ha %}{{ vm.size_ha }}<span class="un"> ha</span>{% else %}{{ vm.size_str }}<span class="un">m&sup2;</span>{% endif %}</span> Property</span></div>{% endif %}
-    {% if vm.beds %}<div class="sf-item">{{ parts.icon_bed() }}<span>{{ vm.beds }} Bedroom{{ 's' if vm.beds != '1' }}</span></div>{% endif %}
-    {% if vm.baths %}<div class="sf-item">{{ parts.icon_bath() }}<span>{{ vm.baths }} Bathroom{{ 's' if vm.baths != '1' }}</span></div>{% endif %}
-    {% if vm.garages and vm.garages != '0' %}<div class="sf-item">{{ parts.icon_garage() }}<span>{{ parts.garage_word(vm.garages) }}</span></div>{% endif %}
+    {% if vm.size_str %}<div class="sf-item">{{ parts.stat_icon('extent', vm) }}<span><span class="nb">&plusmn;{% if vm.size_ha %}{{ vm.size_ha }}<span class="un"> ha</span>{% else %}{{ vm.size_str }}<span class="un">m&sup2;</span>{% endif %}</span> Property</span></div>{% endif %}
+    {% if vm.beds %}<div class="sf-item">{{ parts.stat_icon('bedrooms', vm) }}<span>{{ vm.beds }} Bedroom{{ 's' if vm.beds != '1' }}</span></div>{% endif %}
+    {% if vm.baths %}<div class="sf-item">{{ parts.stat_icon('bathrooms', vm) }}<span>{{ vm.baths }} Bathroom{{ 's' if vm.baths != '1' }}</span></div>{% endif %}
+    {% if vm.garages and vm.garages != '0' %}<div class="sf-item">{{ parts.stat_icon('garages', vm) }}<span>{{ parts.garage_word(vm.garages) }}</span></div>{% endif %}
     {% for f in feats[:2] %}<div class="sf-item">{{ parts.feature_icon(f, vm) }}<span>{{ f }}</span></div>{% endfor %}
   </div>
 

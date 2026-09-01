@@ -1209,18 +1209,39 @@ def _valid_icon_names() -> set:
 
 def _feature_rows(record: PropertyRecord) -> List[Dict[str, Any]]:
     """The advert's feature lines with the glyph each currently draws (D94)."""
-    from engine.render.html_backend import _ad_features, _fmt_num
+    from engine.render.html_backend import _ad_features, _count, _fmt_num
 
     public = record.public_view()
     physical = public.get("physical") or {}
     picks = ((record.marketing.feature_icons if record.marketing else None) or {})
+    # `_count`, not `_fmt_num`: the advert omits a count of zero (D94), and the
+    # picker must offer exactly the rows the advert prints - `_fmt_num` returns
+    # the truthy string "0", which offered a garage icon for a property with no
+    # garage. The same two-functions-for-one-idea slip D94 fixed in the templates.
+    beds = _count(physical.get("bedrooms"))
+    baths = _count(physical.get("bathrooms_main_unit"))
+    garages = _count(physical.get("garages"))
     lines = _ad_features(
         list(physical.get("features_main") or []) + list(physical.get("features_complex") or []),
-        beds=_fmt_num(physical.get("bedrooms")),
-        baths=_fmt_num(physical.get("bathrooms_main_unit")),
-        garages=_fmt_num(physical.get("garages")),
+        beds=beds, baths=baths, garages=garages,
     )
-    return [{"text": line, "pick": picks.get(line, "")} for line in lines]
+
+    # The STAT rows first (D98): extent, bedrooms, bathrooms, garages are the
+    # four icons a marketer looks at first and the panel listed none of them,
+    # because they are drawn by their own path rather than as feature lines.
+    # Only the ones this property actually prints are offered.
+    rows: List[Dict[str, Any]] = []
+    for key, label, shown in (
+        ("stat:extent", "Extent", _count(physical.get("size_m2")) or physical.get("size_m2")),
+        ("stat:bedrooms", "Bedrooms", beds),
+        ("stat:bathrooms", "Bathrooms", baths),
+        ("stat:garages", "Garages", garages),
+    ):
+        if shown:
+            rows.append({"text": key, "label": label, "pick": picks.get(key, ""), "stat": True})
+    rows += [{"text": line, "label": line, "pick": picks.get(line, ""), "stat": False}
+             for line in lines]
+    return rows
 
 
 _MAX_CUSTOM_ICONS = 12
@@ -1310,7 +1331,7 @@ async def gate2_feature_icons(dp: str, request: Request,
     db_path = _db(request)
     form = await request.form()
     record = _load(db_path, dp)
-    rows = {r["text"] for r in _feature_rows(record)}
+    rows = {r["text"] for r in _feature_rows(record)}   # includes the "stat:" keys
     custom_names = {f"custom:{label}" for label in
                     ((record.marketing.custom_icons if record.marketing else None) or {})}
 

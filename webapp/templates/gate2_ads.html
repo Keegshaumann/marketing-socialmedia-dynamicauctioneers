@@ -330,7 +330,7 @@
             </div>
             {% for row in feature_rows %}
             <div class="iconrow">
-              <div class="iconrow__label">{{ row.text }}</div>
+              <div class="iconrow__label">{{ row.label }}{% if row.stat %} <span class="hint hint--inline">on the stat row</span>{% endif %}</div>
               <div class="iconrow__picks">
                 {% for c in icon_choices %}
                 <label class="iconpick{% if row.pick == c.name %} is-on{% endif %}"

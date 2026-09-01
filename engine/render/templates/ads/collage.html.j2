@@ -126,9 +126,9 @@
   {% endif %}
 
   <div class="ig-stats">
-    {% if vm.beds %}<div class="ig-stat"><svg viewBox="0 0 24 24"><path d="M3 7v11m0-4h18m0 4v-7a2 2 0 0 0-2-2h-7v5"/><circle cx="7" cy="10" r="1.6"/></svg>{{ vm.beds }} <span class="u">Bed</span></div>{% endif %}
-    {% if vm.baths %}<div class="ig-stat"><svg viewBox="0 0 24 24"><path d="M4 12h16v3a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path d="M6 12V6a2 2 0 0 1 2-2 1.5 1.5 0 0 1 1.5 1.5"/></svg>{{ vm.baths }} <span class="u">Bath</span></div>{% endif %}
-    {% if vm.garages and vm.garages != '0' %}<div class="ig-stat"><svg viewBox="0 0 24 24"><path d="M3 20v-8l9-5 9 5v8"/><path d="M6 20v-5h12v5"/><path d="M6 15h12"/></svg>{{ vm.garages }} <span class="u">Garage{{ 's' if vm.garages != '1' }}</span></div>{% endif %}
+    {% if vm.beds %}<div class="ig-stat">{{ parts.stat_icon('bedrooms', vm) }}{{ vm.beds }} <span class="u">Bed</span></div>{% endif %}
+    {% if vm.baths %}<div class="ig-stat">{{ parts.stat_icon('bathrooms', vm) }}{{ vm.baths }} <span class="u">Bath</span></div>{% endif %}
+    {% if vm.garages and vm.garages != '0' %}<div class="ig-stat">{{ parts.stat_icon('garages', vm) }}{{ vm.garages }} <span class="u">Garage{{ 's' if vm.garages != '1' }}</span></div>{% endif %}
     {% if vm.size_str %}<div class="ig-stat nb">{% if vm.size_ha %}{{ vm.size_ha }}<span class="u un" style="font-size:19px"> ha</span>{% else %}{{ vm.size_str }}<span class="u un" style="font-size:19px">m&sup2;</span>{% endif %}</div>{% endif %}
   </div>
 

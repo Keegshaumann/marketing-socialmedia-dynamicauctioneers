@@ -1991,3 +1991,57 @@ def test_a_count_of_zero_is_never_printed(golden_record, tmp_path):
     # ...while a real count still prints.
     ad = Path(next(a for a in arts if a.fmt == "demo_ad").path).read_text(encoding="utf-8")
     assert "2" in re.sub(r"<[^>]+>", " ", ad)
+
+
+def test_the_stat_row_icons_can_be_changed_too(golden_record, tmp_path):
+    """Reported: "there is nothing about bedrooms but it says bedrooms on the
+    ads - the point was to change on the ads" (D98).
+
+    Extent, bedrooms, bathrooms and garages are the four icons a marketer looks
+    at first, and the picker listed none of them: they are drawn by their own
+    path, not as feature lines. Now they go through the same override.
+    """
+    from engine.store import RecordStore
+
+    _stage_photos(golden_record, tmp_path)
+    BED, POOL = "M3 7v11m0-4h18", "M3 13c1.4 0 1.4 1.4"
+
+    def ad(picks, style=None, design="hero_overlay"):
+        golden_record.marketing.template_set = design
+        golden_record.marketing.feature_icons = picks
+        golden_record.marketing.icon_style = style
+        store = RecordStore(db_path=":memory:")
+        try:
+            store.upsert(golden_record, state="approved")
+            art = render_one("3060", store, "demo_ad", backend="html",
+                             output_root=str(tmp_path), ai_copy=False)
+        finally:
+            store.close()
+        return Path(str(art.path).replace(".pdf", ".html")).read_text(encoding="utf-8")
+
+    assert BED in ad(None) and POOL not in ad(None)
+
+    swapped = ad({"stat:bedrooms": "pool"})
+    assert BED not in swapped and POOL in swapped
+
+    # Every design, not just the default: the stat rows were four separate
+    # hand-written copies before, and collage's were inline SVG.
+    for design in ("hero_overlay", "feature_list", "stats_first", "collage"):
+        assert POOL in ad({"stat:bedrooms": "pool"}, design=design), design
+
+    # The property's icon style reaches them too.
+    assert 'stroke-width="2.4"' in ad({"stat:bedrooms": "pool"}, style="bold")
+
+
+def test_the_picker_lists_the_stat_rows_a_property_prints(golden_record):
+    """Only the rows that appear: a property with no garages must not be asked
+    to choose a garage icon."""
+    from webapp.routes.gates import _feature_rows
+
+    golden_record.physical.garages = 0
+    keys = [r["text"] for r in _feature_rows(golden_record)]
+    assert "stat:bedrooms" in keys and "stat:bathrooms" in keys
+    assert "stat:garages" not in keys, "offered an icon for a row the ad omits"
+    # The friendly label is what the panel shows, not the raw key.
+    labels = {r["text"]: r["label"] for r in _feature_rows(golden_record)}
+    assert labels["stat:bedrooms"] == "Bedrooms"

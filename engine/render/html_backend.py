@@ -815,12 +815,16 @@ class HtmlBackend(RenderBackend):
             "features_main": list(physical.get("features_main") or []),
             # The same features minus anything the ad's stat grid already
             # states, so a bedroom count is never printed twice on one ad.
+            # `_count` here too: a stat that is NOT printed must not suppress a
+            # feature line about it. With `_fmt_num`, a property with zero
+            # bedrooms printed no bed stat and still had its bedroom features
+            # suppressed, so the advert said nothing about them at all.
             "features_ad": _ad_features(
                 list(physical.get("features_main") or [])
                 + list(physical.get("features_complex") or []),
-                beds=_fmt_num(physical.get("bedrooms")),
-                baths=_fmt_num(physical.get("bathrooms_main_unit")),
-                garages=_fmt_num(physical.get("garages")),
+                beds=_count(physical.get("bedrooms")),
+                baths=_count(physical.get("bathrooms_main_unit")),
+                garages=_count(physical.get("garages")),
             ),
             "features_complex": list(physical.get("features_complex") or []),
             # The marketer's per-line icon picks (D94). The advert reads them

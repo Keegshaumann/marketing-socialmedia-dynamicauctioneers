@@ -95,6 +95,21 @@
 {# One source of truth for the advert's glyphs (D95): the drawings and the
    keyword rules live in engine/render/ad_icons.py, so the gate-2 picker can
    show the very same pictures the advert prints. #}
+{# The STAT rows (extent, bedrooms, bathrooms, garages) draw their glyph the
+   same way a feature row does (D98), so the gate-2 picker can change them and
+   the property's icon style reaches them. They were direct macro calls, which
+   is why the panel listed everything EXCEPT the four icons a marketer looks at
+   first. Keyed "stat:<what>" so a pick cannot collide with a feature line. #}
+{% set _DEFAULT_STAT_ICON = {'extent': 'size', 'bedrooms': 'bed',
+                             'bathrooms': 'bath', 'garages': 'garage'} %}
+{% macro stat_icon(what, vm=None) -%}
+{%- set vm = vm or {} -%}
+{%- set key = 'stat:' ~ what -%}
+{%- set pick = (vm.get('feature_icons') or {}).get(key) -%}
+{{ ad_glyph(pick or _DEFAULT_STAT_ICON.get(what, 'feature'), vm.get('icon_style'),
+            vm.get('custom_icons'), vm.get('output_root'), vm.get('dp')) }}
+{%- endmacro %}
+
 {% macro feature_icon(text, vm=None) -%}
 {%- set vm = vm or {} -%}
 {{ ad_glyph(ad_icon_for(text, vm.get('feature_icons')), vm.get('icon_style'),
