@@ -1081,3 +1081,8 @@ tr:hover .iconbtn { opacity: 1; }
   border-color: var(--accent); color: var(--accent);
   background: var(--accent-bg); box-shadow: var(--glow);
 }
+
+.iconpick img { width: 19px; height: 19px; object-fit: contain; }
+/* An uploaded glyph is a picture, not a font: it cannot take the accent colour,
+   so the selected state is carried by the tile alone. */
+.btn.is-active { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }

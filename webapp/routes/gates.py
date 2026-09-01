@@ -791,7 +791,9 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
             "delete_caveat": DELETE_CAVEAT,
             # The advert's feature lines and the glyph each draws (D94).
             "feature_rows": _feature_rows(record),
-            "icon_choices": _icon_choices(),
+            "icon_choices": _icon_choices(record, dp),
+            "icon_styles": __import__("engine.render.ad_icons", fromlist=["x"]).STYLES,
+            "icon_style": (record.marketing.icon_style if record.marketing else None) or "line",
             "photos": _photo_view(db_path, dp, record),
             "qr_src": _qr_view(db_path, dp, record),
             "max_photos": _MAX_PHOTOS_TOTAL,
@@ -1174,7 +1176,7 @@ _MAX_AD_PHOTOS = 4
 # The glyphs a marketer may choose for a feature line (D94). Names shared with
 # the pack's set where one exists, so a single pick drives both surfaces; the
 # four that are advert-only fall back to the pack's own rules there.
-def _icon_choices() -> List[Dict[str, Any]]:
+def _icon_choices(record: "PropertyRecord | None" = None, dp: str = "") -> List[Dict[str, Any]]:
     """The picker's tiles: name, label, group and the glyph's own drawing (D95).
 
     The drawing comes from the same module the advert renders from, so the
@@ -1184,11 +1186,18 @@ def _icon_choices() -> List[Dict[str, Any]]:
     from markupsafe import Markup
     from engine.render import ad_icons
 
-    return [
+    marketing = (record.marketing if record is not None else None)
+    style = (marketing.icon_style if marketing else None) or "line"
+    tiles = [
         {"name": name, "label": label, "group": group,
-         "svg": Markup(ad_icons.svg(name)) if name else ""}
+         "svg": Markup(ad_icons.svg(name, style=style)) if name else "", "url": ""}
         for name, label, group in ad_icons.CHOICES
     ]
+    # The team's own glyphs sit at the end, drawn from the file itself.
+    for label in sorted((marketing.custom_icons if marketing else None) or {}):
+        tiles.append({"name": f"custom:{label}", "label": label, "group": "Yours",
+                      "svg": "", "url": f"/gates/{dp}/ads/icons/{label}"})
+    return tiles
 
 
 def _valid_icon_names() -> set:
@@ -1214,6 +1223,81 @@ def _feature_rows(record: PropertyRecord) -> List[Dict[str, Any]]:
     return [{"text": line, "pick": picks.get(line, "")} for line in lines]
 
 
+_MAX_CUSTOM_ICONS = 12
+_ICON_SUFFIXES = {".svg", ".png", ".webp"}
+_MAX_ICON_BYTES = 512 * 1024
+
+
+def _icons_dir(db_path: str, dp: str) -> Path:
+    return Path(_output_root(db_path)) / f"DP{dp}" / "icons"
+
+
+@router.get("/{dp}/ads/icons/{name}")
+def gate2_custom_icon(dp: str, name: str, request: Request,
+                      user: dict = Depends(require_role("approver", "marketing"))):
+    """Serve an uploaded glyph for the picker. Auth-gated like the photos."""
+    record = _load(_db(request), dp)
+    stored = ((record.marketing.custom_icons if record.marketing else None) or {}).get(name)
+    path = _icons_dir(_db(request), dp) / Path(stored or name).name
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="No such icon.")
+    return FileResponse(str(path))
+
+
+@router.post("/{dp}/ads/icons/upload", response_class=HTMLResponse)
+async def gate2_upload_icon(dp: str, request: Request,
+                            file: UploadFile = File(...),
+                            user: dict = Depends(require_role("approver", "marketing"))):
+    """Upload a glyph of the team's own for this property (D96).
+
+    SVG is the useful format (it scales and takes the advert's colour), so it is
+    allowed - but an uploaded SVG can carry script, so it is only ever drawn
+    through an ``<img>``, where that script does not run. Never inlined.
+    """
+    db_path = _db(request)
+    raw = await file.read()
+    suffix = Path(file.filename or "").suffix.lower()
+    label = Path(file.filename or "icon").stem.strip()[:28] or "icon"
+
+    if suffix not in _ICON_SUFFIXES:
+        toast = {"tone": "note", "title": "Not an icon file",
+                 "text": "Upload an SVG, PNG or WebP. SVG is best: it scales and takes the advert's colour."}
+        return _photo_result(request, db_path, dp, toast)
+    if len(raw) > _MAX_ICON_BYTES:
+        toast = {"tone": "note", "title": "Icon too large",
+                 "text": f"An icon should be a small drawing, under {_MAX_ICON_BYTES // 1024}KB."}
+        return _photo_result(request, db_path, dp, toast)
+
+    record = _load(db_path, dp)
+    existing = dict((record.marketing.custom_icons if record.marketing else None) or {})
+    if label not in existing and len(existing) >= _MAX_CUSTOM_ICONS:
+        toast = {"tone": "note", "title": "That is enough icons",
+                 "text": f"{_MAX_CUSTOM_ICONS} uploaded already. Remove one first."}
+        return _photo_result(request, db_path, dp, toast)
+
+    icons = _icons_dir(db_path, dp)
+    icons.mkdir(parents=True, exist_ok=True)
+    stored = re.sub(r"[^A-Za-z0-9._-]", "_", label) + suffix
+    (icons / stored).write_bytes(raw)
+    existing[label] = stored
+
+    store = _store(db_path)
+    try:
+        rec = store.get(dp)
+        if rec.marketing is None:
+            from engine.schema import Marketing
+            rec.marketing = Marketing()
+        rec.marketing.custom_icons = existing
+        store.upsert(rec, state=store.get_state(dp))
+        store.record_signoff(dp, gate="edit", user=user["email"], note=f"icon uploaded: {label}")
+    finally:
+        store.close()
+    _mark_stale(db_path, dp, "icons")
+    return _photo_result(request, db_path, dp, {
+        "tone": "ok", "title": "Icon uploaded",
+        "text": f'"{label}" is now in the picker. Choose it on a line, then Regenerate.'})
+
+
 @router.post("/{dp}/ads/icons", response_class=HTMLResponse)
 async def gate2_feature_icons(dp: str, request: Request,
                               user: dict = Depends(require_role("approver", "marketing"))):
@@ -1227,6 +1311,8 @@ async def gate2_feature_icons(dp: str, request: Request,
     form = await request.form()
     record = _load(db_path, dp)
     rows = {r["text"] for r in _feature_rows(record)}
+    custom_names = {f"custom:{label}" for label in
+                    ((record.marketing.custom_icons if record.marketing else None) or {})}
 
     picks: Dict[str, str] = {}
     for key, value in form.multi_items():
@@ -1234,7 +1320,8 @@ async def gate2_feature_icons(dp: str, request: Request,
             continue
         line = key[5:]
         # Only a line the advert actually prints, and only a glyph we offer.
-        if line in rows and str(value).strip() in _valid_icon_names():
+        chosen = str(value).strip()
+        if line in rows and (chosen in _valid_icon_names() or chosen in custom_names):
             picks[line] = str(value).strip()
 
     store = _store(db_path)
@@ -1245,6 +1332,9 @@ async def gate2_feature_icons(dp: str, request: Request,
             rec.marketing = Marketing()
         before = rec.marketing.feature_icons or {}
         rec.marketing.feature_icons = picks or None
+        style = str(form.get("icon_style", "")).strip()
+        if style in {n for n, _, _ in __import__("engine.render.ad_icons", fromlist=["x"]).STYLES}:
+            rec.marketing.icon_style = style
         store.upsert(rec, state=store.get_state(dp))
         if before != (picks or None):
             store.record_signoff(dp, gate="edit", user=user["email"],

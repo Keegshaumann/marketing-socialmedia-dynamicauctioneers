@@ -378,6 +378,14 @@ class Marketing(_Base):
     # set and the pack's, so one pick drives both surfaces, each drawing in its
     # own style.
     feature_icons: Optional[Dict[str, str]] = None
+    # How the advert DRAWS its glyphs: "line" (default), "bold" or "solid"
+    # (D96). A per-property look, not a per-line one.
+    icon_style: Optional[str] = None
+    # Glyphs the team uploaded for THIS property (D96): label -> filename under
+    # ``DP<dp>/icons/``. Picked like a built-in, by the name ``custom:<label>``.
+    # Rendered through an <img> with a data URI, never inlined: an uploaded SVG
+    # can carry script, and script inside an <img>-referenced SVG does not run.
+    custom_icons: Optional[Dict[str, str]] = None
     # The named design/template set the render backends use (the marketing
     # team's pick on gate 2, D33). None = the default (first-configured) set.
     template_set: Optional[str] = None

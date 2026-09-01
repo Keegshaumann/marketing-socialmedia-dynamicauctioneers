@@ -126,7 +126,7 @@
           {% if vm.beds %}<div class="fl-item">{{ parts.icon_bed() }}<span>{{ vm.beds }} Bedroom{{ 's' if vm.beds != '1' }}</span></div>{% endif %}
           {% if vm.baths %}<div class="fl-item">{{ parts.icon_bath() }}<span>{{ vm.baths }} Bathroom{{ 's' if vm.baths != '1' }}</span></div>{% endif %}
           {% if vm.garages and vm.garages != '0' %}<div class="fl-item">{{ parts.icon_garage() }}<span>{{ parts.garage_word(vm.garages) }}</span></div>{% endif %}
-          {% for f in feats[:4] %}<div class="fl-item">{{ parts.feature_icon(f, vm.feature_icons) }}<span>{{ f }}</span></div>{% endfor %}
+          {% for f in feats[:4] %}<div class="fl-item">{{ parts.feature_icon(f, vm) }}<span>{{ f }}</span></div>{% endfor %}
         </div>
 
         <div class="fl-moneybox">

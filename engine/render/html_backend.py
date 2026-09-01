@@ -150,6 +150,19 @@ def _asset_data_uri(relative_path: str) -> str:
     return f"data:{mime};base64," + base64.b64encode(data).decode()
 
 
+def _file_data_uri(path: Path) -> str:
+    """Read a file and return it as a base64 data URI, or "" when absent."""
+    try:
+        data = Path(path).read_bytes()
+    except OSError:
+        return ""
+    suffix = Path(path).suffix.lower()
+    mime = _ASSET_MIME.get(suffix)
+    if not mime:
+        return ""
+    return f"data:{mime};base64," + base64.b64encode(data).decode()
+
+
 def _split3(text: object) -> List[str]:
     """Split a headline into up to 3 roughly balanced lines (for the stacked,
     gold-middle-line headline style the DA ad designs use). One/two words stay on
@@ -538,7 +551,25 @@ class HtmlBackend(RenderBackend):
 
         self._env.globals["icon_for"] = _icon_for
         # The advert's own stroked set, shared with the gate-2 picker (D95).
-        self._env.globals["ad_glyph"] = lambda name: Markup(ad_icons.svg(name))
+        def _ad_glyph(name, style=None, custom=None, output_root=None, dp=None):
+            """One advert glyph: a built-in drawing, or an uploaded file (D96).
+
+            An uploaded glyph is embedded as a data URI inside an ``<img>``, so
+            the artifact stays self-contained for printing AND a script inside
+            an uploaded SVG cannot run (it does not, inside an <img>).
+            """
+            if isinstance(name, str) and name.startswith("custom:"):
+                label = name[7:]
+                filename = (custom or {}).get(label)
+                if filename:
+                    path = Path(output_root or ".") / f"DP{dp}" / "icons" / Path(filename).name
+                    uri = _file_data_uri(path)
+                    if uri:
+                        return Markup(f'<img src="{uri}" alt="" class="adglyph"/>')
+                return Markup(ad_icons.svg("feature", style=style))
+            return Markup(ad_icons.svg(name, style=style))
+
+        self._env.globals["ad_glyph"] = _ad_glyph
         self._env.globals["ad_icon_for"] = ad_icons.icon_for
         self._env.globals["split_label"] = pack_icons.split_label
         self._env.filters["split3"] = _split3
@@ -782,6 +813,9 @@ class HtmlBackend(RenderBackend):
             # The marketer's per-line icon picks (D94). The advert reads them
             # directly; the pack reads them through icon_for below.
             "feature_icons": dict(marketing.get("feature_icons") or {}),
+            "icon_style": marketing.get("icon_style") or "line",
+            "custom_icons": dict(marketing.get("custom_icons") or {}),
+            "output_root": request.output_root,
             # The short strip the reference ads carry, not the first three
             # feature sentences (D84).
             "tagline": _tagline(

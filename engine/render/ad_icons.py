@@ -67,13 +67,45 @@ ICONS: Dict[str, str] = {
 }
 
 
-def svg(name: str, extra_class: str = "") -> str:
-    """One glyph as a complete ``<svg>``. Unknown names draw the generic mark."""
-    inner = ICONS.get(name) or ICONS["feature"]
+# How the glyphs are DRAWN, chosen per property (D96). Three real looks rather
+# than a slider: "solid" is not a heavier stroke, it is the pack's own filled
+# drawing of the same idea, which is why it needs its own branch below.
+STYLES: List[Tuple[str, str, str]] = [
+    ("line", "Line", "Thin outline, the default"),
+    ("bold", "Bold", "The same drawing, heavier"),
+    ("solid", "Solid", "Filled shapes, like the information pack"),
+]
+STYLE_NAMES = {name for name, _, _ in STYLES}
+
+
+def svg(name: str, extra_class: str = "", style: Optional[str] = None) -> str:
+    """One glyph as a complete ``<svg>``, in the property's icon style.
+
+    ``solid`` borrows the PACK's filled drawing of the same name where one
+    exists - these paths are outlines meant for stroking, so filling them would
+    produce a blob rather than a solid icon. A name the pack does not have falls
+    back to the bold stroke, which is the nearest thing to solid this drawing
+    can honestly become.
+    """
     cls = f' class="{extra_class}"' if extra_class else ""
+    style = style if style in STYLE_NAMES else "line"
+
+    if style == "solid":
+        from engine.render import pack_icons
+
+        filled = pack_icons.ICONS.get(name)
+        if filled:
+            return (
+                f'<svg{cls} viewBox="0 0 24 24" fill="currentColor" '
+                f'aria-hidden="true" focusable="false">{filled}</svg>'
+            )
+        style = "bold"
+
+    inner = ICONS.get(name) or ICONS["feature"]
+    width = "2.4" if style == "bold" else "1.6"
     return (
         f'<svg{cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" '
-        f'stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" '
+        f'stroke-width="{width}" stroke-linecap="round" stroke-linejoin="round" '
         f'aria-hidden="true" focusable="false">{inner}</svg>'
     )
 
@@ -151,7 +183,11 @@ def icon_for(text: str, picks: Optional[Dict[str, str]] = None) -> str:
     rule the advert's running order uses (D92).
     """
     pick = (picks or {}).get(text)
-    if pick and pick in ICONS:
+    # A "custom:<label>" pick names a glyph the team UPLOADED, which this module
+    # has no drawing for - it is resolved to a file by the renderer. Testing
+    # membership of ICONS alone silently dropped every uploaded icon back to the
+    # keyword rules, so the picker saved it and the advert ignored it (D96).
+    if pick and (pick in ICONS or str(pick).startswith("custom:")):
         return pick
     head = " ".join(str(text or "").split()[:5])
     for pattern, name in _COMPILED:

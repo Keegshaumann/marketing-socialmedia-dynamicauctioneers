@@ -239,3 +239,42 @@ def test_a_marketers_pick_beats_the_rules_and_clears_cleanly():
     assert icon_for(line, {line: "pool"}) == "pool"
     assert icon_for(line, {}) == "warehouse"
     assert icon_for(line, {line: "not-a-glyph"}) == "warehouse"
+
+
+# --- icon style + uploaded glyphs (D96) -----------------------------------
+
+def test_the_three_icon_styles_draw_differently():
+    from engine.render.ad_icons import svg
+
+    line, bold, solid = (svg("bed", style=s) for s in ("line", "bold", "solid"))
+    assert 'stroke-width="1.6"' in line
+    assert 'stroke-width="2.4"' in bold
+    assert 'fill="currentColor"' in solid and "stroke-width" not in solid
+    # An unknown style is the default rather than an error.
+    assert svg("bed", style="sparkly") == line
+
+
+def test_solid_falls_back_where_the_pack_has_no_drawing():
+    """"Solid" borrows the PACK's filled glyph; these paths are outlines meant
+    for stroking, so filling them would make a blob. A name the pack lacks gets
+    the bold stroke - the nearest thing this drawing can honestly become."""
+    from engine.render.ad_icons import svg
+    from engine.render import pack_icons
+
+    assert "size" not in pack_icons.ICONS
+    assert 'stroke-width="2.4"' in svg("size", style="solid")
+
+
+def test_an_uploaded_icon_survives_the_chooser():
+    """A "custom:" pick names a glyph this module has no drawing for - the
+    renderer resolves it to a file. Testing membership of ICONS alone silently
+    dropped every uploaded icon back to the keyword rules, so the picker saved
+    it and the advert ignored it.
+    """
+    from engine.render.ad_icons import icon_for
+
+    line = "Warehouse facilities"
+    assert icon_for(line, {line: "custom:forklift"}) == "custom:forklift"
+    # A built-in pick and the automatic rules are unaffected.
+    assert icon_for(line, {line: "pool"}) == "pool"
+    assert icon_for(line, {}) == "warehouse"

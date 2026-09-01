@@ -2213,3 +2213,25 @@ def test_no_control_promises_a_render_that_batching_stopped_doing():
                 offenders.append((tpl.name, label))
 
     assert not offenders, "these promise a render that batching stopped doing: " + str(offenders)
+
+
+def test_html_pages_are_never_cached():
+    """A cached PAGE carries the old ?v= for the stylesheet, so the browser
+    keeps the old CSS with it (D96). That shipped the icon picker to a marketer
+    as new markup wearing old styling: unstyled, at full glyph size.
+
+    The versioned static assets still cache hard - only the HTML is no-store.
+    """
+    client = _client()
+    _login_admin(client)
+    page = client.get("/board")
+    assert page.status_code == 200
+    assert "no-store" in page.headers.get("cache-control", "").lower()
+
+    # The login page too, since it carries the same stylesheet link.
+    assert "no-store" in _client().get("/login").headers.get("cache-control", "").lower()
+
+    # ...but a static asset must NOT be no-store, or every page load refetches it.
+    css = client.get("/static/app.css")
+    assert css.status_code == 200
+    assert "no-store" not in css.headers.get("cache-control", "").lower()

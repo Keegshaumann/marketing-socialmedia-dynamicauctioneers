@@ -95,5 +95,9 @@
 {# One source of truth for the advert's glyphs (D95): the drawings and the
    keyword rules live in engine/render/ad_icons.py, so the gate-2 picker can
    show the very same pictures the advert prints. #}
-{% macro feature_icon(text, icons=None) -%}{{ ad_glyph(ad_icon_for(text, icons)) }}{%- endmacro %}
+{% macro feature_icon(text, vm=None) -%}
+{%- set vm = vm or {} -%}
+{{ ad_glyph(ad_icon_for(text, vm.get('feature_icons')), vm.get('icon_style'),
+            vm.get('custom_icons'), vm.get('output_root'), vm.get('dp')) }}
+{%- endmacro %}
 

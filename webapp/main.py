@@ -175,6 +175,16 @@ def create_app() -> FastAPI:
         response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("Referrer-Policy", "same-origin")
+        # HTML is never cached (D96). The stylesheet is cache-busted by mtime,
+        # but that only helps if the browser re-reads the PAGE: a cached page
+        # carries the OLD ?v= and keeps using the old stylesheet with it. That
+        # is how a deploy reached a marketer as new markup wearing old styling -
+        # the icon picker arrived unstyled, at full glyph size. The pages are
+        # small, dynamic and behind a login, so there is nothing to gain by
+        # caching them; the versioned static assets still cache hard.
+        ctype = response.headers.get("content-type", "")
+        if ctype.startswith("text/html"):
+            response.headers.setdefault("Cache-Control", "no-store, must-revalidate")
         return response
 
     app.state.templates = _build_templates()

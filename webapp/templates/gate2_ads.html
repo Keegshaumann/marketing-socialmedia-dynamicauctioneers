@@ -308,7 +308,26 @@
           <div class="panel__actions"><span class="hint">"Automatic" lets the wording choose.</span></div>
         </div>
         <div class="panel__body">
+          {# Upload a glyph of the team's own (D96). Drawn through an <img>, so
+             an SVG's script cannot run. #}
+          <form hx-post="/gates/{{ dp }}/ads/icons/upload" hx-encoding="multipart/form-data"
+                hx-target="#photos" hx-swap="outerHTML" class="row" style="margin-bottom:12px">
+            <input class="input" type="file" name="file" accept=".svg,.png,.webp" style="flex:1">
+            {{ ui.button('Upload icon', variant='ghost', icon_name='plus', type='submit') }}
+          </form>
+
           <form hx-post="/gates/{{ dp }}/ads/icons" hx-target="#photos" hx-swap="outerHTML" class="stack">
+            <div class="field">
+              <div class="label label--sm">Icon style</div>
+              <div class="row">
+                {% for value, label, note in icon_styles %}
+                <label class="btn btn--ghost btn--sm{% if icon_style == value %} is-active{% endif %}" title="{{ note }}">
+                  <input type="radio" name="icon_style" value="{{ value }}"
+                         {% if icon_style == value %}checked{% endif %} style="margin-right:6px">{{ label }}
+                </label>
+                {% endfor %}
+              </div>
+            </div>
             {% for row in feature_rows %}
             <div class="iconrow">
               <div class="iconrow__label">{{ row.text }}</div>
@@ -318,7 +337,9 @@
                        title="{{ c.label }}{% if c.group %} ({{ c.group }}){% endif %}">
                   <input type="radio" name="icon:{{ row.text }}" value="{{ c.name }}"
                          {% if row.pick == c.name %}checked{% endif %}>
-                  {% if c.svg %}{{ c.svg }}{% else %}<span class="iconpick__auto">AUTO</span>{% endif %}
+                  {% if c.svg %}{{ c.svg }}
+                  {%- elif c.url %}<img src="{{ c.url }}" alt="{{ c.label }}">
+                  {%- else %}<span class="iconpick__auto">AUTO</span>{% endif %}
                 </label>
                 {% endfor %}
               </div>
