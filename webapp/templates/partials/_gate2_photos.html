@@ -41,7 +41,7 @@
       </div>
     </div>
     <div class="row">
-      {{ ui.button('Upload and re-render', variant='primary', icon_name='photo', type='submit', attrs='data-photo-submit') }}
+      {{ ui.button('Upload photos', variant='primary', icon_name='photo', type='submit', attrs='data-photo-submit') }}
       <button type="button" class="btn btn--ghost btn--sm" data-photo-clear>Clear chosen</button>
     </div>
   </form>
@@ -84,7 +84,7 @@
     <div class="banner__body">
       <div class="banner__title" data-photo-pending-title></div>
       <div data-photo-pending-names></div>
-      <div class="hint mt-1">These are not saved yet. Press <strong>Upload and re-render</strong> above to add them.</div>
+      <div class="hint mt-1">These are not saved yet. Press <strong>Upload photos</strong> above to add them.</div>
     </div>
   </div>
 
@@ -182,7 +182,7 @@
   {% else %}
   <div class="empty" data-photo-empty>
     <div class="empty__title">No photos yet</div>
-    <div class="empty__text">Choose photos above, then press Upload and re-render.</div>
+    <div class="empty__text">Choose photos above, then press Upload photos.</div>
   </div>
   {% endif %}
 </div>

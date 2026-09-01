@@ -2174,3 +2174,42 @@ def test_the_downloaded_pack_carries_nothing_internal():
     # The suite disables the PDF export for speed, so the deliverables are the
     # print sources here; either way the pack must not come out empty.
     assert any(n.endswith((".pdf", ".html", ".md")) for n in names)
+
+
+def test_no_control_promises_a_render_that_batching_stopped_doing():
+    """The fault behind D89, caught as a class rather than one instance (D93).
+
+    Since D72 saving, uploading, setting a lead and removing a photo all BATCH:
+    they mark the artifacts stale and the explicit Regenerate does the work. Any
+    label or toast still promising a re-render makes a working system look
+    broken - the marketer presses it, sees the same advert, and reports a bug
+    that is not there.
+    """
+    import re
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parent.parent
+    offenders = []
+
+    # Toasts on the batching handlers must not claim a render happened.
+    gates = (repo / "webapp" / "routes" / "gates.py").read_text()
+    for m in re.finditer(r'"text": "([^"]*re-rendered[^"]*)"', gates):
+        text = m.group(1)
+        if "could not" in text.lower():
+            continue                       # a failure message is allowed to say it
+        # The design picker is D72's deliberate exception: it renders on click.
+        if "chosen design" in text:
+            continue
+        offenders.append(("toast", text))
+
+    # Button labels must not either.
+    for tpl in (repo / "webapp" / "templates").rglob("*.html"):
+        for m in re.finditer(r"ui\.button\('([^']*)'", tpl.read_text()):
+            label = m.group(1)
+            if "re-render" in label.lower() and "Regenerate" not in label:
+                # "Request changes and re-render" really does re-run a render job.
+                if "Request changes" in label:
+                    continue
+                offenders.append((tpl.name, label))
+
+    assert not offenders, "these promise a render that batching stopped doing: " + str(offenders)

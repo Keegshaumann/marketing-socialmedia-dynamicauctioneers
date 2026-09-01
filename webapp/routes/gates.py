@@ -215,7 +215,14 @@ def _render(db_path: str, dp: str, formats: Any = "auto") -> List[Any]:
     try:
         if formats == "auto":
             formats = _formats_for_state(store.get_state(dp))
-        return render_all(dp, store, output_root=_output_root(db_path), formats=formats)
+        # The DRAFT phase does not pay for model-written copy (D93). While the
+        # marketer is picking photographs and wording a callout, the advert
+        # renders from the deterministic template; the paid call is made once,
+        # when the full pack is built after approval. Nothing is cached in the
+        # draft phase, so the pack still generates its own copy.
+        draft_only = bool(formats) and set(formats) <= {AD_FORMAT}
+        return render_all(dp, store, output_root=_output_root(db_path),
+                          formats=formats, ai_copy=not draft_only)
     finally:
         store.close()
 
@@ -983,11 +990,11 @@ def _photo_view(db_path: str, dp: str, record: PropertyRecord) -> List[Dict[str,
 def _save_photos(db_path: str, dp: str, full: List[str], user: str) -> None:
     """Persist an ordered photo list (hero = first).
 
-    On the add-photos step (state ``photos``) the ad is not shown, so we save the
-    picks WITHOUT rendering - the single render happens on "continue". Everywhere
-    else (gate 2, a live repost) we render only the state-appropriate formats
-    (ad-only before approval, D39) rather than all nine, so a lead/upload change
-    is a second or two, not a full-pack rebuild."""
+    NOTHING is rendered here (D72): on the add-photos step the single render
+    happens on "continue", and at gate 2 the change is batched and the artifacts
+    marked stale for the explicit Regenerate. This docstring used to describe the
+    pre-D72 behaviour and claimed a render the code had stopped doing, which is
+    the same trap the "Save and re-render" button fell into (D89, D93)."""
     hero = full[0] if full else None
     gallery = full[1:] if len(full) > 1 else []
     store = _store(db_path)
@@ -1085,8 +1092,8 @@ async def gate2_photo_upload(
                 text += f" {rejected} skipped (limit is {_MAX_PHOTOS_TOTAL}, or not an image / too large)."
             toast = {"tone": "ok", "title": "Photos added", "text": text}
         except Exception as exc:  # a render backend failure (e.g. Canva quota)
-            toast = {"tone": "block", "title": "Re-render failed",
-                     "text": f"Photos saved, but the adverts could not be re-rendered ({type(exc).__name__})."}
+            toast = {"tone": "block", "title": "Upload failed",
+                     "text": f"The photos could not be saved ({type(exc).__name__})."}
     elif len(full) >= _MAX_PHOTOS_TOTAL:
         toast = {"tone": "note", "title": "Photo limit reached",
                  "text": f"This property already has the maximum of {_MAX_PHOTOS_TOTAL} photos. Remove one to add another."}
@@ -1149,7 +1156,7 @@ async def gate2_photo_hero(dp: str, request: Request, user: dict = Depends(requi
         full = [chosen] + [p for p in full if p != chosen]
         _reopen_if_live(db_path, dp, user["email"])
         _save_photos(db_path, dp, full, user["email"])
-        toast = {"tone": "ok", "title": "Lead photo set", "text": "Adverts re-rendered with the new lead image."}
+        toast = {"tone": "ok", "title": "Lead photo set", "text": "Press Regenerate to rebuild the adverts with the new lead image."}
     else:
         toast = {"tone": "note", "title": "No change",
                  "text": "That photo is already the lead, or was not found."}
@@ -1368,7 +1375,7 @@ async def gate2_photo_delete(dp: str, request: Request, user: dict = Depends(req
     elif len(full) != len(current):
         _reopen_if_live(db_path, dp, user["email"])
         _save_photos(db_path, dp, full, user["email"])
-        toast = {"tone": "ok", "title": "Photo removed", "text": "Adverts re-rendered."}
+        toast = {"tone": "ok", "title": "Photo removed", "text": "Press Regenerate to rebuild the adverts without it."}
     else:
         toast = {"tone": "note", "title": "No change", "text": "That photo was not found."}
     return _photo_result(request, db_path, dp, toast)
@@ -1699,7 +1706,7 @@ async def gate2_copy(dp: str, request: Request, user: dict = Depends(require_rol
         _reopen_if_live(db_path, dp, user["email"])
         try:
             _save_edits(db_path, dp, fields, user["email"])
-            toast = {"tone": "ok", "title": "Saved", "text": "Artifacts re-rendered with your edits."}
+            toast = {"tone": "ok", "title": "Saved", "text": "Press Regenerate to rebuild the artifacts with your edits."}
         except ValueError as exc:
             # A POPIA-protected field was refused before anything was saved.
             toast = {"tone": "block", "title": "Edit refused", "text": str(exc)}

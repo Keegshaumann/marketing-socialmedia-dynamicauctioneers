@@ -130,7 +130,7 @@ def copy_cache_key(record: PropertyRecord) -> str:
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:32]
 
 
-def _resolve_copy(record: PropertyRecord, client=None) -> Tuple[dict, bool]:
+def _resolve_copy(record: PropertyRecord, client=None, ai: bool = True) -> Tuple[dict, bool]:
     """Return ``(copy, generated)`` for a render pass.
 
     Copy generation is a live API call taking around twenty seconds, and every
@@ -150,6 +150,22 @@ def _resolve_copy(record: PropertyRecord, client=None) -> Tuple[dict, bool]:
     cached = None
     if marketing is not None and marketing.generated_copy and marketing.generated_copy_key == key:
         cached = marketing.generated_copy
+
+    # ``ai=False`` is the DRAFT phase (D93): use the deterministic template and
+    # cache NOTHING, so the paid call is not made while a marketer is still
+    # moving photographs around - and so the pack phase still generates once.
+    # An already-paid-for bundle is still used: this suppresses a NEW call, not
+    # the cache.
+    if cached is None and not ai:
+        from engine.render.copy import _template_copy
+
+        copy = dict(_template_copy(record))
+        if marketing is not None:
+            if marketing.headline:
+                copy["headline"] = marketing.headline
+            if marketing.price_display:
+                copy["price_display"] = marketing.price_display
+        return copy, None
 
     generated = cached is None
     # The RAW bundle is what gets cached: the human overlay below must never be
@@ -247,7 +263,7 @@ def _read_public_path(record: PropertyRecord, path: str):
     return node
 
 
-def _prepare(record: PropertyRecord, output_root: str, client=None) -> Tuple[dict, dict, List[str], Optional[dict]]:
+def _prepare(record: PropertyRecord, output_root: str, client=None, ai_copy: bool = True) -> Tuple[dict, dict, List[str], Optional[dict]]:
     """Resolve the public view, the copy and the photo set for a render pass.
 
     The fourth element is a freshly generated copy bundle that the caller should
@@ -255,7 +271,7 @@ def _prepare(record: PropertyRecord, output_root: str, client=None) -> Tuple[dic
     this property does not pay the ~20s generation call again.
     """
     public = record.public_view()
-    copy, fresh = _resolve_copy(record, client=client)
+    copy, fresh = _resolve_copy(record, client=client, ai=ai_copy)
     photos = _resolve_photos(record, output_root)
     return public, copy, photos, fresh
 
@@ -376,6 +392,7 @@ def render_all(
     output_root: str = ".",
     client=None,
     formats: Optional[List[str]] = None,
+    ai_copy: bool = True,
 ) -> List[Artifact]:
     """Render the supported formats for DP ``dp``, one manifest per pass.
 
@@ -396,7 +413,7 @@ def render_all(
 
     record = _load_record(dp, store)
     resolve = _format_backends(backend)
-    public, copy, photos, _fresh_copy = _prepare(record, output_root, client=client)
+    public, copy, photos, _fresh_copy = _prepare(record, output_root, client=client, ai_copy=ai_copy)
     _persist_generated_copy(record, _fresh_copy, store)
     template_set = _resolve_template_set(record)
 
@@ -439,6 +456,7 @@ def render_one(
     backend: Optional[str] = None,
     output_root: str = ".",
     client=None,
+    ai_copy: bool = True,
 ) -> Artifact:
     """Render a single format for DP ``dp`` through the resolved backend(s).
 
@@ -455,7 +473,7 @@ def render_one(
     if not candidates:
         raise ValueError(f"No configured render backend can render {fmt!r}.")
 
-    public, copy, photos, _fresh_copy = _prepare(record, output_root, client=client)
+    public, copy, photos, _fresh_copy = _prepare(record, output_root, client=client, ai_copy=ai_copy)
     _persist_generated_copy(record, _fresh_copy, store)
     request = RenderRequest(
         dp=dp,
