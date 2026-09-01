@@ -320,7 +320,13 @@
             {{ ui.button('Upload icon', variant='ghost', icon_name='plus', type='submit') }}
           </form>
 
-          <form hx-post="/gates/{{ dp }}/ads/icons" hx-target="#photos" hx-swap="outerHTML" class="stack">
+          {# Clicking an icon APPLIES it (D100). The owner clicked a glyph, saw the
+             advert unchanged, and reported it as broken - reasonably, because a
+             picker that highlights your choice and then does nothing until you
+             find a Save button is a picker that lied. The redraw is free (D93)
+             and about a second, so the click is the whole interaction. #}
+          <form hx-post="/gates/{{ dp }}/ads/icons" hx-target="#photos" hx-swap="outerHTML"
+                hx-trigger="change, submit" hx-indicator="#icon-busy" class="stack">
             <div class="field">
               <div class="label label--sm">Icon style</div>
               <div class="row">
@@ -350,13 +356,13 @@
             </div>
             {% endfor %}
             <div class="row">
-              {{ ui.button('Save icons', variant='primary', icon_name='check', type='submit') }}
+              <span class="hint" id="icon-busy">Each click redraws the advert on the left.</span>
               <button type="button" class="btn btn--ghost btn--sm"
-                      onclick="this.closest('form').querySelectorAll('select').forEach(function(s){s.value='';})">
+                      onclick="this.closest('form').querySelectorAll('input[value=\'\']').forEach(function(r){r.checked=true;}); this.closest('form').dispatchEvent(new Event('change', {bubbles:true}));">
                 Reset all to automatic
               </button>
             </div>
-            <div class="hint">Press <strong>Regenerate</strong> above to rebuild the artifacts with these icons.</div>
+            <div class="hint">The information pack and the other artifacts rebuild on <strong>Regenerate</strong> above.</div>
           </form>
         </div>
       </div>

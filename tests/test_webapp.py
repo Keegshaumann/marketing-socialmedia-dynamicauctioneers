@@ -2267,3 +2267,35 @@ def test_an_icon_change_redraws_the_advert_without_a_model_call():
     pv = _public_view(dp)
     assert (pv["marketing"] or {}).get("feature_icons", {}).get("stat:bedrooms") == "pool"
     assert (pv["marketing"] or {}).get("icon_style") == "bold"
+
+
+def test_choosing_an_icon_needs_no_save_button():
+    """"I click to change it doesn't change" (D100).
+
+    The picker highlighted the choice and then waited for a Save button, so a
+    marketer clicked a glyph, looked at the advert, and saw the old one. A
+    picker that shows your choice and does nothing with it has lied to you.
+    The click itself now applies and redraws.
+    """
+    dp = "7133"
+    _golden_clone(dp, state="drafted")
+    client = _client()
+    _login_admin(client)
+
+    # exactly what the browser posts on a click: one field, no submit button
+    resp = client.post(f"/gates/{dp}/ads/icons", data={"icon:stat:bedrooms": "garden"})
+    assert resp.status_code == 200, resp.text
+
+    pv = _public_view(dp)
+    assert (pv["marketing"] or {}).get("feature_icons", {}).get("stat:bedrooms") == "garden"
+
+
+def test_the_icons_form_applies_on_change_not_only_on_submit():
+    """The behaviour lives in one attribute, so assert it directly: without
+    hx-trigger="change" the click is inert until a submit."""
+    from pathlib import Path
+
+    tpl = (Path(__file__).resolve().parent.parent
+           / "webapp" / "templates" / "gate2_ads.html").read_text()
+    form = tpl[tpl.index('hx-post="/gates/{{ dp }}/ads/icons"'):][:400]
+    assert 'hx-trigger="change' in form, "an icon click would not apply"
