@@ -212,7 +212,11 @@ def _resolve_photos(record: PropertyRecord, output_root: str) -> List[str]:
         # artifact carries fewer photographs rather than holes.
         if not candidate.is_file():
             continue
-        resolved.append(str(candidate))
+        # The same JPEG copy the html backend embeds (D102), so a premium
+        # backend uploads the small file rather than the 4.5MB original.
+        from engine.render import photo_opt
+
+        resolved.append(str(photo_opt.optimised(candidate, base)))
     return resolved
 
 

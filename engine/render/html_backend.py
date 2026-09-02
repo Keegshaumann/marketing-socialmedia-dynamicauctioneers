@@ -34,7 +34,7 @@ from typing import Dict, List, Optional, Tuple
 from jinja2 import Environment, FileSystemLoader
 from markupsafe import Markup
 
-from engine.render import ad_icons, pack_icons
+from engine.render import ad_icons, pack_icons, photo_opt
 from engine.render.base import FORMATS, Artifact, RenderBackend, RenderRequest
 
 
@@ -1059,6 +1059,13 @@ class HtmlBackend(RenderBackend):
             # app - the unit suite only ever renders photos that exist.
             if not candidate.is_file():
                 continue
+            # A big lossless photograph is embedded as a JPEG copy (D102): a
+            # 4.5MB PNG aerial displayed 307pt wide made a pack that could not
+            # be emailed. The ORIGINAL is never touched; the copy is cached
+            # beside the property.
+            candidate = photo_opt.optimised(
+                candidate, Path(request.output_root) / f"DP{request.dp}"
+            )
             rel = os.path.relpath(str(candidate), str(art_dir))
             refs.append(str(PurePosixPath(*Path(rel).parts)))
         return refs
