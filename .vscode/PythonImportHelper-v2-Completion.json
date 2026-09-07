@@ -528,6 +528,30 @@
         "documentation": {}
     },
     {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
         "label": "sys",
         "kind": 6,
         "isExtraImport": true,
@@ -611,6 +635,22 @@
     },
     {
         "label": "PurePosixPath",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
         "importPath": "pathlib",
         "description": "pathlib",
         "isExtraImport": true,
@@ -1127,6 +1167,38 @@
         "documentation": {}
     },
     {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
         "label": "Optional",
         "importPath": "typing",
         "description": "typing",
@@ -1264,6 +1336,14 @@
     },
     {
         "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
         "importPath": "typing",
         "description": "typing",
         "isExtraImport": true,
@@ -2875,7 +2955,23 @@
         "documentation": {}
     },
     {
+        "label": "ad_icons",
+        "importPath": "engine.render",
+        "description": "engine.render",
+        "isExtraImport": true,
+        "detail": "engine.render",
+        "documentation": {}
+    },
+    {
         "label": "pack_icons",
+        "importPath": "engine.render",
+        "description": "engine.render",
+        "isExtraImport": true,
+        "detail": "engine.render",
+        "documentation": {}
+    },
+    {
+        "label": "photo_opt",
         "importPath": "engine.render",
         "description": "engine.render",
         "isExtraImport": true,
@@ -2979,15 +3075,7 @@
         "documentation": {}
     },
     {
-        "label": "_asset_data_uri",
-        "importPath": "engine.render.html_backend",
-        "description": "engine.render.html_backend",
-        "isExtraImport": true,
-        "detail": "engine.render.html_backend",
-        "documentation": {}
-    },
-    {
-        "label": "_split3",
+        "label": "configure_template_env",
         "importPath": "engine.render.html_backend",
         "description": "engine.render.html_backend",
         "isExtraImport": true,
@@ -3401,21 +3489,21 @@
         "documentation": {}
     },
     {
-        "label": "math",
-        "kind": 6,
-        "isExtraImport": true,
-        "importPath": "math",
-        "description": "math",
-        "detail": "math",
-        "documentation": {}
-    },
-    {
         "label": "hashlib",
         "kind": 6,
         "isExtraImport": true,
         "importPath": "hashlib",
         "description": "hashlib",
         "detail": "hashlib",
+        "documentation": {}
+    },
+    {
+        "label": "math",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "math",
+        "description": "math",
+        "detail": "math",
         "documentation": {}
     },
     {
@@ -4457,6 +4545,22 @@
         "documentation": {}
     },
     {
+        "label": "optimised",
+        "importPath": "engine.render.photo_opt",
+        "description": "engine.render.photo_opt",
+        "isExtraImport": true,
+        "detail": "engine.render.photo_opt",
+        "documentation": {}
+    },
+    {
+        "label": "should_convert",
+        "importPath": "engine.render.photo_opt",
+        "description": "engine.render.photo_opt",
+        "isExtraImport": true,
+        "detail": "engine.render.photo_opt",
+        "documentation": {}
+    },
+    {
         "label": "Flag",
         "importPath": "engine.verify",
         "description": "engine.verify",
@@ -5495,6 +5599,51 @@
         "documentation": {}
     },
     {
+        "label": "svg",
+        "kind": 2,
+        "importPath": "engine.render.ad_icons",
+        "description": "engine.render.ad_icons",
+        "peekOfCode": "def svg(name: str, extra_class: str = \"\", style: Optional[str] = None) -> str:\n    \"\"\"One glyph as a complete ``<svg>``, in the property's icon style.\n    ``solid`` borrows the PACK's filled drawing of the same name where one\n    exists - these paths are outlines meant for stroking, so filling them would\n    produce a blob rather than a solid icon. A name the pack does not have falls\n    back to the bold stroke, which is the nearest thing to solid this drawing\n    can honestly become.\n    \"\"\"\n    cls = f' class=\"{extra_class}\"' if extra_class else \"\"\n    style = style if style in STYLE_NAMES else \"line\"",
+        "detail": "engine.render.ad_icons",
+        "documentation": {}
+    },
+    {
+        "label": "icon_for",
+        "kind": 2,
+        "importPath": "engine.render.ad_icons",
+        "description": "engine.render.ad_icons",
+        "peekOfCode": "def icon_for(text: str, picks: Optional[Dict[str, str]] = None) -> str:\n    \"\"\"The glyph for a feature line: the marketer's pick, else the rules.\n    Ranked on the line's SUBJECT (its opening words) before the whole line, so\n    \"Balcony leading from the lounge\" is a balcony rather than a sofa - the same\n    rule the advert's running order uses (D92).\n    \"\"\"\n    pick = (picks or {}).get(text)\n    # A \"custom:<label>\" pick names a glyph the team UPLOADED, which this module\n    # has no drawing for - it is resolved to a file by the renderer. Testing\n    # membership of ICONS alone silently dropped every uploaded icon back to the",
+        "detail": "engine.render.ad_icons",
+        "documentation": {}
+    },
+    {
+        "label": "STYLE_NAMES",
+        "kind": 5,
+        "importPath": "engine.render.ad_icons",
+        "description": "engine.render.ad_icons",
+        "peekOfCode": "STYLE_NAMES = {name for name, _, _ in STYLES}\ndef svg(name: str, extra_class: str = \"\", style: Optional[str] = None) -> str:\n    \"\"\"One glyph as a complete ``<svg>``, in the property's icon style.\n    ``solid`` borrows the PACK's filled drawing of the same name where one\n    exists - these paths are outlines meant for stroking, so filling them would\n    produce a blob rather than a solid icon. A name the pack does not have falls\n    back to the bold stroke, which is the nearest thing to solid this drawing\n    can honestly become.\n    \"\"\"\n    cls = f' class=\"{extra_class}\"' if extra_class else \"\"",
+        "detail": "engine.render.ad_icons",
+        "documentation": {}
+    },
+    {
+        "label": "NAMES",
+        "kind": 5,
+        "importPath": "engine.render.ad_icons",
+        "description": "engine.render.ad_icons",
+        "peekOfCode": "NAMES = {name for name, _, _ in CHOICES if name}\n# Keyword rules, first match wins. Commercial terms are tested BEFORE the\n# residential ones they would otherwise collide with (\"reception office\" must\n# not become a study; a \"storage warehouse\" must not become a storeroom).\n_RULES: List[Tuple[str, str]] = [\n    (r\"open.?plan\", \"openplan\"),\n    # Workshop before warehouse: \"Workshop with industrial sliding doors\" is a\n    # workshop, and \"industrial\" in the warehouse rule was claiming it first.\n    (r\"\\bworkshop|\\bworks\\b\", \"workshop\"),\n    (r\"\\bwarehouse|\\bfactory\\b|industrial\", \"warehouse\"),",
+        "detail": "engine.render.ad_icons",
+        "documentation": {}
+    },
+    {
+        "label": "_COMPILED",
+        "kind": 5,
+        "importPath": "engine.render.ad_icons",
+        "description": "engine.render.ad_icons",
+        "peekOfCode": "_COMPILED = [(re.compile(p, re.I), n) for p, n in _RULES]\ndef icon_for(text: str, picks: Optional[Dict[str, str]] = None) -> str:\n    \"\"\"The glyph for a feature line: the marketer's pick, else the rules.\n    Ranked on the line's SUBJECT (its opening words) before the whole line, so\n    \"Balcony leading from the lounge\" is a balcony rather than a sofa - the same\n    rule the advert's running order uses (D92).\n    \"\"\"\n    pick = (picks or {}).get(text)\n    # A \"custom:<label>\" pick names a glyph the team UPLOADED, which this module\n    # has no drawing for - it is resolved to a file by the renderer. Testing",
+        "detail": "engine.render.ad_icons",
+        "documentation": {}
+    },
+    {
         "label": "list_templates",
         "kind": 2,
         "importPath": "engine.render.ad_templates",
@@ -5589,7 +5738,7 @@
         "kind": 5,
         "importPath": "engine.render.ad_thumbs",
         "description": "engine.render.ad_thumbs",
-        "peekOfCode": "_TEMPLATE_DIR = ad_templates._TEMPLATE_DIR\n_env = Environment(\n    loader=FileSystemLoader(str(_TEMPLATE_DIR)),\n    autoescape=select_autoescape([\"html\", \"svg\", \"j2\"]),\n)\n_env.globals[\"asset_uri\"] = _asset_data_uri\n_env.filters[\"split3\"] = _split3\n_placeholder_cache: Optional[str] = None\ndef _placeholder_photo() -> str:\n    \"\"\"A small solid warm-grey JPEG as a data URI, standing in for a photo.\"\"\"",
+        "peekOfCode": "_TEMPLATE_DIR = ad_templates._TEMPLATE_DIR\n_env = Environment(\n    loader=FileSystemLoader(str(_TEMPLATE_DIR)),\n    autoescape=select_autoescape([\"html\", \"svg\", \"j2\"]),\n)\n# The SAME configuration the render backend uses (D97): a global added to one\n# environment and forgotten in the other is what turned three design previews\n# into broken images.\nconfigure_template_env(_env)\n_placeholder_cache: Optional[str] = None",
         "detail": "engine.render.ad_thumbs",
         "documentation": {}
     },
@@ -5598,25 +5747,7 @@
         "kind": 5,
         "importPath": "engine.render.ad_thumbs",
         "description": "engine.render.ad_thumbs",
-        "peekOfCode": "_env = Environment(\n    loader=FileSystemLoader(str(_TEMPLATE_DIR)),\n    autoescape=select_autoescape([\"html\", \"svg\", \"j2\"]),\n)\n_env.globals[\"asset_uri\"] = _asset_data_uri\n_env.filters[\"split3\"] = _split3\n_placeholder_cache: Optional[str] = None\ndef _placeholder_photo() -> str:\n    \"\"\"A small solid warm-grey JPEG as a data URI, standing in for a photo.\"\"\"\n    global _placeholder_cache",
-        "detail": "engine.render.ad_thumbs",
-        "documentation": {}
-    },
-    {
-        "label": "_env.globals[\"asset_uri\"]",
-        "kind": 5,
-        "importPath": "engine.render.ad_thumbs",
-        "description": "engine.render.ad_thumbs",
-        "peekOfCode": "_env.globals[\"asset_uri\"] = _asset_data_uri\n_env.filters[\"split3\"] = _split3\n_placeholder_cache: Optional[str] = None\ndef _placeholder_photo() -> str:\n    \"\"\"A small solid warm-grey JPEG as a data URI, standing in for a photo.\"\"\"\n    global _placeholder_cache\n    if _placeholder_cache is None:\n        from PIL import Image\n        im = Image.new(\"RGB\", (240, 180), (116, 111, 100))\n        buf = io.BytesIO()",
-        "detail": "engine.render.ad_thumbs",
-        "documentation": {}
-    },
-    {
-        "label": "_env.filters[\"split3\"]",
-        "kind": 5,
-        "importPath": "engine.render.ad_thumbs",
-        "description": "engine.render.ad_thumbs",
-        "peekOfCode": "_env.filters[\"split3\"] = _split3\n_placeholder_cache: Optional[str] = None\ndef _placeholder_photo() -> str:\n    \"\"\"A small solid warm-grey JPEG as a data URI, standing in for a photo.\"\"\"\n    global _placeholder_cache\n    if _placeholder_cache is None:\n        from PIL import Image\n        im = Image.new(\"RGB\", (240, 180), (116, 111, 100))\n        buf = io.BytesIO()\n        im.save(buf, \"JPEG\", quality=60)",
+        "peekOfCode": "_env = Environment(\n    loader=FileSystemLoader(str(_TEMPLATE_DIR)),\n    autoescape=select_autoescape([\"html\", \"svg\", \"j2\"]),\n)\n# The SAME configuration the render backend uses (D97): a global added to one\n# environment and forgotten in the other is what turned three design previews\n# into broken images.\nconfigure_template_env(_env)\n_placeholder_cache: Optional[str] = None\ndef _placeholder_photo() -> str:",
         "detail": "engine.render.ad_thumbs",
         "documentation": {}
     },
@@ -5999,6 +6130,15 @@
         "documentation": {}
     },
     {
+        "label": "configure_template_env",
+        "kind": 2,
+        "importPath": "engine.render.html_backend",
+        "description": "engine.render.html_backend",
+        "peekOfCode": "def configure_template_env(env) -> None:\n    \"\"\"Register every global and filter the render templates rely on (D97).\n    TWO Jinja environments load these templates: this backend, and the\n    gate-2 thumbnail renderer (``ad_thumbs``), which builds its own. They\n    were configured separately, so D95's new ``ad_glyph``/``ad_icon_for``\n    globals reached the backend and not the thumbnails - and three of the\n    four design previews turned into broken images the moment they were\n    next rendered. One function now configures both.\n    \"\"\"\n        # Let templates embed a bundled asset (logo, etc.) as a data URI, so the",
+        "detail": "engine.render.html_backend",
+        "documentation": {}
+    },
+    {
         "label": "_TEMPLATE_DIR",
         "kind": 5,
         "importPath": "engine.render.html_backend",
@@ -6040,6 +6180,15 @@
         "importPath": "engine.render.html_backend",
         "description": "engine.render.html_backend",
         "peekOfCode": "_TERM_STATES_A_FIGURE = re.compile(\n    r\"\\d+(?:[.,]\\d+)?\\s*%\\s*(?:deposit|commission)\"\n    r\"|\\bdeposit\\b[^.]{0,30}?\\d+(?:[.,]\\d+)?\\s*%\"\n    r\"|\\bcommission\\b[^.]{0,30}?\\d+(?:[.,]\\d+)?\\s*%\"\n    r\"|\\d+\\s*(?:\\([a-z ]+\\)\\s*)?days?\\b[^.]{0,40}?\\bguarantee\"\n    r\"|\\bguarantee[^.]{0,40}?\\d+\\s*(?:\\([a-z ]+\\)\\s*)?days?\\b\",\n    re.I,\n)\ndef _tagline(features: List[str], limit: int = 3) -> List[str]:\n    \"\"\"The short pipe-separated strip the reference ads carry (D84).",
+        "detail": "engine.render.html_backend",
+        "documentation": {}
+    },
+    {
+        "label": "_FEATURE_RANK_OTHER",
+        "kind": 5,
+        "importPath": "engine.render.html_backend",
+        "description": "engine.render.html_backend",
+        "peekOfCode": "_FEATURE_RANK_OTHER = 6\ndef _feature_rank(text: str) -> int:\n    \"\"\"Where a feature line sits in the advert's running order (D92).\n    Ranked on the line's SUBJECT - the opening words - not on any word in it.\n    \"Balcony leading from the lounge\" is a balcony; matching anywhere put it with\n    the living spaces because the sentence happens to end in \"lounge\".\n    \"\"\"\n    head = \" \".join(str(text or \"\").split()[:5])\n    for pattern, rank in _FEATURE_RANK:\n        if pattern.search(head):",
         "detail": "engine.render.html_backend",
         "documentation": {}
     },
@@ -6086,6 +6235,78 @@
         "description": "engine.render.pack_icons",
         "peekOfCode": "_SPLIT = re.compile(\n    r\"\\s*(?:(?<!\\d),|,(?!\\d)|\\(|\\bwith\\b|\\bplus\\b|\\bincluding\\b|\\s-\\s)\\s*\", re.I\n)\ndef split_label(text: str) -> Tuple[str, str]:\n    \"\"\"Split a feature line into (label, sub-line). The sub-line may be empty.\n    Never adds a word: both halves come out of ``text``. A line short enough to\n    print whole is returned as the label with no sub-line, because a one word\n    qualifier under a two word label reads as a mistake rather than a detail.\n    \"\"\"\n    line = (text or \"\").strip().rstrip(\".\")",
         "detail": "engine.render.pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "should_convert",
+        "kind": 2,
+        "importPath": "engine.render.photo_opt",
+        "description": "engine.render.photo_opt",
+        "peekOfCode": "def should_convert(path: Path) -> bool:\n    \"\"\"Whether this file is a big lossless photograph worth re-encoding.\"\"\"\n    if path.suffix.lower() not in _LOSSLESS:\n        return False\n    try:\n        if path.stat().st_size < _MIN_BYTES:\n            return False\n    except OSError:\n        return False\n    try:",
+        "detail": "engine.render.photo_opt",
+        "documentation": {}
+    },
+    {
+        "label": "optimised",
+        "kind": 2,
+        "importPath": "engine.render.photo_opt",
+        "description": "engine.render.photo_opt",
+        "peekOfCode": "def optimised(path: \"str | Path\", cache_root: \"str | Path\") -> Path:\n    \"\"\"Return the file to embed: a cached JPEG copy, or the original unchanged.\n    Never raises and never modifies the source. Any failure - Pillow missing, an\n    unreadable file, a directory that cannot be written - returns the original,\n    so a render always has a photograph to place.\n    \"\"\"\n    src = Path(path)\n    if not should_convert(src):\n        return src\n    try:",
+        "detail": "engine.render.photo_opt",
+        "documentation": {}
+    },
+    {
+        "label": "savings",
+        "kind": 2,
+        "importPath": "engine.render.photo_opt",
+        "description": "engine.render.photo_opt",
+        "peekOfCode": "def savings(path: \"str | Path\", cache_root: \"str | Path\") -> Optional[tuple]:\n    \"\"\"``(before, after)`` in bytes when a file was converted, else ``None``.\n    Reporting only - the render path does not need it.\"\"\"\n    src = Path(path)\n    out = optimised(src, cache_root)\n    if out == src:\n        return None\n    return (src.stat().st_size, out.stat().st_size)",
+        "detail": "engine.render.photo_opt",
+        "documentation": {}
+    },
+    {
+        "label": "_MIN_PIXELS",
+        "kind": 5,
+        "importPath": "engine.render.photo_opt",
+        "description": "engine.render.photo_opt",
+        "peekOfCode": "_MIN_PIXELS = 1_200_000        # ~1.2 megapixels (a 1600x1200 photo is 1.92)\n_MIN_BYTES = 900 * 1024        # under this, the saving is not worth the risk\n_QUALITY = 90                  # measured: avg error 3.1/255 on the real aerial\n# Only lossless formats are candidates. A JPEG is already compressed and\n# re-encoding it would add generational loss for no gain.\n_LOSSLESS = {\".png\", \".bmp\", \".tif\", \".tiff\"}\nCACHE_DIR = \".photo-cache\"\ndef _cache_name(path: Path) -> str:\n    \"\"\"A name that changes when the source does, so a replaced photo re-encodes.\"\"\"\n    stat = path.stat()",
+        "detail": "engine.render.photo_opt",
+        "documentation": {}
+    },
+    {
+        "label": "_MIN_BYTES",
+        "kind": 5,
+        "importPath": "engine.render.photo_opt",
+        "description": "engine.render.photo_opt",
+        "peekOfCode": "_MIN_BYTES = 900 * 1024        # under this, the saving is not worth the risk\n_QUALITY = 90                  # measured: avg error 3.1/255 on the real aerial\n# Only lossless formats are candidates. A JPEG is already compressed and\n# re-encoding it would add generational loss for no gain.\n_LOSSLESS = {\".png\", \".bmp\", \".tif\", \".tiff\"}\nCACHE_DIR = \".photo-cache\"\ndef _cache_name(path: Path) -> str:\n    \"\"\"A name that changes when the source does, so a replaced photo re-encodes.\"\"\"\n    stat = path.stat()\n    key = f\"{path.name}:{stat.st_size}:{int(stat.st_mtime)}\"",
+        "detail": "engine.render.photo_opt",
+        "documentation": {}
+    },
+    {
+        "label": "_QUALITY",
+        "kind": 5,
+        "importPath": "engine.render.photo_opt",
+        "description": "engine.render.photo_opt",
+        "peekOfCode": "_QUALITY = 90                  # measured: avg error 3.1/255 on the real aerial\n# Only lossless formats are candidates. A JPEG is already compressed and\n# re-encoding it would add generational loss for no gain.\n_LOSSLESS = {\".png\", \".bmp\", \".tif\", \".tiff\"}\nCACHE_DIR = \".photo-cache\"\ndef _cache_name(path: Path) -> str:\n    \"\"\"A name that changes when the source does, so a replaced photo re-encodes.\"\"\"\n    stat = path.stat()\n    key = f\"{path.name}:{stat.st_size}:{int(stat.st_mtime)}\"\n    digest = hashlib.sha256(key.encode()).hexdigest()[:12]",
+        "detail": "engine.render.photo_opt",
+        "documentation": {}
+    },
+    {
+        "label": "_LOSSLESS",
+        "kind": 5,
+        "importPath": "engine.render.photo_opt",
+        "description": "engine.render.photo_opt",
+        "peekOfCode": "_LOSSLESS = {\".png\", \".bmp\", \".tif\", \".tiff\"}\nCACHE_DIR = \".photo-cache\"\ndef _cache_name(path: Path) -> str:\n    \"\"\"A name that changes when the source does, so a replaced photo re-encodes.\"\"\"\n    stat = path.stat()\n    key = f\"{path.name}:{stat.st_size}:{int(stat.st_mtime)}\"\n    digest = hashlib.sha256(key.encode()).hexdigest()[:12]\n    return f\"{path.stem}-{digest}.jpg\"\ndef should_convert(path: Path) -> bool:\n    \"\"\"Whether this file is a big lossless photograph worth re-encoding.\"\"\"",
+        "detail": "engine.render.photo_opt",
+        "documentation": {}
+    },
+    {
+        "label": "CACHE_DIR",
+        "kind": 5,
+        "importPath": "engine.render.photo_opt",
+        "description": "engine.render.photo_opt",
+        "peekOfCode": "CACHE_DIR = \".photo-cache\"\ndef _cache_name(path: Path) -> str:\n    \"\"\"A name that changes when the source does, so a replaced photo re-encodes.\"\"\"\n    stat = path.stat()\n    key = f\"{path.name}:{stat.st_size}:{int(stat.st_mtime)}\"\n    digest = hashlib.sha256(key.encode()).hexdigest()[:12]\n    return f\"{path.stem}-{digest}.jpg\"\ndef should_convert(path: Path) -> bool:\n    \"\"\"Whether this file is a big lossless photograph worth re-encoding.\"\"\"\n    if path.suffix.lower() not in _LOSSLESS:",
+        "detail": "engine.render.photo_opt",
         "documentation": {}
     },
     {
@@ -6174,7 +6395,7 @@
         "kind": 2,
         "importPath": "engine.render.service",
         "description": "engine.render.service",
-        "peekOfCode": "def render_all(\n    dp: str,\n    store: RecordStore,\n    backend: Optional[str] = None,\n    output_root: str = \".\",\n    client=None,\n    formats: Optional[List[str]] = None,\n) -> List[Artifact]:\n    \"\"\"Render the supported formats for DP ``dp``, one manifest per pass.\n    Resolves the backend (arg -> ``ENGINE_RENDERER`` env -> default ``html``);",
+        "peekOfCode": "def render_all(\n    dp: str,\n    store: RecordStore,\n    backend: Optional[str] = None,\n    output_root: str = \".\",\n    client=None,\n    formats: Optional[List[str]] = None,\n    ai_copy: bool = True,\n) -> List[Artifact]:\n    \"\"\"Render the supported formats for DP ``dp``, one manifest per pass.",
         "detail": "engine.render.service",
         "documentation": {}
     },
@@ -6183,7 +6404,7 @@
         "kind": 2,
         "importPath": "engine.render.service",
         "description": "engine.render.service",
-        "peekOfCode": "def render_one(\n    dp: str,\n    store: RecordStore,\n    fmt: str,\n    backend: Optional[str] = None,\n    output_root: str = \".\",\n    client=None,\n) -> Artifact:\n    \"\"\"Render a single format for DP ``dp`` through the resolved backend(s).\n    Honours ``\"mixed\"`` like ``render_all``: the format is rendered by the best",
+        "peekOfCode": "def render_one(\n    dp: str,\n    store: RecordStore,\n    fmt: str,\n    backend: Optional[str] = None,\n    output_root: str = \".\",\n    client=None,\n    ai_copy: bool = True,\n) -> Artifact:\n    \"\"\"Render a single format for DP ``dp`` through the resolved backend(s).",
         "detail": "engine.render.service",
         "documentation": {}
     },
@@ -7767,7 +7988,25 @@
         "kind": 2,
         "importPath": "tests.test_ad_templates",
         "description": "tests.test_ad_templates",
-        "peekOfCode": "def test_template_ids_matches_list():\n    assert ad_templates.template_ids() == {t[\"id\"] for t in ad_templates.list_templates()}",
+        "peekOfCode": "def test_template_ids_matches_list():\n    assert ad_templates.template_ids() == {t[\"id\"] for t in ad_templates.list_templates()}\n# --- every design previews (D97) ------------------------------------------\ndef test_every_ad_design_renders_a_thumbnail(tmp_path):\n    \"\"\"Three of the four design previews were broken images on the live site.\n    Not Chromium, not the cache: ``ad_thumbs`` builds its OWN Jinja environment,\n    and D95's new ``ad_glyph``/``ad_icon_for`` globals were registered on the\n    render backend's environment only. Collage survived because it is the one\n    design that does not draw feature icons.\n    This renders every design through the thumbnail path, so a global added to",
+        "detail": "tests.test_ad_templates",
+        "documentation": {}
+    },
+    {
+        "label": "test_every_ad_design_renders_a_thumbnail",
+        "kind": 2,
+        "importPath": "tests.test_ad_templates",
+        "description": "tests.test_ad_templates",
+        "peekOfCode": "def test_every_ad_design_renders_a_thumbnail(tmp_path):\n    \"\"\"Three of the four design previews were broken images on the live site.\n    Not Chromium, not the cache: ``ad_thumbs`` builds its OWN Jinja environment,\n    and D95's new ``ad_glyph``/``ad_icon_for`` globals were registered on the\n    render backend's environment only. Collage survived because it is the one\n    design that does not draw feature icons.\n    This renders every design through the thumbnail path, so a global added to\n    one environment and forgotten in the other fails here rather than on a\n    marketer's screen.\n    \"\"\"",
+        "detail": "tests.test_ad_templates",
+        "documentation": {}
+    },
+    {
+        "label": "test_both_template_environments_are_configured_the_same",
+        "kind": 2,
+        "importPath": "tests.test_ad_templates",
+        "description": "tests.test_ad_templates",
+        "peekOfCode": "def test_both_template_environments_are_configured_the_same(tmp_path):\n    \"\"\"The root cause, asserted directly: two environments load these templates\n    and must know the same globals and filters.\"\"\"\n    from engine.render.ad_thumbs import _env as thumb_env\n    from engine.render.html_backend import HtmlBackend\n    backend_env = HtmlBackend()._env\n    missing_globals = set(backend_env.globals) - set(thumb_env.globals)\n    missing_filters = set(backend_env.filters) - set(thumb_env.filters)\n    assert not missing_globals, f\"the thumbnail env is missing: {missing_globals}\"\n    assert not missing_filters, f\"the thumbnail env is missing filters: {missing_filters}\"",
         "detail": "tests.test_ad_templates",
         "documentation": {}
     },
@@ -8478,7 +8717,25 @@
         "kind": 2,
         "importPath": "tests.test_edits",
         "description": "tests.test_edits",
-        "peekOfCode": "def test_apply_photos_clears_when_empty(live_store, tmp_path):\n    apply_photos(\"9100\", live_store, \"photos/a.png\", [], user=\"nikki@da\", output_root=str(tmp_path))\n    apply_photos(\"9100\", live_store, None, [], user=\"nikki@da\", output_root=str(tmp_path))\n    rec = live_store.get(\"9100\")\n    assert rec.marketing.hero_photo is None\n    assert rec.marketing.gallery == []",
+        "peekOfCode": "def test_apply_photos_clears_when_empty(live_store, tmp_path):\n    apply_photos(\"9100\", live_store, \"photos/a.png\", [], user=\"nikki@da\", output_root=str(tmp_path))\n    apply_photos(\"9100\", live_store, None, [], user=\"nikki@da\", output_root=str(tmp_path))\n    rec = live_store.get(\"9100\")\n    assert rec.marketing.hero_photo is None\n    assert rec.marketing.gallery == []\n# --- a price phrase is not eaten for its digits (D89) ----------------------\ndef test_a_phrase_containing_a_number_is_kept_as_typed():\n    \"\"\"Reported from production (DP2880.1): the marketer typed\n    \"On Site Auction 20 October\" into Price and the record stored \"R20\".",
+        "detail": "tests.test_edits",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_phrase_containing_a_number_is_kept_as_typed",
+        "kind": 2,
+        "importPath": "tests.test_edits",
+        "description": "tests.test_edits",
+        "peekOfCode": "def test_a_phrase_containing_a_number_is_kept_as_typed():\n    \"\"\"Reported from production (DP2880.1): the marketer typed\n    \"On Site Auction 20 October\" into Price and the record stored \"R20\".\n    The formatter stripped every non-digit, so ANY phrase carrying a figure\n    became a rand amount. Its own docstring promised non-numeric phrases were\n    kept verbatim; a phrase with a number in it was not.\n    \"\"\"\n    from engine.render.service import _format_price\n    assert _format_price(\"On Site Auction 20 October\") == \"On Site Auction 20 October\"\n    assert _format_price(\"Auction 7 May 2026 at 10:00\") == \"Auction 7 May 2026 at 10:00\"",
+        "detail": "tests.test_edits",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_real_figure_still_formats",
+        "kind": 2,
+        "importPath": "tests.test_edits",
+        "description": "tests.test_edits",
+        "peekOfCode": "def test_a_real_figure_still_formats():\n    \"\"\"The guard must not stop the field doing its main job: the hint under it\n    tells the marketer to \"type a number like 900000\".\"\"\"\n    from engine.render.service import _format_price\n    assert _format_price(\"900000\") == \"R900 000\"\n    assert _format_price(\"2500000\") == \"R2 500 000\"\n    assert _format_price(\"R2 500 000\") == \"R2 500 000\"\n    assert _format_price(\"2,500,000\") == \"R2 500 000\"\n    assert _format_price(\"900000.50\") == \"R900 000\"\n    assert _format_price(2500000) == \"R2 500 000\"",
         "detail": "tests.test_edits",
         "documentation": {}
     },
@@ -8960,6 +9217,24 @@
         "documentation": {}
     },
     {
+        "label": "test_a_lightstone_plus_a_valuation_is_enough_to_extract",
+        "kind": 2,
+        "importPath": "tests.test_jobs",
+        "description": "tests.test_jobs",
+        "peekOfCode": "def test_a_lightstone_plus_a_valuation_is_enough_to_extract(tmp_path, monkeypatch):\n    \"\"\"Reported from production: intake job 18 (DP 2677) was SKIPPED after a\n    Lightstone EVM and a professional valuer's report were uploaded, because the\n    gate demanded a Property Report specifically.\n    D35 ranks a valuation ABOVE a property report for physical facts, so that\n    combination is a BETTER pair than the one the gate insisted on.\n    \"\"\"\n    from webapp import jobs\n    seen = {}\n    def _fake_extract(*a, **kw):",
+        "detail": "tests.test_jobs",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_skip_message_says_what_is_missing",
+        "kind": 2,
+        "importPath": "tests.test_jobs",
+        "description": "tests.test_jobs",
+        "peekOfCode": "def test_the_skip_message_says_what_is_missing(tmp_path, monkeypatch):\n    \"\"\"The old message read \"no source pair on the job payload\" under a heading\n    that said \"Pair received\" - it contradicted itself and named neither the\n    document that was missing nor what to do about it.\"\"\"\n    from webapp import jobs\n    monkeypatch.setenv(\"ANTHROPIC_API_KEY\", \"test-key-not-used\")\n    state, detail = jobs._handle_extract(\n        str(tmp_path / \"t.db\"),\n        {\"dp\": \"2677\", \"payload\": {\n            \"dp\": \"2677\", \"lightstones\": [], \"property_reports\": [],",
+        "detail": "tests.test_jobs",
+        "documentation": {}
+    },
+    {
         "label": "test_reads_each_real_statement",
         "kind": 2,
         "importPath": "tests.test_levies",
@@ -9306,8 +9581,188 @@
         "kind": 2,
         "importPath": "tests.test_pack_icons",
         "description": "tests.test_pack_icons",
-        "peekOfCode": "def test_a_list_comma_after_a_number_still_splits():\n    \"\"\"The guard must protect thousands separators without refusing every comma\n    that happens to follow a digit.\"\"\"\n    label, detail = split_label(\"Erf 1234, 1,250 m2 in extent\")\n    assert label == \"ERF 1234\"\n    assert detail == \"1,250 M2 IN EXTENT\"",
+        "peekOfCode": "def test_a_list_comma_after_a_number_still_splits():\n    \"\"\"The guard must protect thousands separators without refusing every comma\n    that happens to follow a digit.\"\"\"\n    label, detail = split_label(\"Erf 1234, 1,250 m2 in extent\")\n    assert label == \"ERF 1234\"\n    assert detail == \"1,250 M2 IN EXTENT\"\n# --- the icon set learns the farm vocabulary (D87) -------------------------\ndef test_agricultural_features_get_a_real_icon_not_the_generic_mark():\n    \"\"\"The glyph rules were written from RESIDENTIAL reference packs, so a farm\n    fell through them: 7 of DP2987's 25 features drew the neutral mark, which",
         "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "test_agricultural_features_get_a_real_icon_not_the_generic_mark",
+        "kind": 2,
+        "importPath": "tests.test_pack_icons",
+        "description": "tests.test_pack_icons",
+        "peekOfCode": "def test_agricultural_features_get_a_real_icon_not_the_generic_mark():\n    \"\"\"The glyph rules were written from RESIDENTIAL reference packs, so a farm\n    fell through them: 7 of DP2987's 25 features drew the neutral mark, which\n    on a buyer's pack is a row of shrugs beside the property's best assets.\n    Every glyph needed already existed - this was a vocabulary gap, not missing\n    artwork.\n    \"\"\"\n    cases = {\n        \"Staff accommodation for approximately 75 people\": \"staff\",\n        \"Produce packaging facility / packhouse\": \"workshop\",",
+        "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_line_is_not_matched_on_the_wrong_word",
+        "kind": 2,
+        "importPath": "tests.test_pack_icons",
+        "description": "tests.test_pack_icons",
+        "peekOfCode": "def test_a_line_is_not_matched_on_the_wrong_word():\n    \"\"\"Two lines were matching a later rule for the wrong reason, which is worse\n    than the generic mark because it draws a confidently wrong picture:\n    a greenhouse says \"temperature/climate control\" and drew an AIR CONDITIONER;\n    \"natural grazing (2 camps with water points)\" drew a WATER DROP.\n    \"\"\"\n    assert icon_for(\n        \"Extensive greenhouse tunnels (twelve tunnels with irrigation and \"\n        \"temperature/climate control)\"\n    ) == \"garden\"",
+        "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "test_every_dwelling_in_the_family_draws_the_same_glyph",
+        "kind": 2,
+        "importPath": "tests.test_pack_icons",
+        "description": "tests.test_pack_icons",
+        "peekOfCode": "def test_every_dwelling_in_the_family_draws_the_same_glyph():\n    \"\"\"\"Second dwelling\" matched; \"Third dwelling\" fell through to the bed rule,\n    because its line also says \"3 bedrooms\" - so two identical rows on one pack\n    drew different pictures.\"\"\"\n    for n in (\"Second\", \"Third\", \"Fourth\", \"Additional\"):\n        assert icon_for(f\"{n} dwelling: 3 bedrooms, 2 bathrooms\") == \"flatlet\"\ndef test_the_residential_vocabulary_is_unchanged():\n    \"\"\"The rules are ordered and first-match-wins, so a new rule inserted in the\n    wrong place silently re-points existing lines.\"\"\"\n    for text, want in {",
+        "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_residential_vocabulary_is_unchanged",
+        "kind": 2,
+        "importPath": "tests.test_pack_icons",
+        "description": "tests.test_pack_icons",
+        "peekOfCode": "def test_the_residential_vocabulary_is_unchanged():\n    \"\"\"The rules are ordered and first-match-wins, so a new rule inserted in the\n    wrong place silently re-points existing lines.\"\"\"\n    for text, want in {\n        \"3 bedrooms, main with en-suite (bath, toilet, basin)\": \"bed\",\n        \"Full family bathroom plus separate toilet\": \"bath\",\n        \"Open-plan living and dining room\": \"openplan\",   # D92\n        \"Double lock-up garage\": \"garage\",\n        \"Swimming pool and playground\": \"pool\",\n        \"Air conditioning throughout\": \"aircon\",",
+        "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_picker_offers_exactly_what_the_advert_can_draw",
+        "kind": 2,
+        "importPath": "tests.test_pack_icons",
+        "description": "tests.test_pack_icons",
+        "peekOfCode": "def test_the_picker_offers_exactly_what_the_advert_can_draw():\n    \"\"\"The picker shows the glyph's own drawing, so the picture a marketer\n    clicks IS the picture that prints. That only holds while the two read the\n    same dict - the whole reason the drawings moved out of the template.\"\"\"\n    from engine.render import ad_icons\n    offered = {name for name, _, _ in ad_icons.CHOICES if name}\n    assert offered == set(ad_icons.ICONS), \"the picker and the renderer disagree\"\n    for name in offered:\n        assert ad_icons.svg(name).startswith(\"<svg\"), name\ndef test_a_commercial_property_has_icons_that_fit_it():",
+        "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_commercial_property_has_icons_that_fit_it",
+        "kind": 2,
+        "importPath": "tests.test_pack_icons",
+        "description": "tests.test_pack_icons",
+        "peekOfCode": "def test_a_commercial_property_has_icons_that_fit_it():\n    \"\"\"Reported from a live warehouse advert: every glyph on offer was\n    residential, so \"Workshop with industrial sliding doors\" could choose\n    between a bed and a swimming pool.\"\"\"\n    from engine.render.ad_icons import icon_for\n    assert icon_for(\"Warehouse facilities\") == \"warehouse\"\n    assert icon_for(\"Workshop with industrial sliding doors\") == \"workshop\"\n    assert icon_for(\"1 x Reception Area\") == \"office\"\n    assert icon_for(\"2 x Storage\") == \"storeroom\"\n    assert icon_for(\"1 x Undercover Parking Area\") == \"parking\"",
+        "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_residential_advert_vocabulary_did_not_move",
+        "kind": 2,
+        "importPath": "tests.test_pack_icons",
+        "description": "tests.test_pack_icons",
+        "peekOfCode": "def test_the_residential_advert_vocabulary_did_not_move():\n    \"\"\"Commercial rules are tested first, so this pins that they do not steal a\n    home's lines on the way past.\"\"\"\n    from engine.render.ad_icons import icon_for\n    for line, want in {\n        \"3 bedrooms, main with en-suite\": \"bed\",\n        \"2 bathrooms\": \"bath\",\n        \"Open-plan lounge and kitchen\": \"openplan\",\n        \"Swimming pool\": \"pool\",\n        \"Balcony leading from the lounge\": \"patio\",",
+        "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_marketers_pick_beats_the_rules_and_clears_cleanly",
+        "kind": 2,
+        "importPath": "tests.test_pack_icons",
+        "description": "tests.test_pack_icons",
+        "peekOfCode": "def test_a_marketers_pick_beats_the_rules_and_clears_cleanly():\n    from engine.render.ad_icons import icon_for\n    line = \"Warehouse facilities\"\n    assert icon_for(line, {line: \"pool\"}) == \"pool\"\n    assert icon_for(line, {}) == \"warehouse\"\n    assert icon_for(line, {line: \"not-a-glyph\"}) == \"warehouse\"\n# --- icon style + uploaded glyphs (D96) -----------------------------------\ndef test_the_three_icon_styles_draw_differently():\n    from engine.render.ad_icons import svg\n    line, bold, solid = (svg(\"bed\", style=s) for s in (\"line\", \"bold\", \"solid\"))",
+        "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_three_icon_styles_draw_differently",
+        "kind": 2,
+        "importPath": "tests.test_pack_icons",
+        "description": "tests.test_pack_icons",
+        "peekOfCode": "def test_the_three_icon_styles_draw_differently():\n    from engine.render.ad_icons import svg\n    line, bold, solid = (svg(\"bed\", style=s) for s in (\"line\", \"bold\", \"solid\"))\n    assert 'stroke-width=\"1.6\"' in line\n    assert 'stroke-width=\"2.4\"' in bold\n    assert 'fill=\"currentColor\"' in solid and \"stroke-width\" not in solid\n    # An unknown style is the default rather than an error.\n    assert svg(\"bed\", style=\"sparkly\") == line\ndef test_solid_falls_back_where_the_pack_has_no_drawing():\n    \"\"\"\"Solid\" borrows the PACK's filled glyph; these paths are outlines meant",
+        "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "test_solid_falls_back_where_the_pack_has_no_drawing",
+        "kind": 2,
+        "importPath": "tests.test_pack_icons",
+        "description": "tests.test_pack_icons",
+        "peekOfCode": "def test_solid_falls_back_where_the_pack_has_no_drawing():\n    \"\"\"\"Solid\" borrows the PACK's filled glyph; these paths are outlines meant\n    for stroking, so filling them would make a blob. A name the pack lacks gets\n    the bold stroke - the nearest thing this drawing can honestly become.\"\"\"\n    from engine.render.ad_icons import svg\n    from engine.render import pack_icons\n    assert \"size\" not in pack_icons.ICONS\n    assert 'stroke-width=\"2.4\"' in svg(\"size\", style=\"solid\")\ndef test_an_uploaded_icon_survives_the_chooser():\n    \"\"\"A \"custom:\" pick names a glyph this module has no drawing for - the",
+        "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "test_an_uploaded_icon_survives_the_chooser",
+        "kind": 2,
+        "importPath": "tests.test_pack_icons",
+        "description": "tests.test_pack_icons",
+        "peekOfCode": "def test_an_uploaded_icon_survives_the_chooser():\n    \"\"\"A \"custom:\" pick names a glyph this module has no drawing for - the\n    renderer resolves it to a file. Testing membership of ICONS alone silently\n    dropped every uploaded icon back to the keyword rules, so the picker saved\n    it and the advert ignored it.\n    \"\"\"\n    from engine.render.ad_icons import icon_for\n    line = \"Warehouse facilities\"\n    assert icon_for(line, {line: \"custom:forklift\"}) == \"custom:forklift\"\n    # A built-in pick and the automatic rules are unaffected.",
+        "detail": "tests.test_pack_icons",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_big_lossless_photograph_is_converted",
+        "kind": 2,
+        "importPath": "tests.test_photo_opt",
+        "description": "tests.test_photo_opt",
+        "peekOfCode": "def test_a_big_lossless_photograph_is_converted(tmp_path):\n    src = _photo(tmp_path, \"aerial.png\")\n    assert should_convert(src)\n    out = optimised(src, tmp_path)\n    assert out != src and out.suffix == \".jpg\"\n    assert out.stat().st_size < src.stat().st_size\n    # The original is never touched: a wrong call must cost a setting, not a file.\n    assert src.is_file() and src.stat().st_size > 0\ndef test_transparency_is_never_converted(tmp_path):\n    \"\"\"A logo or QR with an alpha channel would come out on a solid background,",
+        "detail": "tests.test_photo_opt",
+        "documentation": {}
+    },
+    {
+        "label": "test_transparency_is_never_converted",
+        "kind": 2,
+        "importPath": "tests.test_photo_opt",
+        "description": "tests.test_photo_opt",
+        "peekOfCode": "def test_transparency_is_never_converted(tmp_path):\n    \"\"\"A logo or QR with an alpha channel would come out on a solid background,\n    which on the dark advert reads as broken.\"\"\"\n    src = _photo(tmp_path, \"logo.png\", mode=\"RGBA\")\n    assert not should_convert(src)\n    assert optimised(src, tmp_path) == src\ndef test_small_images_are_left_alone(tmp_path):\n    \"\"\"Thumbnails, marks and page extracts: the saving is irrelevant and these\n    are the files most likely to be diagrams rather than photographs.\"\"\"\n    src = _photo(tmp_path, \"thumb.png\", size=(276, 207))",
+        "detail": "tests.test_photo_opt",
+        "documentation": {}
+    },
+    {
+        "label": "test_small_images_are_left_alone",
+        "kind": 2,
+        "importPath": "tests.test_photo_opt",
+        "description": "tests.test_photo_opt",
+        "peekOfCode": "def test_small_images_are_left_alone(tmp_path):\n    \"\"\"Thumbnails, marks and page extracts: the saving is irrelevant and these\n    are the files most likely to be diagrams rather than photographs.\"\"\"\n    src = _photo(tmp_path, \"thumb.png\", size=(276, 207))\n    assert not should_convert(src)\n    assert optimised(src, tmp_path) == src\ndef test_a_jpeg_is_never_re_encoded(tmp_path):\n    \"\"\"Re-encoding an already-compressed photo adds generational loss for no\n    gain - and most of the team's photographs are already JPEGs.\"\"\"\n    from PIL import Image",
+        "detail": "tests.test_photo_opt",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_jpeg_is_never_re_encoded",
+        "kind": 2,
+        "importPath": "tests.test_photo_opt",
+        "description": "tests.test_photo_opt",
+        "peekOfCode": "def test_a_jpeg_is_never_re_encoded(tmp_path):\n    \"\"\"Re-encoding an already-compressed photo adds generational loss for no\n    gain - and most of the team's photographs are already JPEGs.\"\"\"\n    from PIL import Image\n    src = tmp_path / \"already.jpg\"\n    Image.new(\"RGB\", (1600, 1200), (10, 20, 30)).save(src, \"JPEG\", quality=90)\n    assert not should_convert(src)\n    assert optimised(src, tmp_path) == src\ndef test_the_copy_is_reused_not_re_encoded(tmp_path):\n    src = _photo(tmp_path, \"aerial.png\")",
+        "detail": "tests.test_photo_opt",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_copy_is_reused_not_re_encoded",
+        "kind": 2,
+        "importPath": "tests.test_photo_opt",
+        "description": "tests.test_photo_opt",
+        "peekOfCode": "def test_the_copy_is_reused_not_re_encoded(tmp_path):\n    src = _photo(tmp_path, \"aerial.png\")\n    first = optimised(src, tmp_path)\n    stamp = first.stat().st_mtime_ns\n    second = optimised(src, tmp_path)\n    assert second == first and second.stat().st_mtime_ns == stamp\ndef test_replacing_the_photo_invalidates_the_copy(tmp_path):\n    \"\"\"The cache key carries the source's size and mtime, so a replaced\n    photograph is re-encoded rather than serving the previous picture.\"\"\"\n    src = _photo(tmp_path, \"aerial.png\")",
+        "detail": "tests.test_photo_opt",
+        "documentation": {}
+    },
+    {
+        "label": "test_replacing_the_photo_invalidates_the_copy",
+        "kind": 2,
+        "importPath": "tests.test_photo_opt",
+        "description": "tests.test_photo_opt",
+        "peekOfCode": "def test_replacing_the_photo_invalidates_the_copy(tmp_path):\n    \"\"\"The cache key carries the source's size and mtime, so a replaced\n    photograph is re-encoded rather than serving the previous picture.\"\"\"\n    src = _photo(tmp_path, \"aerial.png\")\n    first = optimised(src, tmp_path)\n    src.unlink()\n    _photo(tmp_path, \"aerial.png\", size=(1700, 1300))\n    assert optimised(src, tmp_path) != first\ndef test_a_failure_returns_the_original(tmp_path):\n    \"\"\"Never crash a render over an image: a corrupt file must still produce an",
+        "detail": "tests.test_photo_opt",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_failure_returns_the_original",
+        "kind": 2,
+        "importPath": "tests.test_photo_opt",
+        "description": "tests.test_photo_opt",
+        "peekOfCode": "def test_a_failure_returns_the_original(tmp_path):\n    \"\"\"Never crash a render over an image: a corrupt file must still produce an\n    artifact, with the original in place.\"\"\"\n    src = tmp_path / \"broken.png\"\n    src.write_bytes(b\"not a png\" * 200_000)\n    assert optimised(src, tmp_path) == src\n@pytest.mark.skipif(not (REPO / \"DP3060\" / \"photos\").is_dir(), reason=\"no golden photos\")\ndef test_the_real_document_extracts_are_left_alone():\n    \"\"\"Measured on the actual files: the letterhead and the locality map are the\n    two that would visibly suffer, and neither is a candidate.\"\"\"",
+        "detail": "tests.test_photo_opt",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_real_document_extracts_are_left_alone",
+        "kind": 2,
+        "importPath": "tests.test_photo_opt",
+        "description": "tests.test_photo_opt",
+        "peekOfCode": "def test_the_real_document_extracts_are_left_alone():\n    \"\"\"Measured on the actual files: the letterhead and the locality map are the\n    two that would visibly suffer, and neither is a candidate.\"\"\"\n    photos = REPO / \"DP3060\" / \"photos\"\n    for name in (\"p1_img01_1241x303.png\", \"p1_img02_601x424.png\"):\n        path = photos / name\n        if path.is_file():\n            assert not should_convert(path), f\"{name} would have been re-encoded\"",
+        "detail": "tests.test_photo_opt",
+        "documentation": {}
+    },
+    {
+        "label": "REPO",
+        "kind": 5,
+        "importPath": "tests.test_photo_opt",
+        "description": "tests.test_photo_opt",
+        "peekOfCode": "REPO = Path(__file__).resolve().parent.parent\ndef _photo(tmp_path, name, size=(1600, 1200), mode=\"RGB\", noise=True):\n    \"\"\"A lossless image big enough to be a candidate.\"\"\"\n    from PIL import Image\n    import random\n    im = Image.new(mode, size, (30, 90, 140) if mode == \"RGB\" else (30, 90, 140, 255))\n    if noise:\n        px = im.load()\n        rnd = random.Random(7)\n        for x in range(0, size[0], 2):",
+        "detail": "tests.test_photo_opt",
         "documentation": {}
     },
     {
@@ -9712,6 +10167,24 @@
         "importPath": "tests.test_render",
         "description": "tests.test_render",
         "peekOfCode": "def test_terms_are_untouched_when_there_is_no_otp(golden_record, tmp_path):\n    \"\"\"Reconciliation only applies where the contract actually speaks.\"\"\"\n    from engine.render.html_backend import _reconciled_terms\n    typed = [\"10% deposit payable on offer\", \"Vacant occupation cannot be guaranteed\"]\n    assert _reconciled_terms({\"terms\": typed}) == typed\n    assert _reconciled_terms({\"terms\": typed, \"otp\": {\"source_file\": \"otp.pdf\"}}) == typed\n    # With an OTP, only the lines stating a figure it also states are replaced.\n    # A condition the contract is silent about is a real term and must survive:\n    # dropping \"Electrical COC, SPLUMA...\" would quietly remove a sale condition.\n    out = _reconciled_terms({",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_marketer_picks_which_photos_go_on_the_advert",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_the_marketer_picks_which_photos_go_on_the_advert(golden_record, tmp_path):\n    \"\"\"With 28 photos on a record, the advert took the first four in gallery\n    order, so getting the fourth-best photo onto it meant dragging it to the\n    front - which reorders the information pack's gallery as a side effect\n    (D90). The pick is its own list.\n    \"\"\"\n    from engine.store import RecordStore\n    names = [f\"photos/p{i}.png\" for i in range(1, 9)]\n    golden_record.marketing.hero_photo = names[0]\n    golden_record.marketing.gallery = names[1:]",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_an_unpicked_property_renders_exactly_as_before",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_an_unpicked_property_renders_exactly_as_before(golden_record, tmp_path):\n    \"\"\"No record needs migrating: an absent pick keeps the old behaviour.\"\"\"\n    from engine.render.html_backend import HtmlBackend\n    photos = [\"../photos/a.png\", \"../photos/b.png\", \"../photos/c.png\"]\n    assert HtmlBackend._ad_photo_refs(None, {}, photos) == photos\n    assert HtmlBackend._ad_photo_refs(None, {\"ad_photos\": []}, photos) == photos\n    # A pick naming a photo the record no longer has falls back rather than\n    # rendering an advert with no photographs at all.\n    assert HtmlBackend._ad_photo_refs(None, {\"ad_photos\": [\"gone.png\"]}, photos) == photos\n    assert HtmlBackend._ad_photo_refs(None, {\"ad_photos\": [\"c.png\"]}, photos) == [\"../photos/c.png\"]",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -10162,6 +10635,114 @@
         "importPath": "tests.test_render",
         "description": "tests.test_render",
         "peekOfCode": "def test_a_group_naming_a_photo_the_record_lost_is_ignored(tmp_path):\n    \"\"\"Groups reference names; a removed photo must not leave a phantom entry.\"\"\"\n    from engine.render.base import RenderRequest\n    from engine.render.html_backend import HtmlBackend\n    # deleted.png is deliberately NOT written: it is the photo the record lost.\n    _write_photos(tmp_path, \"1\", \"h.png\", \"a.png\")\n    pub = {\"marketing\": {\n        \"hero_photo\": \"photos/h.png\",\n        \"gallery\": [\"photos/a.png\"],\n        \"photo_groups\": {\"Main House\": [\"photos/a.png\", \"photos/deleted.png\"]},",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_ad_features_follow_the_owners_running_order",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_ad_features_follow_the_owners_running_order():\n    \"\"\"Extent, bedrooms, bathrooms, kitchen, living space, the nice-to-haves,\n    then the practical tail (garage, storeroom, staff).\"\"\"\n    from engine.render.html_backend import _ad_features\n    out = _ad_features([\n        \"Double garage\", \"Swimming pool\", \"Dining room\", \"Lounge\", \"Kitchen\",\n        \"Staff accommodation\", \"Entertainment area\", \"2 bathrooms\",\n    ])\n    assert out == [\n        \"2 bathrooms\", \"Kitchen\", \"Dining room\", \"Lounge\",",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_separate_living_rooms_stay_two_adjacent_rows",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_separate_living_rooms_stay_two_adjacent_rows():\n    \"\"\"\"If open plan then one line, separate 2 line items\" - separate rooms keep\n    both rows, next to each other, in the record's own order.\"\"\"\n    from engine.render.html_backend import _ad_features\n    out = _ad_features([\"Swimming pool\", \"Lounge\", \"Dining room\", \"Kitchen\"])\n    assert out.index(\"Lounge\") == out.index(\"Dining room\") - 1\n    assert out.index(\"Kitchen\") < out.index(\"Lounge\")\ndef test_an_open_plan_line_is_not_repeated_by_a_bare_room():\n    \"\"\"A record carrying both \"Open-plan lounge and kitchen\" and \"Kitchen\"\n    printed the same space twice on one advert.\"\"\"",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_an_open_plan_line_is_not_repeated_by_a_bare_room",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_an_open_plan_line_is_not_repeated_by_a_bare_room():\n    \"\"\"A record carrying both \"Open-plan lounge and kitchen\" and \"Kitchen\"\n    printed the same space twice on one advert.\"\"\"\n    from engine.render.html_backend import _ad_features\n    out = _ad_features([\"Kitchen\", \"Open-plan lounge and kitchen\", \"Lounge\"])\n    assert out == [\"Open-plan lounge and kitchen\"]\n    # ...but a bare room line that SAYS something more survives.\n    out2 = _ad_features([\"Open-plan lounge and kitchen\", \"Kitchen with a walk-in pantry and scullery\"])\n    assert len(out2) == 2\ndef test_a_feature_is_ranked_on_its_subject_not_any_word_in_it():",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_feature_is_ranked_on_its_subject_not_any_word_in_it",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_a_feature_is_ranked_on_its_subject_not_any_word_in_it():\n    \"\"\"\"Balcony leading from the lounge\" is a balcony. Matching anywhere put it\n    with the living spaces because the sentence ends in \"lounge\".\"\"\"\n    from engine.render.html_backend import _ad_features\n    out = _ad_features([\"Balcony leading from the lounge\", \"Open-plan lounge and kitchen\"])\n    assert out == [\"Open-plan lounge and kitchen\", \"Balcony leading from the lounge\"]\ndef test_the_title_carries_the_area_not_the_municipality():\n    \"\"\"\"Say x bedroom house - Vorna Valley, not the whole address, just the\n    area\" - the municipality is administrative, and on a 1080px canvas it pushed\n    the headline to three lines to say nothing a buyer uses.\"\"\"",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_title_carries_the_area_not_the_municipality",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_the_title_carries_the_area_not_the_municipality():\n    \"\"\"\"Say x bedroom house - Vorna Valley, not the whole address, just the\n    area\" - the municipality is administrative, and on a 1080px canvas it pushed\n    the headline to three lines to say nothing a buyer uses.\"\"\"\n    from engine.render.html_backend import HtmlBackend\n    assert HtmlBackend._place_line(\n        {\"suburb\": \"Vorna Valley\", \"municipality\": \"City of Johannesburg Metropolitan\"}\n    ) == \"Vorna Valley\"\n    # A farm often has no suburb: the municipality stands in, suffix dropped.\n    assert HtmlBackend._place_line(",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_draft_advert_is_identical_without_model_copy",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_the_draft_advert_is_identical_without_model_copy(golden_record, tmp_path):\n    \"\"\"\"Does it still do a decent ad?\" - the draft skips the paid call (D93),\n    so this pins WHY that costs nothing: the advert is built from record facts,\n    not from model prose, and comes out byte-identical either way.\n    If someone later makes the ad depend on the generated headline or summary,\n    this fails - which is the point. The draft would otherwise degrade silently.\n    \"\"\"\n    import re\n    import engine.render.service as service\n    from engine.render.copy import _template_copy",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_draft_never_calls_the_model",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_the_draft_never_calls_the_model(golden_record, tmp_path):\n    \"\"\"The saving is only real if nothing on the draft path reaches the API.\"\"\"\n    import engine.render.service as service\n    from engine.store import RecordStore\n    _stage_photos(golden_record, tmp_path)\n    golden_record.marketing.generated_copy = None\n    def explode(record, client=None):\n        raise AssertionError(\"the draft render called the model\")\n    original = service.generate_copy\n    service.generate_copy = explode",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_chosen_icon_overrides_the_keyword_rules",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_a_chosen_icon_overrides_the_keyword_rules(golden_record, tmp_path):\n    \"\"\"The marketer can overrule the glyph on a feature line, and clear it back\n    to automatic (D94). The rules are good but no vocabulary covers every\n    property - D87 proved that on a farm.\n    \"\"\"\n    from engine.store import RecordStore\n    _stage_photos(golden_record, tmp_path)\n    line = \"Swimming pool\"\n    golden_record.physical.features_main = [line]\n    golden_record.marketing.template_set = \"feature_list\"",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_an_icon_pick_reaches_the_information_pack_too",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_an_icon_pick_reaches_the_information_pack_too(golden_record, tmp_path):\n    \"\"\"One pick, both surfaces: the names are shared between the advert's set\n    and the pack's, so a marketer does not choose an icon twice.\"\"\"\n    from engine.store import RecordStore\n    _stage_photos(golden_record, tmp_path)\n    line = \"Swimming pool\"\n    golden_record.physical.features_main = [line]\n    def pack_html(picks):\n        golden_record.marketing.feature_icons = picks\n        store = RecordStore(db_path=\":memory:\")",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_a_count_of_zero_is_never_printed",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_a_count_of_zero_is_never_printed(golden_record, tmp_path):\n    \"\"\"Reported from a live advert (DP3074, a warehouse): \"0 BATHROOMS\".\n    `_fmt_num(0)` returns the string \"0\", which is TRUTHY in Jinja, so every\n    `{% if vm.baths %}` guard passed. `garages` carried an extra `!= '0'` check\n    and beds and baths did not - which is how a zero reached a client-facing\n    advert while another zero never could.\n    \"\"\"\n    import re\n    from engine.store import RecordStore\n    _stage_photos(golden_record, tmp_path)",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_stat_row_icons_can_be_changed_too",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_the_stat_row_icons_can_be_changed_too(golden_record, tmp_path):\n    \"\"\"Reported: \"there is nothing about bedrooms but it says bedrooms on the\n    ads - the point was to change on the ads\" (D98).\n    Extent, bedrooms, bathrooms and garages are the four icons a marketer looks\n    at first, and the picker listed none of them: they are drawn by their own\n    path, not as feature lines. Now they go through the same override.\n    \"\"\"\n    from engine.store import RecordStore\n    _stage_photos(golden_record, tmp_path)\n    BED, POOL = \"M3 7v11m0-4h18\", \"M3 13c1.4 0 1.4 1.4\"",
+        "detail": "tests.test_render",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_picker_lists_the_stat_rows_a_property_prints",
+        "kind": 2,
+        "importPath": "tests.test_render",
+        "description": "tests.test_render",
+        "peekOfCode": "def test_the_picker_lists_the_stat_rows_a_property_prints(golden_record):\n    \"\"\"Only the rows that appear: a property with no garages must not be asked\n    to choose a garage icon.\"\"\"\n    from webapp.routes.gates import _feature_rows\n    golden_record.physical.garages = 0\n    keys = [r[\"text\"] for r in _feature_rows(golden_record)]\n    assert \"stat:bedrooms\" in keys and \"stat:bathrooms\" in keys\n    assert \"stat:garages\" not in keys, \"offered an icon for a row the ad omits\"\n    # The friendly label is what the panel shows, not the raw key.\n    labels = {r[\"text\"]: r[\"label\"] for r in _feature_rows(golden_record)}",
         "detail": "tests.test_render",
         "documentation": {}
     },
@@ -11399,6 +11980,60 @@
         "documentation": {}
     },
     {
+        "label": "test_no_control_promises_a_render_that_batching_stopped_doing",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_no_control_promises_a_render_that_batching_stopped_doing():\n    \"\"\"The fault behind D89, caught as a class rather than one instance (D93).\n    Since D72 saving, uploading, setting a lead and removing a photo all BATCH:\n    they mark the artifacts stale and the explicit Regenerate does the work. Any\n    label or toast still promising a re-render makes a working system look\n    broken - the marketer presses it, sees the same advert, and reports a bug\n    that is not there.\n    \"\"\"\n    import re\n    from pathlib import Path",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_html_pages_are_never_cached",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_html_pages_are_never_cached():\n    \"\"\"A cached PAGE carries the old ?v= for the stylesheet, so the browser\n    keeps the old CSS with it (D96). That shipped the icon picker to a marketer\n    as new markup wearing old styling: unstyled, at full glyph size.\n    The versioned static assets still cache hard - only the HTML is no-store.\n    \"\"\"\n    client = _client()\n    _login_admin(client)\n    page = client.get(\"/board\")\n    assert page.status_code == 200",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_an_icon_change_redraws_the_advert_without_a_model_call",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_an_icon_change_redraws_the_advert_without_a_model_call():\n    \"\"\"A choice made in order to LOOK at it redraws now, and costs nothing (D99).\n    The redraw renders the advert alone, and an ad-only render takes the draft\n    path - so no model call, even on an approved property whose pack would use\n    generated copy when it is next rebuilt. D93 proved the advert is identical\n    either way, so the preview is not a lesser picture.\n    \"\"\"\n    import engine.render.service as service\n    dp = \"7131\"\n    _golden_clone(dp, state=\"drafted\")",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_choosing_an_icon_needs_no_save_button",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_choosing_an_icon_needs_no_save_button():\n    \"\"\"\"I click to change it doesn't change\" (D100).\n    The picker highlighted the choice and then waited for a Save button, so a\n    marketer clicked a glyph, looked at the advert, and saw the old one. A\n    picker that shows your choice and does nothing with it has lied to you.\n    The click itself now applies and redraws.\n    \"\"\"\n    dp = \"7133\"\n    _golden_clone(dp, state=\"drafted\")\n    client = _client()",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_the_icons_form_applies_on_change_not_only_on_submit",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_the_icons_form_applies_on_change_not_only_on_submit():\n    \"\"\"The behaviour lives in one attribute, so assert it directly: without\n    hx-trigger=\"change\" the click is inert until a submit.\"\"\"\n    from pathlib import Path\n    tpl = (Path(__file__).resolve().parent.parent\n           / \"webapp\" / \"templates\" / \"gate2_ads.html\").read_text()\n    form = tpl[tpl.index('hx-post=\"/gates/{{ dp }}/ads/icons\"'):][:400]\n    assert 'hx-trigger=\"change' in form, \"an icon click would not apply\"\ndef test_reordering_photos_redraws_the_advert():\n    \"\"\"Reported: \"the window image is sitting 5th - why is it still showing 3rd",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
+        "label": "test_reordering_photos_redraws_the_advert",
+        "kind": 2,
+        "importPath": "tests.test_webapp",
+        "description": "tests.test_webapp",
+        "peekOfCode": "def test_reordering_photos_redraws_the_advert():\n    \"\"\"Reported: \"the window image is sitting 5th - why is it still showing 3rd\n    on the advert?\" (D101).\n    The renderer was right and the ARTIFACT was stale: dragging a photograph\n    saved the new order and left the advert as it was. Icon clicks redrew\n    instantly (D99/D100) and photo changes did not, which is a worse state than\n    neither doing so - the marketer cannot tell which controls take effect.\n    \"\"\"\n    import re\n    from pathlib import Path",
+        "detail": "tests.test_webapp",
+        "documentation": {}
+    },
+    {
         "label": "_TMP",
         "kind": 5,
         "importPath": "tests.test_webapp",
@@ -11867,6 +12502,15 @@
         "documentation": {}
     },
     {
+        "label": "gate2_custom_icon",
+        "kind": 2,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "def gate2_custom_icon(dp: str, name: str, request: Request,\n                      user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"Serve an uploaded glyph for the picker. Auth-gated like the photos.\"\"\"\n    record = _load(_db(request), dp)\n    stored = ((record.marketing.custom_icons if record.marketing else None) or {}).get(name)\n    path = _icons_dir(_db(request), dp) / Path(stored or name).name\n    if not path.is_file():\n        raise HTTPException(status_code=404, detail=\"No such icon.\")\n    return FileResponse(str(path))\n@router.post(\"/{dp}/ads/icons/upload\", response_class=HTMLResponse)",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
         "label": "gate2_ad_png",
         "kind": 2,
         "importPath": "webapp.routes.gates",
@@ -12061,6 +12705,42 @@
         "importPath": "webapp.routes.gates",
         "description": "webapp.routes.gates",
         "peekOfCode": "_MIN_PHOTO_PX = 1080\ndef _image_dimensions(path: Path) -> Optional[Tuple[int, int]]:\n    \"\"\"Return (width, height) of an image file, or None if it cannot be read.\n    Uses Pillow's lazy header read (no full decode). Any failure (missing file,\n    unreadable/corrupt image) returns None so the caller simply shows no warning\n    rather than breaking the panel.\n    \"\"\"\n    try:\n        from PIL import Image\n        with Image.open(path) as img:",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_MAX_AD_PHOTOS",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "_MAX_AD_PHOTOS = 4\n# The glyphs a marketer may choose for a feature line (D94). Names shared with\n# the pack's set where one exists, so a single pick drives both surfaces; the\n# four that are advert-only fall back to the pack's own rules there.\ndef _icon_choices(record: \"PropertyRecord | None\" = None, dp: str = \"\") -> List[Dict[str, Any]]:\n    \"\"\"The picker's tiles: name, label, group and the glyph's own drawing (D95).\n    The drawing comes from the same module the advert renders from, so the\n    picture in the picker IS the picture that prints - a dropdown of words could\n    not show that, which is why choosing an icon meant guessing.\n    \"\"\"",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_MAX_CUSTOM_ICONS",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "_MAX_CUSTOM_ICONS = 12\n_ICON_SUFFIXES = {\".svg\", \".png\", \".webp\"}\n_MAX_ICON_BYTES = 512 * 1024\ndef _icons_dir(db_path: str, dp: str) -> Path:\n    return Path(_output_root(db_path)) / f\"DP{dp}\" / \"icons\"\n@router.get(\"/{dp}/ads/icons/{name}\")\ndef gate2_custom_icon(dp: str, name: str, request: Request,\n                      user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"Serve an uploaded glyph for the picker. Auth-gated like the photos.\"\"\"\n    record = _load(_db(request), dp)",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_ICON_SUFFIXES",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "_ICON_SUFFIXES = {\".svg\", \".png\", \".webp\"}\n_MAX_ICON_BYTES = 512 * 1024\ndef _icons_dir(db_path: str, dp: str) -> Path:\n    return Path(_output_root(db_path)) / f\"DP{dp}\" / \"icons\"\n@router.get(\"/{dp}/ads/icons/{name}\")\ndef gate2_custom_icon(dp: str, name: str, request: Request,\n                      user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"Serve an uploaded glyph for the picker. Auth-gated like the photos.\"\"\"\n    record = _load(_db(request), dp)\n    stored = ((record.marketing.custom_icons if record.marketing else None) or {}).get(name)",
+        "detail": "webapp.routes.gates",
+        "documentation": {}
+    },
+    {
+        "label": "_MAX_ICON_BYTES",
+        "kind": 5,
+        "importPath": "webapp.routes.gates",
+        "description": "webapp.routes.gates",
+        "peekOfCode": "_MAX_ICON_BYTES = 512 * 1024\ndef _icons_dir(db_path: str, dp: str) -> Path:\n    return Path(_output_root(db_path)) / f\"DP{dp}\" / \"icons\"\n@router.get(\"/{dp}/ads/icons/{name}\")\ndef gate2_custom_icon(dp: str, name: str, request: Request,\n                      user: dict = Depends(require_role(\"approver\", \"marketing\"))):\n    \"\"\"Serve an uploaded glyph for the picker. Auth-gated like the photos.\"\"\"\n    record = _load(_db(request), dp)\n    stored = ((record.marketing.custom_icons if record.marketing else None) or {}).get(name)\n    path = _icons_dir(_db(request), dp) / Path(stored or name).name",
         "detail": "webapp.routes.gates",
         "documentation": {}
     },
