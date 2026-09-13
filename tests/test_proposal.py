@@ -277,6 +277,29 @@ def test_templates_carry_only_the_expected_slots():
     }
 
 
+def test_every_header_carries_the_properties_letterhead_and_nothing_under_it():
+    import io
+
+    wp = "{http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing}"
+    a = "{http://schemas.openxmlformats.org/drawingml/2006/main}"
+    embed = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
+    section = Document(str(docx_build.FRONT)).sections[0]
+    blobs = []
+    for header in (section.header, section.first_page_header):
+        part = header.part
+        wide = [
+            d for d in part.element.iter(qn("w:drawing"))
+            if int(d[0].find(wp + "extent").get("cx")) >= 150 * 36000
+        ]
+        # One picture only: an older letterhead stacked underneath would show
+        # whenever Word's stacking order changed (D106).
+        assert len(wide) == 1
+        blobs.append(part.related_parts[next(wide[0].iter(a + "blip")).get(embed)].blob)
+    assert blobs[0] == blobs[1]
+    with Image.open(io.BytesIO(blobs[0])) as im:
+        assert im.size == (794, 194)  # Letter Head 2026.png, the properties letterhead
+
+
 # --- store ---------------------------------------------------------------------------
 
 def test_store_round_trips_and_lists(tmp_path):

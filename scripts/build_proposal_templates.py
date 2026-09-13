@@ -19,7 +19,11 @@ own OTP word for word (D103).
 
 Run once against a proposal whose layout is current, then commit the output:
 
-    python3.12 scripts/build_proposal_templates.py "<path to 2821 - Auction proposal.docx>"
+    python3.12 scripts/build_proposal_templates.py "<path to 2821 - Auction proposal.docx>" \
+        --letterhead "<path to KONTRAKTE+COMM AGMENT.MASTER/Letter Head 2026.png>" \
+        --forbid <each identifying string of the source property>
+
+``--letterhead`` makes that PNG the only letterhead picture in every header (D106).
 
 The script refuses to write a template that still carries any of the source
 property's identifying strings (pass them with --forbid), and it drops every
@@ -370,6 +374,74 @@ def build_back(src: Path, dest: Path) -> None:
     print(f"back: {dest.name} ({dropped} unreferenced images dropped)")
 
 
+# --- letterhead -----------------------------------------------------------
+
+_WP = "{http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing}"
+_A = "{http://schemas.openxmlformats.org/drawingml/2006/main}"
+_EMBED = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
+_WIDE = 150 * 36000  # EMU: anything narrower is a logo, not a letterhead
+
+
+def apply_letterhead(path: Path, png: Path) -> int:
+    """Make ``png`` the one letterhead picture in every header of ``path`` (D106).
+
+    The team's headers stack full-width pictures behind the text: DP2821's
+    first-page header holds the current letterhead over an old gold-logo one of
+    the same size, and Word shows whichever sits higher. So in each header the
+    topmost wide picture takes the new image, resized to that image's own
+    proportions, and every other wide picture is removed so an old one can never
+    surface. Returns the number of headers changed.
+    """
+    from PIL import Image
+
+    with Image.open(png) as im:
+        w_px, h_px = im.size
+    doc = Document(str(path))
+    parts = []
+    for section in doc.sections:
+        headers = [section.header]
+        if section.different_first_page_header_footer:
+            headers.append(section.first_page_header)
+        for header in headers:
+            if not header.is_linked_to_previous and header.part not in parts:
+                parts.append(header.part)
+
+    changed = 0
+    for part in parts:
+        root = part.element
+        wide = []
+        for drawing in root.iter(qn("w:drawing")):
+            holder = drawing[0]
+            extent = holder.find(_WP + "extent")
+            if extent is not None and int(extent.get("cx")) >= _WIDE:
+                wide.append((int(holder.get("relativeHeight", "0")), drawing, holder, extent))
+        if not wide:
+            continue
+        wide.sort(key=lambda item: item[0], reverse=True)
+        _, keep, holder, extent = wide[0]
+        rid, _image = part.get_or_add_image(str(png))
+        next(keep.iter(_A + "blip")).set(_EMBED, rid)
+        cx = int(extent.get("cx"))
+        cy = round(cx * h_px / w_px)
+        extent.set("cy", str(cy))
+        for ext in keep.iter(_A + "ext"):
+            if ext.get("cx") is not None:
+                ext.set("cx", str(cx))
+                ext.set("cy", str(cy))
+        for _, drawing, _, _ in wide[1:]:
+            run = drawing.getparent()
+            run.remove(drawing)
+            if run.tag == qn("w:r") and all(child.tag == qn("w:rPr") for child in run):
+                run.getparent().remove(run)
+        xml = etree.tostring(root).decode("utf8")
+        for r_id, rel in list(part.rels.items()):
+            if rel.reltype.endswith("/image") and f'"{r_id}"' not in xml:
+                del part.rels[r_id]
+        changed += 1
+    doc.save(str(path))
+    return changed
+
+
 # --- guard ----------------------------------------------------------------
 
 def _assert_clean(path: Path, forbidden) -> None:
@@ -386,11 +458,16 @@ def main(argv=None) -> int:
     ap.add_argument("source", type=Path, help="a real proposal .docx in the current layout")
     ap.add_argument("--forbid", action="append", default=[],
                     help="a string from the source property that must not survive (repeatable)")
+    ap.add_argument("--letterhead", type=Path,
+                    help="a PNG to use as the only letterhead picture in every header (D106)")
     args = ap.parse_args(argv)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     front = OUT_DIR / "proposal-front.docx"
     back = OUT_DIR / "proposal-back.docx"
     build_front(args.source, front)
+    if args.letterhead:
+        changed = apply_letterhead(front, args.letterhead)
+        print(f"letterhead: {changed} header(s) now use {args.letterhead.name}")
     build_back(args.source, back)
     for path in (front, back):
         _assert_clean(path, args.forbid)
