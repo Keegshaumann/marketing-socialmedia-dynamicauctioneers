@@ -1,0 +1,9 @@
+<div id="prefill"{% if prefill_running %} hx-get="/proposals/{{ p.dp }}/prefill-status" hx-trigger="every 3s" hx-swap="outerHTML"{% endif %}>
+  {% if prefill_running %}
+  <div class="hint">Reading the Lightstone report. The page reloads when the fields are filled in, so wait before typing.</div>
+  {% elif prefill_job and prefill_job.state == 'error' %}
+  <div class="hint hint--warn">The report could not be read ({{ prefill_job.detail }}). Type the seller and property in instead.</div>
+  {% elif p.prefill_note %}
+  <div class="hint">{{ p.prefill_note }}</div>
+  {% endif %}
+</div>

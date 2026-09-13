@@ -57,9 +57,19 @@ never touches it.)
 
 ## Add a user
 
-Log in to the web app as `admin@dynamicauctioneers.co.za` and use the Settings /
-users screen to create `marketing` (Nikki) and `approver` accounts. The admin
-temp password is printed once to the journal on first boot:
+There is no users screen. Accounts are made on the server with
+`scripts/create_user.py`, which generates the password, prints it once and
+stores only its bcrypt hash. Roles: `marketing` (Nikki) and `approver` run the
+marketing pipeline; `properties` opens auction proposals and nothing else (D104).
+
+```bash
+ssh root@46.202.175.127
+cd /opt/da-marketing
+sudo -u dauction ./venv/bin/python scripts/create_user.py someone@dynamicauctioneers.co.za properties
+```
+
+`--reset` gives an existing account a new password. The bootstrap admin's temp
+password is printed once to the journal on first boot:
 
 ```bash
 journalctl -u da-marketing | grep -i "temp password"

@@ -36,7 +36,7 @@ from webapp.models import get_job  # re-exported: get_job(db_path, id)
 
 log = logging.getLogger(__name__)
 
-JOB_KINDS = ("extract", "verify", "render", "post")
+JOB_KINDS = ("extract", "verify", "render", "post", "proposal_prefill", "proposal_publish")
 
 # Lifecycle states in which re-running extraction over an EXISTING record is
 # safe: nothing has been signed off, drafted or published yet, so rewriting the
@@ -326,11 +326,90 @@ def _handle_post(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, str]
     return "done", f"posted to {len(channels)} channels via GHL ({result!r})"
 
 
+def _proposal_root(job: Dict[str, Any], db_path: Optional[str]) -> Path:
+    return Path(_output_root(job, db_path)) / f"DP{job.get('dp')}" / "proposal"
+
+
+def _handle_proposal_prefill(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, str]:
+    """Read a proposal's new Lightstone reports into its blank fields (M9, D103). KEY-GATED."""
+    from engine.proposal import lightstone
+    from engine.proposal.store import ProposalStore
+
+    dp = job.get("dp")
+    if not dp:
+        return "error", "prefill job has no DP number."
+    if not _has_api_key():
+        return "skipped: no API key", "no ANTHROPIC_API_KEY; the proposal fields are typed by hand."
+    root = _proposal_root(job, db_path)
+    with ProposalStore(models.resolve_db_path(db_path)) as store:
+        proposal = store.get(dp)
+    if proposal is None:
+        return "error", f"there is no proposal for DP {dp}."
+    pending = [rel for rel in proposal.lightstone_files if rel not in proposal.lightstone_read]
+    if not pending:
+        return "done", "no new Lightstone report to read."
+
+    facts = [lightstone.read_facts(root / rel) for rel in pending]
+
+    # Load again before writing: the page may have been saved while the model read.
+    with ProposalStore(models.resolve_db_path(db_path)) as store:
+        proposal = store.get(dp)
+        if proposal is None:
+            return "error", f"the proposal for DP {dp} was deleted while its report was read."
+        note = lightstone.apply_facts(proposal, facts)
+        proposal.lightstone_read = sorted(set(proposal.lightstone_read) | set(pending))
+        proposal.prefill_note = note
+        store.save(proposal, "lightstone")
+    return "done", note
+
+
+def _handle_proposal_publish(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, str]:
+    """Save a generated proposal in SharePoint and fetch its PDF (M9, D103). CREDENTIAL-GATED."""
+    from engine.proposal import sharepoint
+    from engine.proposal.store import ProposalStore
+
+    dp = job.get("dp")
+    if not dp:
+        return "error", "publish job has no DP number."
+    cfg = sharepoint.config_from_env()
+    if cfg is None:
+        return "skipped: SharePoint not connected", "MS_GRAPH_* are not set; the Word file is ready to download."
+    root = _proposal_root(job, db_path)
+    with ProposalStore(models.resolve_db_path(db_path)) as store:
+        proposal = store.get(dp)
+    if proposal is None:
+        return "error", f"there is no proposal for DP {dp}."
+
+    try:
+        published = sharepoint.publish(proposal, root, cfg)
+    except Exception as exc:
+        message = str(exc) if isinstance(exc, sharepoint.SharePointError) else (
+            f"SharePoint could not be reached ({type(exc).__name__}). Generate again to retry."
+        )
+        with ProposalStore(models.resolve_db_path(db_path)) as store:
+            latest = store.get(dp)
+            if latest is not None:
+                latest.pdf_note = message
+                store.save(latest, "sharepoint")
+        return "error", message
+
+    # Only the SharePoint fields are copied onto the latest save, so edits made
+    # while the upload ran are kept.
+    with ProposalStore(models.resolve_db_path(db_path)) as store:
+        latest = store.get(dp) or published
+        for field in ("sharepoint_folder", "sharepoint_docx", "sharepoint_pdf", "pdf_file", "pdf_note"):
+            setattr(latest, field, getattr(published, field))
+        store.save(latest, "sharepoint")
+    return "done", f"saved to {published.sharepoint_folder}"
+
+
 _HANDLERS: Dict[str, Callable[[Optional[str], Dict[str, Any]], Tuple[str, str]]] = {
     "extract": _handle_extract,
     "verify": _handle_verify,
     "render": _handle_render,
     "post": _handle_post,
+    "proposal_prefill": _handle_proposal_prefill,
+    "proposal_publish": _handle_proposal_publish,
 }
 
 

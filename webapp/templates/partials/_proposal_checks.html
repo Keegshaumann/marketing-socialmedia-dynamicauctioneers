@@ -1,0 +1,24 @@
+{% import '_macros.html' as ui %}
+<section class="panel" id="checks">
+  <div class="panel__head">
+    <div class="panel__title">Checks</div>
+    {% if blocking %}<span class="badge badge--block">{{ blocking|length }} to fix</span>
+    {% elif warnings %}<span class="badge badge--note">Ready, {{ warnings|length }} to look at</span>
+    {% else %}<span class="badge badge--ok">Ready</span>{% endif %}
+  </div>
+  <div class="panel__body stack stack--sm">
+    {% for issue in blocking %}
+    <div class="flag flag--block">
+      <span class="flag__icon">{{ ui.icon('flag', 'icon--sm') }}</span>
+      <div class="flag__body">{{ issue.message }}</div>
+    </div>
+    {% endfor %}
+    {% for issue in warnings %}
+    <div class="flag flag--note">
+      <span class="flag__icon">{{ ui.icon('info', 'icon--sm') }}</span>
+      <div class="flag__body">{{ issue.message }}</div>
+    </div>
+    {% endfor %}
+    {% if not issues %}<div class="hint">Nothing to fix. Generate when you are ready.</div>{% endif %}
+  </div>
+</section>

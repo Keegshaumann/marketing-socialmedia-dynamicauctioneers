@@ -1,9 +1,10 @@
 """Authentication and role gating (M8, Phase 4).
 
-Email + bcrypt-password accounts with two functional roles:
+Email + bcrypt-password accounts with three functional roles:
 
-- ``marketing`` -- runs jobs (upload the pair, drive extraction/render)
-- ``approver``  -- signs the three human gates
+- ``marketing``  -- runs jobs (upload the pair, drive extraction/render)
+- ``approver``   -- signs the three human gates
+- ``properties`` -- builds auction proposals (M9) and opens nothing else (D104)
 
 Sessions ride on a signed cookie via Starlette's ``SessionMiddleware`` (wired in
 ``main.py``); this module only reads and writes ``request.session["user"]`` (the
@@ -35,7 +36,12 @@ from webapp import models
 
 ADMIN_EMAIL = "admin@dynamicauctioneers.co.za"
 ADMIN_ROLE = "admin"
-ROLES = ("marketing", "approver")
+ROLES = ("marketing", "approver", "properties")
+# The roles that run the marketing pipeline: board, intake, gates, artifacts and
+# posting. ``properties`` is deliberately not one of them. The properties team
+# builds auction proposals (M9), which show sellers' names and ID numbers, and
+# sees nothing else; marketing and approver accounts do not see proposals (D104).
+OPERATIONS = ("marketing", "approver")
 
 
 # --- password hashing -----------------------------------------------------
@@ -159,7 +165,11 @@ def require_role(*roles: str) -> Callable[[Request], Dict[str, Any]]:
 
 
 def require_login(request: Request) -> Dict[str, Any]:
-    """FastAPI dependency: require any logged-in user (either role)."""
+    """FastAPI dependency: require any logged-in user, whatever the role.
+
+    A pipeline screen should use ``require_role(*OPERATIONS)`` instead, or a
+    ``properties`` login could open it (D104).
+    """
     user = current_user(request)
     if user is None:
         raise HTTPException(
@@ -168,6 +178,18 @@ def require_login(request: Request) -> Dict[str, Any]:
             headers={"Location": "/login"},
         )
     return user
+
+
+def can(user: Optional[Dict[str, Any]], *roles: str) -> bool:
+    """Whether ``user`` holds one of ``roles``; admin holds every role."""
+    return _has_role(user, roles)
+
+
+def home_for(user: Optional[Dict[str, Any]]) -> str:
+    """The screen a user lands on: Proposals for a properties login, else the board."""
+    if user is not None and user.get("role") == "properties":
+        return "/proposals"
+    return "/board"
 
 
 # --- first-run seeding ----------------------------------------------------

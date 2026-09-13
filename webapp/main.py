@@ -71,6 +71,7 @@ BRAND_TOKENS = {
 ROUTE_MODULES = (
     "board",
     "intake",
+    "proposals",
     "gates",
     "artifacts",
     "post",

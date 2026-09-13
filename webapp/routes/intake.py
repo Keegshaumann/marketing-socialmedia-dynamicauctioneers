@@ -136,8 +136,11 @@ def _job_ctx(job: Dict[str, Any]) -> Dict[str, Any]:
 
 @router.get("", response_class=HTMLResponse)
 def intake_page(request: Request):
-    if auth.current_user(request) is None:
+    user = auth.current_user(request)
+    if user is None:
         return RedirectResponse("/login", status_code=303)
+    if not auth.can(user, *auth.OPERATIONS):  # a properties login (D104)
+        return RedirectResponse(auth.home_for(user), status_code=303)
     return _view(request, "intake.html")
 
 
@@ -352,8 +355,11 @@ def _finalize_intake(request: Request, db_path, output_root: str, job, batch_dir
 
 @router.get("/job/{job_id}", response_class=HTMLResponse)
 def job_status(request: Request, job_id: int):
-    if auth.current_user(request) is None:
+    user = auth.current_user(request)
+    if user is None:
         return RedirectResponse("/login", status_code=303)
+    if not auth.can(user, *auth.OPERATIONS):
+        return RedirectResponse(auth.home_for(user), status_code=303)
     row = models.get_job(auth.db_path_for(request), job_id)
     if row is None:
         return _view(

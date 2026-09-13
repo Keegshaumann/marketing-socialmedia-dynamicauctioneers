@@ -1099,3 +1099,41 @@ tr:hover .iconbtn { opacity: 1; }
   .stickyish::-webkit-scrollbar { width: 8px; }
   .stickyish::-webkit-scrollbar-thumb { background: var(--line); border-radius: 8px; }
 }
+
+
+/* Auction proposals (M9, D103). The form is long and the checks are what a
+   person acts on, so the checks, files and email sit in a pinned side column
+   (reusing .stickyish) and the columns stack on a narrow screen. */
+.proposal-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr); gap: 24px; align-items: start; }
+/* Stacks earlier than gate 2 (981px): the budget table needs the width, and
+   squeezed beside the side column its cost column scrolls out of sight. */
+@media (max-width: 1180px) {
+  .proposal-grid { grid-template-columns: 1fr; }
+  .proposal-grid .stickyish { position: static; max-height: none; }
+}
+.doc-slot { display: flex; flex-direction: column; gap: 8px; padding-bottom: 16px; border-bottom: 1px solid var(--hairline-soft); }
+.doc-slot:last-child { padding-bottom: 0; border-bottom: 0; }
+.doc-upload { display: inline-flex; }
+.doc-upload .btn { cursor: pointer; }
+.doc-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.doc-list li { display: flex; align-items: center; gap: 8px; font-size: 13.5px; }
+.doc-list li span:first-of-type { overflow-wrap: anywhere; }
+.proposal-thumbs { display: flex; flex-wrap: wrap; gap: 10px; }
+.proposal-thumb { position: relative; margin: 0; width: 150px; border: 1px solid var(--hairline); border-radius: 8px; overflow: hidden; background: #fff; }
+.proposal-thumb img { display: block; width: 100%; height: 170px; object-fit: contain; }
+.proposal-thumb--tall img { height: 230px; }
+.proposal-thumb .iconbtn { position: absolute; top: 6px; right: 6px; }
+.erf-block { padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--hairline-soft); }
+/* A fixed layout shares the column out, so on a 1366px laptop the cost column
+   stays in view instead of scrolling off the right (it measured 760px of table
+   in a 664px column before). */
+.budget-table { table-layout: fixed; width: 100%; min-width: 0; }
+.budget-table th:nth-child(1) { width: 31%; }
+.budget-table th:nth-child(2) { width: 29%; }
+.budget-table th:nth-child(3) { width: 18%; }
+.budget-table th:nth-child(4) { width: 16%; }
+.budget-table th:nth-child(5) { width: 6%; }
+.budget-table td { vertical-align: top; padding: 6px; }
+.budget-table .textarea { min-height: 0; resize: vertical; }
+.budget-table .input, .budget-table .textarea { width: 100%; min-width: 0; }
+.input.is-invalid, .textarea.is-invalid { border-color: var(--block); }

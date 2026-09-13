@@ -271,7 +271,7 @@ def _property_header(db_path: str, dp: str) -> Dict[str, Any]:
 def artifacts_page(
     request: Request,
     dp: str,
-    user: dict = Depends(auth.require_login),
+    user: dict = Depends(auth.require_role(*auth.OPERATIONS)),
 ):
     """The artifact pack + Proof-of-Marketing board for one property."""
     db_path = auth.db_path_for(request)
@@ -293,7 +293,7 @@ def artifacts_page(
 def status_partial(
     request: Request,
     dp: str,
-    user: dict = Depends(auth.require_login),
+    user: dict = Depends(auth.require_role(*auth.OPERATIONS)),
 ):
     """The status board on its own, for HTMX polling after a post."""
     db_path = auth.db_path_for(request)
@@ -309,7 +309,7 @@ def artifact_file(
     request: Request,
     dp: str,
     fmt: str,
-    user: dict = Depends(auth.require_login),
+    user: dict = Depends(auth.require_role(*auth.OPERATIONS)),
 ):
     """Serve one rendered artifact file (inline where the browser can show it)."""
     db_path = auth.db_path_for(request)
@@ -333,7 +333,7 @@ def artifact_thumb(
     request: Request,
     dp: str,
     fmt: str,
-    user: dict = Depends(auth.require_login),
+    user: dict = Depends(auth.require_role(*auth.OPERATIONS)),
 ):
     """Serve the cached thumbnail image of an html/pdf artifact (auth-gated).
 
@@ -375,7 +375,7 @@ def artifact_thumb(
 def download_pack(
     request: Request,
     dp: str,
-    user: dict = Depends(auth.require_login),
+    user: dict = Depends(auth.require_role(*auth.OPERATIONS)),
 ):
     """Stream every rendered artifact for the DP as a single zip."""
     db_path = auth.db_path_for(request)

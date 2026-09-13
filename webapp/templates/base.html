@@ -17,17 +17,28 @@
   {%- set _user = user if user is defined else none -%}
   <div class="app">
     <header class="appbar">
-      <a class="appbar__brand" href="/board" aria-label="Dynamic Auctioneers home">
+      <a class="appbar__brand" href="{{ '/proposals' if _user and _user.role == 'properties' else '/board' }}" aria-label="Dynamic Auctioneers home">
         <span class="appbar__mark" aria-hidden="true"></span>
         <span class="appbar__word">Dynamic Auctioneers</span>
       </a>
       <nav class="appbar__nav" aria-label="Primary">
+        {#- Each role sees only the screens it can open (D104): a properties
+            login gets Proposals, marketing and approver get the pipeline, and
+            admin gets both. Signed out, the pipeline links show as before. -#}
+        {%- set _role = _user.role if _user else '' %}
+        {% if not _user or _role in ('marketing', 'approver', 'admin') %}
         <a class="navlink {{ 'is-active' if _path == '/' or _path.startswith('/board') else '' }}" href="/board">
           {{ ui.icon('board', 'icon--sm') }}<span>Board</span>
         </a>
         <a class="navlink {{ 'is-active' if _path.startswith('/intake') else '' }}" href="/intake">
           {{ ui.icon('intake', 'icon--sm') }}<span>Intake</span>
         </a>
+        {% endif %}
+        {% if _role in ('properties', 'admin') %}
+        <a class="navlink {{ 'is-active' if _path.startswith('/proposals') else '' }}" href="/proposals">
+          {{ ui.icon('file', 'icon--sm') }}<span>Proposals</span>
+        </a>
+        {% endif %}
         {% if _user and _user.role == 'admin' %}
         <a class="navlink {{ 'is-active' if _path.startswith('/settings') else '' }}" href="/settings">
           {{ ui.icon('settings', 'icon--sm') }}<span>Settings</span>

@@ -194,15 +194,16 @@ def _load_rows(db_path: str) -> List[Dict[str, Any]]:
 # --- root + auth ----------------------------------------------------------
 
 @router.get("/", include_in_schema=False)
-def root() -> RedirectResponse:
-    return RedirectResponse("/board", status_code=303)
+def root(request: Request) -> RedirectResponse:
+    return RedirectResponse(auth.home_for(auth.current_user(request)), status_code=303)
 
 
 @router.get("/login", response_class=HTMLResponse)
 def login_form(request: Request):
-    # Already signed in: send them to the board.
-    if auth.current_user(request) is not None:
-        return RedirectResponse("/board", status_code=303)
+    # Already signed in: send them to the screen their role opens.
+    user = auth.current_user(request)
+    if user is not None:
+        return RedirectResponse(auth.home_for(user), status_code=303)
     return _view(request, "login.html", {"error": None})
 
 
@@ -234,7 +235,7 @@ def login_submit(
 
     if auth.login_user(request, email, password):
         throttle.record_success(key)
-        return RedirectResponse("/board", status_code=303)
+        return RedirectResponse(auth.home_for(auth.current_user(request)), status_code=303)
 
     # The attempt was already counted by hit(). Log it (email + source IP,
     # both CR/LF-sanitised) for intrusion detection; never the password, and the
@@ -261,6 +262,8 @@ def board(request: Request):
     user = auth.current_user(request)
     if user is None:
         return RedirectResponse("/login", status_code=303)
+    if not auth.can(user, *auth.OPERATIONS):  # a properties login (D104)
+        return RedirectResponse(auth.home_for(user), status_code=303)
     rows = _load_rows(auth.db_path_for(request))
     return _view(request, "board.html", {"rows": rows, "animate": True, "stats": _deck_stats(rows)})
 
@@ -268,8 +271,11 @@ def board(request: Request):
 @router.get("/board/rows", response_class=HTMLResponse)
 def board_rows(request: Request):
     """The ledger body only: HTMX polls this to keep the board live."""
-    if auth.current_user(request) is None:
+    user = auth.current_user(request)
+    if user is None:
         return RedirectResponse("/login", status_code=303)
+    if not auth.can(user, *auth.OPERATIONS):
+        return RedirectResponse(auth.home_for(user), status_code=303)
     rows = _load_rows(auth.db_path_for(request))
     return _view(request, "_board_rows.html", {"rows": rows, "animate": False})
 

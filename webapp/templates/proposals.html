@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as ui %}
+{% block title %}Auction proposals{% endblock %}
+{% block heading %}Auction proposals{% endblock %}
+{% block subheading %}<div class="topbar__sub">The proposal that goes to the liquidator, trustee or executor</div>{% endblock %}
+
+{% block content %}
+<section class="panel">
+  <div class="panel__head"><div class="panel__title">Start a proposal</div></div>
+  <div class="panel__body">
+    <form method="post" action="/proposals/new" class="row" style="gap:12px; align-items:flex-end; flex-wrap:wrap;">
+      <div style="flex: 0 1 240px;">
+        <label class="label" for="dp">DP number</label>
+        <input class="input" id="dp" name="dp" placeholder="2821, or 2990.3 for a sub-lot" required autocomplete="off">
+      </div>
+      {{ ui.button('Start', variant='gold', icon_name='plus', type='submit') }}
+    </form>
+    {% if error == 'dp' %}<div class="form-error">That is not a DP number. Type it like 2821, or 2990.3 for a sub-lot.</div>{% endif %}
+    <div class="hint mt-1">If the property is already on the board, its seller, address, title deed and sale terms are copied across. If not, upload the Lightstone report on the next screen or type the facts in.</div>
+  </div>
+</section>
+
+{% if rows %}
+<div class="ledger-wrap mt-3">
+  <table class="ledger">
+    <thead>
+      <tr>
+        <th style="width:90px;">DP</th>
+        <th>Seller</th>
+        <th style="width:140px;">Auction</th>
+        <th style="width:240px;">Last change</th>
+        <th style="width:130px;">Files</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td class="ledger__dp"><a href="/proposals/{{ r.dp }}">{{ r.dp }}</a></td>
+        <td><a href="/proposals/{{ r.dp }}">{{ r.seller_name or 'Not filled in yet' }}</a></td>
+        <td>{{ r.auction_date.strftime('%-d %b %Y') if r.auction_date else '' }}</td>
+        <td class="muted">{{ r.updated_at[:10] }}{% if r.updated_by %}, {{ r.updated_by }}{% endif %}</td>
+        <td>
+          {% if r.has_pdf %}<span class="badge badge--ok">Word and PDF</span>
+          {% elif r.generated_at %}<span class="badge badge--gold">Word</span>
+          {% else %}<span class="badge badge--neutral">Draft</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty mt-3">
+  {{ ui.icon('file', 'icon--xl') }}
+  <div class="empty__title">No proposals yet</div>
+  <div class="empty__text">Type a DP number above to start one.</div>
+</div>
+{% endif %}
+{% endblock %}

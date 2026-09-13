@@ -170,7 +170,7 @@ def _advance_to_live(store, dp: str) -> Optional[str]:
 def post_page(
     request: Request,
     dp: str,
-    user: dict = Depends(auth.require_login),
+    user: dict = Depends(auth.require_role(*auth.OPERATIONS)),
 ):
     """Render the post-and-change screen for one property."""
     db_path = auth.db_path_for(request)

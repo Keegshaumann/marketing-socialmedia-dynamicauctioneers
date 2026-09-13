@@ -1,0 +1,316 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as ui %}
+{% block title %}Proposal {{ p.dp }}{% endblock %}
+{% block heading %}Auction proposal {{ p.dp }}{% endblock %}
+{% block subheading %}<div class="topbar__sub">{{ p.seller_name or 'Seller not filled in yet' }}</div>{% endblock %}
+{% block topbar_actions %}
+  <a class="btn btn--ghost btn--sm" href="/proposals">{{ ui.icon('arrow', 'icon--sm icon--flip') }}<span>All proposals</span></a>
+{% endblock %}
+
+{# One upload button per slot. hx-include carries the whole form along, so
+   whatever was typed but not yet saved survives the reload that follows. #}
+{% macro upload(dp, kind, label, accept, multiple=false) -%}
+<form class="doc-upload" hx-post="/proposals/{{ dp }}/upload/{{ kind }}" hx-encoding="multipart/form-data"
+      hx-include="#proposal-form" hx-trigger="change">
+  <label class="btn btn--ghost btn--sm">
+    {{ ui.icon('plus', 'icon--sm') }}<span>{{ label }}</span>
+    <input type="file" name="files" accept="{{ accept }}" class="sr-only"{% if multiple %} multiple{% endif %}>
+  </label>
+</form>
+{%- endmacro %}
+
+{% macro remove(dp, kind, index, what) -%}
+<button type="button" class="iconbtn iconbtn--danger" aria-label="Remove {{ what }}"
+        hx-post="/proposals/{{ dp }}/remove/{{ kind }}/{{ index }}" hx-include="#proposal-form">{{ ui.icon('x', 'icon--sm') }}</button>
+{%- endmacro %}
+
+{% block content %}
+{% if notice %}
+<div class="banner banner--note" role="status" style="margin-bottom:18px;">
+  {{ ui.icon('info') }}
+  <div class="banner__body">{{ notice }}</div>
+</div>
+{% endif %}
+
+<div class="proposal-grid">
+<div class="stack stack--lg">
+
+  <section class="panel" id="documents">
+    <div class="panel__head">
+      <div class="panel__title">Documents</div>
+      <span class="hint">Uploading keeps what you have typed below.</span>
+    </div>
+    <div class="panel__body stack">
+
+      <div class="doc-slot">
+        <div class="label">Lightstone report</div>
+        <div class="hint">Draws the deeds page{% if has_key %} and fills in the seller and property below{% endif %}. Upload one report per erf.</div>
+        {% if p.lightstone_files %}
+        <ul class="doc-list">
+          {% for f in p.lightstone_files %}
+          <li>{{ ui.icon('file', 'icon--sm') }}<span>{{ f.split('/')[-1] }}</span>
+            {% if f in p.lightstone_read %}<span class="badge badge--ok">read</span>{% endif %}
+            {{ remove(p.dp, 'lightstone', loop.index0, 'this report') }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        {% include 'partials/_proposal_prefill.html' %}
+        {{ upload(p.dp, 'lightstone', 'Upload a Lightstone report', '.pdf,application/pdf', true) }}
+      </div>
+
+      <div class="doc-slot">
+        <div class="label">Deeds page</div>
+        <div class="hint">Drawn from the Lightstone report, or upload a screenshot of the deeds enquiry. One per erf, in the order of the properties below.</div>
+        {% if p.deeds_images %}
+        <div class="proposal-thumbs">
+          {% for f in p.deeds_images %}
+          <figure class="proposal-thumb">
+            <img src="/proposals/{{ p.dp }}/file/deeds/{{ loop.index0 }}?v={{ f|urlencode }}" alt="Deeds page {{ loop.index }}">
+            {{ remove(p.dp, 'deeds', loop.index0, 'deeds page ' ~ loop.index) }}
+          </figure>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {{ upload(p.dp, 'deeds', 'Upload a screenshot', 'image/png,image/jpeg', true) }}
+      </div>
+
+      <div class="doc-slot">
+        <div class="label">Draft advert</div>
+        <div class="hint">The advert image from marketing, PNG or JPG.</div>
+        {% if p.advert_image %}
+        <div class="proposal-thumbs">
+          <figure class="proposal-thumb proposal-thumb--tall">
+            <img src="/proposals/{{ p.dp }}/file/advert/0?v={{ p.advert_image|urlencode }}" alt="Draft advert">
+            {{ remove(p.dp, 'advert', 0, 'the advert') }}
+          </figure>
+        </div>
+        {% endif %}
+        <div class="row" style="gap:8px; flex-wrap:wrap;">
+          {{ upload(p.dp, 'advert', 'Upload the advert', 'image/png,image/jpeg') }}
+          {% if engine_advert %}
+          <button type="button" class="btn btn--ghost btn--sm" hx-post="/proposals/{{ p.dp }}/advert/engine" hx-include="#proposal-form">
+            {{ ui.icon('photo', 'icon--sm') }}<span>Use this DP's platform advert</span>
+          </button>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="doc-slot">
+        <div class="label">Offer to purchase (Word)</div>
+        <div class="hint">This property's own OTP. The proposal includes it word for word, so upload the final version.</div>
+        {% if p.otp_file %}
+        <ul class="doc-list">
+          <li>{{ ui.icon('file', 'icon--sm') }}<span>{{ p.otp_file.split('/')[-1] }}</span>{{ remove(p.dp, 'otp', 0, 'the OTP') }}</li>
+        </ul>
+        {% if otp_summary %}<div class="hint">The OTP says: {{ otp_summary }}.</div>{% endif %}
+        {% for note in p.otp_notes %}<div class="hint hint--warn">{{ note }}</div>{% endfor %}
+        {% endif %}
+        {{ upload(p.dp, 'otp', 'Upload the OTP', '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document') }}
+      </div>
+
+    </div>
+  </section>
+
+  <form id="proposal-form" class="stack stack--lg" hx-post="/proposals/{{ p.dp }}/save" hx-target="#checks" hx-swap="outerHTML">
+    <input type="hidden" name="_full_form" value="1">
+
+    <section class="panel" id="seller">
+      <div class="panel__head"><div class="panel__title">Seller</div></div>
+      <div class="panel__body">
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="seller_capacity">Kind of seller</label>
+            <select class="input{{ ' is-invalid' if 'seller_capacity' in flagged }}" id="seller_capacity" name="seller_capacity">
+              <option value=""{% if not p.seller_capacity %} selected{% endif %}>Choose</option>
+              {% for key, label in labels.items() %}
+              <option value="{{ key }}"{% if p.seller_capacity == key %} selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <div class="hint">"The Matter of" is for a company or person not under administration.</div>
+          </div>
+          <div>
+            <label class="label label--sm" for="masters_ref">Master's reference</label>
+            <input class="input" id="masters_ref" name="masters_ref" value="{{ p.masters_ref }}" placeholder="T2174/2024">
+          </div>
+        </div>
+        <div class="field">
+          <label class="label label--sm" for="seller_name">Seller</label>
+          <input class="input{{ ' is-invalid' if 'seller_name' in flagged }}" id="seller_name" name="seller_name" value="{{ p.seller_name }}" placeholder="ZAKK CONSULTANTS (PTY) LTD">
+        </div>
+        <div class="field">
+          <label class="label label--sm" for="seller_id">ID or registration number</label>
+          <input class="input" id="seller_id" name="seller_id" value="{{ p.seller_id }}" placeholder="7601017486085 or 2014/203299/07">
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="property">
+      <div class="panel__head"><div class="panel__title">Property</div></div>
+      <div class="panel__body">
+        {% for erf in p.erven %}{% set n = loop.index %}
+        <div class="erf-block">
+          <div class="row row--between">
+            <div class="label">{{ 'Property ' ~ n if p.erven|length > 1 else 'The property' }}</div>
+            {% if p.erven|length > 1 %}
+            <button type="submit" name="action" value="remove_erf_{{ n }}" class="btn btn--ghost btn--sm">{{ ui.icon('x', 'icon--sm') }}<span>Remove</span></button>
+            {% endif %}
+          </div>
+          <div class="field">
+            <label class="label label--sm" for="erf-{{ n }}-legal">Legal description</label>
+            <textarea class="textarea{{ ' is-invalid' if ('erf_%d_legal' % n) in flagged }}" id="erf-{{ n }}-legal" name="erf-{{ n }}-legal" rows="2" placeholder='ERF 2188, TOWN "HELDERKRUIN EXT 21", GAUTENG'>{{ erf.legal_description }}</textarea>
+          </div>
+          <div class="field">
+            <label class="label label--sm" for="erf-{{ n }}-known_as">Better known as</label>
+            <input class="input{{ ' is-invalid' if ('erf_%d_known_as' % n) in flagged }}" id="erf-{{ n }}-known_as" name="erf-{{ n }}-known_as" value="{{ erf.known_as }}" placeholder="842 PHEASANT STREET, HELDERKRUIN EXT 21, GAUTENG">
+          </div>
+          <div class="field-grid">
+            <div>
+              <label class="label label--sm" for="erf-{{ n }}-title_deed">Title deed</label>
+              <input class="input{{ ' is-invalid' if ('erf_%d_title_deed' % n) in flagged }}" id="erf-{{ n }}-title_deed" name="erf-{{ n }}-title_deed" value="{{ erf.title_deed }}" placeholder="T49195/2001">
+            </div>
+            <div>
+              <label class="label label--sm" for="erf-{{ n }}-extent">Extent</label>
+              <input class="input" id="erf-{{ n }}-extent" name="erf-{{ n }}-extent" value="{{ erf.extent }}" placeholder="2018 m2">
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+        <input type="hidden" name="erf_count" value="{{ p.erven|length }}">
+        <button type="submit" name="action" value="add_erf" class="btn btn--ghost btn--sm">{{ ui.icon('plus', 'icon--sm') }}<span>Add another property</span></button>
+      </div>
+    </section>
+
+    <section class="panel" id="auction">
+      <div class="panel__head"><div class="panel__title">Auction</div></div>
+      <div class="panel__body">
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="auction_date">Auction date</label>
+            <input class="input{{ ' is-invalid' if 'auction_date' in flagged }}" type="date" id="auction_date" name="auction_date" value="{{ p.auction_date.isoformat() if p.auction_date else '' }}">
+          </div>
+          <div>
+            <label class="label label--sm" for="channel">Online or on site</label>
+            <select class="input{{ ' is-invalid' if 'channel' in flagged }}" id="channel" name="channel">
+              <option value=""{% if not p.channel %} selected{% endif %}>Choose</option>
+              <option value="online"{% if p.channel == 'online' %} selected{% endif %}>Online</option>
+              <option value="onsite"{% if p.channel == 'onsite' %} selected{% endif %}>On site</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="time_from">Starts</label>
+            <input class="input{{ ' is-invalid' if 'time_from' in flagged }}" type="time" id="time_from" name="time_from" value="{{ p.time_from }}">
+          </div>
+          <div>
+            <label class="label label--sm" for="time_to">Ends (optional)</label>
+            <input class="input" type="time" id="time_to" name="time_to" value="{{ p.time_to }}">
+          </div>
+        </div>
+        <div class="field">
+          <label class="label label--sm" for="venue_address">Venue address</label>
+          <input class="input{{ ' is-invalid' if 'venue_address' in flagged }}" id="venue_address" name="venue_address" value="{{ p.venue_address }}" placeholder="On-site auctions only">
+        </div>
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="administrator">Administrator</label>
+            <input class="input{{ ' is-invalid' if 'administrator' in flagged }}" id="administrator" name="administrator" value="{{ p.administrator }}" placeholder="Andrea Oberholzer">
+          </div>
+          <div>
+            <label class="label label--sm" for="deadline">Approval deadline</label>
+            <input class="input{{ ' is-invalid' if 'deadline' in flagged }}" type="date" id="deadline" name="deadline" value="{{ p.deadline.isoformat() if p.deadline else '' }}">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="budget">
+      <div class="panel__head">
+        <div class="panel__title">Budget</div>
+        <span id="budget-totals">{% include 'partials/_proposal_totals.html' %}</span>
+      </div>
+      <div class="panel__body">
+        <div class="hint" style="margin-bottom:10px;">Type the figures the liquidator set. A line whose cost is blank is left out; FREE and N/A print as words. VAT is added at 15%.</div>
+        <div class="ledger-wrap">
+          <table class="ledger budget-table">
+            <thead>
+              <tr><th>Media</th><th>Description</th><th>Placement</th><th>Cost</th><th aria-label="Remove"></th></tr>
+            </thead>
+            <tbody>
+              {% for line in p.budget %}{% set n = loop.index %}
+              <tr>
+                <td><textarea class="textarea" name="line-{{ n }}-media" rows="3" aria-label="Media, line {{ n }}">{{ line.media }}</textarea></td>
+                <td><textarea class="textarea" name="line-{{ n }}-description" rows="3" aria-label="Description, line {{ n }}">{{ line.description }}</textarea></td>
+                <td><input class="input" name="line-{{ n }}-placement" value="{{ line.placement }}" aria-label="Placement, line {{ n }}"></td>
+                <td><input class="input{{ ' is-invalid' if ('budget_%d_cost' % n) in flagged }}" name="line-{{ n }}-cost" value="{{ line.cost }}" placeholder="R or FREE" aria-label="Cost, line {{ n }}"></td>
+                <td><button type="submit" name="action" value="remove_line_{{ n }}" class="iconbtn iconbtn--danger" aria-label="Remove line {{ n }}">{{ ui.icon('x', 'icon--sm') }}</button></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <input type="hidden" name="line_count" value="{{ p.budget|length }}">
+        <div class="row" style="gap:8px; margin-top:10px;">
+          <button type="submit" name="action" value="add_line" class="btn btn--ghost btn--sm">{{ ui.icon('plus', 'icon--sm') }}<span>Add a line</span></button>
+          <button type="submit" name="action" value="reset_budget" class="btn btn--ghost btn--sm">{{ ui.icon('edit', 'icon--sm') }}<span>Start from the standard lines</span></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="terms">
+      <div class="panel__head"><div class="panel__title">Terms in the introduction</div></div>
+      <div class="panel__body">
+        <div class="hint" style="margin-bottom:10px;">The introduction pages repeat these three terms, so they must match the OTP{% if otp_summary %} ({{ otp_summary }}){% endif %}. Uploading the OTP fills in any that are blank.</div>
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="deposit_pct">Deposit %</label>
+            <input class="input{{ ' is-invalid' if 'deposit_pct' in flagged }}" id="deposit_pct" name="deposit_pct" inputmode="decimal" value="{{ terms_form.deposit_pct }}" placeholder="10">
+          </div>
+          <div>
+            <label class="label label--sm" for="confirmation_days">Confirmation (days)</label>
+            <input class="input{{ ' is-invalid' if 'confirmation_days' in flagged }}" id="confirmation_days" name="confirmation_days" inputmode="numeric" value="{{ terms_form.confirmation_days }}" placeholder="30">
+          </div>
+        </div>
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="commission_pct">Commission %</label>
+            <input class="input{{ ' is-invalid' if 'commission_pct' in flagged }}" id="commission_pct" name="commission_pct" inputmode="decimal" value="{{ terms_form.commission_pct }}" placeholder="7,5">
+          </div>
+          <div>
+            <label class="label label--sm" for="commission_payer">Commission paid by</label>
+            <select class="input" id="commission_payer" name="commission_payer">
+              <option value=""{% if not p.terms.commission_payer %} selected{% endif %}>Seller (the usual wording)</option>
+              <option value="seller"{% if p.terms.commission_payer == 'seller' %} selected{% endif %}>Seller</option>
+              <option value="purchaser"{% if p.terms.commission_payer == 'purchaser' %} selected{% endif %}>Purchaser</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="commission_vat">VAT on commission</label>
+            <select class="input" id="commission_vat" name="commission_vat">
+              <option value=""{% if p.terms.commission_vat is none %} selected{% endif %}>Plus VAT (the usual wording)</option>
+              <option value="yes"{% if p.terms.commission_vat is sameas true %} selected{% endif %}>Plus VAT</option>
+              <option value="no"{% if p.terms.commission_vat is sameas false %} selected{% endif %}>VAT inclusive</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="actionbar">
+      <span class="actionbar__note">Saving runs the checks again.</span>
+      <span class="spacer"></span>
+      {{ ui.button('Save', variant='primary', icon_name='check', type='submit') }}
+    </div>
+  </form>
+
+</div>
+
+<aside class="stack stickyish">
+  {% include 'partials/_proposal_checks.html' %}
+  {% include 'partials/_proposal_output.html' %}
+  {% include 'partials/_proposal_email.html' %}
+</aside>
+</div>
+{% endblock %}

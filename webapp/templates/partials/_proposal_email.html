@@ -1,0 +1,19 @@
+{% import '_macros.html' as ui %}
+<section class="panel" id="email"{% if output_oob is defined and output_oob %} hx-swap-oob="true"{% endif %}>
+  <div class="panel__head"><div class="panel__title">Covering email</div></div>
+  <div class="panel__body">
+    <div class="field">
+      <label class="label label--sm" for="email-subject">Subject</label>
+      <input class="input" id="email-subject" value="{{ email_subject }}" readonly>
+    </div>
+    <div class="field">
+      <label class="label label--sm" for="email-body">Message</label>
+      <textarea class="textarea" id="email-body" rows="12" readonly>{{ email_body }}</textarea>
+    </div>
+    <div class="row" style="gap:8px; flex-wrap:wrap;">
+      <button type="button" class="btn btn--ghost btn--sm" onclick="navigator.clipboard.writeText(document.getElementById('email-subject').value)">{{ ui.icon('mail', 'icon--sm') }}<span>Copy subject</span></button>
+      <button type="button" class="btn btn--ghost btn--sm" onclick="navigator.clipboard.writeText(document.getElementById('email-body').value)">{{ ui.icon('mail', 'icon--sm') }}<span>Copy message</span></button>
+    </div>
+    <div class="hint mt-1">Attach the PDF from Proposal files. Updated when you save.</div>
+  </div>
+</section>
