@@ -19,7 +19,7 @@
     {% if publish_running %}
     <div class="hint">Saving to SharePoint and making the PDF. This panel updates by itself.</div>
     {% elif p.pdf_note %}
-    <div class="hint{{ ' hint--warn' if (publish_job and publish_job.state == 'error') or not sharepoint_ready }}">{{ p.pdf_note }}</div>
+    <div class="hint{{ ' hint--warn' if publish_job and publish_job.state == 'error' }}">{{ p.pdf_note }}</div>
     {% endif %}
     {% if p.sharepoint_docx.web_url %}
     <a class="hint" href="{{ p.sharepoint_docx.web_url }}" target="_blank" rel="noopener">Open in SharePoint: {{ p.sharepoint_folder }}</a>

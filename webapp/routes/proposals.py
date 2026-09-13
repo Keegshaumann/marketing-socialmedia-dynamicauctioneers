@@ -617,10 +617,9 @@ async def proposal_generate(dp: str, request: Request, user: dict = Depends(requ
         proposal.pdf_note = "Saving to SharePoint and making the PDF there."
         text = "The Word file is ready. The PDF follows once SharePoint has made it."
     else:
-        proposal.pdf_note = (
-            "SharePoint is not connected yet, so there is no PDF from here. "
-            "Open the Word file and use Save as PDF."
-        )
+        # D105: the team saves the PDF from Word once they are happy with the
+        # file, so this is the normal path, not a missing piece.
+        proposal.pdf_note = "Download the Word file, check it in Word, then save it as a PDF to send."
         text = "The Word file is ready to download."
     _save(db, proposal, user)
     return _saved(request, user, db, proposal, {"tone": "ok", "title": "Proposal generated", "text": text})

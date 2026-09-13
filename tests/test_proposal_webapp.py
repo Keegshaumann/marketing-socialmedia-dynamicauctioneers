@@ -290,7 +290,7 @@ def test_generate_is_refused_until_the_checks_pass_then_builds_the_word_file(app
 
     proposal = _get(app_env, "9111")
     assert proposal.docx_file == "out/9111 - Auction proposal.docx"
-    assert "SharePoint is not connected" in proposal.pdf_note
+    assert "save it as a PDF" in proposal.pdf_note  # Word only is the normal path (D105)
     download = app_env.client.get("/proposals/9111/download/docx")
     assert download.status_code == 200
     # Starlette percent-encodes the name (filename*=utf-8''...); browsers decode it.
