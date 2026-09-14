@@ -200,6 +200,18 @@ def test_adding_a_property_reloads_at_the_property_panel(app_env):
     assert len(_get(app_env, "9104").erven) == 2
 
 
+def test_every_reload_goes_to_a_new_url_so_the_page_really_loads(app_env):
+    # HX-Redirect to a URL that differs from the page's own only by its
+    # #fragment just scrolls: the first live upload saved and showed nothing (D107).
+    _start(app_env, "9113")
+    first = _upload(app_env, "9113", "advert", "advert.png", _png_bytes()).headers["HX-Redirect"]
+    second = _upload(app_env, "9113", "advert", "advert.png", _png_bytes()).headers["HX-Redirect"]
+    assert first != second
+    for url in (first, second):
+        path, _, rest = url.partition("?")
+        assert path == "/proposals/9113" and rest.startswith("at=") and url.endswith("#documents")
+
+
 def test_values_that_cannot_be_read_are_named(app_env):
     _start(app_env, "9105")
     resp = app_env.client.post("/proposals/9105/save", data=_form(time_from="25:99", deposit_pct="ten"), headers=HX)

@@ -109,9 +109,13 @@ def _is_htmx(request: Request) -> bool:
 
 
 def _back(request: Request, dp: str, anchor: str = "", notice: str = "") -> Response:
-    url = f"/proposals/{dp}"
+    # Every reload gets a fresh query string (D107). HX-Redirect sets
+    # window.location, and a URL that differs from the page's own only by its
+    # #fragment scrolls instead of loading, so an upload saved the file and the
+    # page never showed it.
+    url = f"/proposals/{dp}?at={int(datetime.now(timezone.utc).timestamp() * 1_000_000)}"
     if notice:
-        url += "?notice=" + quote(notice[:400])
+        url += "&notice=" + quote(notice[:400])
     url += anchor
     if _is_htmx(request):
         return Response(status_code=200, headers={"HX-Redirect": url})
