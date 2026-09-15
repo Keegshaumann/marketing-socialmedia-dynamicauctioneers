@@ -15,7 +15,7 @@ def test_registry_lists_the_default_design_first_and_only_faithful_designs():
     # social-ad designs remain in the picker.
     assert "classic" not in ids
     assert "bold" not in ids
-    assert set(ids) == {"hero_overlay", "collage", "feature_list", "stats_first"}
+    assert set(ids) == {"hero_overlay", "collage", "feature_list", "stats_first", "multi_property"}
     names = {t["id"]: t["name"] for t in tpls}
     assert names["feature_list"] == "Feature list"  # from the {# name: #} comment
 
@@ -34,6 +34,25 @@ def test_resolve_default_and_legacy_picks_fall_back_to_hero_overlay():
     assert ad_templates.resolve("classic") == default
     assert ad_templates.resolve("bold") == default
     assert ad_templates.resolve("was-removed") == default
+
+
+def test_the_multi_property_design_is_for_several_properties():
+    """Default for a record of several portions, absent for a single property (D108)."""
+    single = [t["id"] for t in ad_templates.list_templates(portions=0)]
+    assert "multi_property" not in single and single[0] == "hero_overlay"
+    several = [t["id"] for t in ad_templates.list_templates(portions=3)]
+    assert several[0] == "multi_property", "not offered first where it is the default"
+
+    assert ad_templates.resolve(None, portions=3) == "ads/multi_property.html.j2"
+    assert ad_templates.resolve("", portions=1) == "ads/hero_overlay.html.j2"
+    assert ad_templates.resolve("was-removed", portions=3) == "ads/multi_property.html.j2"
+    # The marketer's explicit pick still wins.
+    assert ad_templates.resolve("feature_list", portions=3) == "ads/feature_list.html.j2"
+
+    # Never a variation of a single property; beside itself, two other designs.
+    assert "multi_property" not in ad_templates.variation_ids("hero_overlay")
+    beside = ad_templates.variation_ids(None, portions=3)
+    assert "multi_property" not in beside and len(set(beside)) == 2
 
 
 def test_template_ids_matches_list():

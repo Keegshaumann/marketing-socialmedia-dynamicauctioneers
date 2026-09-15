@@ -117,6 +117,8 @@
              title="Click to enlarge"
              style="width:100%;height:120px;object-fit:cover;display:block;background:#f2efe9;cursor:zoom-in">
         {% endif %}
+        <div class="tile__busy" role="status" aria-live="polite">
+          <span class="spinner" aria-hidden="true"></span><span>Replacing photo</span></div>
         {# Which of the advert's four this photograph is (D90). #}
         {% if p.ad_slot %}
         <span class="badge badge--ok" style="position:absolute;top:6px;right:6px"
@@ -155,11 +157,16 @@
         {# Replace keeps the photo's PLACE: removing and re-uploading appends to
            the end, so a swapped lead photo stopped being the lead and the
            gallery order changed under the marketer (2.5). #}
+        {# The busy state goes on the whole TILE (D110): htmx marks the element
+           that sends the request, which here is a hidden file input, so the
+           label's spinner never showed and a replace looked like nothing
+           happening for the seconds an upload and a redraw take. #}
         <label class="btn btn--ghost btn--sm" style="cursor:pointer">
           {{ ui.icon('photo', 'icon--sm') }}<span>Replace</span>
           <input type="file" name="file" accept="image/*" hidden
                  hx-post="/gates/{{ dp }}/ads/photos/replace" hx-encoding="multipart/form-data"
                  hx-vals='{{ {"name": p.name} | tojson }}'
+                 hx-indicator="closest [data-photo-tile]"
                  hx-target="#photos" hx-swap="outerHTML" hx-trigger="change">
         </label>
         {# The building this photo belongs to (1.4). The pack's gallery prints

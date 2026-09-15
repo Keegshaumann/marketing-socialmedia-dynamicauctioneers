@@ -181,3 +181,35 @@ def test_public_view_carries_portions():
     )
     public = record.public_view()
     assert public["physical"]["portions"][0]["label"] == "Erf 15"
+
+
+def test_an_override_edits_one_portion_without_freezing_the_others():
+    """``physical.portions.1.features`` edits the second card and nothing else (D108).
+
+    Overriding the whole ``portions`` list would copy every portion's sourced
+    extent and deed into the override, where a corrected re-extraction could no
+    longer reach them.
+    """
+    from engine.schema import Physical, Portion
+
+    record = PropertyRecord(
+        dp="2940.1",
+        physical=Physical(portions=[Portion(label="Holding 10", size_m2=21400.0),
+                                    Portion(label="Holding 11", size_m2=21410.0)]),
+    )
+    record.human_overrides = {
+        "physical.portions.1.features": ["Horse stables"],
+        "physical.portions.1.title": "Holding 11 (stables)",
+        "physical.portions.5.title": "A portion the record does not have",
+    }
+    portions = record.public_view()["physical"]["portions"]
+    assert len(portions) == 2, "an override created a portion"
+    assert portions[1]["features"] == ["Horse stables"]
+    assert portions[1]["title"] == "Holding 11 (stables)"
+    assert portions[0]["features"] is None
+
+    # The sourced facts of every portion still show through.
+    record.physical.portions[0].size_m2 = 22000.0
+    record.physical.portions[1].size_m2 = 22010.0
+    portions = record.public_view()["physical"]["portions"]
+    assert portions[0]["size_m2"] == 22000.0 and portions[1]["size_m2"] == 22010.0

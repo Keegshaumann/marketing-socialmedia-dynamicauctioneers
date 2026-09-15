@@ -123,9 +123,19 @@ def copy_cache_key(record: PropertyRecord) -> str:
     model to rewrite the copy underneath her would cost twenty seconds and a
     request, and would fight her edit. Only a change to the sourced layer (a
     re-extraction) invalidates the cache.
+
+    The one exception is the property's FEATURES (D109). An address edit leaves
+    the copy true; a feature the marketer deleted because the property does not
+    have it does not - the portal listing would go on selling a pool that is not
+    there. So an edited feature list, or an edited portion card, is part of the
+    fingerprint and the pack's copy is rewritten from the corrected list.
     """
     raw = record.model_dump(mode="json")
     facts = {k: raw.get(k) for k in ("identity", "physical", "sale_process", "valuation")}
+    edited = {k: v for k, v in (record.human_overrides or {}).items()
+              if k.startswith(("physical.features", "physical.portions"))}
+    if edited:
+        facts["edited_features"] = edited
     blob = json.dumps(facts, sort_keys=True, default=str)
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:32]
 
@@ -261,6 +271,10 @@ def _read_public_path(record: PropertyRecord, path: str):
     the before-value for the audit trail."""
     node = record.public_view()
     for part in path.split("."):
+        # A numeric segment reads a list entry (``physical.portions.0.title``).
+        if isinstance(node, list) and part.isdigit():
+            node = node[int(part)] if int(part) < len(node) else None
+            continue
         if not isinstance(node, dict):
             return None
         node = node.get(part)
@@ -416,6 +430,13 @@ def render_all(
         raise ValueError(f"Unknown format(s): {', '.join(unknown)}. Known: {', '.join(FORMATS)}.")
 
     record = _load_record(dp, store)
+    # Nothing to render needs no copy (D111). ``formats=[]`` is how gate 2 saves
+    # an edit without rendering (D72), and it still ran the copy step below,
+    # which makes the PAID model call on a cache miss: a draft caches no copy
+    # (D93), so the first save on every draft paid for a bundle nothing used,
+    # and since D109 every feature edit changes the fingerprint and paid again.
+    if not targets:
+        return []
     resolve = _format_backends(backend)
     public, copy, photos, _fresh_copy = _prepare(record, output_root, client=client, ai_copy=ai_copy)
     _persist_generated_copy(record, _fresh_copy, store)

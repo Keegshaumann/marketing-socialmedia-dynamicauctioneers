@@ -811,15 +811,13 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
             "template_set": marketing_pv.get("template_set") or "",
             # HTML ad-design library (D41): the gallery of designs to pick from,
             # and the current pick (Classic when unset).
-            "ad_templates": _ad_templates_list(),
-            "current_ad_template": marketing_pv.get("template_set") or "classic",
+            "ad_templates": _ad_templates_list(_portion_total(record)),
+            "current_ad_template": marketing_pv.get("template_set") or _default_design(record),
             "is_update": state in ("live", "updated"),
             "delete_caveat": DELETE_CAVEAT,
-            # The advert's feature lines and the glyph each draws (D94).
-            "feature_rows": _feature_rows(record),
-            "icon_choices": _icon_choices(record, dp),
-            "icon_styles": __import__("engine.render.ad_icons", fromlist=["x"]).STYLES,
-            "icon_style": (record.marketing.icon_style if record.marketing else None) or "line",
+            # The feature lines, the glyph each draws and the per-property
+            # cards, all edited in one panel (D94, D108, D109).
+            **_features_context(record, dp),
             "photos": _photo_view(db_path, dp, record),
             "qr_src": _qr_view(db_path, dp, record),
             "max_photos": _MAX_PHOTOS_TOTAL,
@@ -1281,6 +1279,180 @@ def _feature_rows(record: PropertyRecord) -> List[Dict[str, Any]]:
     return rows
 
 
+def _feature_edit_rows(record: PropertyRecord) -> List[Dict[str, Any]]:
+    """Every feature line on the record, for the gate-2 editor (D109).
+
+    ALL of them, not only the ones the advert prints: a line the stat row
+    already covers ("3 bedrooms, main en-suite") is left off the advert but
+    printed in the pack, and a mistake in it is still a mistake. Each row says
+    where it lives (``main:2``) so an edit lands on the line that was shown,
+    and whether the advert prints it. In the advert's running order (D92).
+    """
+    from engine.render.html_backend import _ad_features, _count, _feature_rank
+
+    physical = record.public_view().get("physical") or {}
+    picks = ((record.marketing.feature_icons if record.marketing else None) or {})
+    main = list(physical.get("features_main") or [])
+    extra = list(physical.get("features_complex") or [])
+    printed = set(_ad_features(
+        [f for f in main + extra if f],
+        beds=_count(physical.get("bedrooms")),
+        baths=_count(physical.get("bathrooms_main_unit")),
+        garages=_count(physical.get("garages")),
+    ))
+    rows = [{"src": f"{kind}:{i}", "text": text, "pick": picks.get(text, ""), "on_ad": text in printed}
+            for kind, lines in (("main", main), ("complex", extra))
+            for i, text in enumerate(lines) if text]
+    return sorted(rows, key=lambda r: _feature_rank(r["text"]))
+
+
+def _portion_rows(record: PropertyRecord) -> List[Dict[str, Any]]:
+    """One editable card per land portion, when the advert carries several (D108)."""
+    from engine.render.ad_templates import MULTI_MIN_PORTIONS
+    from engine.render.html_backend import _fmt_ha, _fmt_size, _portion_title
+
+    physical = record.public_view().get("physical") or {}
+    rows: List[Dict[str, Any]] = []
+    # Enumerate the list as stored, so each row's index is the one an override
+    # path addresses (``physical.portions.<i>``).
+    for i, p in enumerate(physical.get("portions") or []):
+        if not isinstance(p, dict):
+            continue
+        ha, m2 = _fmt_ha(p.get("size_m2")), _fmt_size(p.get("size_m2"))
+        rows.append({
+            "index": i,
+            "title": p.get("title") or "",
+            "derived": _portion_title(p.get("label"), p.get("erf")) or "",
+            "label": p.get("label") or "",
+            "extent": f"± {ha} ha" if ha else (f"± {m2} m²" if m2 else ""),
+            "features": [f for f in (p.get("features") or []) if f],
+        })
+    return rows if len(rows) >= MULTI_MIN_PORTIONS else []
+
+
+def _features_context(record: PropertyRecord, dp: str) -> Dict[str, Any]:
+    """What the Features and icons panel renders from, shared by the gate-2 page
+    and the panel's own refresh so the two cannot drift apart."""
+    from engine.render import ad_icons
+
+    return {
+        "stat_rows": [r for r in _feature_rows(record) if r["stat"]],
+        "feature_edit_rows": _feature_edit_rows(record),
+        "portion_rows": _portion_rows(record),
+        "icon_choices": _icon_choices(record, dp),
+        "icon_styles": ad_icons.STYLES,
+        "icon_style": (record.marketing.icon_style if record.marketing else None) or "line",
+    }
+
+
+def _features_result(request: Request, db_path: str, dp: str, toast: Dict[str, Any]):
+    """Action response: the features panel, plus the redrawn advert out-of-band."""
+    record = _load(db_path, dp)
+    return templates.TemplateResponse(
+        request,
+        "partials/_gate2_features_result.html",
+        {"dp": dp, "tiles": _gallery(db_path, dp), "toast": toast, **_features_context(record, dp)},
+    )
+
+
+_MAX_FEATURE_CHARS = 120
+_MAX_FEATURES = 40
+_STALE_FEATURES = ("The features changed after this page was opened, in another tab or by "
+                   "someone else. Reload the page and make the change again.")
+
+
+def _clean_feature(value: Any) -> str:
+    """One feature line as typed: whitespace collapsed, capped at a sane length."""
+    return re.sub(r"\s+", " ", str(value or "")).strip()[:_MAX_FEATURE_CHARS]
+
+
+def _collect_feature_edits(record: PropertyRecord, form, problems: List[str]) -> "tuple[dict, dict]":
+    """The property's feature lists after this post's edits (D109).
+
+    Returns ``(fields, renamed)``: the override paths that changed, and each
+    edited line's old words mapped to its new words (``None`` when removed), so
+    the caller can move an icon pick with its line. Each posted row names the
+    line it was drawn from and the words it had; if the record no longer holds
+    those words there, the page is stale and nothing is applied, because
+    writing the edit by position would overwrite a line nobody looked at.
+    """
+    srcs, origs, texts = form.getlist("feat_src"), form.getlist("feat_orig"), form.getlist("feat_text")
+    added = _clean_feature(form.get("feat_new"))
+    if not srcs and not added:
+        return {}, {}
+    if not (len(srcs) == len(origs) == len(texts)):
+        problems.append(_STALE_FEATURES)
+        return {}, {}
+
+    physical = record.public_view().get("physical") or {}
+    current = {"main": list(physical.get("features_main") or []),
+               "complex": list(physical.get("features_complex") or [])}
+    new = {kind: list(lines) for kind, lines in current.items()}
+    dropped: Dict[str, set] = {"main": set(), "complex": set()}
+    renamed: Dict[str, Optional[str]] = {}
+    remove = str(form.get("feat_remove", "")).strip()
+
+    for src, orig, text in zip(srcs, origs, texts):
+        kind, _, index = str(src).partition(":")
+        lines = current.get(kind)
+        if lines is None or not index.isdigit() or int(index) >= len(lines) or lines[int(index)] != orig:
+            problems.append(_STALE_FEATURES)
+            return {}, {}
+        text = _clean_feature(text)
+        if src == remove or not text:
+            dropped[kind].add(int(index))
+            renamed[orig] = None
+        elif text != orig:
+            new[kind][int(index)] = text
+            renamed[orig] = text
+    for kind in new:
+        new[kind] = [line for i, line in enumerate(new[kind]) if i not in dropped[kind]]
+
+    # A line already on the list is not added twice (the Add button and the
+    # box losing focus can both post the same words).
+    if added and added.lower() not in {line.lower() for lines in new.values() for line in lines if line}:
+        if sum(len(lines) for lines in new.values()) >= _MAX_FEATURES:
+            problems.append(f"A property can carry {_MAX_FEATURES} feature lines; remove one first.")
+        else:
+            new["main"].append(added)
+
+    fields = {}
+    for kind, path in (("main", "physical.features_main"), ("complex", "physical.features_complex")):
+        if new[kind] != current[kind]:
+            fields[path] = new[kind] or None
+    return fields, renamed
+
+
+def _collect_portion_edits(record: PropertyRecord, form, problems: List[str]) -> dict:
+    """Each property card's title and bullets after this post's edits (D108).
+
+    Written per portion (``physical.portions.<i>.features``), so one card's edit
+    never freezes another portion's sourced facts into the override.
+    """
+    physical = record.public_view().get("physical") or {}
+    remove = str(form.get("p_remove", "")).strip()
+    fields: dict = {}
+    for i, portion in enumerate(physical.get("portions") or []):
+        if not isinstance(portion, dict) or f"p{i}_present" not in form:
+            continue
+        current = [f for f in (portion.get("features") or []) if f]
+        posted = form.getlist(f"p{i}_feat")
+        if str(form.get(f"p{i}_count", "")) != str(len(current)) or len(posted) != len(current):
+            problems.append(_STALE_FEATURES)
+            continue
+        title = _clean_feature(form.get(f"p{i}_title"))
+        if title != (portion.get("title") or "").strip():
+            fields[f"physical.portions.{i}.title"] = title or None
+        features = [text for j, text in enumerate(_clean_feature(t) for t in posted)
+                    if text and remove != f"{i}:{j}"]
+        added = _clean_feature(form.get(f"p{i}_new"))
+        if added and added.lower() not in {f.lower() for f in features}:
+            features.append(added)
+        if features != current:
+            fields[f"physical.portions.{i}.features"] = features or None
+    return fields
+
+
 _MAX_CUSTOM_ICONS = 12
 _ICON_SUFFIXES = {".svg", ".png", ".webp"}
 _MAX_ICON_BYTES = 512 * 1024
@@ -1320,18 +1492,18 @@ async def gate2_upload_icon(dp: str, request: Request,
     if suffix not in _ICON_SUFFIXES:
         toast = {"tone": "note", "title": "Not an icon file",
                  "text": "Upload an SVG, PNG or WebP. SVG is best: it scales and takes the advert's colour."}
-        return _photo_result(request, db_path, dp, toast)
+        return _features_result(request, db_path, dp, toast)
     if len(raw) > _MAX_ICON_BYTES:
         toast = {"tone": "note", "title": "Icon too large",
                  "text": f"An icon should be a small drawing, under {_MAX_ICON_BYTES // 1024}KB."}
-        return _photo_result(request, db_path, dp, toast)
+        return _features_result(request, db_path, dp, toast)
 
     record = _load(db_path, dp)
     existing = dict((record.marketing.custom_icons if record.marketing else None) or {})
     if label not in existing and len(existing) >= _MAX_CUSTOM_ICONS:
         toast = {"tone": "note", "title": "That is enough icons",
                  "text": f"{_MAX_CUSTOM_ICONS} uploaded already. Remove one first."}
-        return _photo_result(request, db_path, dp, toast)
+        return _features_result(request, db_path, dp, toast)
 
     icons = _icons_dir(db_path, dp)
     icons.mkdir(parents=True, exist_ok=True)
@@ -1352,7 +1524,7 @@ async def gate2_upload_icon(dp: str, request: Request,
         store.close()
     _mark_stale(db_path, dp, "icons")
     _redraw_ad(db_path, dp)
-    return _photo_result(request, db_path, dp, {
+    return _features_result(request, db_path, dp, {
         "tone": "ok", "title": "Icon uploaded",
         "text": f'"{label}" is now in the picker. Choose it on a line to see it.'})
 
@@ -1360,28 +1532,54 @@ async def gate2_upload_icon(dp: str, request: Request,
 @router.post("/{dp}/ads/icons", response_class=HTMLResponse)
 async def gate2_feature_icons(dp: str, request: Request,
                               user: dict = Depends(require_role("approver", "marketing"))):
-    """Set (or clear) the glyph for each advert feature line (D94).
+    """Edit the feature lines and set (or clear) the glyph each draws (D94, D109).
 
-    "Regenerate" is the empty choice: it drops the pick and lets the keyword
+    "Automatic" is the empty choice: it drops the pick and lets the keyword
     rules choose again, which is also the repair when a record's wording changes
-    and an old pick no longer suits it.
+    and an old pick no longer suits it. A reworded line keeps its pick (picks
+    are stored against the words, so they move to the new words here) and a
+    removed line takes its pick with it. On a property of several portions the
+    same form edits each card's title and bullets (D108).
     """
     db_path = _db(request)
     form = await request.form()
     record = _load(db_path, dp)
-    rows = {r["text"] for r in _feature_rows(record)}   # includes the "stat:" keys
+    problems: List[str] = []
+
+    # The words first: a pick is keyed by a line's words, so the picks below
+    # are read against the lines as they stand AFTER this post's edits.
+    fields, renamed = _collect_feature_edits(record, form, problems)
+    fields.update(_collect_portion_edits(record, form, problems))
+    if fields:
+        _reopen_if_live(db_path, dp, user["email"])
+        try:
+            _save_edits(db_path, dp, fields, user["email"])
+        except ValueError as exc:              # a refused path; nothing was saved
+            problems.append(str(exc))
+            fields, renamed = {}, {}
+        record = _load(db_path, dp)
+
+    rows = ({r["text"] for r in _feature_rows(record)}          # includes the "stat:" keys
+            | {r["text"] for r in _feature_edit_rows(record)})
     custom_names = {f"custom:{label}" for label in
                     ((record.marketing.custom_icons if record.marketing else None) or {})}
+    before = dict((record.marketing.feature_icons if record.marketing else None) or {})
 
-    picks: Dict[str, str] = {}
-    for key, value in form.multi_items():
-        if not key.startswith("icon:"):
-            continue
-        line = key[5:]
-        # Only a line the advert actually prints, and only a glyph we offer.
-        chosen = str(value).strip()
-        if line in rows and (chosen in _valid_icon_names() or chosen in custom_names):
-            picks[line] = str(value).strip()
+    if any(key.startswith("icon:") for key in form.keys()):
+        picks: Dict[str, str] = {}
+        for key, value in form.multi_items():
+            if not key.startswith("icon:"):
+                continue
+            # The radio is named for the words the page showed; a reworded
+            # line's pick follows it to the new words, a removed line's is gone.
+            line = renamed.get(key[5:], key[5:])
+            # Only a line the property has, and only a glyph we offer.
+            chosen = str(value).strip()
+            if line in rows and (chosen in _valid_icon_names() or chosen in custom_names):
+                picks[line] = chosen
+    else:
+        # An edit posted without the pickers keeps every pick, moved with its line.
+        picks = {renamed.get(k, k): v for k, v in before.items() if renamed.get(k, k) is not None}
 
     store = _store(db_path)
     try:
@@ -1389,19 +1587,24 @@ async def gate2_feature_icons(dp: str, request: Request,
         if rec.marketing is None:
             from engine.schema import Marketing
             rec.marketing = Marketing()
-        before = rec.marketing.feature_icons or {}
         rec.marketing.feature_icons = picks or None
         style = str(form.get("icon_style", "")).strip()
         if style in {n for n, _, _ in __import__("engine.render.ad_icons", fromlist=["x"]).STYLES}:
             rec.marketing.icon_style = style
         store.upsert(rec, state=store.get_state(dp))
-        if before != (picks or None):
+        if (before or None) != (picks or None):
             store.record_signoff(dp, gate="edit", user=user["email"],
                                  note=f"feature icons: {picks or '(automatic)'}")
     finally:
         store.close()
 
-    if picks:
+    if problems:
+        toast = {"tone": "block", "title": "Not saved",
+                 "text": " ".join(dict.fromkeys(problems)) + (" Your other changes were saved." if fields else "")}
+    elif fields:
+        toast = {"tone": "ok", "title": "Features saved",
+                 "text": "The advert below is redrawn. Regenerate rebuilds the pack with them."}
+    elif picks:
         toast = {"tone": "ok", "title": "Icons set",
                  "text": f"{len(picks)} chosen. The advert below is redrawn; Regenerate rebuilds the rest."}
     else:
@@ -1409,10 +1612,10 @@ async def gate2_feature_icons(dp: str, request: Request,
                  "text": "The wording picks the icon again. The advert below is redrawn."}
     _reopen_if_live(db_path, dp, user["email"])
     _mark_stale(db_path, dp, "icons")
-    # An icon is chosen in order to LOOK at it, so the advert redraws now
-    # (free since D93, about a second and a half).
+    # An icon or a line is changed in order to LOOK at it, so the advert
+    # redraws now (free since D93, about a second and a half).
     _redraw_ad(db_path, dp)
-    return _photo_result(request, db_path, dp, toast)
+    return _features_result(request, db_path, dp, toast)
 
 
 @router.post("/{dp}/ads/photos/onad", response_class=HTMLResponse)
@@ -1728,7 +1931,7 @@ def _design_sets() -> list:
     return names if len(names) > 1 else []
 
 
-def _ad_templates_list() -> list:
+def _ad_templates_list(portions: int = 0) -> list:
     """The HTML ad-design library for the gate-2 picker (D41).
 
     Shown when the ad renders through the html backend (renderer ``html`` or
@@ -1740,8 +1943,24 @@ def _ad_templates_list() -> list:
         return []
     from engine.render import ad_templates
 
-    tpls = ad_templates.list_templates()
+    # A single property is not offered the several-properties design (D108).
+    tpls = ad_templates.list_templates(portions=portions)
     return tpls if len(tpls) > 1 else []
+
+
+def _portion_total(record: "PropertyRecord | None") -> int:
+    """How many land portions the record's advert carries (D108)."""
+    from engine.render.html_backend import _portion_count
+
+    return _portion_count(record.public_view()) if record is not None else 0
+
+
+def _default_design(record: "PropertyRecord | None") -> str:
+    """The design a property follows until one is picked: a card per property
+    for a record of several portions (D108), the Hero overlay otherwise."""
+    from engine.render import ad_templates
+
+    return ad_templates.default_id(_portion_total(record))
 
 
 def _parse_number(raw: str, kind, low, high):
@@ -2071,10 +2290,14 @@ async def gate2_pick_template(dp: str, request: Request, user: dict = Depends(re
     db_path = _db(request)
     form = await request.form()
     tid = str(form.get("template", "")).strip()
+    default = _default_design(_load(db_path, dp))
     if tid not in ad_templates.template_ids():
-        tid = ad_templates.DEFAULT_ID
-    # Default = "no explicit pick" -> store empty so the record follows Classic.
-    value = "" if tid == ad_templates.DEFAULT_ID else tid
+        tid = default
+    # Default = "no explicit pick" -> store empty so the record follows the
+    # default for its shape. Compared against THIS record's default: on a record
+    # of several portions, choosing Hero overlay is a real pick and must be
+    # stored, or the advert would fall straight back to the cards (D108).
+    value = "" if tid == default else tid
     _reopen_if_live(db_path, dp, user["email"])
     try:
         # The ONE gate-2 action that still renders on the click (D72): a design

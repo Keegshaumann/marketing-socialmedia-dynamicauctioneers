@@ -108,6 +108,14 @@ class Portion(_Base):
     size_m2: Optional[float] = None
     title_deed_no: Optional[str] = None
     note: Optional[str] = None
+    # What the advert's card for this portion is headed, e.g. "Holding 10" (D108).
+    # The legal ``label`` stays untouched for the pack's schedule of portions;
+    # when this is blank the card derives a short name from the label.
+    title: Optional[str] = None
+    # The improvements the sources attribute to THIS portion ("Horse stables",
+    # "Double-storey 4-bed house"), printed as the card's bullets. Never a
+    # feature of the whole property guessed onto one portion.
+    features: Optional[List[str]] = None
 
 
 class PhysicalConflict(_Base):
@@ -504,6 +512,13 @@ def _apply_overrides(data: dict, overrides: dict) -> None:
     Walks each dotted key, creating intermediate dicts as needed, and does a
     whole-value leaf replacement. Runs on the PII-stripped projection and skips
     any forbidden key, so an override can never re-add a POPIA field.
+
+    A numeric segment indexes into a list that already exists
+    (``physical.portions.1.features``, D108), so one portion's card can be
+    edited without freezing every other portion's sourced facts into the
+    override. It never creates a list entry: an index the record does not have
+    is skipped, because an edit to a portion that no longer exists has nothing
+    true to describe.
     """
     for path, value in (overrides or {}).items():
         if not path or not override_key_allowed(path):
@@ -511,12 +526,19 @@ def _apply_overrides(data: dict, overrides: dict) -> None:
         parts = path.split(".")
         node = data
         for part in parts[:-1]:
+            if isinstance(node, list):
+                if not (part.isdigit() and int(part) < len(node) and isinstance(node[int(part)], dict)):
+                    node = None
+                    break
+                node = node[int(part)]
+                continue
             child = node.get(part)
-            if not isinstance(child, dict):
+            if not isinstance(child, (dict, list)):
                 child = {}
                 node[part] = child
             node = child
-        node[parts[-1]] = value
+        if isinstance(node, dict):
+            node[parts[-1]] = value
 
 
 # --- top-level record ----------------------------------------------------

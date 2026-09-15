@@ -555,6 +555,82 @@ def _ad_features(
     return _ordered_features(kept)
 
 
+def _portion_count(public_record: Optional[dict]) -> int:
+    """How many land portions the record lists (0 for an ordinary property)."""
+    physical = (public_record or {}).get("physical") or {}
+    return len([p for p in (physical.get("portions") or []) if isinstance(p, dict)])
+
+
+# "Portion 6 of Farm 7 Slagboom" -> "Portion 6"; "Holding 10 Ebner on Vaal AH" ->
+# "Holding 10"; "PTN 3" -> "Portion 3". Anything else keeps its own label.
+_PORTION_TITLE = re.compile(
+    r"^\s*(portion|ptn|holding|erf|erven|stand|plot|lot|unit|farm)\s*(?:no\.?\s*)?(\d+[a-z]?)\b", re.I
+)
+_PORTION_PLURAL = {"Portion": "Portions", "Holding": "Holdings", "Erf": "Erven", "Stand": "Stands",
+                   "Plot": "Plots", "Lot": "Lots", "Unit": "Units", "Farm": "Farms"}
+
+
+def _portion_title(label: Optional[str], erf: Optional[str] = None) -> Optional[str]:
+    """The short heading an advert card uses for one portion (D108).
+
+    Only a recognised "<kind> <number>" prefix is shortened; a label in any other
+    shape is printed as it stands rather than guessed at, and the marketer can
+    type a better one on gate 2.
+    """
+    text = (label or "").strip()
+    match = _PORTION_TITLE.match(text)
+    if match:
+        word = match.group(1).lower()
+        word = {"ptn": "Portion", "erven": "Erf"}.get(word, word.title())
+        return f"{word} {match.group(2).upper()}"
+    if text:
+        return text
+    return f"Erf {erf}" if erf else None
+
+
+def _portion_noun(titles: List[Optional[str]]) -> str:
+    """"Holdings" when every card is a holding, "Properties" when they differ."""
+    words = {(t or "").split(" ", 1)[0] for t in titles if t}
+    if len(words) == 1:
+        return _PORTION_PLURAL.get(words.pop(), "Properties")
+    return "Properties"
+
+
+def _region_line(identity: dict) -> Optional[str]:
+    """"Vanderbijlpark, Gauteng": the place, then the province when it adds one."""
+    place = HtmlBackend._place_line(identity)
+    province = identity.get("province")
+    if place and province and province.lower() not in place.lower():
+        return f"{place}, {province}"
+    return place or province
+
+
+def _pin_line(identity: dict) -> Optional[str]:
+    """The address pill: street address, suburb and province, each once."""
+    out: List[str] = []
+    for part in (identity.get("street_address"), identity.get("suburb"), identity.get("province")):
+        part = (part or "").strip()
+        if part and not any(part.lower() in seen.lower() for seen in out):
+            out.append(part)
+    return ", ".join(out) or None
+
+
+# A headline longer than this is a sentence for the portal, not the two- or
+# three-word descriptor the multi-property advert's gold line carries.
+_MULTI_HEADING_MAX = 32
+
+
+def _multi_heading(headline: Optional[str], count: int, portions: List[dict]) -> str:
+    """The gold line: the marketer's short headline, else "3 Holdings" (D108)."""
+    text = (headline or "").strip()
+    if text and len(text) <= _MULTI_HEADING_MAX:
+        return text
+    titles = [(p.get("title") or "").strip() or _portion_title(p.get("label"), p.get("erf")) for p in portions]
+    if count >= 2:
+        return f"{count} {_portion_noun(titles)}"
+    return "Property"
+
+
 def _fmt_ha(value: object) -> Optional[str]:
     """The same extent in hectares, one decimal, for land big enough to warrant
     it (over a hectare). ``None`` for an ordinary residential erf, so the pack
@@ -615,16 +691,18 @@ class HtmlBackend(RenderBackend):
         if request.fmt in ("demo_ad", "demo_ad_2", "demo_ad_3"):
             from engine.render import ad_templates
 
+            # Several portions default to the one-card-per-property design (D108).
+            n_portions = _portion_count(request.public_record)
             if request.fmt in ("demo_ad_2", "demo_ad_3"):
                 # Variation 2 and 3 (fix list 2.1): the next designs after the
                 # pick, so a marketer choosing Hero-overlay gets Stats-first and
                 # Collage beside it rather than three of the same advert.
                 index = 0 if request.fmt == "demo_ad_2" else 1
-                others = ad_templates.variation_ids(request.template_set)
+                others = ad_templates.variation_ids(request.template_set, portions=n_portions)
                 pick = others[index] if index < len(others) else request.template_set
-                template_name = ad_templates.resolve(pick)
+                template_name = ad_templates.resolve(pick, portions=n_portions)
             else:
-                template_name = ad_templates.resolve(request.template_set)
+                template_name = ad_templates.resolve(request.template_set, portions=n_portions)
         template = self._env.get_template(template_name)
         context = self._view_model(request)
         rendered = template.render(vm=context)
@@ -791,11 +869,26 @@ class HtmlBackend(RenderBackend):
                     "erf": p.get("erf"),
                     "size_str": _fmt_num(p.get("size_m2")),
                     "size_display": _fmt_size(p.get("size_m2")),
+                    "size_ha": _fmt_ha(p.get("size_m2")),
                     # Deed number per portion, for the info pack's schedule table.
                     "deed": p.get("title_deed_no"),
+                    # The advert's card for this portion (D108): its heading and
+                    # the improvements the sources put on it.
+                    "title": (p.get("title") or "").strip() or _portion_title(p.get("label"), p.get("erf")),
+                    "features": [f.strip() for f in (p.get("features") or []) if f and f.strip()],
                 }
                 for p in portions
             ],
+            "portion_count": len(portions),
+            "portion_noun": _portion_noun(
+                [(p.get("title") or "").strip() or _portion_title(p.get("label"), p.get("erf"))
+                 for p in portions]
+            ),
+            # The multi-property advert's headline pair, as the team's DP2940.1
+            # sets it: the place and province, then a short gold descriptor.
+            "region_line": _region_line(identity),
+            "pin_line": _pin_line(identity),
+            "multi_heading": _multi_heading(marketing.get("headline"), len(portions), portions),
             # A count of ZERO is not a feature (D94). `_fmt_num(0)` returns the
             # string "0", which is TRUTHY in Jinja, so `{% if vm.baths %}` passed
             # and a warehouse advertised "0 BATHROOMS". Fixed here rather than by

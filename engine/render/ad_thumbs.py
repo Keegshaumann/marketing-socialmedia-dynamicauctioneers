@@ -99,6 +99,18 @@ def _sample_vm() -> dict:
         "stack_photos": [photo, photo],
         "gallery_photos": [photo, photo, photo, photo],
         "photos": [photo] * 7,
+        # Three sample properties, so the Multiple properties design (D108)
+        # previews as the cards it prints rather than one empty column.
+        "portions": [
+            {"title": f"Holding {n}", "size_ha": "2.14", "size_str": "21 400",
+             "features": ["Plowed land", "Storage units", "Horse stables"]}
+            for n in (10, 11, 12)
+        ],
+        "portion_count": 3,
+        "portion_noun": "Holdings",
+        "region_line": "Vanderbijlpark, Gauteng",
+        "multi_heading": "Equestrian Farm",
+        "pin_line": "Holdings 10-12, Ebner on Vaal AH, Gauteng",
         "brand_name": BRAND["name"],
         "brand_phone": BRAND["phone"],
         "brand_email": BRAND["email"],

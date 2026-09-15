@@ -301,72 +301,8 @@
         </div>
       </div>
 
-      {# Per-line icon picks (D94). The keyword rules are good but no vocabulary
-         covers every property, so the marketer can overrule one - and
-         "Automatic" is the regenerate: it drops the pick and lets the wording
-         choose again. #}
-      {% if feature_rows %}
-      <div class="panel">
-        <div class="panel__head">
-          <div class="panel__title">Advert icons</div>
-          <div class="panel__actions"><span class="hint">"Automatic" lets the wording choose.</span></div>
-        </div>
-        <div class="panel__body">
-          {# Upload a glyph of the team's own (D96). Drawn through an <img>, so
-             an SVG's script cannot run. #}
-          <form hx-post="/gates/{{ dp }}/ads/icons/upload" hx-encoding="multipart/form-data"
-                hx-target="#photos" hx-swap="outerHTML" class="row" style="margin-bottom:12px">
-            <input class="input" type="file" name="file" accept=".svg,.png,.webp" style="flex:1">
-            {{ ui.button('Upload icon', variant='ghost', icon_name='plus', type='submit') }}
-          </form>
-
-          {# Clicking an icon APPLIES it (D100). The owner clicked a glyph, saw the
-             advert unchanged, and reported it as broken - reasonably, because a
-             picker that highlights your choice and then does nothing until you
-             find a Save button is a picker that lied. The redraw is free (D93)
-             and about a second, so the click is the whole interaction. #}
-          <form hx-post="/gates/{{ dp }}/ads/icons" hx-target="#photos" hx-swap="outerHTML"
-                hx-trigger="change, submit" hx-indicator="#icon-busy" class="stack">
-            <div class="field">
-              <div class="label label--sm">Icon style</div>
-              <div class="row">
-                {% for value, label, note in icon_styles %}
-                <label class="btn btn--ghost btn--sm{% if icon_style == value %} is-active{% endif %}" title="{{ note }}">
-                  <input type="radio" name="icon_style" value="{{ value }}"
-                         {% if icon_style == value %}checked{% endif %} style="margin-right:6px">{{ label }}
-                </label>
-                {% endfor %}
-              </div>
-            </div>
-            {% for row in feature_rows %}
-            <div class="iconrow">
-              <div class="iconrow__label">{{ row.label }}{% if row.stat %} <span class="hint hint--inline">on the stat row</span>{% endif %}</div>
-              <div class="iconrow__picks">
-                {% for c in icon_choices %}
-                <label class="iconpick{% if row.pick == c.name %} is-on{% endif %}"
-                       title="{{ c.label }}{% if c.group %} ({{ c.group }}){% endif %}">
-                  <input type="radio" name="icon:{{ row.text }}" value="{{ c.name }}"
-                         {% if row.pick == c.name %}checked{% endif %}>
-                  {% if c.svg %}{{ c.svg }}
-                  {%- elif c.url %}<img src="{{ c.url }}" alt="{{ c.label }}">
-                  {%- else %}<span class="iconpick__auto">AUTO</span>{% endif %}
-                </label>
-                {% endfor %}
-              </div>
-            </div>
-            {% endfor %}
-            <div class="row">
-              <span class="hint" id="icon-busy">Each click redraws the advert on the left.</span>
-              <button type="button" class="btn btn--ghost btn--sm"
-                      onclick="this.closest('form').querySelectorAll('input[value=\'\']').forEach(function(r){r.checked=true;}); this.closest('form').dispatchEvent(new Event('change', {bubbles:true}));">
-                Reset all to automatic
-              </button>
-            </div>
-            <div class="hint">The information pack and the other artifacts rebuild on <strong>Regenerate</strong> above.</div>
-          </form>
-        </div>
-      </div>
-      {% endif %}
+      {# Feature lines, their icons and the per-property cards (D94, D108, D109). #}
+      {% include 'partials/_gate2_features.html' %}
 
       <div class="panel">
         <div class="panel__head"><div class="panel__title">Photos</div></div>

@@ -2296,8 +2296,8 @@ def test_the_icons_form_applies_on_change_not_only_on_submit():
     from pathlib import Path
 
     tpl = (Path(__file__).resolve().parent.parent
-           / "webapp" / "templates" / "gate2_ads.html").read_text()
-    form = tpl[tpl.index('hx-post="/gates/{{ dp }}/ads/icons"'):][:400]
+           / "webapp" / "templates" / "partials" / "_gate2_features.html").read_text()
+    form = tpl[tpl.index('<form hx-post="/gates/{{ dp }}/ads/icons"'):][:400]
     assert 'hx-trigger="change' in form, "an icon click would not apply"
 
 
@@ -2371,3 +2371,225 @@ def _gallery_names(client, dp):
 
     page = client.get(f"/gates/{dp}/ads").text
     return [{"name": m} for m in re.findall(r'data-name="([^"]+)"', page)]
+
+
+# --- features edited on gate 2 (D109), several properties (D108) -------------
+
+def _feature_post(dp: str, **reworded):
+    """The rows the panel shows, and what its form posts with ``reworded`` applied."""
+    from webapp.routes.gates import _feature_edit_rows
+
+    store = RecordStore(DB_PATH)
+    try:
+        rows = _feature_edit_rows(store.get(dp))
+    finally:
+        store.close()
+    data = {
+        "feat_src": [r["src"] for r in rows],
+        "feat_orig": [r["text"] for r in rows],
+        "feat_text": [reworded.get(r["text"], r["text"]) for r in rows],
+    }
+    for r in rows:
+        data[f"icon:{r['text']}"] = r["pick"]
+    return rows, data
+
+
+def _all_features(dp: str) -> list:
+    physical = _public_view(dp)["physical"]
+    return list(physical.get("features_main") or []) + list(physical.get("features_complex") or [])
+
+
+def test_rewording_a_feature_keeps_its_icon():
+    """"change the text of property features and keep the icon functionality".
+
+    A pick is stored against the line's words, so rewording the line would
+    orphan it; the route moves the pick to the new words (D109).
+    """
+    dp = "7141"
+    _golden_clone(dp, state="drafted")
+    client = _client()
+    _login_admin(client)
+
+    page = client.get(f"/gates/{dp}/ads").text
+    assert "Features and icons" in page and 'name="feat_text"' in page
+    assert "Properties on the advert" not in page, "a single property was offered cards"
+    import re
+    assert "Multiple properties" not in re.findall(r'class="adtpl__name">([^<]+)<', page)
+
+    rows, _ = _feature_post(dp)
+    line = next(r["text"] for r in rows if r["on_ad"])
+    client.post(f"/gates/{dp}/ads/icons", data={f"icon:{line}": "pool"})
+
+    rows, data = _feature_post(dp, **{line: "Heated swimming pool"})
+    resp = client.post(f"/gates/{dp}/ads/icons", data=data)
+    assert resp.status_code == 200, resp.text
+
+    assert "Heated swimming pool" in _all_features(dp) and line not in _all_features(dp)
+    picks = _public_view(dp)["marketing"]["feature_icons"]
+    assert picks.get("Heated swimming pool") == "pool", "the icon did not follow the reworded line"
+    assert line not in picks
+
+    # The sourced list is untouched: the edit is a human override.
+    store = RecordStore(DB_PATH)
+    try:
+        raw = store.get(dp)
+    finally:
+        store.close()
+    assert line in (raw.physical.features_main or []) + (raw.physical.features_complex or [])
+
+    # The panel comes back with the new words, the advert out of band.
+    assert 'value="Heated swimming pool"' in resp.text
+    assert 'hx-swap-oob="true"' in resp.text
+
+
+def test_removing_and_adding_a_feature():
+    dp = "7142"
+    _golden_clone(dp, state="drafted")
+    client = _client()
+    _login_admin(client)
+
+    rows, data = _feature_post(dp)
+    gone = rows[0]
+    data["feat_remove"] = gone["src"]
+    data["feat_new"] = "Borehole with a pump"
+    data[f"icon:{gone['text']}"] = "garden"
+    resp = client.post(f"/gates/{dp}/ads/icons", data=data)
+    assert resp.status_code == 200, resp.text
+
+    assert gone["text"] not in _all_features(dp)
+    assert "Borehole with a pump" in _all_features(dp)
+    assert gone["text"] not in (_public_view(dp)["marketing"].get("feature_icons") or {}), \
+        "a removed line kept its pick"
+
+    # The same words posted again (Add and the box losing focus) add one line.
+    _, data = _feature_post(dp)
+    data["feat_new"] = "borehole with a pump"
+    client.post(f"/gates/{dp}/ads/icons", data=data)
+    assert sum(f.lower() == "borehole with a pump" for f in _all_features(dp)) == 1
+
+
+def test_a_stale_feature_form_changes_nothing():
+    """A row whose words the record no longer holds is refused, not written by
+    position over a line nobody looked at."""
+    dp = "7143"
+    _golden_clone(dp, state="drafted")
+    client = _client()
+    _login_admin(client)
+
+    _, data = _feature_post(dp)
+    data["feat_orig"][0] = "Words the record never had"
+    data["feat_text"][0] = "Overwritten"
+    before = _all_features(dp)
+    resp = client.post(f"/gates/{dp}/ads/icons", data=data)
+    assert resp.status_code == 200, resp.text
+    assert "Reload the page" in resp.text
+    assert _all_features(dp) == before
+
+
+def test_each_property_card_is_edited_on_its_own():
+    """A card's title and bullets are saved per portion (D108), and the redrawn
+    advert carries them."""
+    from engine.schema import Portion
+    from webapp.routes.gates import _artifacts_dir
+
+    dp = "7144"
+    _golden_clone(dp, state="drafted")
+    store = RecordStore(DB_PATH)
+    try:
+        record = store.get(dp)
+        record.physical.portions = [
+            Portion(label=f"Holding {10 + i} Ebner on Vaal AH", size_m2=21400.0, features=["Plowed land"])
+            for i in range(3)
+        ]
+        record.marketing.template_set = None
+        store.upsert(record, state="drafted")
+    finally:
+        store.close()
+    client = _client()
+    _login_admin(client)
+
+    page = client.get(f"/gates/{dp}/ads").text
+    assert "Properties on the advert" in page and 'name="p2_title"' in page
+    import re
+    designs = re.findall(r'class="adtpl__name">([^<]+)<', page)
+    assert designs and designs[0] == "Multiple properties", designs
+
+    # Choosing Hero overlay on several properties is a real pick and is kept,
+    # not read as "the default" and dropped back to the cards.
+    client.post(f"/gates/{dp}/ads/template", data={"template": "hero_overlay"})
+    assert _public_view(dp)["marketing"]["template_set"] == "hero_overlay"
+    client.post(f"/gates/{dp}/ads/template", data={"template": "multi_property"})
+    assert not _public_view(dp)["marketing"]["template_set"]
+
+    data = {}
+    for i in range(3):
+        data.update({f"p{i}_present": "1", f"p{i}_count": "1", f"p{i}_title": "", f"p{i}_feat": "Plowed land"})
+    data["p1_title"] = "Holding 11 (stables)"
+    data["p1_new"] = "Horse stables"
+    data["p_remove"] = "2:0"
+    resp = client.post(f"/gates/{dp}/ads/icons", data=data)
+    assert resp.status_code == 200, resp.text
+
+    portions = _public_view(dp)["physical"]["portions"]
+    assert portions[1]["title"] == "Holding 11 (stables)"
+    assert portions[1]["features"] == ["Plowed land", "Horse stables"]
+    assert portions[2]["features"] is None
+    assert portions[0]["features"] == ["Plowed land"] and portions[0]["title"] is None
+
+    html = (_artifacts_dir(DB_PATH, dp) / "demo_ad.html").read_text(encoding="utf-8")
+    assert '<div class="mp-title">Holding 11 (stables)</div>' in html
+    assert "<li>Horse stables</li>" in html
+
+
+def test_replacing_a_photo_shows_that_it_is_working():
+    """"When replacing images there needs to be a spinner while it's going" (D110).
+
+    htmx marks the element that sends the request - here a hidden file input -
+    so the busy state has to be pointed at the tile, or nothing visible changes.
+    """
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parent.parent / "webapp"
+    tpl = (root / "templates" / "partials" / "_gate2_photos.html").read_text()
+    replace = tpl[tpl.index('hx-post="/gates/{{ dp }}/ads/photos/replace"'):][:400]
+    assert 'hx-indicator="closest [data-photo-tile]"' in replace
+    assert 'class="tile__busy"' in tpl
+    assert "[data-photo-tile].htmx-request .tile__busy" in (root / "static" / "app.css").read_text()
+
+
+def test_saving_on_a_draft_makes_no_model_call():
+    """A save renders nothing, so it has no use for copy (D111).
+
+    Found in a real-browser run where each feature edit took twenty seconds: a
+    server thread dump showed the save inside ``generate_copy``. A draft caches
+    no copy (D93), so the first save paid for a bundle nothing used, and since
+    D109 every feature edit changes the fingerprint and paid again.
+    """
+    import engine.render.service as service
+
+    dp = "7145"
+    _golden_clone(dp, state="drafted")
+    store = RecordStore(DB_PATH)
+    try:
+        record = store.get(dp)
+        record.marketing.generated_copy = None
+        record.marketing.generated_copy_key = None
+        store.upsert(record, state="drafted")
+    finally:
+        store.close()
+    client = _client()
+    _login_admin(client)
+
+    rows, _ = _feature_post(dp)
+    _, data = _feature_post(dp, **{rows[0]["text"]: "Reworded on a draft"})
+    calls = []
+    original = service.generate_copy
+    service.generate_copy = lambda record, client=None: calls.append(1) or original(record, client=client)
+    try:
+        assert client.post(f"/gates/{dp}/ads/icons", data=data).status_code == 200
+        assert client.post(f"/gates/{dp}/ads/copy", data={"contact_phone": "011 555 0101"}).status_code == 200
+    finally:
+        service.generate_copy = original
+
+    assert "Reworded on a draft" in _all_features(dp)
+    assert not calls, f"{len(calls)} model call(s) for saves that render nothing"

@@ -1,0 +1,202 @@
+{# name: Multiple properties #}
+{# One advert for SEVERAL properties sold together (D108), built from the team's
+   own DP2940.1 (three holdings on one farm auction): a metallic-gold ref bar,
+   the place and province over a big gold descriptor, the method badge, the DS
+   lockup in a white shield top right, one large aerial photograph on the left,
+   a gold-outlined CARD PER PROPERTY on the right (its name, its extent, the
+   improvements on it), the address in a white pin pill, the auction line in a
+   full-width outlined band and the gold contact bar.
+
+   The default design for a record with two or more land portions - three
+   Lightstone reports dropped together become one listing of three properties
+   and this one advert. How much each card says steps down with the count, so
+   the canvas holds at any number: up to three cards carry four bullets, four
+   carry three, five to eight sit two across with two, and past eight the
+   properties are named in one card. Solid fills throughout except the two gold
+   bars, so the parts arrive separately in Canva (D85). #}
+{% import "_brand.html.j2" as brand %}
+{% import "_adparts.html.j2" as parts %}
+{% set is_auction = (vm.method == 'auction') %}
+{% set photos = vm.ad_photos or ([vm.hero_src] if vm.hero_src else []) %}
+{# A property that is not split into portions still renders: one card, the
+   property itself, rather than an empty column. #}
+{% set cards = vm.portions if vm.portions else [{'title': vm.descriptor_line, 'size_ha': vm.size_ha,
+                'size_str': vm.size_str, 'features': (vm.features_ad or [])}] %}
+{% set n = cards | length %}
+{% set mode = 'roomy' if n <= 3 else ('snug' if n == 4 else ('grid' if n <= 8 else 'list')) %}
+{% set max_bullets = {'roomy': 4, 'snug': 3, 'grid': 2, 'list': 0}[mode] %}
+{% set card_feats = cards | selectattr('features') | list %}
+{# Where the sources did not say which portion an improvement stands on, the
+   cards carry names and extents only and the property's own features follow
+   in a card of their own, with their icons. #}
+{% set shared_feats = (vm.features_ad or [])[:3] if (not card_feats and vm.portions and mode in ('roomy', 'snug')) else [] %}
+<title>{{ vm.region_line or vm.place_line or vm.suburb }} | {{ vm.brand_name }}</title>
+<style>
+  {{ brand.tokens_css() }}
+  body { background:#0c0a08; }
+  .ig { width:1080px; height:1350px; margin:0 auto; background:#17130E; color:#ffffff;
+        position:relative; overflow:hidden; display:flex; flex-direction:column;
+        font-family:'Montserrat',system-ui,sans-serif; }
+  .gold { background:linear-gradient(180deg,#8a6a38 0%,#ac874a 22%,#ddc689 50%,#ac874a 78%,#8a6a38 100%); }
+
+  .ig-ref { display:flex; justify-content:space-between; padding:16px 40px; font-size:19px; font-weight:800;
+            letter-spacing:.04em; color:#191613; text-transform:uppercase; }
+
+  /* Headline left, white shield right */
+  .mp-top { display:flex; align-items:flex-start; gap:24px; padding:24px 44px 0; }
+  .mp-head { flex:1; min-width:0; padding-top:10px; }
+  .mp-region { margin:0; font-size:40px; font-weight:900; line-height:1; color:#fff;
+               text-transform:uppercase; letter-spacing:.01em; }
+  .mp-heading { margin:6px 0 0; font-size:76px; font-weight:900; line-height:.95; color:#ddc689;
+                text-transform:uppercase; letter-spacing:-.01em; overflow-wrap:anywhere; }
+  .mp-heading.is-long { font-size:58px; }
+  .mp-badge { display:inline-block; margin-top:18px; padding:12px 30px; font-size:30px; font-weight:900;
+              letter-spacing:.02em; text-transform:uppercase; color:#191613; border-radius:8px; }
+  .shield { flex:none; width:210px; height:236px; background:#fff; display:flex; align-items:center;
+            justify-content:center; padding:20px 24px 58px;
+            clip-path:path('M8,0 H202 Q210,0 210,8 V150 Q210,196 105,236 Q0,196 0,150 V8 Q0,0 8,0 Z'); }
+  .shield img { width:100%; height:auto; display:block; }
+
+  /* Aerial left, one card per property right */
+  .mp-body { flex:1 1 auto; min-height:0; display:grid; grid-template-columns:1.06fr 1fr; gap:22px;
+             padding:22px 44px 0; }
+  .mp-photo { min-height:0; border:3px solid #ac874a; border-radius:14px; overflow:hidden; background:#241d15; }
+  .mp-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+  .mp-cards { min-height:0; min-width:0; display:flex; flex-direction:column; gap:14px; }
+  .mp-cards.is-grid { display:grid; grid-template-columns:1fr 1fr; grid-auto-rows:1fr; gap:12px; }
+
+  .mp-card { flex:1 1 0; min-width:0; border:2.5px solid #ac874a; border-radius:18px; background:#1d1811;
+             padding:14px 22px; display:flex; flex-direction:column; justify-content:center; }
+  .mp-title { font-size:32px; font-weight:900; line-height:1; color:#ddc689; text-transform:uppercase;
+              letter-spacing:.01em; overflow-wrap:anywhere; }
+  .mp-extent { display:flex; align-items:center; gap:12px; margin-top:8px; font-size:24px; font-weight:800;
+               color:#fff; text-transform:uppercase; line-height:1.05; }
+  .mp-extent svg, .mp-extent img.adglyph { width:36px; height:36px; flex:none; stroke:#fff; fill:none;
+               stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+  .mp-feats { list-style:none; margin:8px 0 0; padding:0; }
+  .mp-feats li { position:relative; padding-left:22px; font-size:21px; font-weight:700; line-height:1.18;
+                 color:#fff; overflow-wrap:anywhere; }
+  .mp-feats li + li { margin-top:3px; }
+  .mp-feats li::before { content:""; position:absolute; left:2px; top:.42em; width:9px; height:9px;
+                         border-radius:50%; background:#ddc689; }
+
+  /* Four cards under a two-line heading was 16px too tall (measured), so snug
+     trims padding, type and gaps together rather than dropping a bullet. */
+  .mp-cards.is-snug { gap:10px; }
+  .mp-cards.is-snug .mp-card { padding:7px 18px; border-radius:16px; }
+  .mp-cards.is-snug .mp-title { font-size:26px; }
+  .mp-cards.is-snug .mp-extent { font-size:20px; margin-top:4px; }
+  .mp-cards.is-snug .mp-extent svg, .mp-cards.is-snug .mp-extent img.adglyph { width:30px; height:30px; }
+  .mp-cards.is-snug .mp-feats { margin-top:4px; }
+  .mp-cards.is-snug .mp-feats li { font-size:18px; }
+  .mp-cards.is-snug .mp-feats li + li { margin-top:1px; }
+  .mp-cards.is-list .mp-title { font-size:40px; }
+  .mp-cards.is-list .mp-extent { font-size:28px; }
+  .mp-cards.is-list .mp-names { font-size:25px; line-height:1.35; }
+  .mp-cards.is-grid .mp-card { padding:10px 14px; border-radius:14px; }
+  .mp-cards.is-grid .mp-title { font-size:22px; }
+  .mp-cards.is-grid .mp-extent { font-size:17px; gap:8px; margin-top:5px; }
+  .mp-cards.is-grid .mp-extent svg, .mp-cards.is-grid .mp-extent img.adglyph { width:24px; height:24px; }
+  .mp-cards.is-grid .mp-feats { margin-top:5px; }
+  .mp-cards.is-grid .mp-feats li { font-size:15px; padding-left:16px; }
+  .mp-cards.is-grid .mp-feats li::before { width:7px; height:7px; }
+  .mp-names { margin-top:10px; font-size:20px; font-weight:700; line-height:1.3; color:#fff; }
+
+  /* The property's own features, when no card could carry them */
+  .mp-shared .mp-row { display:flex; align-items:center; gap:12px; margin-top:6px; font-size:20px; font-weight:800;
+                       color:#fff; text-transform:uppercase; line-height:1.05; }
+  .mp-shared .mp-row svg, .mp-shared .mp-row img.adglyph { width:30px; height:30px; flex:none; stroke:#fff; fill:none;
+                       stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+
+  .mp-pin { padding:18px 44px 0; display:flex; justify-content:center; }
+  .mp-pill { display:inline-flex; align-items:center; gap:12px; max-width:100%; background:#fff; color:#191613;
+             border-radius:999px; padding:11px 28px; font-size:22px; font-weight:800; line-height:1.15;
+             text-transform:uppercase; letter-spacing:.01em; }
+  .mp-pill svg { width:26px; height:26px; flex:none; fill:#ac874a; }
+
+  .mp-band { margin:16px 44px 18px; border:2.5px solid #ac874a; border-radius:16px; padding:14px 24px;
+             text-align:center; font-size:38px; font-weight:900; line-height:1.05; color:#fff;
+             text-transform:uppercase; letter-spacing:.01em; }
+  .mp-band b { color:#ddc689; font-weight:900; }
+
+  .ig-contact { padding:20px 44px; display:flex; align-items:center; justify-content:space-between; gap:24px; font-size:24px; font-weight:800; color:#191613; }
+  .ig-contact span { display:flex; align-items:center; gap:14px; }
+  .ig-contact .dot { width:38px; height:38px; border-radius:50%; background:#191613; display:flex; align-items:center; justify-content:center; flex:none; }
+  .ig-contact .dot svg { width:20px; height:20px; fill:#ddc689; }
+  .ig-contact svg.mail { width:30px; height:24px; fill:none; stroke:#191613; stroke-width:1.8; }
+  .nb{white-space:nowrap}
+  .un{text-transform:none}
+</style>
+
+{# Two cards across have no room for the word, so the grid prints the figure. #}
+{% macro extent(card, word=True) -%}
+  {%- if card.size_ha or card.size_str -%}
+  <div class="mp-extent">{{ parts.stat_icon('extent', vm) }}<span><span class="nb">&plusmn; {% if card.size_ha %}{{ card.size_ha }} HA{% else %}{{ card.size_str }}<span class="un">m&sup2;</span>{% endif %}</span>{% if word %} Property{% endif %}</span></div>
+  {%- endif -%}
+{%- endmacro %}
+
+<div class="ig ad">
+  <div class="ig-ref gold">
+    <span>{% if vm.public_ref %}MASTER REF: {{ vm.public_ref }}{% endif %}</span>
+    <span>PROPERTY REF: {{ vm.property_ref }}</span>
+  </div>
+
+  <div class="mp-top">
+    <div class="mp-head">
+      {% if vm.region_line %}<div class="mp-region">{{ vm.region_line }}</div>{% endif %}
+      {% set heading = vm.multi_heading or vm.descriptor_line %}
+      {% if heading %}<h1 class="mp-heading{{ ' is-long' if heading | length > 16 }}">{{ heading }}</h1>{% endif %}
+      <span class="mp-badge gold">{{ parts.badge_text(vm) }}</span>
+    </div>
+    <div class="shield">{{ parts.brand_logo(vm, 'light') }}</div>
+  </div>
+
+  <div class="mp-body">
+    <div class="mp-photo">{% if photos %}<img src="{{ photos[0] }}" alt="Property photo"/>{% endif %}</div>
+
+    <div class="mp-cards is-{{ mode }}">
+      {% if mode == 'list' %}
+        <div class="mp-card">
+          <div class="mp-title">{{ n }} {{ vm.portion_noun or 'Properties' }}</div>
+          {% if vm.size_ha or vm.size_str %}<div class="mp-extent">{{ parts.stat_icon('extent', vm) }}<span><span class="nb">&plusmn; {% if vm.size_ha %}{{ vm.size_ha }} HA{% else %}{{ vm.size_str }}<span class="un">m&sup2;</span>{% endif %}</span> in total</span></div>{% endif %}
+          <div class="mp-names">{{ cards | map(attribute='title') | select | join(', ') }}</div>
+        </div>
+      {% else %}
+        {% for card in cards %}
+        <div class="mp-card">
+          {% if card.title %}<div class="mp-title">{{ card.title }}</div>{% endif %}
+          {{ extent(card, word=(mode != 'grid')) }}
+          {% if card.features and max_bullets %}
+          <ul class="mp-feats">{% for f in card.features[:max_bullets] %}<li>{{ f }}</li>{% endfor %}</ul>
+          {% endif %}
+        </div>
+        {% endfor %}
+        {% if shared_feats %}
+        <div class="mp-card mp-shared">
+          <div class="mp-title">Property features</div>
+          {% for f in shared_feats %}<div class="mp-row">{{ parts.feature_icon(f, vm) }}<span>{{ f }}</span></div>{% endfor %}
+        </div>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+
+  {% if vm.pin_line %}
+  <div class="mp-pin">
+    <span class="mp-pill"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.6A2.6 2.6 0 1 1 12 6.4a2.6 2.6 0 0 1 0 5.2z"/></svg><span>{{ vm.pin_line }}</span></span>
+  </div>
+  {% endif %}
+
+  <div class="mp-band">
+    {% if is_auction %}
+      {{ (vm.auction_channel or 'Online') | upper }} AUCTION{% if vm.auction_date %} <b>{{ vm.auction_date | upper }}{% if vm.auction_time %} @ {{ vm.auction_time }}{% endif %}</b>{% endif %}
+    {% else %}
+      {{ vm.price_display or 'Offers invited' }}
+    {% endif %}
+  </div>
+
+  <div class="ig-contact gold">
+    <span><span class="dot"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11 11 0 0 0 3.4.55 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.3a1 1 0 0 1 1 1 11 11 0 0 0 .55 3.4 1 1 0 0 1-.24 1z"/></svg></span>{{ vm.brand_phone }}</span>
+    <span><svg class="mail" viewBox="0 0 24 24"><path d="M3 5h18v14H3z"/><path d="M3 6l9 6 9-6"/></svg>{{ vm.brand_email }}</span>
+  </div>
+</div>

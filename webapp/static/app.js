@@ -643,6 +643,29 @@
       document.addEventListener(ev, function (e) { workEnd(e.detail && e.detail.xhr); });
     });
 
+  // Features and icons (D109): every save's response REPLACES the panel, so a
+  // word typed into it while a save is in flight (an icon click's redraw takes
+  // a second or so) would be wiped by the swap. Hold its text boxes read-only
+  // for that moment instead; read-only boxes still post their values.
+  document.addEventListener('htmx:beforeRequest', function (e) {
+    var el = (e.detail && e.detail.elt) || e.target;
+    var panel = (el && el.closest) ? el.closest('#features') : null;
+    if (!panel) return;
+    panel.classList.add('is-saving');
+    panel.querySelectorAll('input[type="text"], input:not([type])').forEach(function (i) { i.readOnly = true; });
+  });
+  ['htmx:afterRequest', 'htmx:responseError', 'htmx:sendError', 'htmx:timeout', 'htmx:sendAbort']
+    .forEach(function (ev) {
+      document.addEventListener(ev, function () {
+        // A successful save has already swapped in a fresh panel; a failed one
+        // left the old panel in place, which must not stay locked.
+        var panel = document.getElementById('features');
+        if (!panel || !panel.classList.contains('is-saving')) return;
+        panel.classList.remove('is-saving');
+        panel.querySelectorAll('input').forEach(function (i) { i.readOnly = false; });
+      });
+    });
+
   document.addEventListener('DOMContentLoaded', function () { configHtmx(); init(document); });
   // re-wire content swapped in by HTMX
   document.body && document.body.addEventListener &&

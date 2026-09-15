@@ -789,6 +789,25 @@ form.htmx-request button[type="submit"] .spinner { display: inline-block; }
 .gallery-grid--review { grid-template-columns: 1fr; }
 
 .tile__body { padding: 11px 13px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+/* A photograph being replaced (D110): dimmed, with a spinner over it, and its
+   buttons locked until the new picture and the redrawn advert arrive. */
+.tile__busy {
+  display: none; position: absolute; inset: 0; z-index: 3;
+  align-items: center; justify-content: center; gap: 8px;
+  background: rgba(25, 22, 19, .62); color: #fff;
+  font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+}
+.tile__busy .spinner { display: inline-block; width: 22px; height: 22px; border-width: 3px; }
+[data-photo-tile].htmx-request { cursor: progress; }
+[data-photo-tile].htmx-request .tile__busy { display: flex; }
+[data-photo-tile].htmx-request .tile__cap { pointer-events: none; opacity: .55; }
+/* A feature line edited in place, with its Remove button (D109). */
+.featline { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
+.featline .input { flex: 1 1 220px; min-width: 0; }
+.featcard { padding: 12px; }
+.iconrow > .featline { margin-bottom: 7px; }
+/* While a save is in flight the boxes are read-only (app.js); say so. */
+#features.is-saving .featline .input { opacity: .6; cursor: progress; }
 .tile__cap {
   font-size: 10.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text-strong);
 }

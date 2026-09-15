@@ -31,6 +31,15 @@ _ADS_DIR = _TEMPLATE_DIR / "ads"
 DEFAULT_ID = "hero_overlay"
 _DEFAULT_TEMPLATE = "ads/hero_overlay.html.j2"
 
+# The design for ONE advert carrying several properties (D108): a drop of three
+# Lightstone reports is one listing of three holdings, and the team advertises
+# it as one advert with a card per holding (their DP2940.1). It is the default
+# for a record with at least MULTI_MIN_PORTIONS portions, and is not offered to
+# an ordinary single property, where a one-card advert says less than the
+# designs built for it.
+MULTI_ID = "multi_property"
+MULTI_MIN_PORTIONS = 2
+
 
 _SUFFIX = ".html.j2"
 
@@ -64,14 +73,32 @@ def _library_paths() -> List[Path]:
     return sorted(p for p in _ADS_DIR.glob("*.html.j2") if not p.name.startswith("_"))
 
 
-def list_templates() -> List[Dict[str, str]]:
-    """Every selectable ad design as ``{"id", "name", "template"}``, default first."""
+def _is_multi(portions: Optional[int]) -> bool:
+    return (portions or 0) >= MULTI_MIN_PORTIONS and (_ADS_DIR / f"{MULTI_ID}{_SUFFIX}").is_file()
+
+
+def default_id(portions: Optional[int] = 0) -> str:
+    """The design an un-picked property renders with: one card per property
+    when the record spans several portions (D108), the Hero overlay otherwise."""
+    return MULTI_ID if _is_multi(portions) else DEFAULT_ID
+
+
+def list_templates(portions: Optional[int] = None) -> List[Dict[str, str]]:
+    """Every selectable ad design as ``{"id", "name", "template"}``, default first.
+
+    ``portions`` narrows the library to the designs that suit one property: the
+    multi-property design only for a record with several portions, where it is
+    also the default and so offered first. ``None`` lists the whole library.
+    """
     out: List[Dict[str, str]] = []
     for path in _library_paths():
         tid = _template_id(path)
+        if portions is not None and tid == MULTI_ID and not _is_multi(portions):
+            continue
         out.append({"id": tid, "name": _display_name(path), "template": f"ads/{path.name}"})
     # Offer the default design first; the rest follow alphabetically by name.
-    out.sort(key=lambda t: (t["id"] != DEFAULT_ID, t["name"].lower()))
+    first = default_id(portions)
+    out.sort(key=lambda t: (t["id"] != first, t["name"].lower()))
     return out
 
 
@@ -79,19 +106,20 @@ def template_ids() -> set:
     return {t["id"] for t in list_templates()}
 
 
-def resolve(template_id: Optional[str]) -> str:
-    """Return the Jinja template name for a pick, falling back to Classic.
+def resolve(template_id: Optional[str], portions: Optional[int] = 0) -> str:
+    """Return the Jinja template name for a pick, falling back to the default.
 
     An unknown or empty pick (e.g. a design later removed from the library)
-    degrades to the default rather than failing the render.
+    degrades to the default for this property rather than failing the render.
     """
+    fallback = f"ads/{default_id(portions)}{_SUFFIX}"
     if not template_id:
-        return _DEFAULT_TEMPLATE
+        return fallback
     path = _ADS_DIR / f"{template_id}.html.j2"
-    return f"ads/{path.name}" if path.is_file() else _DEFAULT_TEMPLATE
+    return f"ads/{path.name}" if path.is_file() else fallback
 
 
-def variation_ids(picked: Optional[str], count: int = 2) -> List[str]:
+def variation_ids(picked: Optional[str], count: int = 2, portions: Optional[int] = 0) -> List[str]:
     """The other designs to render beside ``picked`` (fix list 2.1).
 
     The library in order, starting after the marketer's pick and wrapping, so
@@ -101,9 +129,11 @@ def variation_ids(picked: Optional[str], count: int = 2) -> List[str]:
     # template_ids() is a SET; the rotation has to be stable or the same pick
     # would yield different alternatives on different renders.
     ids = sorted(template_ids())
+    if not _is_multi(portions):
+        ids = [i for i in ids if i != MULTI_ID]
     if not ids:
         return []
-    current = picked if picked in ids else DEFAULT_ID
+    current = picked if picked in ids else default_id(portions)
     start = ids.index(current) if current in ids else 0
     rotated = ids[start + 1:] + ids[:start]
     return rotated[:count]

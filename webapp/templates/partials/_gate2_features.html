@@ -1,0 +1,147 @@
+{% import '_macros.html' as ui %}
+{# Features and their icons, edited in one place (D94-D100, D108, D109).
+
+   Every line can be reworded, removed or added. An edit is a human override:
+   the sourced list stays as it was extracted (SPEC hard rule 3), and the
+   override is what every artifact prints. A reworded line KEEPS its icon -
+   picks are stored against the line's words, so the route moves the pick to
+   the new words - and a removed line takes its pick with it.
+
+   Like an icon click, an edit redraws the advert at once and costs no model
+   call (D93, D99); the pack waits for Regenerate. Enter commits a line, and
+   focus comes back to the same box after the redraw (the ids are stable), so
+   several lines can be typed in a row. #}
+{% set enter_commits = "if(event.key==='Enter'){event.preventDefault();htmx.trigger(this.form,'submit');}" %}
+{% macro picks(key, current) %}
+  <div class="iconrow__picks">
+    {% for c in icon_choices %}
+    <label class="iconpick{% if current == c.name %} is-on{% endif %}"
+           title="{{ c.label }}{% if c.group %} ({{ c.group }}){% endif %}">
+      <input type="radio" name="icon:{{ key }}" value="{{ c.name }}"
+             {% if current == c.name %}checked{% endif %}>
+      {% if c.svg %}{{ c.svg }}
+      {%- elif c.url %}<img src="{{ c.url }}" alt="{{ c.label }}">
+      {%- else %}<span class="iconpick__auto">AUTO</span>{% endif %}
+    </label>
+    {% endfor %}
+  </div>
+{% endmacro %}
+{% macro remove_button(vals) %}
+  <button type="button" class="btn btn--ghost btn--sm" title="Remove this line"
+          hx-post="/gates/{{ dp }}/ads/icons" hx-vals='{{ vals | tojson }}'
+          hx-target="#features" hx-swap="outerHTML">
+    {{ ui.icon('x', 'icon--sm') }}<span>Remove</span><span class="spinner" aria-hidden="true"></span></button>
+{% endmacro %}
+{% macro add_button() %}
+  <button type="button" class="btn btn--ghost btn--sm"
+          hx-post="/gates/{{ dp }}/ads/icons" hx-target="#features" hx-swap="outerHTML">
+    {{ ui.icon('plus', 'icon--sm') }}<span>Add</span><span class="spinner" aria-hidden="true"></span></button>
+{% endmacro %}
+<div class="panel" id="features">
+  <div class="panel__head">
+    <div class="panel__title">Features and icons</div>
+    <div class="panel__actions"><span class="hint">Reword, add or remove a line. Click an icon to change it.</span></div>
+  </div>
+  <div class="panel__body">
+    {# Upload a glyph of the team's own (D96). Drawn through an <img>, so an
+       SVG's script cannot run. #}
+    <form hx-post="/gates/{{ dp }}/ads/icons/upload" hx-encoding="multipart/form-data"
+          hx-target="#features" hx-swap="outerHTML" class="row" style="margin-bottom:12px">
+      <input class="input" type="file" name="file" accept=".svg,.png,.webp" style="flex:1">
+      {{ ui.button('Upload icon', variant='ghost', icon_name='plus', type='submit') }}
+    </form>
+
+    {# One form, applied on change (D100): a click or an edited line saves and
+       redraws; no Save button to find. #}
+    <form hx-post="/gates/{{ dp }}/ads/icons" hx-trigger="change, submit" hx-target="#features" hx-swap="outerHTML"
+          hx-indicator="#icon-busy" class="stack">
+      <div class="field">
+        <div class="label label--sm">Icon style</div>
+        <div class="row">
+          {% for value, label, note in icon_styles %}
+          <label class="btn btn--ghost btn--sm{% if icon_style == value %} is-active{% endif %}" title="{{ note }}">
+            <input type="radio" name="icon_style" value="{{ value }}"
+                   {% if icon_style == value %}checked{% endif %} style="margin-right:6px">{{ label }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      {# Several properties on one advert (D108): a card each, headed by its
+         title, with the improvements the sources put on it as bullets. #}
+      {% if portion_rows %}
+      <div class="field">
+        <div class="label">Properties on the advert</div>
+        <div class="hint">One card each. The extent comes from that property's Lightstone report.</div>
+      </div>
+      {% for p in portion_rows %}
+      {% set i = p.index %}
+      <div class="card stack featcard">
+        <input type="hidden" name="p{{ i }}_present" value="1">
+        <input type="hidden" name="p{{ i }}_count" value="{{ p.features | length }}">
+        <div class="featline">
+          <input class="input input--sm featline__title" id="p{{ i }}-title" name="p{{ i }}_title"
+                 value="{{ p.title }}" placeholder="{{ p.derived or 'Card title' }}" maxlength="120"
+                 aria-label="Card title" onkeydown="{{ enter_commits }}">
+          {% if p.extent %}<span class="hint hint--inline" title="{{ p.label }}">{{ p.extent }}</span>{% endif %}
+        </div>
+        {% for f in p.features %}
+        <div class="featline">
+          <input class="input input--sm" id="p{{ i }}-f{{ loop.index0 }}" name="p{{ i }}_feat" value="{{ f }}"
+                 maxlength="120" aria-label="Improvement" onkeydown="{{ enter_commits }}">
+          {{ remove_button({"p_remove": i ~ ":" ~ loop.index0}) }}
+        </div>
+        {% endfor %}
+        <div class="featline">
+          <input class="input input--sm" id="p{{ i }}-new" name="p{{ i }}_new" maxlength="120"
+                 placeholder="Add to {{ p.title or p.derived or 'this property' }}, e.g. Horse stables"
+                 aria-label="New improvement" onkeydown="{{ enter_commits }}">
+          {{ add_button() }}
+        </div>
+      </div>
+      {% endfor %}
+      {% endif %}
+
+      {% if stat_rows or feature_edit_rows %}
+      <div class="label">{{ 'Property features' if portion_rows else 'Advert lines' }}</div>
+      {% endif %}
+      {% for row in stat_rows %}
+      <div class="iconrow">
+        <div class="iconrow__label">{{ row.label }} <span class="hint hint--inline">on the stat row</span></div>
+        {{ picks(row.text, row.pick) }}
+      </div>
+      {% endfor %}
+
+      {% for row in feature_edit_rows %}
+      <div class="iconrow">
+        <div class="featline">
+          <input type="hidden" name="feat_src" value="{{ row.src }}">
+          <input type="hidden" name="feat_orig" value="{{ row.text }}">
+          <input class="input input--sm" id="feat-{{ row.src | replace(':', '-') }}" name="feat_text"
+                 value="{{ row.text }}" maxlength="120" aria-label="Feature" onkeydown="{{ enter_commits }}">
+          {{ remove_button({"feat_remove": row.src}) }}
+          {% if not row.on_ad %}<span class="hint hint--inline"
+                title="The stat rows already say this, so the advert leaves it out. The information pack still prints it.">Not on the advert</span>{% endif %}
+        </div>
+        {{ picks(row.text, row.pick) }}
+      </div>
+      {% endfor %}
+
+      <div class="featline">
+        <input class="input input--sm" id="feat-new" name="feat_new" maxlength="120"
+               placeholder="Add a feature, e.g. Borehole with a pump" aria-label="New feature"
+               onkeydown="{{ enter_commits }}">
+        {{ add_button() }}
+      </div>
+
+      <div class="row">
+        <span class="hint" id="icon-busy">Each change redraws the advert on the left.</span>
+        <button type="button" class="btn btn--ghost btn--sm"
+                onclick="this.closest('form').querySelectorAll('input[type=radio][value=\'\']').forEach(function(r){r.checked=true;}); this.closest('form').dispatchEvent(new Event('change', {bubbles:true}));">
+          Reset all icons to automatic
+        </button>
+      </div>
+      <div class="hint">The information pack and the other artifacts rebuild on <strong>Regenerate</strong> above.</div>
+    </form>
+  </div>
+</div>

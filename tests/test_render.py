@@ -2045,3 +2045,157 @@ def test_the_picker_lists_the_stat_rows_a_property_prints(golden_record):
     # The friendly label is what the panel shows, not the raw key.
     labels = {r["text"]: r["label"] for r in _feature_rows(golden_record)}
     assert labels["stat:bedrooms"] == "Bedrooms"
+
+
+# --- several properties on one advert (D108) ---------------------------------
+
+_HOLDING_FEATURES = [
+    ["Plowed land", "Storage units", "Horse enclosure", "Horse stables"],
+    ["Double-storey 4-bed house", "Plowed land", "Staff rooms"],
+    ["3-bed house", "Camps & enclosures", "Water tower & tank", "Dam & outbuildings"],
+]
+
+
+def _holdings(record, n: int, features: bool = True):
+    """The team's DP2940.1 shape: ``n`` holdings, each from its own Lightstone."""
+    from engine.schema import Portion
+
+    record.physical.portions = [
+        Portion(label=f"Holding {10 + i} Ebner on Vaal AH", size_m2=21400.0 + i * 10,
+                title_deed_no=f"T{500 + i}/2020",
+                features=_HOLDING_FEATURES[i % 3] if features else None)
+        for i in range(n)
+    ]
+    record.marketing.template_set = None
+    return record
+
+
+def _ad_source(record, tmp_path) -> Path:
+    store = _store_with(record)
+    try:
+        art = render_one("3060", store, "demo_ad", backend="html", output_root=str(tmp_path))
+    finally:
+        store.close()
+    return Path(art.path).with_suffix(".html")
+
+
+def test_three_lightstone_reports_make_one_advert_with_a_card_each(golden_record, tmp_path):
+    """"If 3 Lightstone uploads happen it needs to know to put 3 properties in
+    one ad" - and lay them out as the team's DP2940.1 does."""
+    html = _ad_source(_holdings(golden_record, 3), tmp_path).read_text(encoding="utf-8")
+    assert html.count('<div class="mp-card">') == 3
+    for n in (10, 11, 12):
+        assert f'<div class="mp-title">Holding {n}</div>' in html      # short, not the legal label
+    assert "2.14 HA" in html                                           # each card's own extent
+    assert "<li>Double-storey 4-bed house</li>" in html                # that holding's improvements
+    assert 'class="mp-pill"' in html                                   # the address pill
+
+
+def test_an_explicit_design_pick_still_wins_on_several_properties(golden_record, tmp_path):
+    record = _holdings(golden_record, 3)
+    record.marketing.template_set = "feature_list"
+    html = _ad_source(record, tmp_path).read_text(encoding="utf-8")
+    assert '<div class="mp-card">' not in html and "fl-featbox" in html
+
+
+def test_a_single_property_keeps_its_own_default_design(golden_record, tmp_path):
+    golden_record.physical.portions = None
+    golden_record.marketing.template_set = None
+    html = _ad_source(golden_record, tmp_path).read_text(encoding="utf-8")
+    assert '<div class="mp-card">' not in html and "ho-hero" in html
+
+
+def test_card_titles_are_shortened_only_when_the_label_says_what_it_is():
+    from engine.render.html_backend import _portion_noun, _portion_title
+
+    assert _portion_title("Portion 6 of Farm 7 Slagboom") == "Portion 6"
+    assert _portion_title("Holding 10 Ebner on Vaal AH") == "Holding 10"
+    assert _portion_title("PTN 3") == "Portion 3"
+    # A shape we do not recognise is printed as it stands, never guessed at.
+    assert _portion_title("Remaining Extent of Farm Zandfontein") == "Remaining Extent of Farm Zandfontein"
+    assert _portion_title(None, erf="15") == "Erf 15"
+    assert _portion_noun(["Holding 10", "Holding 11"]) == "Holdings"
+    assert _portion_noun(["Holding 10", "Erf 15"]) == "Properties"
+
+
+def test_the_heading_is_a_short_headline_or_the_count(golden_record, tmp_path):
+    record = _holdings(golden_record, 3)
+    record.marketing.headline = "Equestrian farm"
+    assert ">Equestrian farm</h1>" in _ad_source(record, tmp_path).read_text(encoding="utf-8")
+    # A portal sentence is not a two-word descriptor.
+    record.marketing.headline = "Three agricultural holdings with stables, dams and a family home"
+    assert ">3 Holdings</h1>" in _ad_source(record, tmp_path).read_text(encoding="utf-8")
+
+
+def test_no_card_is_given_a_feature_the_sources_did_not_put_on_it(golden_record, tmp_path):
+    """Where no portion carries features, the property's own go in a card of
+    their own, with their icons - never shared out across the holdings."""
+    html = _ad_source(_holdings(golden_record, 3, features=False), tmp_path).read_text(encoding="utf-8")
+    assert '<ul class="mp-feats">' not in html
+    assert 'class="mp-card mp-shared"' in html
+
+
+@pytest.mark.parametrize("count", [2, 3, 4, 6, 12])
+def test_several_properties_fit_the_canvas(count, golden_record, tmp_path):
+    """Measured in Chromium: the cards never run into the address pill (D108).
+
+    The tightest case is a two-line gold heading over the cards, with every card
+    carrying its full set of bullets; the count changes how much a card says.
+    """
+    from engine.render import rasterize
+
+    if not rasterize.available():
+        pytest.skip("Playwright not installed; ad geometry cannot be measured")
+    from playwright.sync_api import sync_playwright
+
+    record = _holdings(golden_record, count)
+    record.marketing.headline = "Equestrian farm with stables"
+    record.identity.street_address = "Holdings 10-21, Ebner on Vaal Agricultural Holdings"
+    source = _ad_source(record, tmp_path)
+
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(args=["--no-sandbox", "--disable-gpu"])
+        try:
+            page = browser.new_page(viewport={"width": 1080, "height": 1350})
+            page.goto(source.as_uri())
+            geo = page.evaluate("""() => {
+              const box = s => document.querySelector(s).getBoundingClientRect();
+              const cards = [...document.querySelectorAll('.mp-card')].map(c => c.getBoundingClientRect());
+              return {cards: Math.max(...cards.map(c => c.bottom)), column: box('.mp-cards').bottom,
+                      pin: box('.mp-pin').top, contact: box('.ig-contact').bottom, canvas: box('.ig').bottom};
+            }""")
+        finally:
+            browser.close()
+    assert geo["cards"] <= geo["column"] + 1, f"{count} cards overflow their column: {geo}"
+    assert geo["cards"] <= geo["pin"] + 1, f"{count} cards run into the address pill: {geo}"
+    assert geo["contact"] <= geo["canvas"] + 1, f"the contact bar is pushed off the canvas: {geo}"
+
+
+def test_an_edited_feature_list_rewrites_the_packs_copy(golden_record):
+    """An address edit keeps the cached copy; a removed feature must not (D109),
+    or the portal listing goes on selling what the property does not have."""
+    from engine.render.service import copy_cache_key
+
+    before = copy_cache_key(golden_record)
+    golden_record.human_overrides = {"identity.suburb": "Somewhere Else"}
+    assert copy_cache_key(golden_record) == before, "an address edit rewrote the copy"
+    golden_record.human_overrides["physical.features_main"] = ["Borehole"]
+    assert copy_cache_key(golden_record) != before
+    golden_record.human_overrides = {"physical.portions.1.features": ["Horse stables"]}
+    assert copy_cache_key(golden_record) != before
+
+
+def test_a_pass_that_renders_nothing_makes_no_model_call(golden_record, tmp_path, monkeypatch):
+    """``formats=[]`` saves without rendering (D72), so it has no use for copy (D111)."""
+    import engine.render.service as service
+
+    calls = []
+    monkeypatch.setattr(service, "generate_copy", lambda record, client=None: calls.append(1) or {})
+    golden_record.marketing.generated_copy = None       # a draft: nothing cached (D93)
+    golden_record.marketing.generated_copy_key = None
+    store = _store_with(golden_record)
+    try:
+        assert render_all("3060", store, backend="html", output_root=str(tmp_path), formats=[]) == []
+    finally:
+        store.close()
+    assert not calls, "an empty render pass called the model"
