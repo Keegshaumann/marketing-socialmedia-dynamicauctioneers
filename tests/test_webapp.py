@@ -2682,3 +2682,71 @@ def test_the_tick_box_on_gate_2_switches_the_advert_layout():
 
     client.post(f"/gates/{dp}/ads/multi", data={"multi": "1"})       # ticked again
     assert ad.read_text(encoding="utf-8").count('<div class="mp-card">') == 3
+
+
+def test_a_long_feature_line_survives_a_save_untouched():
+    """DP2940.1 has 228-character lines, and the editor cut every posted line to
+    120 characters: an icon click would have written them back shortened (D113)."""
+    dp = "7148"
+    _golden_clone(dp, state="drafted")
+    long_line = ("Condition (valuation): fair with various defects, including multiple cracks in and "
+                 "peeling paint on exterior walls, a leaking staff room roof and flaking ceilings in "
+                 "the main house, with water damage visible in two of the bedrooms")
+    store = RecordStore(DB_PATH)
+    try:
+        record = store.get(dp)
+        record.physical.features_main = [long_line] + list(record.physical.features_main or [])
+        store.upsert(record, state="drafted")
+    finally:
+        store.close()
+    client = _client()
+    _login_admin(client)
+
+    rows, data = _feature_post(dp)
+    data[f"icon:{rows[-1]['text']}"] = "garden"                     # an icon click posts every line
+    assert client.post(f"/gates/{dp}/ads/icons", data=data).status_code == 200
+
+    store = RecordStore(DB_PATH)
+    try:
+        overrides = store.get(dp).human_overrides or {}
+    finally:
+        store.close()
+    assert not [k for k in overrides if k.startswith("physical.features")], overrides
+    assert long_line in _all_features(dp)
+
+
+def test_the_card_editor_shows_the_lines_that_name_each_holding():
+    """The editor shows what the card prints (D113), and posting it back
+    unchanged writes nothing."""
+    from engine.schema import Portion
+
+    dp = "7149"
+    _golden_clone(dp, state="drafted")
+    store = RecordStore(DB_PATH)
+    try:
+        record = store.get(dp)
+        record.physical.portions = [Portion(label=f"Holding {10 + i} Ebner on Vaal AH", size_m2=21400.0)
+                                    for i in range(3)]
+        record.physical.features_main = ["Holding 10: 2 storage units", "Holding 11: staff rooms"]
+        record.physical.features_complex = None
+        record.marketing.template_set = None
+        store.upsert(record, state="drafted")
+    finally:
+        store.close()
+    client = _client()
+    _login_admin(client)
+
+    page = client.get(f"/gates/{dp}/ads").text
+    assert 'name="p0_feat" value="2 storage units"' in page
+    assert "Taken from the property&#39;s feature lines" in page or "Taken from the property's feature lines" in page
+
+    data = {"p0_present": "1", "p0_count": "1", "p0_title": "", "p0_feat": "2 storage units",
+            "p1_present": "1", "p1_count": "1", "p1_title": "", "p1_feat": "Staff rooms",
+            "p2_present": "1", "p2_count": "0", "p2_title": ""}
+    assert client.post(f"/gates/{dp}/ads/icons", data=data).status_code == 200
+    store = RecordStore(DB_PATH)
+    try:
+        overrides = store.get(dp).human_overrides or {}
+    finally:
+        store.close()
+    assert not [k for k in overrides if k.startswith("physical.portions")], overrides

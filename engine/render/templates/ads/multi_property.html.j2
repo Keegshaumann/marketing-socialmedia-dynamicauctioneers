@@ -21,7 +21,8 @@
 {# A property that is not split into portions still renders: one card, the
    property itself, rather than an empty column. #}
 {% set cards = vm.portions if vm.portions else [{'title': vm.descriptor_line, 'size_ha': vm.size_ha,
-                'size_str': vm.size_str, 'features': (vm.features_ad or [])}] %}
+                'size_str': vm.size_str, 'features': (vm.features_ad or []),
+                'bullets': vm.single_card_bullets}] %}
 {% set n = cards | length %}
 {% set mode = 'roomy' if n <= 3 else ('snug' if n == 4 else ('grid' if n <= 8 else 'list')) %}
 {% set max_bullets = {'roomy': 4, 'snug': 3, 'grid': 2, 'list': 0}[mode] %}
@@ -29,7 +30,8 @@
 {# Where the sources did not say which portion an improvement stands on, the
    cards carry names and extents only and the property's own features follow
    in a card of their own, with their icons. #}
-{% set shared_feats = (vm.features_ad or [])[:3] if (not card_feats and vm.portions and mode in ('roomy', 'snug')) else [] %}
+{# One-line features only (D113): a paragraph ran through the address pill. #}
+{% set shared_feats = (vm.shared_card_features or [])[:3] if (not card_feats and vm.portions and n <= 3) else [] %}
 <title>{{ vm.region_line or vm.place_line or vm.suburb }} | {{ vm.brand_name }}</title>
 <style>
   {{ brand.tokens_css() }}
@@ -166,8 +168,11 @@
         <div class="mp-card">
           {% if card.title %}<div class="mp-title">{{ card.title }}</div>{% endif %}
           {{ extent(card, word=(mode != 'grid')) }}
-          {% if card.features and max_bullets %}
-          <ul class="mp-feats">{% for f in card.features[:max_bullets] %}<li>{{ f }}</li>{% endfor %}</ul>
+          {# The bullets that FIT, chosen in code (D113); a vm without them (the
+             design preview's sample) takes the first few. #}
+          {% set bullets = card.bullets if card.bullets is defined else (card.features or [])[:max_bullets] %}
+          {% if bullets and max_bullets %}
+          <ul class="mp-feats">{% for f in bullets %}<li>{{ f }}</li>{% endfor %}</ul>
           {% endif %}
         </div>
         {% endfor %}

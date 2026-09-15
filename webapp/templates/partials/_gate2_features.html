@@ -96,19 +96,25 @@
         <input type="hidden" name="p{{ i }}_count" value="{{ p.features | length }}">
         <div class="featline">
           <input class="input input--sm featline__title" id="p{{ i }}-title" name="p{{ i }}_title"
-                 value="{{ p.title }}" placeholder="{{ p.derived or 'Card title' }}" maxlength="120"
+                 value="{{ p.title }}" placeholder="{{ p.derived or 'Card title' }}" maxlength="500"
                  aria-label="Card title" onkeydown="{{ enter_commits }}">
           {% if p.extent %}<span class="hint hint--inline" title="{{ p.label }}">{{ p.extent }}</span>{% endif %}
         </div>
+        {% if p.named %}
+        <div class="hint">Taken from the property's feature lines that name {{ p.title or p.derived }}.
+          Editing one makes these this card's own.</div>
+        {% endif %}
         {% for f in p.features %}
         <div class="featline">
           <input class="input input--sm" id="p{{ i }}-f{{ loop.index0 }}" name="p{{ i }}_feat" value="{{ f }}"
-                 maxlength="120" aria-label="Improvement" onkeydown="{{ enter_commits }}">
+                 maxlength="500" aria-label="Improvement" onkeydown="{{ enter_commits }}">
           {{ remove_button({"p_remove": i ~ ":" ~ loop.index0}) }}
+          {% if f not in p.on_card %}<span class="hint hint--inline"
+                title="Too long for the card, or the card is full. The information pack still prints it.">Not on the card</span>{% endif %}
         </div>
         {% endfor %}
         <div class="featline">
-          <input class="input input--sm" id="p{{ i }}-new" name="p{{ i }}_new" maxlength="120"
+          <input class="input input--sm" id="p{{ i }}-new" name="p{{ i }}_new" maxlength="500"
                  placeholder="Add to {{ p.title or p.derived or 'this property' }}, e.g. Horse stables"
                  aria-label="New improvement" onkeydown="{{ enter_commits }}">
           {{ add_button() }}
@@ -133,7 +139,7 @@
           <input type="hidden" name="feat_src" value="{{ row.src }}">
           <input type="hidden" name="feat_orig" value="{{ row.text }}">
           <input class="input input--sm" id="feat-{{ row.src | replace(':', '-') }}" name="feat_text"
-                 value="{{ row.text }}" maxlength="120" aria-label="Feature" onkeydown="{{ enter_commits }}">
+                 value="{{ row.text }}" maxlength="500" aria-label="Feature" onkeydown="{{ enter_commits }}">
           {{ remove_button({"feat_remove": row.src}) }}
           {% if not row.on_ad %}<span class="hint hint--inline"
                 title="The stat rows already say this, so the advert leaves it out. The information pack still prints it.">Not on the advert</span>{% endif %}
@@ -143,7 +149,7 @@
       {% endfor %}
 
       <div class="featline">
-        <input class="input input--sm" id="feat-new" name="feat_new" maxlength="120"
+        <input class="input input--sm" id="feat-new" name="feat_new" maxlength="500"
                placeholder="Add a feature, e.g. Borehole with a pump" aria-label="New feature"
                onkeydown="{{ enter_commits }}">
         {{ add_button() }}

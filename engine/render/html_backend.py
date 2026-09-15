@@ -641,6 +641,107 @@ def _multi_heading(headline: Optional[str], count: int, portions: List[dict]) ->
     return "Property"
 
 
+# A property feature line that names the portion it stands on: "Holding 10: 2
+# storage units", "PTN 3 - borehole". Extraction before D108 put a multi-holding
+# property's improvements in one list this way (DP2940.1).
+_PORTION_LINE = re.compile(
+    r"^\s*(portion|ptn|holding|erf|stand|plot|lot|unit|farm)\s*(?:no\.?\s*)?(\d+[a-z]?)\s*[:–—-]\s*(\S.*)$",
+    re.I,
+)
+
+
+def _portion_feature_lines(portions: List[dict], lines: List[str]) -> List[List[str]]:
+    """Each portion's improvements for its advert card (D113).
+
+    Its own recorded features when it has any. Otherwise the property's feature
+    lines that NAME it: "Holding 10: 2 storage units" goes on Holding 10's card
+    as "2 storage units". The attribution is the line's own words, never a
+    guess, so a line naming no single portion stays with the property.
+    """
+    names = []
+    for p in portions:
+        known = {(p.get("title") or "").strip().lower(),
+                 (_portion_title(p.get("label"), p.get("erf")) or "").lower()}
+        names.append({n for n in known if n})
+    named: List[List[str]] = [[] for _ in portions]
+    for line in lines:
+        match = _PORTION_LINE.match(line or "")
+        if not match:
+            continue
+        word = {"ptn": "portion"}.get(match.group(1).lower(), match.group(1).lower())
+        key = f"{word} {match.group(2).lower()}"
+        for i, known in enumerate(names):
+            if key in known:
+                text = match.group(3).strip()
+                named[i].append(text[:1].upper() + text[1:])
+                break
+    return [[f.strip() for f in (p.get("features") or []) if f and f.strip()] or named[i]
+            for i, p in enumerate(portions)]
+
+
+def _card_mode(count: int) -> str:
+    """How the Multiple properties design lays out ``count`` cards (D108). The
+    template applies the same rule; the two must stay in step."""
+    if count <= 3:
+        return "roomy"
+    if count == 4:
+        return "snug"
+    return "grid" if count <= 8 else "list"
+
+
+# What a property card has room for (D113), per layout: characters per bullet
+# line at the card's type size, lines of bullets under its title and extent, the
+# most bullets, and characters per title line. Estimated from the design's own
+# geometry and kept on the safe side; the Chromium fit tests pin them. Decided
+# HERE rather than by the page measuring itself, because the gate-2 preview is a
+# sandboxed iframe that runs no script: a self-fitting design would preview one
+# way and print another.
+_CARD_FIT = {
+    "roomy": (30, 4, 4, 17),
+    "snug": (36, 3, 3, 20),
+    "grid": (19, 2, 2, 12),
+}
+_CARD_FIT_FEW = (30, 8, 4, 17)          # one or two cards: twice the height each
+# A bullet wrapping past this many lines is listing prose, not a card bullet. It
+# stays off the card; the information pack still prints it.
+_CARD_BULLET_MAX_LINES = 2
+
+
+def _est_lines(text: str, per_line: int) -> int:
+    """How many lines ``text`` wraps to at ``per_line`` characters, at spaces."""
+    lines, used = 1, 0
+    for word in (text or "").split():
+        size = len(word)
+        if used and used + 1 + size <= per_line:
+            used += 1 + size
+        elif used:
+            lines, used = lines + 1, size
+        else:
+            used = size
+        while used > per_line:           # a word longer than a line breaks anywhere
+            lines, used = lines + 1, used - per_line
+    return lines
+
+
+def _card_bullets(features: List[str], title: Optional[str], count: int) -> List[str]:
+    """The bullets one property card prints, chosen to fit its room (D113)."""
+    mode = _card_mode(count)
+    if mode == "list":
+        return []
+    per_line, budget, most, title_per_line = _CARD_FIT_FEW if count <= 2 else _CARD_FIT[mode]
+    # A title that wraps takes bullet room; a title line is taller than a bullet line.
+    budget -= 2 * max(0, _est_lines(title or "", title_per_line) - 1)
+    chosen: List[str] = []
+    used = 0
+    for text in features:
+        lines = _est_lines(text, per_line)
+        if lines > _CARD_BULLET_MAX_LINES or used + lines > budget or len(chosen) >= most:
+            continue
+        chosen.append(text)
+        used += lines
+    return chosen
+
+
 def _fmt_ha(value: object) -> Optional[str]:
     """The same extent in hectares, one decimal, for land big enough to warrant
     it (over a hectare). ``None`` for an ordinary residential erf, so the pack
@@ -820,6 +921,20 @@ class HtmlBackend(RenderBackend):
         otp_confirmation = confirmation_pill(otp) if otp else None
         otp_outstanding = outstanding_pill(otp)
 
+        # The advert's card per portion (D108, D113): its heading, its own
+        # improvements (or the property's lines that name it), and the bullets
+        # that fit the card.
+        feature_lines = list(physical.get("features_main") or []) + list(physical.get("features_complex") or [])
+        portion_titles = [(p.get("title") or "").strip() or _portion_title(p.get("label"), p.get("erf"))
+                          for p in portions]
+        portion_features = _portion_feature_lines(portions, feature_lines)
+        ad_lines = _ad_features(
+            [f for f in feature_lines if f],
+            beds=_count(physical.get("bedrooms")),
+            baths=_count(physical.get("bathrooms_main_unit")),
+            garages=_count(physical.get("garages")),
+        )
+
         vm: dict = {
             "dp": request.dp,
             # ``ref`` is the INTERNAL filing code (DP number) - used only on the
@@ -883,18 +998,20 @@ class HtmlBackend(RenderBackend):
                     "size_ha": _fmt_ha(p.get("size_m2")),
                     # Deed number per portion, for the info pack's schedule table.
                     "deed": p.get("title_deed_no"),
-                    # The advert's card for this portion (D108): its heading and
-                    # the improvements the sources put on it.
-                    "title": (p.get("title") or "").strip() or _portion_title(p.get("label"), p.get("erf")),
-                    "features": [f.strip() for f in (p.get("features") or []) if f and f.strip()],
+                    # The advert's card for this portion (D108, D113).
+                    "title": portion_titles[i],
+                    "features": portion_features[i],
+                    "bullets": _card_bullets(portion_features[i], portion_titles[i], len(portions)),
                 }
-                for p in portions
+                for i, p in enumerate(portions)
             ],
             "portion_count": len(portions),
-            "portion_noun": _portion_noun(
-                [(p.get("title") or "").strip() or _portion_title(p.get("label"), p.get("erf"))
-                 for p in portions]
-            ),
+            "portion_noun": _portion_noun(portion_titles),
+            # The property's own one-line features, for the card that carries
+            # them when no portion has any (D113). A paragraph never goes there.
+            "shared_card_features": [f for f in ad_lines if _est_lines(f, 22) <= 1][:3],
+            # The one card a property with no portions renders as (D113).
+            "single_card_bullets": _card_bullets(ad_lines, self._descriptor_line(physical, identity), 1),
             # The multi-property advert's headline pair, as the team's DP2940.1
             # sets it: the place and province, then a short gold descriptor.
             "region_line": _region_line(identity),

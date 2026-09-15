@@ -2119,6 +2119,91 @@ def test_several_lightstones_marked_as_one_property_get_one_property_advert(gold
     assert html.count('<div class="mp-card">') == 3
 
 
+def test_a_line_that_names_a_holding_goes_on_its_card(golden_record, tmp_path):
+    """DP2940.1's real record (D113): extracted before portions had features, its
+    improvements sit in one list as "Holding 10: 2 storage units". The line's own
+    words say which card it belongs on; a paragraph stays off the card."""
+    record = _holdings(golden_record, 3, features=False)
+    record.physical.features_main = [
+        "Holding 11: double-storey house comprising a sunroom, open-plan lounge/dining/kitchen area, "
+        "hallway, entrance hall, 3 bedrooms, family/guest bathroom and an upstairs room",
+        "Holding 11: staff rooms and a covered area",
+        "Holding 10: 2 storage units",
+        "Holding 10: horse enclosure and horse stables",
+        "Holding 12: camps and cattle enclosures",
+        "Plowed land on Holdings 10 and 11",
+    ]
+    record.physical.features_complex = None
+    html = _ad_source(record, tmp_path).read_text(encoding="utf-8")
+    cards = html.split('<div class="mp-card">')[1:]
+    assert "<li>2 storage units</li>" in cards[0]
+    assert "<li>Horse enclosure and horse stables</li>" in cards[0]
+    assert "<li>Staff rooms and a covered area</li>" in cards[1]
+    assert "<li>Camps and cattle enclosures</li>" in cards[2]
+    assert "sunroom" not in html, "a paragraph was printed as a card bullet"
+    assert "Plowed land" not in html, "a line naming no single holding was put on a card"
+
+
+def test_a_card_prints_only_what_fits():
+    from engine.render.html_backend import _card_bullets, _est_lines
+
+    assert _est_lines("Plowed land", 30) == 1
+    assert _est_lines("Double-storey house with a patio and staff rooms", 30) == 2
+    paragraph = ("Double-storey house comprising a sunroom, open-plan lounge, hallway, "
+                 "entrance hall and three bedrooms")
+    assert _card_bullets([paragraph, "Plowed land"], "Holding 10", 3) == ["Plowed land"]
+    two_line = ["Double-storey house with a patio and staff rooms"] * 4
+    assert len(_card_bullets(two_line, "Holding 10", 3)) == 2      # four lines of room
+    assert _card_bullets(["Plowed land"], "Holding 10", 12) == []    # past eight: names only
+
+
+def _card_geometry(source: Path) -> dict:
+    from playwright.sync_api import sync_playwright
+
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(args=["--no-sandbox", "--disable-gpu"])
+        try:
+            page = browser.new_page(viewport={"width": 1080, "height": 1350})
+            page.goto(source.as_uri())
+            return page.evaluate("""() => {
+              const box = s => document.querySelector(s).getBoundingClientRect();
+              const cards = [...document.querySelectorAll('.mp-card')];
+              return {cards: Math.max(...cards.map(c => c.getBoundingClientRect().bottom)),
+                      column: box('.mp-cards').bottom, pin: box('.mp-pin').top,
+                      contact: box('.ig-contact').bottom, canvas: box('.ig').bottom,
+                      bullets: cards.map(c => c.querySelectorAll('li').length)};
+            }""")
+        finally:
+            browser.close()
+
+
+@pytest.mark.parametrize("count,bullet", [
+    (2, "Double-storey house with a patio and staff rooms"),
+    (3, "Double-storey house with a patio and staff rooms"),
+    (4, "Double-storey house with a covered patio and staff rooms"),
+    (6, "Horse stables and a tack room"),
+    (8, "Horse stables and a tack room"),
+])
+def test_long_bullets_and_a_long_title_still_fit(count, bullet, golden_record, tmp_path):
+    """The worst a marketer can type (D113): every card offered more bullets as
+    long as a card allows, one long title and a two-line heading. Measured."""
+    from engine.render import rasterize
+
+    if not rasterize.available():
+        pytest.skip("Playwright not installed; ad geometry cannot be measured")
+    record = _holdings(golden_record, count)
+    for portion in record.physical.portions:
+        portion.features = [f"{bullet} {k}" for k in range(1, 7)]
+    record.physical.portions[0].title = "Remaining Extent of Portion 3 of Farm Zandfontein"
+    record.marketing.headline = "Equestrian farm with stables"
+    record.identity.street_address = "10 Central Road, 11 Central Road and Holding 12, Ebner on Vaal AH"
+    geo = _card_geometry(_ad_source(record, tmp_path))
+    assert geo["cards"] <= geo["column"] + 1, f"{count} cards overflow their column: {geo}"
+    assert geo["cards"] <= geo["pin"] + 1, f"{count} cards run into the address pill: {geo}"
+    assert geo["contact"] <= geo["canvas"] + 1, f"the contact bar is pushed off the canvas: {geo}"
+    assert all(n >= 1 for n in geo["bullets"][1:]), f"a card with room printed no bullet: {geo}"
+
+
 def test_card_titles_are_shortened_only_when_the_label_says_what_it_is():
     from engine.render.html_backend import _portion_noun, _portion_title
 

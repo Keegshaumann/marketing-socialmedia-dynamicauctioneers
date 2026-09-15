@@ -1306,12 +1306,27 @@ def _feature_edit_rows(record: PropertyRecord) -> List[Dict[str, Any]]:
     return sorted(rows, key=lambda r: _feature_rank(r["text"]))
 
 
+def _effective_portion_features(physical: dict) -> Dict[int, List[str]]:
+    """Each portion's card lines by its index in the stored list (D113): its own
+    features, else the property's lines that name it. The card editor shows these
+    and the edit route compares against them, so the two cannot disagree."""
+    from engine.render.html_backend import _portion_feature_lines
+
+    stored = physical.get("portions") or []
+    indexed = [(i, p) for i, p in enumerate(stored) if isinstance(p, dict)]
+    lines = list(physical.get("features_main") or []) + list(physical.get("features_complex") or [])
+    found = _portion_feature_lines([p for _, p in indexed], lines)
+    return {i: found[k] for k, (i, _) in enumerate(indexed)}
+
+
 def _portion_rows(record: PropertyRecord) -> List[Dict[str, Any]]:
     """One editable card per land portion, when the advert carries several (D108)."""
     from engine.render.ad_templates import MULTI_MIN_PORTIONS
-    from engine.render.html_backend import _fmt_ha, _fmt_size, _portion_title
+    from engine.render.html_backend import _card_bullets, _fmt_ha, _fmt_size, _portion_title
 
     physical = record.public_view().get("physical") or {}
+    effective = _effective_portion_features(physical)
+    count = len(effective)
     rows: List[Dict[str, Any]] = []
     # Enumerate the list as stored, so each row's index is the one an override
     # path addresses (``physical.portions.<i>``).
@@ -1319,13 +1334,20 @@ def _portion_rows(record: PropertyRecord) -> List[Dict[str, Any]]:
         if not isinstance(p, dict):
             continue
         ha, m2 = _fmt_ha(p.get("size_m2")), _fmt_size(p.get("size_m2"))
+        title = (p.get("title") or "").strip() or _portion_title(p.get("label"), p.get("erf")) or ""
+        features = effective[i]
         rows.append({
             "index": i,
             "title": p.get("title") or "",
             "derived": _portion_title(p.get("label"), p.get("erf")) or "",
             "label": p.get("label") or "",
             "extent": f"± {ha} ha" if ha else (f"± {m2} m²" if m2 else ""),
-            "features": [f for f in (p.get("features") or []) if f],
+            "features": features,
+            # Lines taken from the property's list because they name this
+            # portion, rather than the portion's own (D113).
+            "named": bool(features) and not [f for f in (p.get("features") or []) if f],
+            # What the card actually prints; the rest is marked on the row.
+            "on_card": set(_card_bullets(features, title, count)),
         })
     # Only when the advert carries cards: several Lightstones marked as one
     # property have no cards to edit (D112).
@@ -1363,7 +1385,10 @@ def _features_result(request: Request, db_path: str, dp: str, toast: Dict[str, A
     )
 
 
-_MAX_FEATURE_CHARS = 120
+# Generous on purpose (D113): real lines run past 230 characters (DP2940.1), and
+# a cap below that cut them short in an override the first time the form was
+# saved - an icon click posts every line.
+_MAX_FEATURE_CHARS = 500
 _MAX_FEATURES = 40
 _STALE_FEATURES = ("The features changed after this page was opened, in another tab or by "
                    "someone else. Reload the page and make the change again.")
@@ -1410,7 +1435,9 @@ def _collect_feature_edits(record: PropertyRecord, form, problems: List[str]) ->
         if src == remove or not text:
             dropped[kind].add(int(index))
             renamed[orig] = None
-        elif text != orig:
+        # Compared as it was SHOWN (D113): a line posted back unchanged is not an
+        # edit, even if the stored line has spacing the form collapses.
+        elif text != _clean_feature(orig):
             new[kind][int(index)] = text
             renamed[orig] = text
     for kind in new:
@@ -1438,12 +1465,14 @@ def _collect_portion_edits(record: PropertyRecord, form, problems: List[str]) ->
     never freezes another portion's sourced facts into the override.
     """
     physical = record.public_view().get("physical") or {}
+    effective = _effective_portion_features(physical)
     remove = str(form.get("p_remove", "")).strip()
     fields: dict = {}
     for i, portion in enumerate(physical.get("portions") or []):
         if not isinstance(portion, dict) or f"p{i}_present" not in form:
             continue
-        current = [f for f in (portion.get("features") or []) if f]
+        # What the editor showed: the portion's own lines, or those naming it.
+        current = [_clean_feature(f) for f in effective[i]]
         posted = form.getlist(f"p{i}_feat")
         if str(form.get(f"p{i}_count", "")) != str(len(current)) or len(posted) != len(current):
             problems.append(_STALE_FEATURES)
