@@ -561,6 +561,16 @@ def _portion_count(public_record: Optional[dict]) -> int:
     return len([p for p in (physical.get("portions") or []) if isinstance(p, dict)])
 
 
+def _ad_card_count(public_record: Optional[dict]) -> int:
+    """How many property cards the advert carries (D112): the portions, unless
+    the marketer said these Lightstone reports are ONE property on several title
+    deeds - then it is advertised as one property, with the extents added."""
+    marketing = (public_record or {}).get("marketing") or {}
+    if marketing.get("multi_property_ad") is False:
+        return 0
+    return _portion_count(public_record)
+
+
 # "Portion 6 of Farm 7 Slagboom" -> "Portion 6"; "Holding 10 Ebner on Vaal AH" ->
 # "Holding 10"; "PTN 3" -> "Portion 3". Anything else keeps its own label.
 _PORTION_TITLE = re.compile(
@@ -691,8 +701,9 @@ class HtmlBackend(RenderBackend):
         if request.fmt in ("demo_ad", "demo_ad_2", "demo_ad_3"):
             from engine.render import ad_templates
 
-            # Several portions default to the one-card-per-property design (D108).
-            n_portions = _portion_count(request.public_record)
+            # Several portions default to the one-card-per-property design (D108),
+            # unless they were marked as one property on several deeds (D112).
+            n_portions = _ad_card_count(request.public_record)
             if request.fmt in ("demo_ad_2", "demo_ad_3"):
                 # Variation 2 and 3 (fix list 2.1): the next designs after the
                 # pick, so a marketer choosing Hero-overlay gets Stats-first and

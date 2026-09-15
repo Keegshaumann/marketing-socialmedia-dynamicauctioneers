@@ -2593,3 +2593,92 @@ def test_saving_on_a_draft_makes_no_model_call():
 
     assert "Reworded on a draft" in _all_features(dp)
     assert not calls, f"{len(calls)} model call(s) for saves that render nothing"
+
+
+def _multi_upload(client, dp: str):
+    """Two Lightstone reports and a property report, classified by filename."""
+    return client.post("/intake/upload", files=[
+        ("files", (f"{dp} - EVM valuation report holding 10.pdf", b"%PDF-fake-a", "application/pdf")),
+        ("files", (f"{dp} - EVM valuation report holding 11.pdf", b"%PDF-fake-b", "application/pdf")),
+        ("files", (f"{dp} - property report.pdf", b"%PDF-fake-c", "application/pdf")),
+    ])
+
+
+def test_several_lightstones_ask_how_they_are_advertised():
+    """"If multiple lightstones are added there must be a tick box" (D112):
+    several properties in one advert, or one property on several title deeds."""
+    client = _client()
+    _login_admin(client)
+
+    resp = _multi_upload(client, "4490")
+    assert resp.status_code == 200, resp.text
+    assert "Multiple properties in one advert" in resp.text
+    assert 'name="multi" value="1" checked' in resp.text             # ticked by default
+    assert not [j for j in models.list_jobs(DB_PATH, dp="4490") if j["kind"] == "extract"], \
+        "extraction was queued before the question was answered"
+
+    # Unticked: the box posts nothing, and multi_asked says it was asked.
+    batch_id = re.search(r'name="batch_id" value="([0-9a-f]{32})"', resp.text).group(1)
+    ok = client.post("/intake/finalize", data={"batch_id": batch_id, "dp": "4490", "multi_asked": "1"})
+    assert ok.status_code == 200, ok.text
+    assert any(j["kind"] == "extract" for j in models.list_jobs(DB_PATH, dp="4490"))
+    assert _public_view("4490")["marketing"]["multi_property_ad"] is False
+
+    resp = _multi_upload(client, "4491")
+    batch_id = re.search(r'name="batch_id" value="([0-9a-f]{32})"', resp.text).group(1)
+    client.post("/intake/finalize", data={"batch_id": batch_id, "dp": "4491", "multi_asked": "1", "multi": "1"})
+    assert _public_view("4491")["marketing"]["multi_property_ad"] is True
+
+
+def test_one_lightstone_is_not_asked():
+    client = _client()
+    _login_admin(client)
+    resp = client.post("/intake/upload", files=[
+        ("files", ("4492 - EVM valuation report.pdf", b"%PDF-fake-a", "application/pdf")),
+        ("files", ("4492 - property report.pdf", b"%PDF-fake-b", "application/pdf")),
+    ])
+    assert resp.status_code == 200, resp.text
+    assert "Multiple properties in one advert" not in resp.text
+    assert any(j["kind"] == "extract" for j in models.list_jobs(DB_PATH, dp="4492"))
+    assert (_public_view("4492")["marketing"] or {}).get("multi_property_ad") is None
+
+
+def test_the_tick_box_on_gate_2_switches_the_advert_layout():
+    """The same choice beside the advert (D112): untick and it is one property,
+    tick and the cards come back - redrawn at once."""
+    from engine.schema import Portion
+    from webapp.routes.gates import _artifacts_dir
+
+    dp = "7146"
+    _golden_clone(dp, state="drafted")
+    store = RecordStore(DB_PATH)
+    try:
+        record = store.get(dp)
+        record.physical.portions = [
+            Portion(label=f"Holding {10 + i} Ebner on Vaal AH", size_m2=21400.0, features=["Plowed land"])
+            for i in range(3)
+        ]
+        record.marketing.template_set = None
+        store.upsert(record, state="drafted")
+    finally:
+        store.close()
+    client = _client()
+    _login_admin(client)
+
+    page = client.get(f"/gates/{dp}/ads").text
+    assert 'name="multi" value="1" checked' in page
+
+    resp = client.post(f"/gates/{dp}/ads/multi", data={})           # unticked
+    assert resp.status_code == 200 and resp.headers.get("HX-Refresh") == "true"
+    assert _public_view(dp)["marketing"]["multi_property_ad"] is False
+    ad = _artifacts_dir(DB_PATH, dp) / "demo_ad.html"
+    assert '<div class="mp-card">' not in ad.read_text(encoding="utf-8")
+
+    page = client.get(f"/gates/{dp}/ads").text
+    assert "Multiple properties in one advert" in page
+    assert 'name="multi" value="1" checked' not in page
+    assert "Properties on the advert" not in page, "the card editor stayed for one property"
+    assert "Multiple properties" not in re.findall(r'class="adtpl__name">([^<]+)<', page)
+
+    client.post(f"/gates/{dp}/ads/multi", data={"multi": "1"})       # ticked again
+    assert ad.read_text(encoding="utf-8").count('<div class="mp-card">') == 3

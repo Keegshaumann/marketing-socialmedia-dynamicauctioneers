@@ -26,6 +26,7 @@
         <input class="input" id="dp-input" name="dp" type="text"
                placeholder="e.g. 3060 or 3035.1" autocomplete="off" autofocus required>
       </div>
+      {% include '_intake_multi_choice.html' %}
       <div class="row mt-2">
         <button type="submit" class="btn btn--primary btn--sm">{{ ui.icon('arrow') }}<span>Continue</span></button>
         <a class="btn btn--ghost btn--sm" href="/intake">{{ ui.icon('plus') }}<span>Start over</span></a>

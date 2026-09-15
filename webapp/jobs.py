@@ -258,6 +258,10 @@ def _handle_extract(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, s
                 fresh.hero_photo = fresh.hero_photo or existing.marketing.hero_photo
                 fresh.gallery = fresh.gallery or existing.marketing.gallery
                 fresh.template_set = fresh.template_set or existing.marketing.template_set
+                # The several-Lightstones answer is the marketer's (D112), never
+                # the documents', so it always survives a re-extraction.
+                if existing.marketing.multi_property_ad is not None:
+                    fresh.multi_property_ad = existing.marketing.multi_property_ad
                 record.marketing = fresh
             record.human_overrides = record.human_overrides or existing.human_overrides
             if record.parent_dp is None:

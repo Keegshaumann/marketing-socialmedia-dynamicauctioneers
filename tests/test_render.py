@@ -2105,6 +2105,20 @@ def test_a_single_property_keeps_its_own_default_design(golden_record, tmp_path)
     assert '<div class="mp-card">' not in html and "ho-hero" in html
 
 
+def test_several_lightstones_marked_as_one_property_get_one_property_advert(golden_record, tmp_path):
+    """Unticked (D112): one property on several title deeds - no cards, and the
+    size shown is the portions added together."""
+    record = _holdings(golden_record, 3)                 # 21400 + 21410 + 21420 m2
+    record.marketing.multi_property_ad = False
+    html = _ad_source(record, tmp_path).read_text(encoding="utf-8")
+    assert '<div class="mp-card">' not in html and "ho-hero" in html
+    assert any(size in html for size in ("6.42", "64230", "64 230")), "the extents were not added"
+
+    record.marketing.multi_property_ad = True
+    html = _ad_source(record, tmp_path).read_text(encoding="utf-8")
+    assert html.count('<div class="mp-card">') == 3
+
+
 def test_card_titles_are_shortened_only_when_the_label_says_what_it_is():
     from engine.render.html_backend import _portion_noun, _portion_title
 

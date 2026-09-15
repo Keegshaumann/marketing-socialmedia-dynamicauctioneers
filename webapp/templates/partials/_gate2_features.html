@@ -43,6 +43,21 @@
     <div class="panel__actions"><span class="hint">Reword, add or remove a line. Click an icon to change it.</span></div>
   </div>
   <div class="panel__body">
+    {# Several Lightstone reports (D112): several properties, or one on several
+       title deeds. Its own form, and the page reloads after it, because the
+       design picker and the card editor below both follow this choice. #}
+    {% if lightstone_portions >= 2 %}
+    <form hx-post="/gates/{{ dp }}/ads/multi" hx-trigger="change" hx-swap="none"
+          class="card featcard stack" style="margin-bottom:12px">
+      <label class="checkline">
+        <input type="checkbox" name="multi" value="1" {% if multi_on %}checked{% endif %}>
+        <span><strong>Multiple properties in one advert</strong></span>
+      </label>
+      <div class="hint">{{ lightstone_portions }} Lightstone reports. Ticked, the advert carries a card for
+        each property. Untick if this is one property on several title deeds: it is advertised as one
+        property with the extents added together.</div>
+    </form>
+    {% endif %}
     {# Upload a glyph of the team's own (D96). Drawn through an <img>, so an
        SVG's script cannot run. #}
     <form hx-post="/gates/{{ dp }}/ads/icons/upload" hx-encoding="multipart/form-data"

@@ -1327,15 +1327,23 @@ def _portion_rows(record: PropertyRecord) -> List[Dict[str, Any]]:
             "extent": f"± {ha} ha" if ha else (f"± {m2} m²" if m2 else ""),
             "features": [f for f in (p.get("features") or []) if f],
         })
-    return rows if len(rows) >= MULTI_MIN_PORTIONS else []
+    # Only when the advert carries cards: several Lightstones marked as one
+    # property have no cards to edit (D112).
+    return rows if len(rows) >= MULTI_MIN_PORTIONS and _portion_total(record) >= MULTI_MIN_PORTIONS else []
 
 
 def _features_context(record: PropertyRecord, dp: str) -> Dict[str, Any]:
     """What the Features and icons panel renders from, shared by the gate-2 page
     and the panel's own refresh so the two cannot drift apart."""
     from engine.render import ad_icons
+    from engine.render.ad_templates import MULTI_MIN_PORTIONS
+    from engine.render.html_backend import _portion_count
 
     return {
+        # The tick box (D112): offered whenever there are several Lightstone
+        # portions, ticked while the advert carries a card for each.
+        "lightstone_portions": _portion_count(record.public_view()),
+        "multi_on": _portion_total(record) >= MULTI_MIN_PORTIONS,
         "stat_rows": [r for r in _feature_rows(record) if r["stat"]],
         "feature_edit_rows": _feature_edit_rows(record),
         "portion_rows": _portion_rows(record),
@@ -1527,6 +1535,53 @@ async def gate2_upload_icon(dp: str, request: Request,
     return _features_result(request, db_path, dp, {
         "tone": "ok", "title": "Icon uploaded",
         "text": f'"{label}" is now in the picker. Choose it on a line to see it.'})
+
+
+@router.post("/{dp}/ads/multi", response_class=HTMLResponse)
+async def gate2_multi_property(dp: str, request: Request,
+                               user: dict = Depends(require_role("approver", "marketing"))):
+    """Several properties in one advert, or one property on several deeds (D112).
+
+    Several Lightstone reports mean one of two things and only a person knows
+    which: holdings sold together (a card each) or one property whose land is
+    registered in several title deeds (one advert, extents added). Changing it
+    drops a design pick made for the other layout, so the advert takes that
+    layout's default, and redraws at once. The page reloads, because the design
+    picker and the card editor both follow this choice.
+    """
+    from engine.render.ad_templates import MULTI_MIN_PORTIONS
+    from engine.render.html_backend import _portion_count
+
+    db_path = _db(request)
+    form = await request.form()
+    wanted = str(form.get("multi", "")).strip() == "1"   # an unticked box posts nothing
+    record = _load(db_path, dp)
+    if _portion_count(record.public_view()) < MULTI_MIN_PORTIONS:
+        return HTMLResponse("", headers={"HX-Refresh": "true"})
+    was = _portion_total(record) >= MULTI_MIN_PORTIONS
+    changed = wanted != was
+
+    store = _store(db_path)
+    try:
+        rec = store.get(dp)
+        if rec.marketing is None:
+            from engine.schema import Marketing
+            rec.marketing = Marketing()
+        rec.marketing.multi_property_ad = wanted
+        if changed:
+            rec.marketing.template_set = None
+        store.upsert(rec, state=store.get_state(dp))
+        if changed:
+            store.record_signoff(dp, gate="edit", user=user["email"],
+                                 note="advert layout: " + ("a card per property" if wanted else "one property"))
+    finally:
+        store.close()
+
+    if changed:
+        _reopen_if_live(db_path, dp, user["email"])
+        _mark_stale(db_path, dp, "layout")
+        _redraw_ad(db_path, dp)
+    return HTMLResponse("", headers={"HX-Refresh": "true"})
 
 
 @router.post("/{dp}/ads/icons", response_class=HTMLResponse)
@@ -1949,10 +2004,11 @@ def _ad_templates_list(portions: int = 0) -> list:
 
 
 def _portion_total(record: "PropertyRecord | None") -> int:
-    """How many land portions the record's advert carries (D108)."""
-    from engine.render.html_backend import _portion_count
+    """How many property cards the record's advert carries (D108): none when its
+    Lightstone reports were marked as one property (D112)."""
+    from engine.render.html_backend import _ad_card_count
 
-    return _portion_count(record.public_view()) if record is not None else 0
+    return _ad_card_count(record.public_view()) if record is not None else 0
 
 
 def _default_design(record: "PropertyRecord | None") -> str:

@@ -1,0 +1,15 @@
+{#- Several Lightstone reports (D112): several properties sold together, or one
+   property on several title deeds. Only a person knows which, so it is asked.
+   An unticked checkbox posts nothing, so multi_asked says the question was put. -#}
+{% if evm_count and evm_count >= 2 %}
+<input type="hidden" name="multi_asked" value="1">
+<div class="field mt-2">
+  <label class="checkline">
+    <input type="checkbox" name="multi" value="1" checked>
+    <span><strong>Multiple properties in one advert</strong></span>
+  </label>
+  <p class="hint">{{ evm_count }} Lightstone reports found. Ticked: one advert with a card for each
+    property. Untick if this is one property on several title deeds; it is advertised as one property
+    with the extents added together. You can change this later on the advert page.</p>
+</div>
+{% endif %}

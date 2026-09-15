@@ -206,6 +206,10 @@ async def upload(
     # "PTN 6 of Farm 7.pdf") -> ask the user to type one; SEVERAL DPs -> refuse,
     # because filing one property's documents under the other's DP would make
     # extraction synthesise the two into a single chimera record.
+    job = build_combined_job(saved)
+    # How many Lightstone reports the drop holds: two or more are asked about
+    # before anything is queued (D112).
+    evm_count = len(job.lightstone_evms)
     found = dp_candidates(saved)
     if len(found) > 1:
         # Ask rather than refuse. ``parse_dp`` reads any leading number, so more
@@ -223,6 +227,7 @@ async def upload(
                 "files": [p.name for p in saved],
                 "count": len(saved),
                 "candidates": found,
+                "evm_count": evm_count,
                 "error": (
                     "These files are named for "
                     + str(len(found))
@@ -235,12 +240,22 @@ async def upload(
             },
         )
 
-    job = build_combined_job(saved)
     if not job.dp:
         return _view(
             request,
             "_intake_need_dp.html",
-            {"batch_id": batch_id, "files": [p.name for p in saved], "count": len(saved)},
+            {"batch_id": batch_id, "files": [p.name for p in saved], "count": len(saved),
+             "evm_count": evm_count},
+        )
+    # Several Lightstone reports (D112) are several properties sold together or
+    # one property on several title deeds, and only the marketer knows which.
+    # Asked here, before extraction is queued, the same way a missing DP is.
+    if evm_count >= 2:
+        return _view(
+            request,
+            "_intake_multi.html",
+            {"batch_id": batch_id, "dp": job.dp, "files": [p.name for p in saved],
+             "count": len(saved), "evm_count": evm_count},
         )
     return _finalize_intake(request, db_path, output_root, job, batch_dir)
 
@@ -250,9 +265,14 @@ async def finalize(
     request: Request,
     batch_id: str = Form(...),
     dp: str = Form(...),
+    # The several-Lightstones tick box (D112). An unticked checkbox posts
+    # nothing, so ``multi_asked`` is what tells "unticked" from "never asked".
+    multi_asked: str = Form(""),
+    multi: str = Form(""),
     user: dict = Depends(auth.require_role("marketing")),
 ):
-    """Second step of a no-DP upload: the user supplied the DP; proceed with it."""
+    """Second step of an upload that stopped to ask: the DP number, and/or how
+    several Lightstone reports are advertised (D112). Proceed with the answers."""
     from engine.intake import build_combined_job, dp_candidates
 
     db_path = auth.db_path_for(request)
@@ -280,6 +300,7 @@ async def finalize(
                 "batch_id": batch_id,
                 "files": [p.name for p in staged],
                 "count": len(staged),
+                "evm_count": len(build_combined_job(staged).lightstone_evms),
                 "error": "Enter a DP number like 3060 or 3035.1.",
             },
             status_code=400,
@@ -292,10 +313,14 @@ async def finalize(
     # cases - a street-numbered valuer's report, a scanner date stamp, sub-lots -
     # with no way through.
     job = build_combined_job(staged, dp=clean)
-    return _finalize_intake(request, db_path, output_root, job, batch_dir)
+    choice = None
+    if multi_asked and len(job.lightstone_evms) >= 2:
+        choice = multi.strip() == "1"
+    return _finalize_intake(request, db_path, output_root, job, batch_dir, multi=choice)
 
 
-def _finalize_intake(request: Request, db_path, output_root: str, job, batch_dir: Optional[Path]):
+def _finalize_intake(request: Request, db_path, output_root: str, job, batch_dir: Optional[Path],
+                     multi: Optional[bool] = None):
     """Relocate a combined job's files, create the record, enqueue extraction.
 
     Shared by the direct upload path and the DP-prompt finalize path. All of the
@@ -327,11 +352,24 @@ def _finalize_intake(request: Request, db_path, output_root: str, job, batch_dir
 
     # Create the base record only if this DP is new; never overwrite an
     # already-extracted record's JSON with an empty shell.
+    from engine.schema import Marketing
+
     store = RecordStore(models.resolve_db_path(db_path))
     try:
-        if store.get(dp) is None:
-            base = PropertyRecord(dp=dp, parent_dp=job.parent_dp)
+        existing = store.get(dp)
+        if existing is None:
+            # The several-Lightstones answer (D112) lives on the record from the
+            # start, so extraction carries it over and the first advert obeys it.
+            base = PropertyRecord(dp=dp, parent_dp=job.parent_dp,
+                                  marketing=Marketing(multi_property_ad=multi) if multi is not None else None)
             store.upsert(base, state="intake")
+        elif multi is not None and store.get_state(dp) in jobs._RE_EXTRACT_STATES:
+            # A re-intake before gate 1 may answer differently. Past gate 1 the
+            # choice is made on gate 2, beside the advert it changes.
+            if existing.marketing is None:
+                existing.marketing = Marketing()
+            existing.marketing.multi_property_ad = multi
+            store.upsert(existing)
     finally:
         store.close()
 

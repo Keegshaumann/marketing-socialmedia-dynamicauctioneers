@@ -83,7 +83,7 @@ def test_re_extraction_before_gate_1_keeps_photos_but_not_the_memo(tmp_path, mon
         dp=dp, parent_dp="3051", status="extracted",
         identity=Identity(title_type="sectional", suburb="Pelham North"),
         marketing=Marketing(hero_photo="photos/front.png", gallery=["photos/kitchen.png"],
-                            template_set="collage"),
+                            template_set="collage", multi_property_ad=False),
         verification=Verification(status="flags_raised", memo="old memo"),
         human_overrides={"identity.suburb": "Pelham"},
     )
@@ -114,6 +114,7 @@ def test_re_extraction_before_gate_1_keeps_photos_but_not_the_memo(tmp_path, mon
         assert after.marketing.hero_photo == "photos/front.png"
         assert after.marketing.gallery == ["photos/kitchen.png"]
         assert after.marketing.template_set == "collage"
+        assert after.marketing.multi_property_ad is False     # the tick-box answer (D112)
         assert after.human_overrides == {"identity.suburb": "Pelham"}
         assert after.parent_dp == "3051"
         # The memo described the OLD facts; it must be re-run, not inherited.

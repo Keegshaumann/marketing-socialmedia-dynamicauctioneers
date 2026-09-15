@@ -394,6 +394,11 @@ class Marketing(_Base):
     # Rendered through an <img> with a data URI, never inlined: an uploaded SVG
     # can carry script, and script inside an <img>-referenced SVG does not run.
     custom_icons: Optional[Dict[str, str]] = None
+    # Several Lightstone reports are several properties sold together (a card
+    # each on the advert) or ONE property on several title deeds (advertised as
+    # one, extents added). Only a person knows which, so it is asked (D112).
+    # None on older records: two or more portions read as several (D108).
+    multi_property_ad: Optional[bool] = None
     # The named design/template set the render backends use (the marketing
     # team's pick on gate 2, D33). None = the default (first-configured) set.
     template_set: Optional[str] = None
