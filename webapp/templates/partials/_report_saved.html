@@ -1,0 +1,14 @@
+{# Response to Save and Generate on a property report: the checks panel is the
+   primary swap (#checks); the file panel follows out of band. #}
+{% include 'partials/_proposal_checks.html' %}
+{% with output_oob = true %}
+{% include 'partials/_report_output.html' %}
+{% endwith %}
+{% if toast is defined and toast %}
+<div hx-swap-oob="afterbegin:#toasts">
+  <div class="toast toast--{{ toast.tone }}" data-ttl="4200">
+    <div class="toast__title">{{ toast.title }}</div>
+    <div class="toast__text">{{ toast.text }}</div>
+  </div>
+</div>
+{% endif %}

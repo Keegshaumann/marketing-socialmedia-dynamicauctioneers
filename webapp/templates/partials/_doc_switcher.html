@@ -1,10 +1,10 @@
-{# The switch between the two generators (M10, D114). They keep separate
-   records: on a DP's page the other side opens that DP's own record there,
-   starting one if there is none. Needs `current` ('proposal' or 'otp'); `dp`
-   is set on a DP's page. #}
+{# The switch between the property document generators (M10, D114; M11, D116).
+   They keep separate records: on a DP's page another segment opens that DP's own
+   record there, starting one if there is none. Needs `current` ('proposal',
+   'otp' or 'report'); `dp` is set on a DP's page. #}
 {%- set _on_dp = dp is defined and dp -%}
 <nav class="doc-switch" aria-label="What to generate">
-  {% for key, many, one, base in (('proposal', 'Auction proposals', 'Auction proposal', '/proposals'), ('otp', 'OTPs', 'OTP', '/otps')) %}
+  {% for key, many, one, base in (('proposal', 'Auction proposals', 'Auction proposal', '/proposals'), ('otp', 'OTPs', 'OTP', '/otps'), ('report', 'Property reports', 'Property report', '/reports')) %}
   {% if key == current %}
   <span class="doc-switch__opt is-active" aria-current="page">{{ one ~ ' ' ~ dp if _on_dp else many }}</span>
   {% elif _on_dp %}

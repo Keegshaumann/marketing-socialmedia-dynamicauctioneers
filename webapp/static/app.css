@@ -1177,3 +1177,13 @@ tr:hover .iconbtn { opacity: 1; }
   color: var(--text-strong); background: var(--accent-bg); border-color: var(--accent-bd); cursor: default;
   box-shadow: 0 0 18px -6px rgba(var(--accent-rgb), .7);
 }
+
+/* Property reports (M11, D116): the viewing checklist's tick boxes in a grid
+   that wraps to the column, and photo thumbnails small enough that 40 of them
+   fit on a screen, each with a move-earlier button beside its remove button. */
+.tick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px 14px; margin-top: 6px; }
+.tick { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--text); cursor: pointer; }
+.tick input { accent-color: var(--accent-deep); width: 16px; height: 16px; flex: none; }
+.proposal-thumb--photo { width: 120px; background: var(--surface-2); }
+.proposal-thumb--photo img { height: 90px; object-fit: cover; }
+.proposal-thumb .photo-earlier { position: absolute; top: 6px; left: 6px; }

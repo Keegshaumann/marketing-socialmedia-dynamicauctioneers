@@ -1,0 +1,368 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as ui %}
+{% block title %}Property report {{ rep.dp }}{% endblock %}
+{% block heading %}Property report {{ rep.dp }}{% endblock %}
+{% block subheading %}<div class="topbar__sub">{{ rep.owner_name or 'Owner not filled in yet' }}</div>{% endblock %}
+{% block topbar_actions %}
+  <a class="btn btn--ghost btn--sm" href="/reports">{{ ui.icon('arrow', 'icon--sm icon--flip') }}<span>All property reports</span></a>
+{% endblock %}
+
+{% macro upload(dp, kind, label, accept, multiple=false) -%}
+<form class="doc-upload" hx-post="/reports/{{ dp }}/upload/{{ kind }}" hx-encoding="multipart/form-data"
+      hx-include="#report-form" hx-trigger="change">
+  <label class="btn btn--ghost btn--sm">
+    {{ ui.icon('plus', 'icon--sm') }}<span>{{ label }}</span>
+    <input type="file" name="files" accept="{{ accept }}" class="sr-only"{% if multiple %} multiple{% endif %}>
+  </label>
+</form>
+{%- endmacro %}
+
+{% macro remove(dp, kind, index, what) -%}
+<button type="button" class="iconbtn iconbtn--danger" aria-label="Remove {{ what }}"
+        hx-post="/reports/{{ dp }}/remove/{{ kind }}/{{ index }}" hx-include="#report-form">{{ ui.icon('x', 'icon--sm') }}</button>
+{%- endmacro %}
+
+{% macro text(name, label, value, placeholder='', flagged=(), hint='') -%}
+<div class="field">
+  <label class="label label--sm" for="{{ name }}">{{ label }}</label>
+  <input class="input{{ ' is-invalid' if name in flagged }}" id="{{ name }}" name="{{ name }}" value="{{ value }}" placeholder="{{ placeholder }}">
+  {% if hint %}<div class="hint">{{ hint }}</div>{% endif %}
+</div>
+{%- endmacro %}
+
+{% macro count(name, label, value) -%}
+<div>
+  <label class="label label--sm" for="{{ name }}">{{ label }}</label>
+  <input class="input" type="number" min="0" max="99" inputmode="numeric" id="{{ name }}" name="{{ name }}" value="{{ '' if value is none else value }}">
+</div>
+{%- endmacro %}
+
+{% macro ticks(name, options, chosen) -%}
+<div class="tick-grid">
+  {% for key, label in options.items() %}
+  <label class="tick"><input type="checkbox" name="{{ name }}" value="{{ key }}"{% if key in chosen %} checked{% endif %}><span>{{ label|capitalize }}</span></label>
+  {% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro choose(name, label, value, options) -%}
+<div>
+  <label class="label label--sm" for="{{ name }}">{{ label }}</label>
+  <select class="input" id="{{ name }}" name="{{ name }}">
+    {% for key, text in options %}<option value="{{ key }}"{% if value == key %} selected{% endif %}>{{ text }}</option>{% endfor %}
+  </select>
+</div>
+{%- endmacro %}
+
+{% block content %}
+{% with current = 'report', dp = rep.dp %}{% include 'partials/_doc_switcher.html' %}{% endwith %}
+
+{% if notice %}
+<div class="banner banner--note" role="status" style="margin-bottom:18px;">
+  {{ ui.icon('info') }}
+  <div class="banner__body">{{ notice }}</div>
+</div>
+{% endif %}
+
+<div class="proposal-grid">
+<div class="stack stack--lg">
+
+  <section class="panel" id="documents">
+    <div class="panel__head">
+      <div class="panel__title">Documents and photos</div>
+      <span class="hint">Uploading keeps what you have typed below.</span>
+    </div>
+    <div class="panel__body stack">
+
+      <div class="doc-slot">
+        <div class="label">Lightstone report</div>
+        <div class="hint">Draws the cover picture{% if has_key %} and fills in the owner, property and municipal facts below{% endif %}.</div>
+        {% if rep.lightstone_files %}
+        <ul class="doc-list">
+          {% for f in rep.lightstone_files %}
+          <li>{{ ui.icon('file', 'icon--sm') }}<span>{{ f.split('/')[-1] }}</span>
+            {% if f in rep.lightstone_read %}<span class="badge badge--ok">read</span>{% endif %}
+            {{ remove(rep.dp, 'lightstone', loop.index0, 'this report') }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        {% include 'partials/_proposal_prefill.html' %}
+        {{ upload(rep.dp, 'lightstone', 'Upload the Lightstone report', '.pdf,application/pdf') }}
+      </div>
+
+      <div class="doc-slot">
+        <div class="label">Cover picture</div>
+        <div class="hint">The Lightstone property details, map and owner strip. Drawn from the report, or upload a screenshot.</div>
+        {% if rep.cover_image %}
+        <div class="proposal-thumbs">
+          <figure class="proposal-thumb">
+            <img src="/reports/{{ rep.dp }}/file/cover/0?v={{ rep.cover_image|urlencode }}" alt="Cover picture">
+            {{ remove(rep.dp, 'cover', 0, 'the cover picture') }}
+          </figure>
+        </div>
+        {% endif %}
+        {{ upload(rep.dp, 'cover', 'Upload a screenshot', 'image/png,image/jpeg') }}
+      </div>
+
+      <div class="doc-slot">
+        <div class="label">Photos{% if rep.photos %} ({{ rep.photos|length }}){% endif %}</div>
+        <div class="hint">They print after the report, six to a page, in this order. Phone photos are turned upright and made smaller.</div>
+        {% if rep.photos %}
+        <div class="proposal-thumbs">
+          {% for f in rep.photos %}
+          <figure class="proposal-thumb proposal-thumb--photo">
+            <img src="/reports/{{ rep.dp }}/file/photos/{{ loop.index0 }}?v={{ f|urlencode }}" alt="Photo {{ loop.index }}" loading="lazy">
+            {{ remove(rep.dp, 'photos', loop.index0, 'photo ' ~ loop.index) }}
+            {% if not loop.first %}
+            <button type="button" class="iconbtn photo-earlier" aria-label="Move photo {{ loop.index }} earlier"
+                    hx-post="/reports/{{ rep.dp }}/earlier/{{ loop.index0 }}" hx-include="#report-form">{{ ui.icon('arrow', 'icon--sm icon--flip') }}</button>
+            {% endif %}
+          </figure>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {{ upload(rep.dp, 'photos', 'Upload photos', 'image/png,image/jpeg', true) }}
+      </div>
+
+    </div>
+  </section>
+
+  <form id="report-form" class="stack stack--lg" hx-post="/reports/{{ rep.dp }}/save" hx-target="#checks" hx-swap="outerHTML">
+    <input type="hidden" name="_full_form" value="1">
+
+    <section class="panel" id="property">
+      <div class="panel__head"><div class="panel__title">Owner and property</div></div>
+      <div class="panel__body">
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="property_type">Kind of property</label>
+            <select class="input{{ ' is-invalid' if 'property_type' in flagged }}" id="property_type" name="property_type">
+              <option value=""{% if not rep.property_type %} selected{% endif %}>Choose</option>
+              {% for key, pair in types.items() %}
+              <option value="{{ key }}"{% if rep.property_type == key %} selected{% endif %}>{{ pair[0] }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="label label--sm" for="title_deed">Title deed</label>
+            <input class="input{{ ' is-invalid' if 'title_deed' in flagged }}" id="title_deed" name="title_deed" value="{{ rep.title_deed }}" placeholder="T39166/2019">
+          </div>
+        </div>
+        {{ text('owner_name', 'Owner (in respect of)', rep.owner_name, 'IDP AGRI (PTY) LTD (IN LIQUIDATION)', flagged) }}
+        {{ text('owner_id', 'ID or registration number', rep.owner_id, '7601017486085 or 2017/102137/07', flagged) }}
+        <div class="field">
+          <label class="label label--sm" for="legal_description">Legal description</label>
+          <textarea class="textarea{{ ' is-invalid' if 'legal_description' in flagged }}" id="legal_description" name="legal_description" rows="2" placeholder="PORTION 21 OF ERF 140, LINKSFIELD, CITY OF JOHANNESBURG, GAUTENG">{{ rep.legal_description }}</textarea>
+        </div>
+        {{ text('known_as', 'Physical address', rep.known_as, '21 CLUB STREET, LINKSFIELD, GAUTENG', flagged) }}
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="extent">Extent</label>
+            <input class="input{{ ' is-invalid' if 'extent' in flagged }}" id="extent" name="extent" value="{{ rep.extent }}" placeholder="525 m2">
+          </div>
+          <div>
+            <label class="label label--sm" for="zoning">Zoning / usage</label>
+            <input class="input" id="zoning" name="zoning" value="{{ rep.zoning }}" placeholder="RESIDENTIAL">
+          </div>
+        </div>
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="local_authority">Local authority</label>
+            <input class="input" id="local_authority" name="local_authority" value="{{ rep.local_authority }}" placeholder="CITY OF JOHANNESBURG">
+          </div>
+          <div>
+            <label class="label label--sm" for="gps">GPS</label>
+            <input class="input" id="gps" name="gps" value="{{ rep.gps }}" placeholder="-26.164463,28.094548">
+          </div>
+        </div>
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="municipal_valuation">Municipal valuation</label>
+            <input class="input" id="municipal_valuation" name="municipal_valuation" inputmode="decimal" value="{{ form.municipal_valuation }}" placeholder="R 3 002 000">
+            <div class="hint">The valuation roll figure, not the last sale price.</div>
+          </div>
+          <div>
+            <label class="label label--sm" for="municipal_valuation_year">Valuation year</label>
+            <input class="input" id="municipal_valuation_year" name="municipal_valuation_year" inputmode="numeric" value="{{ form.municipal_valuation_year }}" placeholder="2023">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="inspection">
+      <div class="panel__head"><div class="panel__title">Inspection</div></div>
+      <div class="panel__body">
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="inspection_date">Inspection date</label>
+            <input class="input" type="date" id="inspection_date" name="inspection_date" value="{{ rep.inspection_date.isoformat() if rep.inspection_date else '' }}">
+          </div>
+          <div>
+            <label class="label label--sm" for="prepared_by">Prepared by</label>
+            <input class="input{{ ' is-invalid' if 'prepared_by' in flagged }}" id="prepared_by" name="prepared_by" value="{{ rep.prepared_by }}" placeholder="Andrea Oberholzer">
+          </div>
+        </div>
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="prepared_email">E-mail on the cover</label>
+            <select class="input" id="prepared_email" name="prepared_email">
+              {% for e in emails %}<option value="{{ e }}"{% if rep.prepared_email == e %} selected{% endif %}>{{ e }}</option>{% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="label label--sm" for="prepared_cell">Cell number on the cover</label>
+            <input class="input" id="prepared_cell" name="prepared_cell" value="{{ rep.prepared_cell }}">
+          </div>
+        </div>
+        {{ text('description', 'One-line description', rep.description, 'The house is a 3-bedroom home in Linksfield.', hint='Printed under the heading for the kind of property.') }}
+      </div>
+    </section>
+
+    <section class="panel" id="inside">
+      <div class="panel__head"><div class="panel__title">Improvements (inside)</div></div>
+      <div class="panel__body">
+        <div class="hint" style="margin-bottom:10px;">From the viewing checklist. Only what is filled in is printed.</div>
+        <div class="field-grid">{{ count('i_bedrooms', 'Bedrooms', i.bedrooms) }}{{ count('i_bathrooms', 'Bathrooms', i.bathrooms) }}</div>
+        <div class="field-grid">{{ count('i_ensuite', 'Of which en-suite', i.ensuite) }}{{ count('i_separate_toilets', 'Separate toilets', i.separate_toilets) }}</div>
+        <div class="field">{{ ticks('i_rooms', rooms, i.rooms) }}</div>
+        {{ text('i_floors', 'Floor finishes', i.floors, 'tiled, wooden floors in the bedrooms') }}
+        <div class="field">
+          <label class="label label--sm" for="i_other_improvements">Other improvements</label>
+          <textarea class="textarea" id="i_other_improvements" name="i_other_improvements" rows="3" placeholder="One per line, e.g. Warehouse with sliding doors">{{ form.other_improvements }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="outside">
+      <div class="panel__head"><div class="panel__title">External features</div></div>
+      <div class="panel__body">
+        <div class="field-grid">{{ count('i_garages', 'Garages', i.garages) }}{{ count('i_carports', 'Carports', i.carports) }}</div>
+        {{ text('i_patio', 'Lapa, balcony, patio or deck', i.patio, 'Covered patio') }}
+        <div class="field">{{ ticks('i_features', features, i.features) }}</div>
+        {{ text('i_outbuildings', 'Outbuildings', i.outbuildings, '1 bedroom flatlet with an en-suite bathroom') }}
+        <div class="field-grid">
+          <div>{{ text('i_roof', 'Roof', i.roof, 'pitched and tiled') }}</div>
+          <div>{{ text('i_walls', 'Outside walls', i.walls, 'plastered brick') }}</div>
+        </div>
+        {{ text('i_ceilings', 'Ceilings', i.ceilings, 'plaster') }}
+        <div class="label label--sm" style="margin-top:12px;">Farms and smallholdings</div>
+        <div class="field-grid">{{ count('i_homes', 'Homes on the property', i.homes) }}<div></div></div>
+        <div class="field">{{ ticks('i_farm', farm, i.farm) }}</div>
+        <div class="field">
+          <label class="label label--sm" for="i_other_features">Other external features</label>
+          <textarea class="textarea" id="i_other_features" name="i_other_features" rows="3" placeholder="One per line, e.g. Roof top terrace">{{ form.other_features }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="security">
+      <div class="panel__head"><div class="panel__title">Security</div></div>
+      <div class="panel__body">
+        {{ text('i_security', 'Security', i.security, 'The estate has remote access.', hint='No alarm codes: the report goes to the trustee.') }}
+        <div class="field">{{ ticks('i_security_items', security_items, i.security_items) }}</div>
+      </div>
+    </section>
+
+    <section class="panel" id="condition">
+      <div class="panel__head"><div class="panel__title">Occupation and condition</div></div>
+      <div class="panel__body">
+        <div class="field-grid">
+          {{ choose('i_occupancy', 'Vacant or occupied', i.occupancy, [('', 'Not recorded'), ('vacant', 'Vacant'), ('occupied', 'Occupied')]) }}
+          <div>
+            <label class="label label--sm" for="i_occupant">Occupied by</label>
+            <input class="input" id="i_occupant" name="i_occupant" value="{{ i.occupant }}" placeholder="the owner, tenants">
+          </div>
+        </div>
+        <div class="field-grid">
+          {{ choose('i_area', 'Area', i.area, [('', 'Not recorded'), ('low', 'Low'), ('medium', 'Medium'), ('high', 'High')]) }}
+          <div>
+            <label class="label label--sm" for="i_impression">General impression</label>
+            <input class="input" id="i_impression" name="i_impression" value="{{ i.impression }}" placeholder="well kept">
+          </div>
+        </div>
+        <div class="field-grid">
+          {{ choose('i_electricity', 'Electricity', i.electricity, [('', 'Not recorded'), ('on', 'On'), ('off', 'Off')]) }}
+          {{ choose('i_water', 'Water', i.water, [('', 'Not recorded'), ('on', 'On'), ('off', 'Off')]) }}
+        </div>
+        {{ text('i_meters', 'Meters and supply', i.meters, 'prepaid electricity, solar') }}
+        <div class="field">
+          <label class="label label--sm" for="i_defects">Defects, signs of burglary</label>
+          <textarea class="textarea" id="i_defects" name="i_defects" rows="2" placeholder="Broken kitchen window">{{ i.defects }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="rates">
+      <div class="panel__head"><div class="panel__title">Rates and levies</div></div>
+      <div class="panel__body">
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="rates_outstanding">Outstanding rates, taxes and water</label>
+            <input class="input" id="rates_outstanding" name="rates_outstanding" inputmode="decimal" value="{{ form.rates_outstanding }}" placeholder="R 3 610.36">
+          </div>
+          <div>
+            <label class="label label--sm" for="rates_as_at">As at</label>
+            <input class="input" type="date" id="rates_as_at" name="rates_as_at" value="{{ rep.rates_as_at.isoformat() if rep.rates_as_at else '' }}">
+          </div>
+        </div>
+        {{ text('rates_note', 'Instead of an amount', rep.rates_note, 'We did request a statement and will provide you with same once received.', hint='Printed when there is no amount. Blank prints the wording above.') }}
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="levies_outstanding">Outstanding levies</label>
+            <input class="input" id="levies_outstanding" name="levies_outstanding" inputmode="decimal" value="{{ form.levies_outstanding }}" placeholder="R 10 731.85">
+          </div>
+          <div>
+            <label class="label label--sm" for="levies_as_at">As at</label>
+            <input class="input" type="date" id="levies_as_at" name="levies_as_at" value="{{ rep.levies_as_at.isoformat() if rep.levies_as_at else '' }}">
+          </div>
+        </div>
+        {{ text('managing_agent', 'Managing agent or body corporate', rep.managing_agent, 'Sectional title only', hint='The levies section prints for sectional title units, or when a levy amount or managing agent is filled in.') }}
+      </div>
+    </section>
+
+    <section class="panel" id="terms">
+      <div class="panel__head"><div class="panel__title">Terms, viewing and conclusion</div></div>
+      <div class="panel__body">
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="deposit_pct">Deposit %</label>
+            <input class="input" id="deposit_pct" name="deposit_pct" inputmode="decimal" value="{{ form.deposit_pct }}" placeholder="10">
+          </div>
+          <div>
+            <label class="label label--sm" for="commission_pct">Commission %</label>
+            <input class="input" id="commission_pct" name="commission_pct" inputmode="decimal" value="{{ form.commission_pct }}" placeholder="5">
+          </div>
+        </div>
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="guarantee_days">Guarantees within (days)</label>
+            <input class="input" id="guarantee_days" name="guarantee_days" inputmode="numeric" value="{{ form.guarantee_days }}" placeholder="30">
+          </div>
+          <div>
+            <label class="label label--sm" for="confirmation_days">Confirmation period (days)</label>
+            <input class="input" id="confirmation_days" name="confirmation_days" inputmode="numeric" value="{{ form.confirmation_days }}" placeholder="Left out when blank">
+          </div>
+        </div>
+        {{ text('viewing_contact', 'Viewing by appointment', rep.viewing_contact, 'Dynamic Auctioneers: 086 155 2288') }}
+        <div class="field">
+          <label class="label label--sm" for="conclusion">Conclusion</label>
+          <textarea class="textarea" id="conclusion" name="conclusion" rows="2">{{ rep.conclusion }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    <div class="actionbar">
+      <span class="actionbar__note">Saving runs the checks again.</span>
+      <span class="spacer"></span>
+      {{ ui.button('Save', variant='primary', icon_name='check', type='submit') }}
+    </div>
+  </form>
+
+</div>
+
+<aside class="stack stickyish">
+  {% include 'partials/_proposal_checks.html' %}
+  {% include 'partials/_report_output.html' %}
+</aside>
+</div>
+{% endblock %}

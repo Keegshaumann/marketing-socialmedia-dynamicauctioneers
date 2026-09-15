@@ -36,7 +36,7 @@ from webapp.models import get_job  # re-exported: get_job(db_path, id)
 
 log = logging.getLogger(__name__)
 
-JOB_KINDS = ("extract", "verify", "render", "post", "proposal_prefill", "proposal_publish", "otp_prefill")
+JOB_KINDS = ("extract", "verify", "render", "post", "proposal_prefill", "proposal_publish", "otp_prefill", "report_prefill")
 
 # Lifecycle states in which re-running extraction over an EXISTING record is
 # safe: nothing has been signed off, drafted or published yet, so rewriting the
@@ -334,13 +334,18 @@ def _proposal_root(job: Dict[str, Any], db_path: Optional[str], folder: str = "p
     return Path(_output_root(job, db_path)) / f"DP{job.get('dp')}" / folder
 
 
-def _prefill_from_lightstone(db_path: Optional[str], job: Dict[str, Any], store_cls, folder: str, what: str) -> Tuple[str, str]:
+def _prefill_from_lightstone(
+    db_path: Optional[str], job: Dict[str, Any], store_cls, folder: str, what: str, apply=None
+) -> Tuple[str, str]:
     """Read a document's new Lightstone reports into its blank fields. KEY-GATED.
 
-    Shared by proposals (``folder`` "proposal") and OTPs ("otp"): both records
-    carry the seller, the erven and the list of reports already read.
+    Shared by proposals (``folder`` "proposal"), OTPs ("otp") and property
+    reports ("report"): each record carries the list of reports already read, and
+    ``apply`` (default: the proposal's ``apply_facts``) fills its blank fields.
     """
     from engine.proposal import lightstone
+
+    apply = apply or lightstone.apply_facts
 
     dp = job.get("dp")
     if not dp:
@@ -363,7 +368,7 @@ def _prefill_from_lightstone(db_path: Optional[str], job: Dict[str, Any], store_
         doc = store.get(dp)
         if doc is None:
             return "error", f"the {what} for DP {dp} was deleted while its report was read."
-        note = lightstone.apply_facts(doc, facts)
+        note = apply(doc, facts)
         doc.lightstone_read = sorted(set(doc.lightstone_read) | set(pending))
         doc.prefill_note = note
         store.save(doc, "lightstone")
@@ -382,6 +387,14 @@ def _handle_otp_prefill(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[st
     from engine.otpgen.store import OtpStore
 
     return _prefill_from_lightstone(db_path, job, OtpStore, "otp", "OTP")
+
+
+def _handle_report_prefill(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, str]:
+    """The same for a property report (M11, D116), which also takes the municipal facts. KEY-GATED."""
+    from engine.propertyreport.prefill import apply_facts
+    from engine.propertyreport.store import ReportStore
+
+    return _prefill_from_lightstone(db_path, job, ReportStore, "report", "property report", apply=apply_facts)
 
 
 def _handle_proposal_publish(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, str]:
@@ -432,6 +445,7 @@ _HANDLERS: Dict[str, Callable[[Optional[str], Dict[str, Any]], Tuple[str, str]]]
     "proposal_prefill": _handle_proposal_prefill,
     "proposal_publish": _handle_proposal_publish,
     "otp_prefill": _handle_otp_prefill,
+    "report_prefill": _handle_report_prefill,
 }
 
 

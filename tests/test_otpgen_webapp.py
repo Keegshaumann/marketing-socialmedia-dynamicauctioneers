@@ -124,7 +124,7 @@ def test_start_open_and_list(app_env):
 
 def test_the_switcher_and_nav_reach_both_generators(app_env):
     listing = html.unescape(app_env.client.get("/proposals").text)
-    assert "Proposals & OTPs" in listing and 'href="/otps"' in listing
+    assert "Property documents" in listing and 'href="/otps"' in listing and 'href="/reports"' in listing
 
     _start(app_env, "9202", base="/proposals")
     proposal_page = app_env.client.get("/proposals/9202").text

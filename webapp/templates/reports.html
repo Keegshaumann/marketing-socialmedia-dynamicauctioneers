@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as ui %}
+{% block title %}Property reports{% endblock %}
+{% block heading %}Property reports{% endblock %}
+{% block subheading %}<div class="topbar__sub">The inspection report for the trustee, liquidator or bank, before the instruction to market</div>{% endblock %}
+
+{% block content %}
+{% with current = 'report' %}{% include 'partials/_doc_switcher.html' %}{% endwith %}
+
+<section class="panel">
+  <div class="panel__head"><div class="panel__title">Start a property report</div></div>
+  <div class="panel__body">
+    <form method="post" action="/reports/new" class="row" style="gap:12px; align-items:flex-end; flex-wrap:wrap;">
+      <div style="flex: 0 1 240px;">
+        <label class="label" for="dp">DP number</label>
+        <input class="input" id="dp" name="dp" placeholder="3077, or 3028.1 for a sub-lot" required autocomplete="off">
+      </div>
+      {{ ui.button('Start', variant='gold', icon_name='plus', type='submit') }}
+    </form>
+    {% if error == 'dp' %}<div class="form-error">That is not a DP number. Type it like 3077, or 3028.1 for a sub-lot.</div>{% endif %}
+    <div class="hint mt-1">If this DP already has an OTP, an auction proposal or a record on the board, the owner, property and terms are copied across. Then upload the Lightstone report and the photos on the next screen and fill in the viewing checklist.</div>
+  </div>
+</section>
+
+{% if rows %}
+<div class="ledger-wrap mt-3">
+  <table class="ledger">
+    <thead>
+      <tr>
+        <th style="width:90px;">DP</th>
+        <th>Owner</th>
+        <th style="width:240px;">Last change</th>
+        <th style="width:130px;">File</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td class="ledger__dp"><a href="/reports/{{ r.dp }}">{{ r.dp }}</a></td>
+        <td><a href="/reports/{{ r.dp }}">{{ r.seller_name or 'Not filled in yet' }}</a></td>
+        <td class="muted">{{ r.updated_at[:10] }}{% if r.updated_by %}, {{ r.updated_by }}{% endif %}</td>
+        <td>{% if r.generated_at %}<span class="badge badge--gold">Word</span>{% else %}<span class="badge badge--neutral">Draft</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty mt-3">
+  {{ ui.icon('file', 'icon--xl') }}
+  <div class="empty__title">No property reports yet</div>
+  <div class="empty__text">Type a DP number above to start one.</div>
+</div>
+{% endif %}
+{% endblock %}

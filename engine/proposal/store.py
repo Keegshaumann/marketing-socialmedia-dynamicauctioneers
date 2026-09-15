@@ -27,6 +27,7 @@ def _now() -> str:
 class ProposalStore:
     TABLE = "proposals"
     MODEL: Type[BaseModel] = Proposal
+    NAME_FIELD = "seller_name"  # the model field listed as the name (a property report lists its owner)
 
     def __init__(self, db_path: "str | Path") -> None:
         self.conn = sqlite3.connect(str(db_path))
@@ -77,7 +78,7 @@ class ProposalStore:
             """,
             (
                 doc.dp,
-                doc.seller_name,
+                getattr(doc, self.NAME_FIELD),
                 auction_date.isoformat() if auction_date else None,
                 doc.model_dump_json(),
                 now,

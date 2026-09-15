@@ -108,14 +108,22 @@ class LightstoneFacts(BaseModel):
     street_address: str = Field(description="Street address in capitals with suburb and province. Empty if not shown.")
     title_deed: str = Field(description="The current owner's title deed number, e.g. T49195/2001. Empty if not shown.")
     extent: str = Field(description="Registered land size (freehold) or unit size (sectional) with its unit. Empty if not shown.")
+    # Read for the property report (M11); a proposal ignores them.
+    local_authority: str = Field(default="", description="The municipality as printed after Mun:, in capitals. Empty if not shown.")
+    usage: str = Field(default="", description="The municipal usage category, e.g. RESIDENTIAL or INDUSTRIAL. Empty if not shown.")
+    municipal_valuation: str = Field(default="", description="The municipal valuation amount as printed, e.g. R 3 002 000. Empty if not shown.")
+    municipal_valuation_year: str = Field(default="", description="The year of that valuation, e.g. 2023. Empty if not shown.")
+    coordinates: str = Field(default="", description="The property's coordinates as printed, e.g. -26.164463,28.094548. Empty if not shown.")
+    last_sale_price: str = Field(default="", description="The last sales price as printed, e.g. R3 000 000. Empty if not shown.")
 
 
 SYSTEM_PROMPT = (
     "You read South African Lightstone property reports (EVM reports and deeds searches) for "
-    "Dynamic Auctioneers, who are preparing an auction proposal for the property's seller. The "
-    "facts go onto a document a liquidator or trustee signs off, so copy them as the report prints "
-    "them. Never infer, complete or correct a fact the report does not show; leave that field as "
-    "an empty string instead. If the report covers more than one property, describe the first one."
+    "Dynamic Auctioneers, who are preparing documents about the property for its seller (an auction "
+    "proposal or a property report). The facts go onto a document a liquidator or trustee relies on, "
+    "so copy them as the report prints them. Never infer, complete or correct a fact the report does "
+    "not show; leave that field as an empty string instead. If the report covers more than one "
+    "property, describe the first one."
 )
 
 INSTRUCTION = (
@@ -130,7 +138,13 @@ INSTRUCTION = (
     "extent: e.g. 2018 m2 or 568.4365 ha.\n"
     "owner_name and owner_id: the current registered owner, not a previous buyer or seller in the "
     "transfer history.\n"
-    "title_type: freehold, sectional, or unknown when the report does not make it clear."
+    "title_type: freehold, sectional, or unknown when the report does not make it clear.\n"
+    'local_authority: the municipality after Mun:, without its quotes, e.g. CITY OF JOHANNESBURG.\n'
+    "usage: the USAGE CATEGORY in the municipal valuation section.\n"
+    "municipal_valuation and municipal_valuation_year: the VALUATION AMOUNT and YEAR OF VALUATION in "
+    "the municipal valuation section. This is not the last sales price and not the EVM value.\n"
+    "coordinates: as printed after Coordinates:.\n"
+    "last_sale_price: the LAST SALES PRICE."
 )
 
 
@@ -170,6 +184,12 @@ def _tidy(facts: LightstoneFacts) -> LightstoneFacts:
         street_address=clean(facts.street_address).upper(),
         title_deed=clean(facts.title_deed).upper().replace(" ", ""),
         extent=clean(facts.extent),
+        local_authority=clean(facts.local_authority).strip('"').upper(),
+        usage=clean(facts.usage).upper(),
+        municipal_valuation=clean(facts.municipal_valuation),
+        municipal_valuation_year=clean(facts.municipal_valuation_year),
+        coordinates=clean(facts.coordinates).replace(" ", ""),
+        last_sale_price=clean(facts.last_sale_price),
     )
 
 
