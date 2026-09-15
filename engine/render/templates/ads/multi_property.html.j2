@@ -52,6 +52,9 @@
   .mp-heading { margin:6px 0 0; font-size:76px; font-weight:900; line-height:.95; color:#ddc689;
                 text-transform:uppercase; letter-spacing:-.01em; overflow-wrap:anywhere; }
   .mp-heading.is-long { font-size:58px; }
+  /* A descriptor the team typed long (D118) steps down again rather than
+     being replaced, and still sits beside the shield in two lines. */
+  .mp-heading.is-longer { font-size:44px; }
   .mp-badge { display:inline-block; margin-top:18px; padding:12px 30px; font-size:30px; font-weight:900;
               letter-spacing:.02em; text-transform:uppercase; color:#191613; border-radius:8px; }
   .shield { flex:none; width:210px; height:236px; background:#fff; display:flex; align-items:center;
@@ -132,7 +135,10 @@
 
 {# Two cards across have no room for the word, so the grid prints the figure. #}
 {% macro extent(card, word=True) -%}
-  {%- if card.size_ha or card.size_str -%}
+  {%- if card.extent_label -%}
+  {#- The team's own wording for this card's extent (D118). -#}
+  <div class="mp-extent">{{ parts.stat_icon('extent', vm) }}<span>{{ card.extent_label }}</span></div>
+  {%- elif card.size_ha or card.size_str -%}
   <div class="mp-extent">{{ parts.stat_icon('extent', vm) }}<span><span class="nb">&plusmn; {% if card.size_ha %}{{ card.size_ha }} HA{% else %}{{ card.size_str }}<span class="un">m&sup2;</span>{% endif %}</span>{% if word %} Property{% endif %}</span></div>
   {%- endif -%}
 {%- endmacro %}
@@ -147,7 +153,7 @@
     <div class="mp-head">
       {% if vm.region_line %}<div class="mp-region">{{ vm.region_line }}</div>{% endif %}
       {% set heading = vm.multi_heading or vm.descriptor_line %}
-      {% if heading %}<h1 class="mp-heading{{ ' is-long' if heading | length > 16 }}">{{ heading }}</h1>{% endif %}
+      {% if heading %}<h1 class="mp-heading{{ ' is-long' if heading | length > 16 }}{{ ' is-longer' if heading | length > 28 }}">{{ heading }}</h1>{% endif %}
       <span class="mp-badge gold">{{ parts.badge_text(vm) }}</span>
     </div>
     <div class="shield">{{ parts.brand_logo(vm, 'light') }}</div>

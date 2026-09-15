@@ -2204,6 +2204,43 @@ def test_long_bullets_and_a_long_title_still_fit(count, bullet, golden_record, t
     assert all(n >= 1 for n in geo["bullets"][1:]), f"a card with room printed no bullet: {geo}"
 
 
+def test_what_the_designs_derive_the_team_can_word(golden_record, tmp_path):
+    """"If they don't like anything, it is fully customizable" (D118). The
+    descriptor line is derived from the bedroom count - a warehouse became a
+    "2 BEDROOM HOME" - and can now be typed; on a Multiple properties advert it
+    is the gold heading at any length; and a card's extent can be reworded."""
+    golden_record.marketing.template_set = "feature_list"
+    golden_record.human_overrides = {"marketing.descriptor": "Warehouse with offices"}
+    html = _ad_source(golden_record, tmp_path).read_text(encoding="utf-8")
+    assert '<div class="fl-desc">Warehouse with offices</div>' in html
+
+    record = _holdings(golden_record, 3)
+    record.marketing.headline = None
+    record.human_overrides = {"marketing.descriptor": "Equestrian farm, stables and a large dam",
+                              "physical.portions.0.extent_label": "About 2 hectares"}
+    html = _ad_source(record, tmp_path).read_text(encoding="utf-8")
+    assert 'is-longer">Equestrian farm, stables and a large dam</h1>' in html
+    assert "<span>About 2 hectares</span>" in html
+    assert "2.14 HA" in html                     # the other cards keep the Lightstone figure
+
+
+@pytest.mark.parametrize("count", [3, 4])
+def test_the_longest_descriptor_still_fits(count, golden_record, tmp_path):
+    """The gold heading at the field's 40-character limit, over full cards (D118)."""
+    from engine.render import rasterize
+
+    if not rasterize.available():
+        pytest.skip("Playwright not installed; ad geometry cannot be measured")
+    record = _holdings(golden_record, count)
+    for portion in record.physical.portions:
+        portion.features = [f"Double-storey house with a patio and staff rooms {k}" for k in range(1, 7)]
+    record.human_overrides = {"marketing.descriptor": "Equestrian farm, stables and a large dam"}
+    geo = _card_geometry(_ad_source(record, tmp_path))
+    assert geo["cards"] <= geo["column"] + 1, f"{count} cards overflow their column: {geo}"
+    assert geo["cards"] <= geo["pin"] + 1, f"{count} cards run into the address pill: {geo}"
+    assert geo["contact"] <= geo["canvas"] + 1, f"the contact bar is pushed off the canvas: {geo}"
+
+
 def test_card_titles_are_shortened_only_when_the_label_says_what_it_is():
     from engine.render.html_backend import _portion_noun, _portion_title
 

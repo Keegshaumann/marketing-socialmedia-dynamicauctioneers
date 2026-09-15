@@ -788,6 +788,12 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
             "price_display": prefill["price_display"],
             "street_address": identity.get("street_address") or "",
             "suburb": identity.get("suburb") or "",
+            # The fields the designs would otherwise decide (D118); the derived
+            # descriptor is shown as the placeholder, so blank visibly means it.
+            "province": identity.get("province") or "",
+            "mandate_ref": identity.get("mandate_ref") or "",
+            "descriptor": marketing_pv.get("descriptor") or "",
+            "descriptor_auto": _descriptor_auto(record),
             "method": sale.get("method") or "",
             "terms": "\n".join(sale.get("terms") or []),
             # Auction specifics (D42), edited on the auction-only panel.
@@ -1342,6 +1348,7 @@ def _portion_rows(record: PropertyRecord) -> List[Dict[str, Any]]:
             "derived": _portion_title(p.get("label"), p.get("erf")) or "",
             "label": p.get("label") or "",
             "extent": f"± {ha} ha" if ha else (f"± {m2} m²" if m2 else ""),
+            "extent_label": (p.get("extent_label") or "").strip(),
             "features": features,
             # Lines taken from the property's list because they name this
             # portion, rather than the portion's own (D113).
@@ -1352,6 +1359,14 @@ def _portion_rows(record: PropertyRecord) -> List[Dict[str, Any]]:
     # Only when the advert carries cards: several Lightstones marked as one
     # property have no cards to edit (D112).
     return rows if len(rows) >= MULTI_MIN_PORTIONS and _portion_total(record) >= MULTI_MIN_PORTIONS else []
+
+
+def _descriptor_auto(record: PropertyRecord) -> str:
+    """The descriptor the designs derive when the team has not typed one (D118)."""
+    from engine.render.html_backend import HtmlBackend
+
+    public = record.public_view()
+    return HtmlBackend._descriptor_line(public.get("physical") or {}, public.get("identity") or {}) or ""
 
 
 def _features_context(record: PropertyRecord, dp: str) -> Dict[str, Any]:
@@ -1480,6 +1495,12 @@ def _collect_portion_edits(record: PropertyRecord, form, problems: List[str]) ->
         title = _clean_feature(form.get(f"p{i}_title"))
         if title != (portion.get("title") or "").strip():
             fields[f"physical.portions.{i}.title"] = title or None
+        # The card's extent as the team words it (D118). Stored beside the
+        # sourced size, never over it; blank goes back to the Lightstone figure.
+        if f"p{i}_extent" in form:
+            extent = _clean_feature(form.get(f"p{i}_extent"))
+            if extent != (portion.get("extent_label") or "").strip():
+                fields[f"physical.portions.{i}.extent_label"] = extent or None
         features = [text for j, text in enumerate(_clean_feature(t) for t in posted)
                     if text and remove != f"{i}:{j}"]
         added = _clean_feature(form.get(f"p{i}_new"))
@@ -1923,6 +1944,13 @@ _EDIT_TEXT_FIELDS = {
     "price_display": "marketing.price_display",
     "street_address": "identity.street_address",
     "suburb": "identity.suburb",
+    # What the designs otherwise decide for the team (D118): the descriptor line
+    # ("3 Bedroom Home", derived from the bedroom count), which is also the gold
+    # heading on a Multiple properties advert; the province the region line and
+    # the address pill print; and the MASTER REF on the top bar.
+    "descriptor": "marketing.descriptor",
+    "province": "identity.province",
+    "mandate_ref": "identity.mandate_ref",
     # Auction specifics (D42): shown on auction ads only. Blank inputs are
     # skipped by _collect_edit_fields, so they never wipe an existing value.
     # (auction_channel is validated against an allow-list separately, below.)

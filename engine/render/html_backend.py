@@ -630,8 +630,12 @@ def _pin_line(identity: dict) -> Optional[str]:
 _MULTI_HEADING_MAX = 32
 
 
-def _multi_heading(headline: Optional[str], count: int, portions: List[dict]) -> str:
-    """The gold line: the marketer's short headline, else "3 Holdings" (D108)."""
+def _multi_heading(headline: Optional[str], count: int, portions: List[dict],
+                   descriptor: Optional[str] = None) -> str:
+    """The gold line: the team's descriptor as typed (D118), else a short
+    headline, else "3 Holdings" (D108)."""
+    if (descriptor or "").strip():
+        return descriptor.strip()
     text = (headline or "").strip()
     if text and len(text) <= _MULTI_HEADING_MAX:
         return text
@@ -954,7 +958,9 @@ class HtmlBackend(RenderBackend):
             # lead with the locality and a concise descriptor rather than the free
             # marketing headline (matches the real AD 2 / AD 3 designs).
             "place_line": self._place_line(identity),
-            "descriptor_line": self._descriptor_line(physical, identity),
+            # The team's own wording wins (D118): derived from the bedroom count
+            # and title type, it called a warehouse a "2 BEDROOM HOME".
+            "descriptor_line": (marketing.get("descriptor") or "").strip() or self._descriptor_line(physical, identity),
             "address": identity.get("street_address"),
             "suburb": identity.get("suburb"),
             "municipality": identity.get("municipality"),
@@ -1002,6 +1008,9 @@ class HtmlBackend(RenderBackend):
                     "title": portion_titles[i],
                     "features": portion_features[i],
                     "bullets": _card_bullets(portion_features[i], portion_titles[i], len(portions)),
+                    # The extent as the team words it on the card (D118); blank
+                    # prints the Lightstone figure.
+                    "extent_label": (p.get("extent_label") or "").strip() or None,
                 }
                 for i, p in enumerate(portions)
             ],
@@ -1016,7 +1025,8 @@ class HtmlBackend(RenderBackend):
             # sets it: the place and province, then a short gold descriptor.
             "region_line": _region_line(identity),
             "pin_line": _pin_line(identity),
-            "multi_heading": _multi_heading(marketing.get("headline"), len(portions), portions),
+            "multi_heading": _multi_heading(marketing.get("headline"), len(portions), portions,
+                                            descriptor=marketing.get("descriptor")),
             # A count of ZERO is not a feature (D94). `_fmt_num(0)` returns the
             # string "0", which is TRUTHY in Jinja, so `{% if vm.baths %}` passed
             # and a warehouse advertised "0 BATHROOMS". Fixed here rather than by

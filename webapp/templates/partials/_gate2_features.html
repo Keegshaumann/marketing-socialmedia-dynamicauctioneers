@@ -98,7 +98,10 @@
           <input class="input input--sm featline__title" id="p{{ i }}-title" name="p{{ i }}_title"
                  value="{{ p.title }}" placeholder="{{ p.derived or 'Card title' }}" maxlength="500"
                  aria-label="Card title" onkeydown="{{ enter_commits }}">
-          {% if p.extent %}<span class="hint hint--inline" title="{{ p.label }}">{{ p.extent }}</span>{% endif %}
+          {# The extent as the card words it (D118); blank prints the Lightstone figure. #}
+          <input class="input input--sm" id="p{{ i }}-extent" name="p{{ i }}_extent" value="{{ p.extent_label }}"
+                 placeholder="{{ p.extent or 'Extent' }}" maxlength="60" aria-label="Extent as the card words it"
+                 title="{{ p.label }}" style="flex:0 1 190px" onkeydown="{{ enter_commits }}">
         </div>
         {% if p.named %}
         <div class="hint">Taken from the property's feature lines that name {{ p.title or p.derived }}.

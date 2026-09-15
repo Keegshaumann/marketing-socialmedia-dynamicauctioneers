@@ -2750,3 +2750,46 @@ def test_the_card_editor_shows_the_lines_that_name_each_holding():
     finally:
         store.close()
     assert not [k for k in overrides if k.startswith("physical.portions")], overrides
+
+
+def test_the_team_can_word_what_the_advert_derives():
+    """"If they don't like anything, it is fully customizable" (D118): the
+    descriptor, the province, the master ref and a card's extent are typed on
+    gate 2, and blanking the descriptor goes back to the derived one."""
+    from engine.schema import Portion
+
+    dp = "7150"
+    _golden_clone(dp, state="drafted")
+    store = RecordStore(DB_PATH)
+    try:
+        record = store.get(dp)
+        record.physical.portions = [Portion(label=f"Holding {10 + i} Ebner on Vaal AH", size_m2=21400.0)
+                                    for i in range(3)]
+        store.upsert(record, state="drafted")
+    finally:
+        store.close()
+    client = _client()
+    _login_admin(client)
+
+    page = client.get(f"/gates/{dp}/ads").text
+    for name in ("descriptor", "province", "mandate_ref", "p0_extent"):
+        assert f'name="{name}"' in page, name
+
+    resp = client.post(f"/gates/{dp}/ads/copy",
+                       data={"descriptor": "Equestrian farm", "province": "Gauteng", "mandate_ref": "B33/2025"})
+    assert resp.status_code == 200, resp.text
+    pv = _public_view(dp)
+    assert pv["marketing"]["descriptor"] == "Equestrian farm"
+    assert pv["identity"]["province"] == "Gauteng"
+    assert pv["identity"]["mandate_ref"] == "B33/2025"
+    page = client.get(f"/gates/{dp}/ads").text
+    assert 'value="Equestrian farm"' in page and 'value="B33/2025"' in page
+
+    resp = client.post(f"/gates/{dp}/ads/icons",
+                       data={"p0_present": "1", "p0_count": "0", "p0_title": "", "p0_extent": "About 2 hectares"})
+    assert resp.status_code == 200, resp.text
+    assert _public_view(dp)["physical"]["portions"][0]["extent_label"] == "About 2 hectares"
+
+    # Blank on the full form: back to the descriptor worked out from the record.
+    client.post(f"/gates/{dp}/ads/copy", data={"_full_form": "1", "descriptor": ""})
+    assert not _public_view(dp)["marketing"].get("descriptor")

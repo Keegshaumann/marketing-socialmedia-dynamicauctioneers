@@ -100,6 +100,14 @@
               </div>
               <input class="input" id="headline" name="headline" value="{{ headline }}">
             </div>
+            {# Worded by the team rather than derived (D118). #}
+            <div class="field">
+              <label class="label" for="descriptor">Descriptor</label>
+              <input class="input" id="descriptor" name="descriptor" value="{{ descriptor }}"
+                     maxlength="40" placeholder="{{ descriptor_auto }}">
+              <div class="hint">The short line under the place on the adverts, boards and pack, and the gold heading
+                on a Multiple properties advert. Blank uses the one worked out from the record{% if descriptor_auto %} ({{ descriptor_auto }}){% endif %}.</div>
+            </div>
             <div class="field">
               <label class="label" for="price_display">Price</label>
               <input class="input" id="price_display" name="price_display" value="{{ price_display }}">
@@ -112,6 +120,15 @@
             <div class="field">
               <label class="label" for="suburb">Suburb</label>
               <input class="input" id="suburb" name="suburb" value="{{ suburb }}">
+            </div>
+            <div class="field">
+              <label class="label" for="province">Province</label>
+              <input class="input" id="province" name="province" value="{{ province }}">
+            </div>
+            <div class="field">
+              <label class="label" for="mandate_ref">Master ref</label>
+              <input class="input" id="mandate_ref" name="mandate_ref" value="{{ mandate_ref }}" placeholder="e.g. B33/2025">
+              <div class="hint">Printed as MASTER REF on the advert's top bar.</div>
             </div>
             <div class="field">
               <label class="label" for="method">Sale method</label>
