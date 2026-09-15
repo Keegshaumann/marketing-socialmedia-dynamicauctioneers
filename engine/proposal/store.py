@@ -1,9 +1,11 @@
-"""SQLite persistence for proposals, one row per DP (M9, D103).
+"""SQLite persistence for proposals and OTPs, one row per DP (M9, D103, D114).
 
-Kept in its own table on the shared engine database, apart from ``records``: a
-proposal exists before (and sometimes without) a marketing record, and it holds
-the seller's name and number, which the record keeps behind ``public_view``. The
-JSON blob is the source of truth; the few columns beside it are for listing.
+Each document type has its own table on the shared engine database, apart from
+``records``: a proposal or OTP exists before (and sometimes without) a marketing
+record, and it holds the seller's name and number, which the record keeps behind
+``public_view``. The JSON blob is the source of truth; the few columns beside it
+are for listing. ``OtpStore`` (``engine.otpgen.store``) is this class pointed at
+its own table and model.
 """
 
 from __future__ import annotations
@@ -11,7 +13,9 @@ from __future__ import annotations
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Type
+
+from pydantic import BaseModel
 
 from engine.proposal.model import Proposal
 
@@ -21,13 +25,17 @@ def _now() -> str:
 
 
 class ProposalStore:
+    TABLE = "proposals"
+    MODEL: Type[BaseModel] = Proposal
+
     def __init__(self, db_path: "str | Path") -> None:
         self.conn = sqlite3.connect(str(db_path))
         self.conn.row_factory = sqlite3.Row
         self.conn.execute("PRAGMA busy_timeout=5000")
+        # TABLE is a class constant, never user input, so formatting it in is safe.
         self.conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS proposals (
+            f"""
+            CREATE TABLE IF NOT EXISTS {self.TABLE} (
                 dp            TEXT PRIMARY KEY,
                 seller_name   TEXT,
                 auction_date  TEXT,
@@ -49,15 +57,16 @@ class ProposalStore:
     def __exit__(self, *exc) -> None:
         self.close()
 
-    def get(self, dp: str) -> Optional[Proposal]:
-        row = self.conn.execute("SELECT proposal_json FROM proposals WHERE dp = ?", (dp,)).fetchone()
-        return Proposal.model_validate_json(row["proposal_json"]) if row else None
+    def get(self, dp: str):
+        row = self.conn.execute(f"SELECT proposal_json FROM {self.TABLE} WHERE dp = ?", (dp,)).fetchone()
+        return self.MODEL.model_validate_json(row["proposal_json"]) if row else None
 
-    def save(self, proposal: Proposal, user: str = "") -> None:
+    def save(self, doc, user: str = "") -> None:
         now = _now()
+        auction_date = getattr(doc, "auction_date", None)
         self.conn.execute(
-            """
-            INSERT INTO proposals (dp, seller_name, auction_date, proposal_json, created_at, updated_at, updated_by)
+            f"""
+            INSERT INTO {self.TABLE} (dp, seller_name, auction_date, proposal_json, created_at, updated_at, updated_by)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(dp) DO UPDATE SET
                 seller_name = excluded.seller_name,
@@ -67,10 +76,10 @@ class ProposalStore:
                 updated_by = excluded.updated_by
             """,
             (
-                proposal.dp,
-                proposal.seller_name,
-                proposal.auction_date.isoformat() if proposal.auction_date else None,
-                proposal.model_dump_json(),
+                doc.dp,
+                doc.seller_name,
+                auction_date.isoformat() if auction_date else None,
+                doc.model_dump_json(),
                 now,
                 now,
                 user,
@@ -79,25 +88,24 @@ class ProposalStore:
         self.conn.commit()
 
     def delete(self, dp: str) -> bool:
-        cur = self.conn.execute("DELETE FROM proposals WHERE dp = ?", (dp,))
+        cur = self.conn.execute(f"DELETE FROM {self.TABLE} WHERE dp = ?", (dp,))
         self.conn.commit()
         return cur.rowcount == 1
 
     def list(self) -> List[Dict[str, Any]]:
         rows = self.conn.execute(
-            "SELECT dp, seller_name, auction_date, updated_at, updated_by, proposal_json "
-            "FROM proposals ORDER BY updated_at DESC"
+            f"SELECT dp, seller_name, updated_at, updated_by, proposal_json FROM {self.TABLE} ORDER BY updated_at DESC"
         ).fetchall()
         out = []
         for row in rows:
-            proposal = Proposal.model_validate_json(row["proposal_json"])
+            doc = self.MODEL.model_validate_json(row["proposal_json"])
             out.append({
                 "dp": row["dp"],
                 "seller_name": row["seller_name"] or "",
-                "auction_date": proposal.auction_date,
+                "auction_date": getattr(doc, "auction_date", None),
                 "updated_at": row["updated_at"],
                 "updated_by": row["updated_by"] or "",
-                "generated_at": proposal.generated_at,
-                "has_pdf": bool(proposal.pdf_file),
+                "generated_at": getattr(doc, "generated_at", ""),
+                "has_pdf": bool(getattr(doc, "pdf_file", "")),
             })
         return out

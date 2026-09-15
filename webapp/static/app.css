@@ -1156,3 +1156,24 @@ tr:hover .iconbtn { opacity: 1; }
 .budget-table .textarea { min-height: 0; resize: vertical; }
 .budget-table .input, .budget-table .textarea { width: 100%; min-width: 0; }
 .input.is-invalid, .textarea.is-invalid { border-color: var(--block); }
+
+/* The switch between auction proposals and OTPs (M10, D114): two segments in
+   the nav pill style, first thing on both screens. On a DP's page the other
+   segment is a small form (it may start that DP's record), so the form steps
+   out of the layout and its button looks like the link beside it. */
+.doc-switch {
+  display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; margin-bottom: 18px; max-width: 100%;
+  border: 1px solid var(--hairline); border-radius: 999px; background: var(--surface);
+}
+.doc-switch__form { display: contents; }
+.doc-switch__opt {
+  display: inline-flex; align-items: center; padding: 7px 16px; border-radius: 999px;
+  border: 1px solid transparent; background: transparent; color: var(--muted);
+  font: inherit; font-size: 13px; font-weight: 600; letter-spacing: .01em; cursor: pointer;
+  transition: color var(--dur-1) var(--ease), background var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease);
+}
+.doc-switch__opt:hover { color: var(--text-strong); background: var(--surface-2); text-decoration: none; }
+.doc-switch__opt.is-active {
+  color: var(--text-strong); background: var(--accent-bg); border-color: var(--accent-bd); cursor: default;
+  box-shadow: 0 0 18px -6px rgba(var(--accent-rgb), .7);
+}

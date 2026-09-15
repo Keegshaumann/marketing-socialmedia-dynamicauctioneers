@@ -5,6 +5,8 @@
 {% block subheading %}<div class="topbar__sub">The proposal that goes to the liquidator, trustee or executor</div>{% endblock %}
 
 {% block content %}
+{% with current = 'proposal' %}{% include 'partials/_doc_switcher.html' %}{% endwith %}
+
 <section class="panel">
   <div class="panel__head"><div class="panel__title">Start a proposal</div></div>
   <div class="panel__body">

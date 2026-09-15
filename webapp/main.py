@@ -72,6 +72,7 @@ ROUTE_MODULES = (
     "board",
     "intake",
     "proposals",
+    "otps",
     "gates",
     "artifacts",
     "post",

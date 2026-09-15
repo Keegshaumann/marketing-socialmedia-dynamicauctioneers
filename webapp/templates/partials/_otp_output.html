@@ -1,0 +1,20 @@
+{% import '_macros.html' as ui %}
+<section class="panel" id="output"{% if output_oob is defined and output_oob %} hx-swap-oob="true"{% endif %}>
+  <div class="panel__head"><div class="panel__title">OTP file</div></div>
+  <div class="panel__body stack stack--sm">
+    <button type="button" class="btn btn--gold btn--block" hx-post="/otps/{{ o.dp }}/generate"
+            hx-include="#otp-form" hx-target="#checks" hx-swap="outerHTML"{% if blocking %} disabled{% endif %}>
+      {{ ui.icon('file') }}<span>{{ 'Generate again' if o.docx_file else 'Generate the OTP' }}</span>
+      <span class="spinner" aria-hidden="true"></span>
+    </button>
+    {% if blocking %}<div class="hint">Fix the checks first. Saving runs them again.</div>{% endif %}
+    <div class="hint">The team's master OTP with this sale's details filled in and its typing errors corrected.</div>
+    {% if o.docx_file %}
+    <div class="hint">Generated {{ o.generated_at[:16]|replace('T', ' ') }} UTC by {{ o.generated_by }}. Changes made since are only in the file once you generate again.</div>
+    <div class="row" style="gap:8px; flex-wrap:wrap;">
+      <a class="btn btn--ghost btn--sm" href="/otps/{{ o.dp }}/download">{{ ui.icon('download', 'icon--sm') }}<span>Word</span></a>
+    </div>
+    <div class="hint">Check it in Word, then save it as a PDF to send.</div>
+    {% endif %}
+  </div>
+</section>

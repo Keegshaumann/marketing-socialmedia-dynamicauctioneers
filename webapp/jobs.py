@@ -36,7 +36,7 @@ from webapp.models import get_job  # re-exported: get_job(db_path, id)
 
 log = logging.getLogger(__name__)
 
-JOB_KINDS = ("extract", "verify", "render", "post", "proposal_prefill", "proposal_publish")
+JOB_KINDS = ("extract", "verify", "render", "post", "proposal_prefill", "proposal_publish", "otp_prefill")
 
 # Lifecycle states in which re-running extraction over an EXISTING record is
 # safe: nothing has been signed off, drafted or published yet, so rewriting the
@@ -330,41 +330,58 @@ def _handle_post(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, str]
     return "done", f"posted to {len(channels)} channels via GHL ({result!r})"
 
 
-def _proposal_root(job: Dict[str, Any], db_path: Optional[str]) -> Path:
-    return Path(_output_root(job, db_path)) / f"DP{job.get('dp')}" / "proposal"
+def _proposal_root(job: Dict[str, Any], db_path: Optional[str], folder: str = "proposal") -> Path:
+    return Path(_output_root(job, db_path)) / f"DP{job.get('dp')}" / folder
 
 
-def _handle_proposal_prefill(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, str]:
-    """Read a proposal's new Lightstone reports into its blank fields (M9, D103). KEY-GATED."""
+def _prefill_from_lightstone(db_path: Optional[str], job: Dict[str, Any], store_cls, folder: str, what: str) -> Tuple[str, str]:
+    """Read a document's new Lightstone reports into its blank fields. KEY-GATED.
+
+    Shared by proposals (``folder`` "proposal") and OTPs ("otp"): both records
+    carry the seller, the erven and the list of reports already read.
+    """
     from engine.proposal import lightstone
-    from engine.proposal.store import ProposalStore
 
     dp = job.get("dp")
     if not dp:
         return "error", "prefill job has no DP number."
     if not _has_api_key():
-        return "skipped: no API key", "no ANTHROPIC_API_KEY; the proposal fields are typed by hand."
-    root = _proposal_root(job, db_path)
-    with ProposalStore(models.resolve_db_path(db_path)) as store:
-        proposal = store.get(dp)
-    if proposal is None:
-        return "error", f"there is no proposal for DP {dp}."
-    pending = [rel for rel in proposal.lightstone_files if rel not in proposal.lightstone_read]
+        return "skipped: no API key", f"no ANTHROPIC_API_KEY; the {what} fields are typed by hand."
+    root = _proposal_root(job, db_path, folder)
+    with store_cls(models.resolve_db_path(db_path)) as store:
+        doc = store.get(dp)
+    if doc is None:
+        return "error", f"there is no {what} for DP {dp}."
+    pending = [rel for rel in doc.lightstone_files if rel not in doc.lightstone_read]
     if not pending:
         return "done", "no new Lightstone report to read."
 
     facts = [lightstone.read_facts(root / rel) for rel in pending]
 
     # Load again before writing: the page may have been saved while the model read.
-    with ProposalStore(models.resolve_db_path(db_path)) as store:
-        proposal = store.get(dp)
-        if proposal is None:
-            return "error", f"the proposal for DP {dp} was deleted while its report was read."
-        note = lightstone.apply_facts(proposal, facts)
-        proposal.lightstone_read = sorted(set(proposal.lightstone_read) | set(pending))
-        proposal.prefill_note = note
-        store.save(proposal, "lightstone")
+    with store_cls(models.resolve_db_path(db_path)) as store:
+        doc = store.get(dp)
+        if doc is None:
+            return "error", f"the {what} for DP {dp} was deleted while its report was read."
+        note = lightstone.apply_facts(doc, facts)
+        doc.lightstone_read = sorted(set(doc.lightstone_read) | set(pending))
+        doc.prefill_note = note
+        store.save(doc, "lightstone")
     return "done", note
+
+
+def _handle_proposal_prefill(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, str]:
+    """Read a proposal's new Lightstone reports into its blank fields (M9, D103). KEY-GATED."""
+    from engine.proposal.store import ProposalStore
+
+    return _prefill_from_lightstone(db_path, job, ProposalStore, "proposal", "proposal")
+
+
+def _handle_otp_prefill(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, str]:
+    """The same for an OTP (M10, D114). KEY-GATED."""
+    from engine.otpgen.store import OtpStore
+
+    return _prefill_from_lightstone(db_path, job, OtpStore, "otp", "OTP")
 
 
 def _handle_proposal_publish(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, str]:
@@ -414,6 +431,7 @@ _HANDLERS: Dict[str, Callable[[Optional[str], Dict[str, Any]], Tuple[str, str]]]
     "post": _handle_post,
     "proposal_prefill": _handle_proposal_prefill,
     "proposal_publish": _handle_proposal_publish,
+    "otp_prefill": _handle_otp_prefill,
 }
 
 

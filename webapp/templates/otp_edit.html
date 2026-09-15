@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as ui %}
+{% block title %}OTP {{ o.dp }}{% endblock %}
+{% block heading %}Offer to purchase {{ o.dp }}{% endblock %}
+{% block subheading %}<div class="topbar__sub">{{ o.seller_name or 'Seller not filled in yet' }}</div>{% endblock %}
+{% block topbar_actions %}
+  <a class="btn btn--ghost btn--sm" href="/otps">{{ ui.icon('arrow', 'icon--sm icon--flip') }}<span>All OTPs</span></a>
+{% endblock %}
+
+{% block content %}
+{% with current = 'otp', dp = o.dp %}{% include 'partials/_doc_switcher.html' %}{% endwith %}
+
+{% if notice %}
+<div class="banner banner--note" role="status" style="margin-bottom:18px;">
+  {{ ui.icon('info') }}
+  <div class="banner__body">{{ notice }}</div>
+</div>
+{% endif %}
+
+<div class="proposal-grid">
+<div class="stack stack--lg">
+
+  <section class="panel" id="documents">
+    <div class="panel__head">
+      <div class="panel__title">Lightstone report</div>
+      <span class="hint">Optional. Uploading keeps what you have typed below.</span>
+    </div>
+    <div class="panel__body stack">
+      <div class="doc-slot">
+        <div class="hint">{% if has_key %}Fills in the seller and property below. {% endif %}Upload one report per erf, or type the facts in.</div>
+        {% if o.lightstone_files %}
+        <ul class="doc-list">
+          {% for f in o.lightstone_files %}
+          <li>{{ ui.icon('file', 'icon--sm') }}<span>{{ f.split('/')[-1] }}</span>
+            {% if f in o.lightstone_read %}<span class="badge badge--ok">read</span>{% endif %}
+            <button type="button" class="iconbtn iconbtn--danger" aria-label="Remove this report"
+                    hx-post="/otps/{{ o.dp }}/remove/lightstone/{{ loop.index0 }}" hx-include="#otp-form">{{ ui.icon('x', 'icon--sm') }}</button></li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        {% include 'partials/_proposal_prefill.html' %}
+        <form class="doc-upload" hx-post="/otps/{{ o.dp }}/upload/lightstone" hx-encoding="multipart/form-data"
+              hx-include="#otp-form" hx-trigger="change">
+          <label class="btn btn--ghost btn--sm">
+            {{ ui.icon('plus', 'icon--sm') }}<span>Upload a Lightstone report</span>
+            <input type="file" name="files" accept=".pdf,application/pdf" class="sr-only" multiple>
+          </label>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <form id="otp-form" class="stack stack--lg" hx-post="/otps/{{ o.dp }}/save" hx-target="#checks" hx-swap="outerHTML">
+    <input type="hidden" name="_full_form" value="1">
+
+    <section class="panel" id="seller">
+      <div class="panel__head"><div class="panel__title">Seller</div></div>
+      <div class="panel__body">
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="seller_capacity">Kind of seller</label>
+            <select class="input{{ ' is-invalid' if 'seller_capacity' in flagged }}" id="seller_capacity" name="seller_capacity">
+              <option value=""{% if not o.seller_capacity %} selected{% endif %}>Choose</option>
+              {% for key, pair in headings.items() %}
+              <option value="{{ key }}"{% if o.seller_capacity == key %} selected{% endif %}>{{ pair[0] }}</option>
+              {% endfor %}
+            </select>
+            <div class="hint">Prints above the seller's name{% if o.seller_capacity %}: {{ headings[o.seller_capacity][1] }}{% endif %}</div>
+          </div>
+          <div>
+            <label class="label label--sm" for="masters_ref">Master's reference</label>
+            <input class="input" id="masters_ref" name="masters_ref" value="{{ o.masters_ref }}" placeholder="T2174/2024">
+            <div class="hint">Left out of the OTP when blank.</div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label label--sm" for="seller_name">Seller</label>
+          <input class="input{{ ' is-invalid' if 'seller_name' in flagged }}" id="seller_name" name="seller_name" value="{{ o.seller_name }}" placeholder="ZAKK CONSULTANTS (PTY) LTD">
+        </div>
+        <div class="field">
+          <label class="label label--sm" for="seller_id">ID or registration number</label>
+          <input class="input" id="seller_id" name="seller_id" value="{{ o.seller_id }}" placeholder="7601017486085 or 2014/203299/07">
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="property">
+      <div class="panel__head"><div class="panel__title">Property</div></div>
+      <div class="panel__body">
+        {% for erf in o.erven %}{% set n = loop.index %}
+        <div class="erf-block">
+          <div class="row row--between">
+            <div class="label">{{ 'Property ' ~ n if o.erven|length > 1 else 'The property' }}</div>
+            {% if o.erven|length > 1 %}
+            <button type="submit" name="action" value="remove_erf_{{ n }}" class="btn btn--ghost btn--sm">{{ ui.icon('x', 'icon--sm') }}<span>Remove</span></button>
+            {% endif %}
+          </div>
+          <div class="field">
+            <label class="label label--sm" for="erf-{{ n }}-legal">Legal description</label>
+            <textarea class="textarea{{ ' is-invalid' if ('erf_%d_legal' % n) in flagged }}" id="erf-{{ n }}-legal" name="erf-{{ n }}-legal" rows="2" placeholder='ERF 2188, TOWN "HELDERKRUIN EXT 21", GAUTENG'>{{ erf.legal_description }}</textarea>
+          </div>
+          <div class="field">
+            <label class="label label--sm" for="erf-{{ n }}-known_as">Better known as</label>
+            <input class="input{{ ' is-invalid' if ('erf_%d_known_as' % n) in flagged }}" id="erf-{{ n }}-known_as" name="erf-{{ n }}-known_as" value="{{ erf.known_as }}" placeholder="842 PHEASANT STREET, HELDERKRUIN EXT 21, GAUTENG">
+          </div>
+          <div class="field-grid">
+            <div>
+              <label class="label label--sm" for="erf-{{ n }}-title_deed">Title deed</label>
+              <input class="input{{ ' is-invalid' if ('erf_%d_title_deed' % n) in flagged }}" id="erf-{{ n }}-title_deed" name="erf-{{ n }}-title_deed" value="{{ erf.title_deed }}" placeholder="T49195/2001">
+            </div>
+            <div>
+              <label class="label label--sm" for="erf-{{ n }}-extent">Extent</label>
+              <input class="input" id="erf-{{ n }}-extent" name="erf-{{ n }}-extent" value="{{ erf.extent }}" placeholder="2018 m2">
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+        <input type="hidden" name="erf_count" value="{{ o.erven|length }}">
+        <button type="submit" name="action" value="add_erf" class="btn btn--ghost btn--sm">{{ ui.icon('plus', 'icon--sm') }}<span>Add another property</span></button>
+      </div>
+    </section>
+
+    <section class="panel" id="terms">
+      <div class="panel__head"><div class="panel__title">Sale terms</div></div>
+      <div class="panel__body">
+        <div class="hint" style="margin-bottom:10px;">Filled in with the terms most of the team's OTPs use. Commission has no default: type what was agreed. Each figure prints in digits and words.</div>
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="deposit_pct">Deposit %</label>
+            <input class="input{{ ' is-invalid' if 'deposit_pct' in flagged }}" id="deposit_pct" name="deposit_pct" inputmode="decimal" value="{{ form.deposit_pct }}" placeholder="10">
+          </div>
+          <div>
+            <label class="label label--sm" for="guarantee_days">Guarantees within (days)</label>
+            <input class="input{{ ' is-invalid' if 'guarantee_days' in flagged }}" id="guarantee_days" name="guarantee_days" inputmode="numeric" value="{{ form.guarantee_days }}" placeholder="45">
+          </div>
+        </div>
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="interest_pct">Interest from occupation %</label>
+            <input class="input{{ ' is-invalid' if 'interest_pct' in flagged }}" id="interest_pct" name="interest_pct" inputmode="decimal" value="{{ form.interest_pct }}" placeholder="12">
+          </div>
+          <div>
+            <label class="label label--sm" for="confirmation_days">Confirmation period (days)</label>
+            <input class="input{{ ' is-invalid' if 'confirmation_days' in flagged }}" id="confirmation_days" name="confirmation_days" inputmode="numeric" value="{{ form.confirmation_days }}" placeholder="30">
+          </div>
+        </div>
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="commission_pct">Commission %</label>
+            <input class="input{{ ' is-invalid' if 'commission_pct' in flagged }}" id="commission_pct" name="commission_pct" inputmode="decimal" value="{{ form.commission_pct }}" placeholder="7,5">
+          </div>
+          <div>
+            <label class="label label--sm" for="commission_payer">Commission paid by</label>
+            <select class="input" id="commission_payer" name="commission_payer">
+              <option value="seller"{% if o.commission_payer == 'seller' %} selected{% endif %}>Seller</option>
+              <option value="purchaser"{% if o.commission_payer == 'purchaser' %} selected{% endif %}>Purchaser</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-grid">
+          <div>
+            <label class="label label--sm" for="commission_vat">VAT on commission</label>
+            <select class="input" id="commission_vat" name="commission_vat">
+              <option value="yes"{% if o.commission_vat %} selected{% endif %}>Plus VAT</option>
+              <option value="no"{% if not o.commission_vat %} selected{% endif %}>VAT inclusive</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="conditions">
+      <div class="panel__head"><div class="panel__title">Special conditions</div></div>
+      <div class="panel__body">
+        <div class="hint" style="margin-bottom:10px;">The standard special conditions (confirmation, other offers, arrear rates) are always in. Add only what is particular to this sale.</div>
+        <div class="field">
+          <label class="label label--sm" for="body_corporate">Body corporate</label>
+          <input class="input" id="body_corporate" name="body_corporate" value="{{ o.body_corporate }}" placeholder="Sectional title only, e.g. MONTANA GARDENS">
+          <div class="hint">Prints: The sale is subject to the rules and regulations of the ... Body Corporate.</div>
+        </div>
+        <div class="field">
+          <label class="label label--sm" for="extra_conditions">Other conditions</label>
+          <textarea class="textarea" id="extra_conditions" name="extra_conditions" rows="4" placeholder="One per line. Each becomes its own numbered clause.">{{ form.extra_conditions }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    <div class="actionbar">
+      <span class="actionbar__note">Saving runs the checks again.</span>
+      <span class="spacer"></span>
+      {{ ui.button('Save', variant='primary', icon_name='check', type='submit') }}
+    </div>
+  </form>
+
+</div>
+
+<aside class="stack stickyish">
+  {% include 'partials/_proposal_checks.html' %}
+  {% include 'partials/_otp_output.html' %}
+</aside>
+</div>
+{% endblock %}

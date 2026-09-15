@@ -1,4 +1,5 @@
-<div id="prefill"{% if prefill_running %} hx-get="/proposals/{{ p.dp }}/prefill-status" hx-trigger="every 3s" hx-swap="outerHTML"{% endif %}>
+{#- Shared by proposals and OTPs (D114); an OTP page passes its own prefill_url. -#}
+<div id="prefill"{% if prefill_running %} hx-get="{{ prefill_url if prefill_url is defined else '/proposals/' ~ p.dp ~ '/prefill-status' }}" hx-trigger="every 3s" hx-swap="outerHTML"{% endif %}>
   {% if prefill_running %}
   <div class="hint">Reading the Lightstone report. The page reloads when the fields are filled in, so wait before typing.</div>
   {% elif prefill_job and prefill_job.state == 'error' %}

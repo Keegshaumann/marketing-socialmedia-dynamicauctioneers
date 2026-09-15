@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% import '_macros.html' as ui %}
+{% block title %}OTPs{% endblock %}
+{% block heading %}Offers to purchase{% endblock %}
+{% block subheading %}<div class="topbar__sub">The agreement and conditions of sale, from the team's master OTP</div>{% endblock %}
+
+{% block content %}
+{% with current = 'otp' %}{% include 'partials/_doc_switcher.html' %}{% endwith %}
+
+<section class="panel">
+  <div class="panel__head"><div class="panel__title">Start an OTP</div></div>
+  <div class="panel__body">
+    <form method="post" action="/otps/new" class="row" style="gap:12px; align-items:flex-end; flex-wrap:wrap;">
+      <div style="flex: 0 1 240px;">
+        <label class="label" for="dp">DP number</label>
+        <input class="input" id="dp" name="dp" placeholder="2821, or 2990.3 for a sub-lot" required autocomplete="off">
+      </div>
+      {{ ui.button('Start', variant='gold', icon_name='plus', type='submit') }}
+    </form>
+    {% if error == 'dp' %}<div class="form-error">That is not a DP number. Type it like 2821, or 2990.3 for a sub-lot.</div>{% endif %}
+    <div class="hint mt-1">If this DP already has an auction proposal, or is on the board, its seller, property and terms are copied across. If not, upload the Lightstone report on the next screen or type the facts in.</div>
+  </div>
+</section>
+
+{% if rows %}
+<div class="ledger-wrap mt-3">
+  <table class="ledger">
+    <thead>
+      <tr>
+        <th style="width:90px;">DP</th>
+        <th>Seller</th>
+        <th style="width:240px;">Last change</th>
+        <th style="width:130px;">File</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td class="ledger__dp"><a href="/otps/{{ r.dp }}">{{ r.dp }}</a></td>
+        <td><a href="/otps/{{ r.dp }}">{{ r.seller_name or 'Not filled in yet' }}</a></td>
+        <td class="muted">{{ r.updated_at[:10] }}{% if r.updated_by %}, {{ r.updated_by }}{% endif %}</td>
+        <td>{% if r.generated_at %}<span class="badge badge--gold">Word</span>{% else %}<span class="badge badge--neutral">Draft</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty mt-3">
+  {{ ui.icon('file', 'icon--xl') }}
+  <div class="empty__title">No OTPs yet</div>
+  <div class="empty__text">Type a DP number above to start one.</div>
+</div>
+{% endif %}
+{% endblock %}

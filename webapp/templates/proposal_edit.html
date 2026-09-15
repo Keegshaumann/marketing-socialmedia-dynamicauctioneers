@@ -25,6 +25,8 @@
 {%- endmacro %}
 
 {% block content %}
+{% with current = 'proposal', dp = p.dp %}{% include 'partials/_doc_switcher.html' %}{% endwith %}
+
 {% if notice %}
 <div class="banner banner--note" role="status" style="margin-bottom:18px;">
   {{ ui.icon('info') }}

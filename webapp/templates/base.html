@@ -35,8 +35,9 @@
         </a>
         {% endif %}
         {% if _role in ('properties', 'admin') %}
-        <a class="navlink {{ 'is-active' if _path.startswith('/proposals') else '' }}" href="/proposals">
-          {{ ui.icon('file', 'icon--sm') }}<span>Proposals</span>
+        {#- One link for both generators; the switcher on the page picks between them (D114). -#}
+        <a class="navlink {{ 'is-active' if _path.startswith('/proposals') or _path.startswith('/otps') else '' }}" href="/proposals">
+          {{ ui.icon('file', 'icon--sm') }}<span>Proposals &amp; OTPs</span>
         </a>
         {% endif %}
         {% if _user and _user.role == 'admin' %}
