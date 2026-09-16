@@ -16,7 +16,7 @@
       <input type="hidden" name="dp" value="{{ dp }}">
       {% include '_intake_multi_choice.html' %}
       <div class="row mt-2">
-        <button type="submit" class="btn btn--primary btn--sm">{{ ui.icon('arrow') }}<span>Continue</span></button>
+        <button type="submit" class="btn btn--primary btn--sm">{{ ui.icon('arrow') }}<span>Continue</span><span class="spinner" aria-hidden="true"></span></button>
         <a class="btn btn--ghost btn--sm" href="/intake">{{ ui.icon('plus') }}<span>Start over</span></a>
       </div>
     </form>

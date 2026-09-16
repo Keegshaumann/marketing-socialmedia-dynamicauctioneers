@@ -645,10 +645,20 @@
   // Clear the per-click marks when the request ends, whichever way it ends: a
   // successful swap usually replaces the button anyway, but a 4xx partial or a
   // network error leaves the original in place and it must not stay locked.
+  //
+  // Only within the element that MADE the request (the form, or the button with
+  // its own hx-post). These screens poll every 3 seconds while a Lightstone read
+  // or a SharePoint publish runs, and clearing every mark on the page would let
+  // a poll finishing mid-save strip the spinner off the save still in flight -
+  // leaving a button that looks idle while it is locked, which is the exact
+  // confusion this whole change exists to remove.
   ['htmx:afterRequest', 'htmx:responseError', 'htmx:sendError', 'htmx:timeout', 'htmx:sendAbort']
     .forEach(function (ev) {
-      document.addEventListener(ev, function () {
-        document.querySelectorAll('.is-submitting, .is-uploading').forEach(function (el) {
+      document.addEventListener(ev, function (e) {
+        var elt = (e.detail && e.detail.elt) || e.target;
+        if (!elt || !elt.querySelectorAll) return;
+        if (elt.classList) elt.classList.remove('is-submitting', 'is-uploading');
+        elt.querySelectorAll('.is-submitting, .is-uploading').forEach(function (el) {
           el.classList.remove('is-submitting', 'is-uploading');
         });
       });

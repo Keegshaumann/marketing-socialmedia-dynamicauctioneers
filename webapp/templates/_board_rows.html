@@ -38,7 +38,7 @@
             hx-target="#ledger-body" hx-swap="innerHTML"
             hx-confirm="Delete DP {{ r.dp }}? This removes the record and its history and cannot be undone.">
       {{ ui.icon('x', 'icon--sm') }}
-    </button>
+    <span class="spinner" aria-hidden="true"></span></button>
   </td>
 </tr>
 {%- else %}

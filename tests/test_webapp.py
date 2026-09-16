@@ -2793,3 +2793,46 @@ def test_the_team_can_word_what_the_advert_derives():
     # Blank on the full form: back to the descriptor worked out from the record.
     client.post(f"/gates/{dp}/ads/copy", data={"_full_form": "1", "descriptor": ""})
     assert not _public_view(dp)["marketing"].get("descriptor")
+
+
+def test_every_button_that_makes_a_request_can_show_it_is_working():
+    """The fault behind D119, caught as a class rather than one instance.
+
+    The in-flight CSS hides a button's icon and label and shows its .spinner in
+    their place. A button that makes a request but carries no .spinner therefore
+    goes BLANK while it works - an empty pill where the control was, which reads
+    as the page breaking at the exact moment it is doing what was asked. That is
+    worse than no indicator at all, so the two must not drift apart: adding a
+    request to a button means adding its spinner.
+
+    Covers <button> only. An <a> navigates, so the browser shows its own
+    progress, and a plain <input type=submit> has no room for a child element.
+    """
+    import re
+    from pathlib import Path
+
+    templates = Path(__file__).resolve().parent.parent / "webapp" / "templates"
+    naked = []
+    for tpl in sorted(templates.rglob("*.html")):
+        src = tpl.read_text()
+        for m in re.finditer(r"<button\b[^>]*>.*?</button>", src, re.S):
+            tag = m.group(0)
+            head = tag[: tag.index(">") + 1]
+            classes = (re.search(r'class="([^"]*)"', head) or [None, ""])[1]
+            # only the styled controls: the CSS keys off .btn and .iconbtn
+            if not (re.search(r"\bbtn\b", classes) or "iconbtn" in classes):
+                continue
+            makes_request = (
+                "hx-post" in head or "hx-get" in head or "hx-delete" in head
+                or 'type="submit"' in head
+            )
+            if not makes_request or 'class="spinner"' in tag:
+                continue
+            line = src[: m.start()].count("\n") + 1
+            label = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", tag)).strip()
+            naked.append(f"{tpl.name}:{line} ({label[:40]!r})")
+
+    assert not naked, (
+        "these buttons make a request but have no <span class='spinner'>, so they "
+        "blank out while it runs: " + ", ".join(naked)
+    )
