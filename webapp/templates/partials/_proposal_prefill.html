@@ -1,7 +1,23 @@
-{#- Shared by proposals and OTPs (D114); an OTP page passes its own prefill_url. -#}
+{#- Shared by proposals, OTPs (D114) and property reports (D116); an OTP or
+    report page passes its own prefill_url.
+
+    Reading a Lightstone report is the slowest thing these screens do (a model
+    call over a whole PDF). It used to say so in a line of grey hint text sat
+    among the other grey hint lines, which read as help rather than as work in
+    progress, so it wore the same clothes as "Draws the deeds page." above it.
+    It now uses the work indicator's own language: spinner, label, sweeping bar.
+    The bar sweeps rather than fills because a polled job reports no progress,
+    and a bar stopped at an invented percentage would be a lie. -#}
 <div id="prefill"{% if prefill_running %} hx-get="{{ prefill_url if prefill_url is defined else '/proposals/' ~ p.dp ~ '/prefill-status' }}" hx-trigger="every 3s" hx-swap="outerHTML"{% endif %}>
   {% if prefill_running %}
-  <div class="hint">Reading the Lightstone report. The page reloads when the fields are filled in, so wait before typing.</div>
+  <div class="workbar" role="status">
+    <div class="workbar__head">
+      <span class="spinner workbar__spinner" aria-hidden="true"></span>
+      <span class="workbar__label">Reading the Lightstone report</span>
+    </div>
+    <div class="progress progress--running" aria-hidden="true"><div class="progress__bar"></div></div>
+    <div class="hint workbar__eta">The fields fill in by themselves when it finishes, so wait before typing. Leave this page open.</div>
+  </div>
   {% elif prefill_job and prefill_job.state == 'error' %}
   <div class="hint hint--warn">The report could not be read ({{ prefill_job.detail }}). Type the seller and property in instead.</div>
   {% elif p.prefill_note %}

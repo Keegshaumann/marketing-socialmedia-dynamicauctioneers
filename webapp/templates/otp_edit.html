@@ -34,7 +34,7 @@
           <li>{{ ui.icon('file', 'icon--sm') }}<span>{{ f.split('/')[-1] }}</span>
             {% if f in o.lightstone_read %}<span class="badge badge--ok">read</span>{% endif %}
             <button type="button" class="iconbtn iconbtn--danger" aria-label="Remove this report"
-                    hx-post="/otps/{{ o.dp }}/remove/lightstone/{{ loop.index0 }}" hx-include="#otp-form">{{ ui.icon('x', 'icon--sm') }}</button></li>
+                    hx-post="/otps/{{ o.dp }}/remove/lightstone/{{ loop.index0 }}" hx-include="#otp-form">{{ ui.icon('x', 'icon--sm') }}<span class="spinner" aria-hidden="true"></span></button></li>
           {% endfor %}
         </ul>
         {% endif %}
@@ -43,6 +43,7 @@
               hx-include="#otp-form" hx-trigger="change">
           <label class="btn btn--ghost btn--sm">
             {{ ui.icon('plus', 'icon--sm') }}<span>Upload a Lightstone report</span>
+            <span class="spinner" aria-hidden="true"></span>
             <input type="file" name="files" accept=".pdf,application/pdf" class="sr-only" multiple>
           </label>
         </form>
@@ -92,7 +93,7 @@
           <div class="row row--between">
             <div class="label">{{ 'Property ' ~ n if o.erven|length > 1 else 'The property' }}</div>
             {% if o.erven|length > 1 %}
-            <button type="submit" name="action" value="remove_erf_{{ n }}" class="btn btn--ghost btn--sm">{{ ui.icon('x', 'icon--sm') }}<span>Remove</span></button>
+            <button type="submit" name="action" value="remove_erf_{{ n }}" class="btn btn--ghost btn--sm">{{ ui.icon('x', 'icon--sm') }}<span>Remove</span><span class="spinner" aria-hidden="true"></span></button>
             {% endif %}
           </div>
           <div class="field">
@@ -116,7 +117,7 @@
         </div>
         {% endfor %}
         <input type="hidden" name="erf_count" value="{{ o.erven|length }}">
-        <button type="submit" name="action" value="add_erf" class="btn btn--ghost btn--sm">{{ ui.icon('plus', 'icon--sm') }}<span>Add another property</span></button>
+        <button type="submit" name="action" value="add_erf" class="btn btn--ghost btn--sm">{{ ui.icon('plus', 'icon--sm') }}<span>Add another property</span><span class="spinner" aria-hidden="true"></span></button>
       </div>
     </section>
 

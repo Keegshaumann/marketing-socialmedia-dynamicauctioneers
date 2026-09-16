@@ -595,6 +595,20 @@ img { max-width: 100%; }
      (elapsed-driven, never stuck at a fixed % then jumping to done) */
   transition: width 1.25s linear;
 }
+/* A job the page only POLLS (the Lightstone read) has no elapsed figure to
+   drive the creeping bar, and a bar frozen at a made-up percentage is a lie.
+   This one sweeps instead: it says "running", it claims no progress. */
+.progress--running .progress__bar {
+  width: 34%; transition: none;
+  animation: progress-sweep 1.5s ease-in-out infinite;
+}
+@keyframes progress-sweep {
+  0%   { transform: translateX(-110%); }
+  100% { transform: translateX(320%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .progress--running .progress__bar { animation-duration: 3.5s; }
+}
 
 /* ---- inline button spinner (in-flight state) -------------------------- */
 .spinner {
@@ -604,24 +618,35 @@ img { max-width: 100%; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 1.6s; } }
-/* while a form's request is in flight: lock its submit button and swap the
-   label/icon for the spinner, so it cannot be clicked twice and the user can
-   see it is busy. htmx puts .htmx-request on the FORM, not the button, so the
-   .btn.htmx-request rule below never catches a form-submit button. */
+/* while a form's request is in flight: lock EVERY submit button in it, so it
+   cannot be clicked twice. htmx puts .htmx-request on the FORM, not the button,
+   so the .btn.htmx-request rule below never catches a form-submit button. */
 form.htmx-request [data-intake-submit],
 form.htmx-request button[type="submit"] { pointer-events: none; opacity: .9; }
+/* ...but only the button that was actually CLICKED swaps its label for the
+   spinner (app.js marks it .is-submitting). A form's other buttons keep their
+   labels: blanking all of them turned a budget panel into a row of empty pills
+   while one save ran, which reads as the page breaking rather than working. */
 form.htmx-request [data-intake-submit] > .icon,
-form.htmx-request [data-intake-submit] > span:not(.spinner),
-form.htmx-request button[type="submit"] > .icon,
-form.htmx-request button[type="submit"] > span:not(.spinner) { display: none; }
-form.htmx-request [data-intake-submit] .spinner,
-form.htmx-request button[type="submit"] .spinner { display: inline-block; }
-/* generic: a button that makes its OWN request (e.g. Auto-generate headline)
-   locks and swaps its label for the spinner while in flight */
-.btn.htmx-request, .btn.is-submitting { pointer-events: none; opacity: .9; }
-.btn.htmx-request > .icon, .btn.is-submitting > .icon,
-.btn.htmx-request > span:not(.spinner), .btn.is-submitting > span:not(.spinner) { display: none; }
-.btn.htmx-request .spinner, .btn.is-submitting .spinner { display: inline-block; }
+form.htmx-request [data-intake-submit] > span:not(.spinner) { display: none; }
+form.htmx-request [data-intake-submit] .spinner { display: inline-block; }
+/* generic: a button that makes its OWN request (e.g. Auto-generate headline),
+   or the clicked submit button, locks and swaps its label for the spinner */
+.btn.htmx-request, .btn.is-submitting,
+label.btn.is-uploading { pointer-events: none; opacity: .9; }
+.btn.htmx-request > .icon, .btn.is-submitting > .icon, label.btn.is-uploading > .icon,
+.btn.htmx-request > span:not(.spinner), .btn.is-submitting > span:not(.spinner),
+label.btn.is-uploading > span:not(.spinner) { display: none; }
+.btn.htmx-request .spinner, .btn.is-submitting .spinner,
+label.btn.is-uploading .spinner { display: inline-block; }
+/* a bare icon button (remove a document, move a photo earlier) has no label to
+   swap, so it spins in place and its icon steps aside */
+.iconbtn.htmx-request, .iconbtn.is-submitting { pointer-events: none; opacity: 1; }
+.iconbtn.htmx-request > .icon, .iconbtn.is-submitting > .icon { display: none; }
+.iconbtn.htmx-request .spinner, .iconbtn.is-submitting .spinner {
+  display: inline-block; width: 13px; height: 13px;
+  border-color: rgba(var(--accent-rgb), .30); border-top-color: var(--accent);
+}
 
 /* ---- Work indicator: honest progress for a slow action ----------------- */
 /* Reusable: any element carrying data-work="<what is happening>" raises this
@@ -1142,6 +1167,11 @@ tr:hover .iconbtn { opacity: 1; }
 .proposal-thumb img { display: block; width: 100%; height: 170px; object-fit: contain; }
 .proposal-thumb--tall img { height: 230px; }
 .proposal-thumb .iconbtn { position: absolute; top: 6px; right: 6px; }
+/* .iconbtn rests at .35 and only a table row raises it, so on a photograph the
+   remove and reorder buttons stayed a ghost the eye slides past. Raise them on
+   the picture itself, and back them so they read against a light photo. */
+.proposal-thumb:hover .iconbtn, .proposal-thumb .iconbtn:focus-visible { opacity: 1; }
+.proposal-thumb .iconbtn { background: rgba(16, 13, 9, .62); color: #fff; }
 .erf-block { padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--hairline-soft); }
 /* A fixed layout shares the column out, so on a 1366px laptop the cost column
    stays in view instead of scrolling off the right (it measured 760px of table
@@ -1187,3 +1217,6 @@ tr:hover .iconbtn { opacity: 1; }
 .proposal-thumb--photo { width: 120px; background: var(--surface-2); }
 .proposal-thumb--photo img { height: 90px; object-fit: cover; }
 .proposal-thumb .photo-earlier { position: absolute; top: 6px; left: 6px; }
+
+/* a copy button while it is saying "Copied" */
+.btn.is-copied { color: var(--ok, var(--accent-bright)); border-color: currentColor; }

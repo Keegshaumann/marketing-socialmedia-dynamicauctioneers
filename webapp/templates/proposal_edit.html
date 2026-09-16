@@ -14,6 +14,7 @@
       hx-include="#proposal-form" hx-trigger="change">
   <label class="btn btn--ghost btn--sm">
     {{ ui.icon('plus', 'icon--sm') }}<span>{{ label }}</span>
+    <span class="spinner" aria-hidden="true"></span>
     <input type="file" name="files" accept="{{ accept }}" class="sr-only"{% if multiple %} multiple{% endif %}>
   </label>
 </form>
@@ -21,7 +22,7 @@
 
 {% macro remove(dp, kind, index, what) -%}
 <button type="button" class="iconbtn iconbtn--danger" aria-label="Remove {{ what }}"
-        hx-post="/proposals/{{ dp }}/remove/{{ kind }}/{{ index }}" hx-include="#proposal-form">{{ ui.icon('x', 'icon--sm') }}</button>
+        hx-post="/proposals/{{ dp }}/remove/{{ kind }}/{{ index }}" hx-include="#proposal-form">{{ ui.icon('x', 'icon--sm') }}<span class="spinner" aria-hidden="true"></span></button>
 {%- endmacro %}
 
 {% block content %}
@@ -154,7 +155,7 @@
           <div class="row row--between">
             <div class="label">{{ 'Property ' ~ n if p.erven|length > 1 else 'The property' }}</div>
             {% if p.erven|length > 1 %}
-            <button type="submit" name="action" value="remove_erf_{{ n }}" class="btn btn--ghost btn--sm">{{ ui.icon('x', 'icon--sm') }}<span>Remove</span></button>
+            <button type="submit" name="action" value="remove_erf_{{ n }}" class="btn btn--ghost btn--sm">{{ ui.icon('x', 'icon--sm') }}<span>Remove</span><span class="spinner" aria-hidden="true"></span></button>
             {% endif %}
           </div>
           <div class="field">
@@ -178,7 +179,7 @@
         </div>
         {% endfor %}
         <input type="hidden" name="erf_count" value="{{ p.erven|length }}">
-        <button type="submit" name="action" value="add_erf" class="btn btn--ghost btn--sm">{{ ui.icon('plus', 'icon--sm') }}<span>Add another property</span></button>
+        <button type="submit" name="action" value="add_erf" class="btn btn--ghost btn--sm">{{ ui.icon('plus', 'icon--sm') }}<span>Add another property</span><span class="spinner" aria-hidden="true"></span></button>
       </div>
     </section>
 
@@ -245,7 +246,7 @@
                 <td><textarea class="textarea" name="line-{{ n }}-description" rows="3" aria-label="Description, line {{ n }}">{{ line.description }}</textarea></td>
                 <td><input class="input" name="line-{{ n }}-placement" value="{{ line.placement }}" aria-label="Placement, line {{ n }}"></td>
                 <td><input class="input{{ ' is-invalid' if ('budget_%d_cost' % n) in flagged }}" name="line-{{ n }}-cost" value="{{ line.cost }}" placeholder="R or FREE" aria-label="Cost, line {{ n }}"></td>
-                <td><button type="submit" name="action" value="remove_line_{{ n }}" class="iconbtn iconbtn--danger" aria-label="Remove line {{ n }}">{{ ui.icon('x', 'icon--sm') }}</button></td>
+                <td><button type="submit" name="action" value="remove_line_{{ n }}" class="iconbtn iconbtn--danger" aria-label="Remove line {{ n }}">{{ ui.icon('x', 'icon--sm') }}<span class="spinner" aria-hidden="true"></span></button></td>
               </tr>
               {% endfor %}
             </tbody>
@@ -253,8 +254,8 @@
         </div>
         <input type="hidden" name="line_count" value="{{ p.budget|length }}">
         <div class="row" style="gap:8px; margin-top:10px;">
-          <button type="submit" name="action" value="add_line" class="btn btn--ghost btn--sm">{{ ui.icon('plus', 'icon--sm') }}<span>Add a line</span></button>
-          <button type="submit" name="action" value="reset_budget" class="btn btn--ghost btn--sm">{{ ui.icon('edit', 'icon--sm') }}<span>Start from the standard lines</span></button>
+          <button type="submit" name="action" value="add_line" class="btn btn--ghost btn--sm">{{ ui.icon('plus', 'icon--sm') }}<span>Add a line</span><span class="spinner" aria-hidden="true"></span></button>
+          <button type="submit" name="action" value="reset_budget" class="btn btn--ghost btn--sm">{{ ui.icon('edit', 'icon--sm') }}<span>Start from the standard lines</span><span class="spinner" aria-hidden="true"></span></button>
         </div>
       </div>
     </section>

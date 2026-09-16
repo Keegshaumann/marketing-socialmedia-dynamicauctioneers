@@ -12,6 +12,7 @@
       hx-include="#report-form" hx-trigger="change">
   <label class="btn btn--ghost btn--sm">
     {{ ui.icon('plus', 'icon--sm') }}<span>{{ label }}</span>
+    <span class="spinner" aria-hidden="true"></span>
     <input type="file" name="files" accept="{{ accept }}" class="sr-only"{% if multiple %} multiple{% endif %}>
   </label>
 </form>
@@ -19,7 +20,7 @@
 
 {% macro remove(dp, kind, index, what) -%}
 <button type="button" class="iconbtn iconbtn--danger" aria-label="Remove {{ what }}"
-        hx-post="/reports/{{ dp }}/remove/{{ kind }}/{{ index }}" hx-include="#report-form">{{ ui.icon('x', 'icon--sm') }}</button>
+        hx-post="/reports/{{ dp }}/remove/{{ kind }}/{{ index }}" hx-include="#report-form">{{ ui.icon('x', 'icon--sm') }}<span class="spinner" aria-hidden="true"></span></button>
 {%- endmacro %}
 
 {% macro text(name, label, value, placeholder='', flagged=(), hint='') -%}
@@ -115,7 +116,7 @@
             {{ remove(rep.dp, 'photos', loop.index0, 'photo ' ~ loop.index) }}
             {% if not loop.first %}
             <button type="button" class="iconbtn photo-earlier" aria-label="Move photo {{ loop.index }} earlier"
-                    hx-post="/reports/{{ rep.dp }}/earlier/{{ loop.index0 }}" hx-include="#report-form">{{ ui.icon('arrow', 'icon--sm icon--flip') }}</button>
+                    hx-post="/reports/{{ rep.dp }}/earlier/{{ loop.index0 }}" hx-include="#report-form">{{ ui.icon('arrow', 'icon--sm icon--flip') }}<span class="spinner" aria-hidden="true"></span></button>
             {% endif %}
           </figure>
           {% endfor %}

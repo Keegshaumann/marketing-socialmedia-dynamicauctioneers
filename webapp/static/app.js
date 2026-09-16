@@ -618,16 +618,67 @@
 
   function init(root) { wireDropzones(root); armToasts(root); wireSweeps(root); wireEmailAd(root); wireAdtpl(root); wireAuctionPanel(root); wirePhotoPicker(root); wirePreviewScale(root); wireViewing(root); wireLightbox(root); wirePhotoSort(root); }
 
-  // A plain (non-HTMX) form submit does a full-page nav; swap the submit
-  // button's label for its spinner so the click has immediate feedback. HTMX
-  // forms get .htmx-request instead, so they are skipped here.
+  // A form submit: mark the button that was CLICKED so it, and only it, swaps
+  // its label for a spinner. A plain form navigates away, so the class is never
+  // cleared; an HTMX form's is cleared when its request ends (below). Marking
+  // the submitter matters on the proposal form, where a dozen buttons post to
+  // the same action: before this, a click on "Add a line" left every one of
+  // them blank and none of them spinning.
   document.addEventListener('submit', function (e) {
     var form = e.target;
     if (!form || form.nodeName !== 'FORM') return;
-    if (form.hasAttribute('hx-post') || form.hasAttribute('hx-get') ||
-        form.hasAttribute('hx-put') || form.hasAttribute('hx-delete')) return;
-    var btn = form.querySelector('[type="submit"]');
-    if (btn) btn.classList.add('is-submitting');
+    var btn = e.submitter || form.querySelector('[type="submit"]');
+    if (btn && btn.classList) btn.classList.add('is-submitting');
+  });
+
+  // The file-upload slots are a <label> wrapping a hidden <input type=file> in
+  // a form that posts on change. A label is not a button, so nothing locked or
+  // span while a multi-megabyte report uploaded and its deeds page was drawn -
+  // the one action in these screens with no feedback at all.
+  document.addEventListener('change', function (e) {
+    var input = e.target;
+    if (!input || input.type !== 'file' || !input.files || !input.files.length) return;
+    var label = input.closest('label.btn');
+    if (label) label.classList.add('is-uploading');
+  });
+
+  // Clear the per-click marks when the request ends, whichever way it ends: a
+  // successful swap usually replaces the button anyway, but a 4xx partial or a
+  // network error leaves the original in place and it must not stay locked.
+  ['htmx:afterRequest', 'htmx:responseError', 'htmx:sendError', 'htmx:timeout', 'htmx:sendAbort']
+    .forEach(function (ev) {
+      document.addEventListener(ev, function () {
+        document.querySelectorAll('.is-submitting, .is-uploading').forEach(function (el) {
+          el.classList.remove('is-submitting', 'is-uploading');
+        });
+      });
+    });
+
+  // Copy buttons wrote to the clipboard and said nothing, so there was no way to
+  // tell a working copy from a dead one. Say so on the button for a moment.
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest ? e.target.closest('[data-copy]') : null;
+    if (!btn) return;
+    var src = document.getElementById(btn.getAttribute('data-copy'));
+    if (!src) return;
+    var label = btn.querySelector('span:not(.spinner)');
+    var said = label ? label.textContent : '';
+    var done = function (text) {
+      if (!label || btn.__copying) return;
+      btn.__copying = true;
+      label.textContent = text;
+      btn.classList.add('is-copied');
+      setTimeout(function () {
+        label.textContent = said; btn.classList.remove('is-copied'); btn.__copying = false;
+      }, 1800);
+    };
+    var ok = function () { done('Copied'); };
+    var no = function () { done('Press Ctrl+C'); if (src.select) { src.focus(); src.select(); } };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(src.value).then(ok, no);
+      } else { no(); }
+    } catch (err) { no(); }
   });
 
   // Work indicator. htmx events bubble to document, so one delegated pair covers
