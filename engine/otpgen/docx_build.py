@@ -1,11 +1,13 @@
-"""Fill the OTP Word template (M10, D114).
+"""Fill the OTP Word template (M10, D114, D124).
 
 ``templates/otp.docx`` is the team's master OTP with the per-property parts as
-``{{tokens}}`` and its errors corrected (``scripts/build_otp_template.py``). This
-fills it: one property block per erf joined by "AND" (the Rules of Auction's
-own layout for several erven), the MEASURING and MASTER REF lines left out when
-there is nothing to print, and the special conditions printed where the master
-had its body corporate line, or that line removed when there are none. The
+``{{tokens}}`` and its errors corrected (``scripts/build_otp_template.py``);
+``templates/otp-brp.docx`` is the same made from the team's business rescue
+master, used when the seller is business rescue practitioners (D124). This fills
+it: one property block per erf joined by "AND" (the Rules of Auction's own layout
+for several erven), the MEASURING and MASTER REF lines left out when there is
+nothing to print, and the special conditions printed as numbered clauses after
+the master's own (D123), or the slot removed when there are none. The
 Word-filling helpers are the proposal's (M9), so both documents fill the same way.
 """
 
@@ -30,6 +32,12 @@ from engine.proposal.docx_build import (
 )
 
 TEMPLATE = Path(__file__).resolve().parent / "templates" / "otp.docx"
+TEMPLATE_BRP = TEMPLATE.with_name("otp-brp.docx")
+
+
+def template_for(otp: Otp) -> Path:
+    """Business rescue has its own master (no Master of the High Court, no Insolvency Act)."""
+    return TEMPLATE_BRP if otp.seller_capacity == "brp" else TEMPLATE
 
 
 def _is_blank(el) -> bool:
@@ -111,7 +119,7 @@ def _fill_conditions(doc, lines: List[str]) -> None:
 
 
 def build(otp: Otp, out_path: Path) -> Path:
-    doc = Document(str(TEMPLATE))
+    doc = Document(str(template_for(otp)))
     _fill_erven(doc, otp)
     _fill_conditions(doc, conditions(otp))
     _fill_all(doc.element.body, tokens(otp))

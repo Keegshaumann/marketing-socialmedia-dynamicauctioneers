@@ -92,7 +92,7 @@ def _complete(folder: Path) -> Proposal:
         otp_terms=terms.model_copy(),
         otp_notes=notes,
     )
-    for line, cost in zip(proposal.budget, ["2500", "302", "2600", "1350", "1943.65", "N/A", "FREE", "1800", "FREE", "N/A", "FREE", "", "FREE"]):
+    for line, cost in zip(proposal.budget, ["2500", "302", "2600", "1350", "1943.65", "N/A", "FREE", "1800", "FREE", "N/A", "FREE", "FREE", "", "FREE"]):
         line.cost = cost
     return proposal
 
@@ -123,7 +123,7 @@ def test_budget_totals_match_a_real_proposal_and_blank_lines_are_left_out(tmp_pa
     # DP2821's figures: R 10 495.65 + R 1 574.35 VAT = R 12 070.00.
     assert (total, vat, incl) == (Decimal("10495.65"), Decimal("1574.35"), Decimal("12070.00"))
     rows = budget_rows(proposal)
-    assert len(rows) == 12  # the local newspaper line had no cost
+    assert len(rows) == 13  # the local newspaper line had no cost
     assert {"FREE", "N/A"} <= {r["cost"] for r in rows}
 
 
@@ -235,7 +235,7 @@ def test_build_fills_every_token_and_keeps_the_otp_word_for_word(tmp_path):
     doc = Document(str(out))
     body = doc.element.body
     budget = next(t for t in body.iter(qn("w:tbl")) if "MEDIA" in "".join(x.text or "" for x in t.iter(qn("w:t"))))
-    assert len(budget.findall(qn("w:tr"))) == 1 + 12 + 3  # header, printed lines, totals
+    assert len(budget.findall(qn("w:tr"))) == 1 + 13 + 3  # header, printed lines, totals
 
 
 def test_the_contract_starts_on_a_new_page(tmp_path):
@@ -277,15 +277,32 @@ def test_templates_carry_only_the_expected_slots():
     }
 
 
+def test_the_sign_off_follows_the_master_proposal():
+    # 2940.1, the team's master proposal (D125): three addresses, and the company as the footer writes it.
+    paras = [p.strip() for p in _doc_text(docx_build.BACK).split("\n")]
+    assert "Dynamic Solutions 1068 (Pty) Ltd T/A Dynamic Auctioneers" in paras
+    assert ("properties@dynamicauctioneers.co.za, properties.admin@dynamicauctioneers.co.za and "
+            "administration@dynamicauctioneers.co.za") in paras
+    assert not any("Pty (" in p or "CWNTURION" in p for p in paras)
+
+
+def test_boards_and_the_gazette_go_up_two_weeks_before_the_auction():
+    lines = {line.media.split("\n")[0]: line for line in Proposal(dp="9001").budget}
+    assert lines["Auction notice boards"].placement == "2 WEEKS PRIOR TO AUCTION"
+    assert lines["Government Gazette"].placement == "2 WEEKS PRIOR TO AUCTION"
+    assert lines["Dynamic Auctioneers website"].media.endswith("Featured on our Upcoming Auctions page")
+    assert lines["Junkmail"].cost == "FREE"
+
+
 def test_every_header_carries_the_properties_letterhead_and_nothing_under_it():
     import io
 
     wp = "{http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing}"
     a = "{http://schemas.openxmlformats.org/drawingml/2006/main}"
     embed = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
-    section = Document(str(docx_build.FRONT)).sections[0]
     blobs = []
-    for header in (section.header, section.first_page_header):
+    for header in [h for path in (docx_build.FRONT, docx_build.BACK)
+                   for h in (Document(str(path)).sections[0].header, Document(str(path)).sections[0].first_page_header)]:
         part = header.part
         wide = [
             d for d in part.element.iter(qn("w:drawing"))
@@ -295,7 +312,7 @@ def test_every_header_carries_the_properties_letterhead_and_nothing_under_it():
         # whenever Word's stacking order changed (D106).
         assert len(wide) == 1
         blobs.append(part.related_parts[next(wide[0].iter(a + "blip")).get(embed)].blob)
-    assert blobs[0] == blobs[1]
+    assert len(set(blobs)) == 1  # front and back, first page and the rest (D106)
     with Image.open(io.BytesIO(blobs[0])) as im:
         assert im.size == (794, 194)  # Letter Head 2026.png, the properties letterhead
 

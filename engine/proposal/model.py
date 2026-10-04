@@ -38,18 +38,21 @@ SELLER_LABELS: Dict[str, str] = {
 
 # The standard media lines, taken from the 2026 proposals with the spelling
 # fixed (Instragram, TARGETD, "featured add"). Costs are blank unless the line
-# has always been free; the liquidator's figures are typed per job.
+# has always been free; the liquidator's figures are typed per job. Boards and
+# the Gazette go up two weeks before the auction, and the website and Junkmail
+# lines follow the team's master proposal, 2940.1 (D125).
 DEFAULT_BUDGET: Tuple[Tuple[str, str, str, str], ...] = (
-    ("Auction notice boards\n**Includes design, licensing and placement", "CUSTOM DESIGNED AUCTION NOTICE BOARDS", "N/A", ""),
-    ("Government Gazette", "LEGAL B NOTICE IN GOVERNMENT GAZETTE", "N/A", ""),
+    ("Auction notice boards\n**Includes design, licensing and placement", "CUSTOM DESIGNED AUCTION NOTICE BOARDS", "2 WEEKS PRIOR TO AUCTION", ""),
+    ("Government Gazette", "LEGAL B NOTICE IN GOVERNMENT GAZETTE", "2 WEEKS PRIOR TO AUCTION", ""),
     ("SAIA featured ad", "FEATURED WEB LISTING AND ONCE-OFF ALERT MAILER", "IMMEDIATELY", ""),
     ("Social media\n**Facebook, Instagram, LinkedIn, TikTok, YouTube, X", "TARGETED SOCIAL MEDIA MARKETING", "IMMEDIATELY", ""),
     ("Property24", "FEATURED LISTING", "IMMEDIATELY", ""),
     ("Google Ads", "SEO AND TARGETED ADS", "IMMEDIATELY", ""),
-    ("Dynamic Auctioneers website\n**Custom landing page, featured banner, home page", "WEB LISTING", "IMMEDIATELY", "FREE"),
+    ("Dynamic Auctioneers website\n**Featured on our Upcoming Auctions page", "WEB LISTING", "IMMEDIATELY", "FREE"),
     ("Dynamic Auctioneers auction platform\n**Live-stream auction hosting", "AUCTION REGISTRATION AND HOSTING", "IMMEDIATELY", ""),
     ("WhatsApp", "DATABASE NOTIFICATIONS AND GROUPS", "IMMEDIATELY", "FREE"),
     ("Bulk mailer", "DATABASE NOTIFICATIONS", "IMMEDIATELY", ""),
+    ("Junkmail", "WEB LISTING", "IMMEDIATELY", "FREE"),
     ("Gumtree, MyProperty, ImmoAfrica, IOL Property, Qwengo, Property Central", "WEB LISTING", "IMMEDIATELY", "FREE"),
     ("Local newspaper", "PRINT ADVERT", "N/A", ""),
     ("Bidder's info pack", "DOWNLOADABLE PDF", "IMMEDIATELY", "FREE"),

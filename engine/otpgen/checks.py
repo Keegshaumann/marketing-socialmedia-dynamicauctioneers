@@ -1,4 +1,4 @@
-"""What must be true before an OTP is generated (M10, D114).
+"""What must be true before an OTP is generated (M10, D114, D124).
 
 ``block`` stops generation; ``warn`` is shown and allowed. The rules are the
 proposal's (M9) where the facts are the same, plus the OTP's own terms. Every
@@ -39,6 +39,8 @@ def run(o: Otp) -> List[Issue]:
         warn("seller_id", "The seller's ID or registration number is missing.")
     elif not (_SA_ID.match(ident) or _CO_REG.match(ident)):
         warn("seller_id", f'"{o.seller_id}" is neither a 13-digit ID number nor a registration number like 2014/203299/07.')
+    if o.seller_capacity == "brp" and o.masters_ref.strip():
+        warn("masters_ref", "The business rescue OTP has no MASTER REF line (D124), so the Master's reference is not printed.")
 
     for n, erf in enumerate(o.erven, start=1):
         which = f"Property {n}" if len(o.erven) > 1 else "The property"

@@ -17,9 +17,18 @@ Two files come out:
 The contract in between is never templated: the builder inserts that property's
 own OTP word for word (D103).
 
+The source is the proposal the team keeps as its master (D125):
+``3. PROPERTIES 2026/1.AAA MASTERS_PROPERTIES - E+G+A/Auction proposals & Auc
+Rules/2940.1 Auction proposal.docx``. It has three holdings on the cover, so
+everything after the first erf block is cut (the builder repeats one block per
+erf), and its sale terms are found by their wording rather than by run, because
+Word splits "10%" and "5% (FIVE PERCENT)" differently in every copy. The company
+name is written "(Pty) Ltd" as on the footer, wherever the source wrote "Pty
+(Ltd)". Earlier templates came from DP2821 (D103).
+
 Run once against a proposal whose layout is current, then commit the output:
 
-    python3.12 scripts/build_proposal_templates.py "<path to 2821 - Auction proposal.docx>" \
+    python3.12 scripts/build_proposal_templates.py "<path to 2940.1 Auction proposal.docx>" \
         --letterhead "<path to KONTRAKTE+COMM AGMENT.MASTER/Letter Head 2026.png>" \
         --forbid <each identifying string of the source property>
 
@@ -35,12 +44,14 @@ from __future__ import annotations
 
 import argparse
 import copy
+import re
 import sys
 import zipfile
 from pathlib import Path
 
 from docx import Document
 from docx.oxml.ns import qn
+from docx.text.run import Run
 from lxml import etree
 
 OUT_DIR = Path(__file__).resolve().parent.parent / "engine" / "proposal" / "templates"
@@ -133,6 +144,55 @@ def _replace_all_text(p, text: str) -> None:
         if k.tag != qn("w:pPr"):
             p.remove(k)
     p.append(new)
+
+
+def replace_literal(p, old: str, new: str) -> int:
+    """Replace every ``old`` in paragraph ``p``, even where Word split it across runs.
+
+    The run a match starts in keeps its formatting and takes the new text; the
+    rest of the match is cut from the runs after it. Returns the number replaced.
+    """
+    runs = [Run(r, None) for r in p.xpath(_RUN_XPATH)]
+    texts = [r.text for r in runs]
+    full = "".join(texts)
+    spans = []
+    i = full.find(old)
+    while i != -1:
+        spans.append((i, i + len(old)))
+        i = full.find(old, i + len(old))
+    if not spans:
+        return 0
+    lengths = [len(t) for t in texts]
+    starts, pos = [], 0
+    for n in lengths:
+        starts.append(pos)
+        pos += n
+
+    def locate(offset: int) -> int:
+        return next(k for k, (s, n) in enumerate(zip(starts, lengths)) if n and s <= offset < s + n)
+
+    for s, e in reversed(spans):
+        a, b = locate(s), locate(e - 1)
+        if a == b:
+            texts[a] = texts[a][: s - starts[a]] + new + texts[a][e - starts[a]:]
+        else:
+            texts[a] = texts[a][: s - starts[a]] + new
+            for k in range(a + 1, b):
+                texts[k] = ""
+            texts[b] = texts[b][e - starts[b]:]
+    for run, text in zip(runs, texts):
+        if run.text != text:
+            run.text = text
+    return len(spans)
+
+
+def _replace_match(p, pattern: str, token: str, group: int = 1) -> None:
+    """Find ``pattern`` in the paragraph's text and swap its ``group`` for ``token``."""
+    m = re.search(pattern, _text(p))
+    if not m:
+        raise SystemExit(f"{pattern!r} not found in {_text(p)!r}")
+    if replace_literal(p, m.group(group), token) != 1:
+        raise SystemExit(f"{m.group(group)!r} is not unique in {_text(p)!r}")
 
 
 def _swap_run_text(p, old: str, new: str) -> None:
@@ -237,6 +297,17 @@ def build_front(src: Path, dest: Path) -> None:
     _value_after_last_tab(b[deed], "{{erf_title_deed}}")
 
     date = _find(b, _starts("Auction Date:"), deed)
+    # Further erven on the source's cover ("AND", then another Subject Property
+    # block) go: the builder repeats the first block once per erf. The blank
+    # line that sets the auction facts off from the last erf stays.
+    keep = date - 1 if b[date - 1].tag == qn("w:p") and not _text(b[date - 1]).strip() else date
+    for el in b[deed + 1:keep]:
+        body.remove(el)
+    b = _blocks(doc)
+    date = _find(b, _starts("Auction Date:"))
+    deeds_h = _find(b, _starts("Subject Property Deeds Enquiry"), date)
+    advert_h = _find(b, _starts("Draft Proposed Advert"), deeds_h)
+    budget_h = _find(b, _starts("Proposed Budget and Schedule"), advert_h)
     _value_after_last_tab(b[date], "{{auction_date_line}}")
     venue = _find(b, _starts("Auction Venue:"), date)
     _value_after_last_tab(b[venue], "{{auction_venue_line}}")
@@ -349,10 +420,11 @@ def build_back(src: Path, dest: Path) -> None:
     _strip_explicit_page_breaks(b[0])
     _set_page_break_before(b[0])
 
+    _PCT = r"\d+(?:[.,]\d+)?"
     deposit = _find(b, lambda el: _text(el).strip().startswith("A deposit equal to"))
-    _swap_run_text(b[deposit], "10", "{{deposit_pct}}")
+    _replace_match(b[deposit], rf"A deposit equal to ({_PCT})%", "{{deposit_pct}}")
     confirm = _find(b, lambda el: "for confirmation within a" in _text(el))
-    _swap_run_text(b[confirm], "30", "{{confirmation_days}}")
+    _replace_match(b[confirm], r"within a (\d+)-day", "{{confirmation_days}}")
     public = _find(b, lambda el: "conducted publicly" in _text(el))
     _replace_all_text(
         b[public],
@@ -361,12 +433,27 @@ def build_back(src: Path, dest: Path) -> None:
     heading = _find(b, lambda el: _text(el).strip().upper() in ("AUCTIONEERS COMMISION", "AUCTIONEERS COMMISSION"))
     _replace_all_text(b[heading], "AUCTIONEER'S COMMISSION")
     commission = _find(b, lambda el: "commission will be earned" in _text(el))
-    _swap_run_text(b[commission], "SELLER", "{{commission_payer}}")
-    _swap_run_text(b[commission], "7,5", "{{commission_pct}}")
-    _swap_run_text(b[commission], "SEVEN AND A HALF", "{{commission_words}}")
-    _swap_run_text(b[commission], "PLUS VAT", "{{commission_vat}}")
-    typo = _find(b, lambda el: _text(el).strip() == "CWNTURION")
-    _replace_all_text(b[typo], "CENTURION")
+    _replace_match(b[commission], r"in the form of an? (\w+) commission", "{{commission_payer}}")
+    _replace_match(b[commission], rf"equal to ({_PCT}% \([A-Z ]+? PERCENT\))",
+                   "{{commission_pct}}% ({{commission_words}} PERCENT)")
+    _replace_match(b[commission], r"(PLUS VAT|VAT INCLUSIVE|INCLUSIVE OF VAT)", "{{commission_vat}}")
+
+    # The sign-off block. DP2821 had "CWNTURION"; the company is "(Pty) Ltd" as on
+    # the footer, never "Pty (Ltd)"; the addresses are joined as a list.
+    paragraphs = list(body.iter(qn("w:p")))
+    for p in paragraphs:
+        if _text(p).strip() == "CWNTURION":
+            _replace_all_text(p, "CENTURION")
+    company = [p for p in paragraphs if re.search(r"Dynamic Solutions 1068 Pty \((?i:ltd)\)", _text(p))]
+    if not company:
+        raise SystemExit("company name not found in the sign-off")
+    for p in company:
+        _replace_match(p, r"(1068 Pty \((?i:ltd)\))", "1068 (Pty) Ltd")
+    contact = next((p for p in paragraphs if _text(p).strip().startswith("properties@dynamicauctioneers.co.za")), None)
+    if contact is None:
+        raise SystemExit("contact email line not found in the sign-off")
+    replace_literal(contact, " AND ", ", ")  # 2940.1: "properties@ AND properties.admin@ and administration@"
+    print(f"back: contact line reads {_text(contact).strip()!r}")
 
     dropped = _drop_unreferenced_images(doc)
     _scrub_properties(doc)
@@ -465,10 +552,13 @@ def main(argv=None) -> int:
     front = OUT_DIR / "proposal-front.docx"
     back = OUT_DIR / "proposal-back.docx"
     build_front(args.source, front)
-    if args.letterhead:
-        changed = apply_letterhead(front, args.letterhead)
-        print(f"letterhead: {changed} header(s) now use {args.letterhead.name}")
     build_back(args.source, back)
+    if args.letterhead:
+        # The joined proposal prints the front's headers, but the back carries
+        # the same letterhead so neither file holds an older one (D106).
+        for path in (front, back):
+            changed = apply_letterhead(path, args.letterhead)
+            print(f"letterhead: {changed} header(s) in {path.name} now use {args.letterhead.name}")
     for path in (front, back):
         _assert_clean(path, args.forbid)
     print("no forbidden strings in either template")

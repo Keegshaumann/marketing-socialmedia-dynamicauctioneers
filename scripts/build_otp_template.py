@@ -1,33 +1,50 @@
-"""Derive the OTP Word template from the team's master OTP (M10, D114, D115).
+"""Derive the OTP Word templates from the team's master OTPs (M10, D114, D115, D123, D124).
 
-Source: ``3. PROPERTIES 2026/1.AAA MASTERS_PROPERTIES - E+G+A/KONTRAKTE+COMM
-AGMENT.MASTER/MASTER OTP-insolvensies + likwidasies.docx``, the master that 111
-of the 120 most recent OTPs on the drive were filled in from. The deceased
-estate master is the same clauses with blanks, so one template serves every
-kind of seller: only the heading above the seller's name changes.
+Sources, both in ``3. PROPERTIES 2026/1.AAA MASTERS_PROPERTIES - E+G+A/KONTRAKTE+COMM
+AGMENT.MASTER/``:
 
-What the script does to the master:
+* ``MASTER OTP-insolvensies + likwidasies.docx`` -> ``otp.docx``, used for joint
+  liquidators, joint trustees, executors and private sellers. 111 of the 120 most
+  recent OTPs on the drive were filled in from it, and the deceased estate master
+  is the same clauses with blanks, so only the heading above the seller changes.
+* ``MASTER - OTP - BUSINESS RESCUE.docx`` -> ``otp-brp.docx`` (D124), used for
+  business rescue practitioners. The team made it from the insolvency master on
+  1 October 2026: no Master of the High Court consent clause, no Insolvency Act
+  approval sentence, the practitioners in the definitions and the acceptance
+  clauses, and "FROM the estate of" in the resolution.
+
+What the script does to each master:
 
 * **Per-property parts become ``{{tokens}}``**: the seller heading and name, the
   property block (legal description, street address, "In favor of", title deed,
-  extent, Master's reference), the deposit, guarantee days (both mentions),
-  interest, commission and confirmation period, and the body corporate line.
-  The master's leftover client, Vorna Village property and "MONTAGU body
-  corporate" go with them.
+  extent and, on the insolvency template only, the Master's reference), the
+  deposit, guarantee days (both mentions), interest, commission and confirmation
+  period. The business rescue master's property block was laid out by hand for one
+  two-erf sale, so it is replaced by the insolvency template's block, which the
+  generator repeats once per erf; a business rescue sale has no Master's reference,
+  so that line is left out.
+* **The special-condition slot** is a numbered clause after the last special
+  condition, before RESTITUTION OF LAND RIGHTS (D123: the October master dropped the
+  body corporate line the slot used to replace; a master that still has one gets
+  the slot there).
 * **Corrections (D115, Keegan: "correct them now")**: PROHIBITATION, STARUS,
   VARATION, the index's suretyship heading, FOURTY, CONVEYENCER, "cause of
-  business", "surely for", "Gouws Avenue,Raslouw", "affected to", and the Legal
-  Practice Act cited as Act 53 of 1979 (it is the Legal Practice Act, 2014, Act 28
-  of 2014). The run-on commission clause ("5% (SIX PERCENT) Upon confirmation")
-  becomes the two clauses the team's own correct OTPs use (3048).
+  business", "surely for", "Gouws Avenue,Raslouw", "affected to", the Legal
+  Practice Act citation written as "2014 (Act 28 of 2014)", and since D123 the
+  October definitions' "the date the date" and the Restitution of Land Rights Act
+  cited as 1998 (it is Act 22 of 1994). On the business rescue master also COMMISION
+  and "BUSINESS PRACTITIONER/SELLER". The run-on commission clause ("5% (FIVE
+  PERCENT) Upon confirmation") becomes the two clauses the team's own correct OTPs
+  use (3048).
 * **Letterhead**: the properties letterhead replaces the header picture, as on
   the proposals (D106).
 
-The script refuses to write a template that still contains the leftover client
-or any of the typos, and it fails loudly if a correction no longer matches, so a
-change to the master is noticed rather than silently skipped.
+The script refuses to write a template that still contains a master's leftover
+client or any of the typos, and it fails loudly if a correction no longer matches,
+so a change to a master is noticed rather than silently skipped.
 
     python3.12 scripts/build_otp_template.py "<path to MASTER OTP-insolvensies + likwidasies.docx>" \
+        --brp "<path to MASTER - OTP - BUSINESS RESCUE.docx>" \
         --letterhead "<path to KONTRAKTE+COMM AGMENT.MASTER/Letter Head 2026.png>"
 """
 
@@ -43,14 +60,24 @@ from docx import Document
 from docx.oxml.ns import qn
 from docx.text.run import Run
 
-from build_proposal_templates import _drop_unreferenced_images, _replace_all_text, _scrub_properties, apply_letterhead
+from build_proposal_templates import (
+    _drop_unreferenced_images,
+    _replace_all_text,
+    _scrub_properties,
+    apply_letterhead,
+    replace_literal,
+)
 
-OUT = Path(__file__).resolve().parent.parent / "engine" / "otpgen" / "templates" / "otp.docx"
+TEMPLATES = Path(__file__).resolve().parent.parent / "engine" / "otpgen" / "templates"
+OUT = TEMPLATES / "otp.docx"
+OUT_BRP = TEMPLATES / "otp-brp.docx"
 _RUN_XPATH = "./w:r | ./w:hyperlink/w:r | ./w:ins/w:r | ./w:smartTag/w:r"
 
 LEFTOVERS = ("JUST LETTING", "2008/011219/07", "VORNA", "BERGER", "ST71988", "T391/2024", "MONTAGU")
+BRP_LEFTOVERS = ("MYSTICAL", "2004/094412/23", "KEMPTON", "LONG STREET", "T69455", "ERF 2664", "EKURHULENI")
 TYPOS = ("PROHIBITATION", "STARUS", "VARATION", "FOURTY", "Act 53 of 1979", "surely for",
-         "cause of business", "CONVEYENCER", "Gouws Avenue,Raslouw", "affected to")
+         "cause of business", "CONVEYENCER", "Gouws Avenue,Raslouw", "affected to", "Roukoop",
+         "the date the date", "Rights Act 1998", "Act Number 28", "COMMISION", "BUSINESS PRACTITIONER")
 
 # (paragraph starts with, literal in that paragraph, token text). Every occurrence
 # in the paragraph is replaced, which catches both guarantee mentions.
@@ -75,8 +102,15 @@ CORRECTIONS = (
     ("CONVEYENCER", "CONVEYANCER"),
     ("Gouws Avenue,Raslouw", "Gouws Avenue, Raslouw"),
     ("will be affected to the CONVEYANCER", "will be effected to the CONVEYANCER"),
-    ("Section 86 (4) of the Legal Practice Act, Act 53 of 1979 (Act Number 53 of 1979)",
+    ("Section 86 (4) of the Legal Practice Act, Act 28 of 2014 (Act Number 28 of 2014)",
      "section 86(4) of the Legal Practice Act, 2014 (Act 28 of 2014)"),
+    ("the date the date upon which", "the date upon which"),
+    ("Restitution of Land Rights Act 1998", "Restitution of Land Rights Act 22 of 1994"),
+)
+BRP_CORRECTIONS = (
+    ("COMMISION", "COMMISSION"),
+    ("BUSINESS PRACTITIONER /SELLER", "BUSINESS RESCUE PRACTITIONER/SELLER"),
+    ("BUSINESS PRACTITIONER/SELLER", "BUSINESS RESCUE PRACTITIONER/SELLER"),
 )
 
 COMMISSION_DUE = (
@@ -113,40 +147,8 @@ def _nonempty(el) -> bool:
     return bool(_text(el).strip())
 
 
-def replace_literal(p, old: str, new: str) -> int:
-    """Replace every ``old`` in paragraph ``p``, even where Word split it across runs."""
-    runs = [Run(r, None) for r in p.xpath(_RUN_XPATH)]
-    texts = [r.text for r in runs]
-    full = "".join(texts)
-    spans = []
-    i = full.find(old)
-    while i != -1:
-        spans.append((i, i + len(old)))
-        i = full.find(old, i + len(old))
-    if not spans:
-        return 0
-    lengths = [len(t) for t in texts]
-    starts, pos = [], 0
-    for n in lengths:
-        starts.append(pos)
-        pos += n
-
-    def locate(offset: int) -> int:
-        return next(k for k, (s, n) in enumerate(zip(starts, lengths)) if n and s <= offset < s + n)
-
-    for s, e in reversed(spans):
-        a, b = locate(s), locate(e - 1)
-        if a == b:
-            texts[a] = texts[a][: s - starts[a]] + new + texts[a][e - starts[a]:]
-        else:
-            texts[a] = texts[a][: s - starts[a]] + new
-            for k in range(a + 1, b):
-                texts[k] = ""
-            texts[b] = texts[b][e - starts[b]:]
-    for run, text in zip(runs, texts):
-        if run.text != text:
-            run.text = text
-    return len(spans)
+def _blank(el) -> bool:
+    return el.tag == qn("w:p") and not _nonempty(el) and not list(el.iter(qn("w:drawing")))
 
 
 def _value_to_token(p, token: str) -> None:
@@ -158,19 +160,19 @@ def _value_to_token(p, token: str) -> None:
         raise SystemExit(f"could not isolate the value in {_text(p)!r}")
 
 
-def build(src: Path, dest: Path, letterhead: Path) -> None:
-    doc = Document(str(src))
-    body = doc.element.body
-    b = _blocks(doc)
-
-    # Seller and property -----------------------------------------------------
+def _seller(b):
+    """Tokenise the seller heading and line; return the index of "(Hereafter referred ...)"."""
     agreement = _find(b, lambda el: _text(el).strip() == "AGREEMENT AND CONDITIONS OF SALE", what="agreement title")
     instructions = _find(b, _starts("In which DYNAMIC AUCTIONEERS"), agreement)
     heading = _find(b, _nonempty, instructions + 1)
     _replace_all_text(b[heading], "{{seller_heading}}")
     seller = _find(b, _nonempty, heading + 1)
     _replace_all_text(b[seller], "{{seller_line}}")
-    hereafter = _find(b, _starts("(Hereafter referred to as the SELLER)"), seller)
+    return _find(b, _starts("(Hereafter referred to as the SELLER)"), seller)
+
+
+def _property_block(b, hereafter: int) -> None:
+    """The insolvency master's property block, its values made tokens."""
     legal = _find(b, _nonempty, hereafter + 1)
     _replace_all_text(b[legal], "{{erf_legal}}")
     known_label = _find(b, _starts("BETTER KNOWN AS"), legal)
@@ -186,7 +188,35 @@ def build(src: Path, dest: Path, letterhead: Path) -> None:
     _value_to_token(b[master_ref], "{{masters_ref}}")
     _find(b, _starts("Subject to the following conditions"), master_ref)
 
-    # Terms ------------------------------------------------------------------------
+
+def _swap_property_block(b, hereafter: int, donor_blocks) -> None:
+    """Replace the business rescue master's property block with the insolvency one.
+
+    The donor is the insolvency template's block between "(Hereafter referred ...)"
+    and "Subject to the following conditions", already tokenised, without its
+    MASTER REF line and the gap under it. Its paragraphs carry direct formatting
+    only (no style or numbering ids), so they read the same in either file.
+    """
+    subject = _find(b, _starts("Subject to the following conditions"), hereafter)
+    for el in b[hereafter + 1:subject]:
+        el.getparent().remove(el)
+    keep = []
+    skip_gap = False
+    for el in donor_blocks:
+        if "{{masters_ref}}" in _text(el):
+            skip_gap = True
+            continue
+        if skip_gap and _blank(el):
+            skip_gap = False
+            continue
+        keep.append(copy.deepcopy(el))
+    anchor = b[subject]
+    for el in keep:
+        anchor.addprevious(el)
+
+
+def _terms(doc) -> None:
+    body = doc.element.body
     paragraphs = list(body.iter(qn("w:p")))
     for anchor, old, token in TERMS:
         hits = sum(replace_literal(p, old, token) for p in paragraphs if _text(p).strip().startswith(anchor))
@@ -206,33 +236,84 @@ def build(src: Path, dest: Path, letterhead: Path) -> None:
     if spacer.tag == qn("w:p") and not _nonempty(spacer):
         due.addnext(copy.deepcopy(spacer))
 
-    body_corporate = _find(b, _starts("Sale is subject to the rules and regulations of"), what="body corporate line")
-    _replace_all_text(b[body_corporate], "{{special_condition}}")
 
-    # Corrections --------------------------------------------------------------------
-    paragraphs = list(body.iter(qn("w:p")))
-    for wrong, right in CORRECTIONS:
+def _special_condition_slot(doc) -> None:
+    """A numbered clause after the last special condition, with the gap the others have."""
+    b = _blocks(doc)
+    agreement = _find(b, lambda el: _text(el).strip() == "AGREEMENT AND CONDITIONS OF SALE", what="agreement title")
+    special = _find(b, lambda el: _text(el).strip() == "SPECIAL CONDITIONS", agreement, what="special conditions")
+    end = _find(b, lambda el: _text(el).strip().upper().startswith(("RESTITUTION OF LAND RIGHTS", "THUS, DONE AND SIGNED")),
+                special + 1, what="end of the special conditions")
+    old = next((i for i in range(special + 1, end) if _starts("Sale is subject to the rules and regulations of")(b[i])), None)
+    if old is not None:  # a master that still carries a body corporate line
+        _replace_all_text(b[old], "{{special_condition}}")
+        return
+    last = max((i for i in range(special + 1, end) if _nonempty(b[i])), default=None)
+    if last is None:
+        raise SystemExit("no special condition to put the slot after; has the master changed?")
+    slot = copy.deepcopy(b[last])
+    for r in slot.xpath(_RUN_XPATH)[1:]:
+        r.getparent().remove(r)
+    Run(slot.xpath(_RUN_XPATH)[0], None).text = "{{special_condition}}"
+    after = b[last + 1] if _blank(b[last + 1]) else b[last]
+    after.addnext(slot)
+    if after is not b[last]:
+        slot.addnext(copy.deepcopy(after))
+
+
+def _correct(doc, corrections) -> None:
+    paragraphs = list(doc.element.body.iter(qn("w:p")))
+    for wrong, right in corrections:
         if not sum(replace_literal(p, wrong, right) for p in paragraphs):
             raise SystemExit(f"correction {wrong!r} did not match; has the master changed?")
         print(f"corrected: {wrong!r} -> {right!r}")
 
+
+def _save(doc, dest: Path, letterhead: Path) -> None:
     _drop_unreferenced_images(doc)
     _scrub_properties(doc)
     dest.parent.mkdir(parents=True, exist_ok=True)
     doc.save(str(dest))
-    print(f"letterhead: {apply_letterhead(dest, letterhead)} header(s)")
+    print(f"{dest.name}: letterhead in {apply_letterhead(dest, letterhead)} header(s)")
 
 
-def _assert_clean(path: Path) -> None:
+def build(src: Path, dest: Path, letterhead: Path):
+    """The insolvency template. Returns its tokenised property block for the business rescue one."""
+    doc = Document(str(src))
+    b = _blocks(doc)
+    hereafter = _seller(b)
+    _property_block(b, hereafter)
+    b = _blocks(doc)
+    subject = _find(b, _starts("Subject to the following conditions"), hereafter)
+    donor = [copy.deepcopy(el) for el in b[hereafter + 1:subject]]
+    _terms(doc)
+    _special_condition_slot(doc)
+    _correct(doc, CORRECTIONS)
+    _save(doc, dest, letterhead)
+    return donor
+
+
+def build_brp(src: Path, dest: Path, letterhead: Path, donor_blocks) -> None:
+    doc = Document(str(src))
+    b = _blocks(doc)
+    hereafter = _seller(b)
+    _swap_property_block(b, hereafter, donor_blocks)
+    _terms(doc)
+    _special_condition_slot(doc)
+    _correct(doc, CORRECTIONS + BRP_CORRECTIONS)
+    _save(doc, dest, letterhead)
+
+
+def _assert_clean(path: Path, leftovers) -> None:
     doc = Document(str(path))
     text = "\n".join(_text(p) for p in doc.element.body.iter(qn("w:p")))
-    for needle in (*LEFTOVERS, *TYPOS):
+    for needle in (*leftovers, *TYPOS):
         if needle in text:
             raise SystemExit(f"{path.name} still contains {needle!r}")
     with zipfile.ZipFile(path) as z:
         for name in z.namelist():
             data = z.read(name)
-            for needle in LEFTOVERS:
+            for needle in leftovers:
                 if needle.encode("utf8") in data:
                     raise SystemExit(f"{path.name}:{name} still contains {needle!r}")
 
@@ -240,11 +321,14 @@ def _assert_clean(path: Path) -> None:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("master", type=Path, help="MASTER OTP-insolvensies + likwidasies.docx")
+    ap.add_argument("--brp", type=Path, required=True, help="MASTER - OTP - BUSINESS RESCUE.docx")
     ap.add_argument("--letterhead", type=Path, required=True, help="Letter Head 2026.png (properties letterhead)")
     args = ap.parse_args(argv)
-    build(args.master, OUT, args.letterhead)
-    _assert_clean(OUT)
-    print(f"{OUT.name}: no leftover client and no typos")
+    donor = build(args.master, OUT, args.letterhead)
+    _assert_clean(OUT, LEFTOVERS)
+    build_brp(args.brp, OUT_BRP, args.letterhead, donor)
+    _assert_clean(OUT_BRP, LEFTOVERS + BRP_LEFTOVERS)
+    print(f"{OUT.name}, {OUT_BRP.name}: no leftover client and no typos")
     return 0
 
 

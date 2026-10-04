@@ -1,4 +1,4 @@
-"""OTP generation (M10, D114, D115): the template, the fill, the checks. Offline.
+"""OTP generation (M10, D114, D115, D123, D124): the templates, the fill, the checks. Offline.
 
 The committed template is the only Dynamic file read; everything else is made
 up, so no client's details appear here. (``test_otp.py`` is the other direction:
@@ -50,31 +50,47 @@ def _text(path: Path) -> str:
 
 # --- the template ----------------------------------------------------------
 
-def test_template_slots():
-    found = set(re.findall(r"\{\{[a-z_]+\}\}", _text(docx_build.TEMPLATE)))
-    assert found == {
+TEMPLATES = pytest.mark.parametrize("template", [docx_build.TEMPLATE, docx_build.TEMPLATE_BRP], ids=["insolvency", "brp"])
+
+
+@TEMPLATES
+def test_template_slots(template):
+    found = set(re.findall(r"\{\{[a-z_]+\}\}", _text(template)))
+    expected = {
         "{{seller_heading}}", "{{seller_line}}", "{{erf_legal}}", "{{erf_known_as}}", "{{erf_title_deed}}",
         "{{erf_extent}}", "{{masters_ref}}", "{{deposit_pct}}", "{{deposit_words}}", "{{guarantee_days}}",
         "{{guarantee_words}}", "{{interest_pct}}", "{{interest_words}}", "{{confirmation_days}}",
         "{{confirmation_words}}", "{{commission_pct}}", "{{commission_words}}", "{{commission_vat}}",
         "{{commission_payer}}", "{{special_condition}}",
     }
+    if template == docx_build.TEMPLATE_BRP:
+        expected.discard("{{masters_ref}}")  # business rescue has no Master's reference (D124)
+    assert found == expected
 
 
-def test_template_has_no_master_client_and_the_errors_are_corrected():
-    text = _text(docx_build.TEMPLATE)
-    for leftover in ("JUST LETTING", "VORNA", "MONTAGU", "PROHIBITATION", "STARUS", "VARATION", "FOURTY",
-                     "Act 53 of 1979", "surely for", "cause of business", "CONVEYENCER", "Gouws Avenue,Raslouw"):
+@TEMPLATES
+def test_template_has_no_master_client_and_the_errors_are_corrected(template):
+    text = _text(template)
+    for leftover in ("JUST LETTING", "VORNA", "MONTAGU", "MYSTICAL", "KEMPTON", "PROHIBITATION", "STARUS",
+                     "VARATION", "FOURTY", "Act 53 of 1979", "Act Number 28", "surely for", "cause of business",
+                     "CONVEYENCER", "Gouws Avenue,Raslouw", "Roukoop", "the date the date", "Rights Act 1998",
+                     "COMMISION", "BUSINESS PRACTITIONER"):
         assert leftover not in text, leftover
     assert "Legal Practice Act, 2014 (Act 28 of 2014)" in text
+    assert "Restitution of Land Rights Act 22 of 1994" in text
     assert "PROHIBITION" in text and "MARITAL STATUS OF PURCHASER" in text and "VARIATION" in text
+    # The October 2026 masters added four definitions and the index entry for clause 22 (D123).
+    assert "Date of occupation, the date upon which possession" in text
+    assert "Confirmation period, the period of days within which the Seller must accept or reject" in text
+    assert [p.strip() for p in _paragraphs(template)].count("RESTITUTION OF LAND RIGHTS") == 2
 
 
-def test_template_headers_carry_the_properties_letterhead_only():
+@TEMPLATES
+def test_template_headers_carry_the_properties_letterhead_only(template):
     wp = "{http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing}"
     a = "{http://schemas.openxmlformats.org/drawingml/2006/main}"
     embed = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed"
-    section = Document(str(docx_build.TEMPLATE)).sections[0]
+    section = Document(str(template)).sections[0]
     for header in (section.header, section.first_page_header):
         wide = [d for d in header.part.element.iter(qn("w:drawing"))
                 if int(d[0].find(wp + "extent").get("cx")) >= 150 * 36000]
@@ -127,7 +143,7 @@ def test_build_fills_every_part(tmp_path):
     assert text.count("In favor of: TESTCO (PTY) LTD, REGISTRATION NUMBER 2014/203299/07") == 2
     assert "AND" in paras and "T12346/2001" in text and "3 TEST STREET, TESTVILLE, GAUTENG" in paras
     assert text.count("MEASURING") == 1  # the second erf has no extent
-    assert text.count("MASTER REF: G123/2026") == 2
+    assert len(re.findall(r"MASTER REF: +G123/2026", text)) == 2  # padded to line up, as the master is
     assert "A cash deposit of 20% (Twenty Percent) of the PURCHASE PRICE" in text
     assert "within 30 (THIRTY) days from the DATE OF ACCEPTANCE" in text and "said 30 (THIRTY) calendar days" in text
     assert "within a period of 14 (FOURTEEN) days (the CONFIRMATION PERIOD)" in text
@@ -137,16 +153,43 @@ def test_build_fills_every_part(tmp_path):
     assert any(p.startswith("Upon confirmation by the SELLER of this agreement") for p in paras)
     assert "The sale is subject to the rules and regulations of the SABIE MANSIONS Body Corporate." in paras
     assert "Occupation on registration." in paras
+    # Special conditions follow the master's own last condition and come before clause 22 (D123).
+    arrears = next(i for i, p in enumerate(paras) if p.startswith("The SELLER and the PURCHASER, including the AUCTIONEER"))
+    land = [p.strip() for p in paras].index("RESTITUTION OF LAND RIGHTS", arrears)
+    assert arrears < paras.index("The sale is subject to the rules and regulations of the SABIE MANSIONS Body Corporate.") \
+        < paras.index("Occupation on registration.") < land
+    assert "Insolvency Act 24 of 1936" in text and "consent of the Master of the High Court" in text
     block = paras[paras.index("THE JOINT TRUSTEES OF INSOLVENT ESTATE:"):]
     block = block[: next(i for i, p in enumerate(block) if p.strip().startswith("Subject to the following conditions"))]
     # The master has at most two blank lines in a row here; a line left out takes its gap with it.
     assert not any(a == b == c == "" for a, b, c in zip(block, block[1:], block[2:]))
 
 
+def test_business_rescue_uses_its_own_master(tmp_path):
+    otp = _otp(seller_capacity="brp", seller_name="Testco (Pty) Ltd (in business rescue)",
+               extra_conditions=["Occupation on registration."])
+    assert docx_build.template_for(otp) == docx_build.TEMPLATE_BRP
+    assert docx_build.template_for(otp.model_copy(update={"seller_capacity": "deceased"})) == docx_build.TEMPLATE
+    paras = _paragraphs(docx_build.build(otp, tmp_path / "9201 - OTP.docx"))
+    text = "\n".join(paras)
+    assert "{{" not in text
+    assert "THE BUSINESS RESCUE PRACTITIONERS OF:" in paras
+    assert "TESTCO (PTY) LTD (IN BUSINESS RESCUE), REGISTRATION NUMBER 2014/203299/07" in paras
+    assert "In favor of: TESTCO (PTY) LTD (IN BUSINESS RESCUE), REGISTRATION NUMBER 2014/203299/07" in text
+    assert "References to Business Rescue Practitioners (Seller)." in text
+    assert "Acceptance by the BUSINESS RESCUE PRACTITIONER/SELLER, within a period of 30 (THIRTY) days" in text
+    assert "FROM the estate of:" in text and "insolvent estate" not in text
+    for absent in ("Insolvency Act", "Master of the High Court", "Provisional Liquidator", "TRUSTEE/SELLER", "MASTER REF"):
+        assert absent not in text, absent
+    assert "Occupation on registration." in paras
+    assert "ERF 99" in text and "T12345/2001" in text and "MEASURING:" in text
+
+
 def test_without_special_conditions_the_slot_and_its_gap_go(tmp_path):
     paras = _paragraphs(docx_build.build(_otp(masters_ref=""), tmp_path / "p.docx"))
     assert not any(p.startswith("The sale is subject to the rules and regulations") for p in paras)
-    land = [p.strip() for p in paras].index("RESTITUTION OF LAND RIGHTS")
+    stripped = [p.strip() for p in paras]
+    land = stripped.index("RESTITUTION OF LAND RIGHTS", stripped.index("AGREEMENT AND CONDITIONS OF SALE"))
     assert paras[land - 1] == "" and paras[land - 2] != ""
     assert "MASTER REF" not in "\n".join(paras)
 
@@ -167,6 +210,12 @@ def test_a_complete_otp_has_nothing_blocking():
 def test_missing_commission_and_seller_block():
     fields = {i.field for i in checks.blocking(checks.run(_otp(commission_pct=None, seller_name="", seller_capacity="")))}
     assert {"commission_pct", "seller_name", "seller_capacity"} <= fields
+
+
+def test_a_masters_ref_on_a_business_rescue_otp_warns_that_it_will_not_print():
+    assert any(i.field == "masters_ref" and i.level == "warn" for i in checks.run(_otp(seller_capacity="brp")))
+    assert not any(i.field == "masters_ref" for i in checks.run(_otp(seller_capacity="brp", masters_ref="")))
+    assert not any(i.field == "masters_ref" for i in checks.run(_otp()))
 
 
 def test_days_the_words_cannot_be_written_for_block():
