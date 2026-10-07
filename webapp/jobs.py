@@ -146,24 +146,19 @@ def _handle_extract(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, s
     lightstones = _paths("lightstones", "lightstone")
     reports = _paths("property_reports", "property_report")
     valuations = _paths("valuations", "valuation")  # optional 3rd source (D35)
-    # A VALUATION SATISFIES THE INSPECTION HALF (D88). The rule used to demand a
-    # Property Report specifically, so a Lightstone plus a professional valuer's
-    # report - which D35 ranks ABOVE a property report for physical facts - was
-    # refused as "no source pair". Lightstone stays mandatory: it owns the deeds,
-    # the legal description and the market data, and nothing else carries them.
-    inspection = reports or valuations
-    if not (dp and lightstones and inspection):
-        have = [n for n, c in (("Lightstone EVM", len(lightstones)),
-                               ("Property Report", len(reports)),
-                               ("valuation", len(valuations))) if c]
-        missing = "a Lightstone EVM" if not lightstones else (
-            "a Property Report or a valuer's report")
+    # NO PROPERTY IS REFUSED FOR A MISSING DOCUMENT (D122). The rule used to
+    # demand a Lightstone plus a Property Report or valuation (D88), and a
+    # property with only a Lightstone sat at intake with nothing to click. The
+    # team often has one document and nothing else. Extraction reads whatever
+    # was supplied, a fact no document carries stays null (hard rule 3), gate 1
+    # notes what is missing, and gate 2 is where the team types it. Only an
+    # intake with no recognised document at all has nothing to read.
+    if not (dp and (lightstones or reports or valuations)):
         return (
-            "skipped: incomplete sources",
-            f"Nothing to extract: this intake needs {missing}. "
-            + (f"Received: {', '.join(have)}." if have else "No documents were classified.")
-            + " The files are saved in the property's uploads folder, so adding "
-              "the missing document and running the intake again picks them up.",
+            "skipped: no documents",
+            "Nothing to extract: none of the uploaded files was recognised as a "
+            "Lightstone report, a Property Report or a valuation. Upload one of "
+            "those for this property on the Intake screen.",
         )
 
     from engine.extract import extract_record, prompt_version

@@ -2836,3 +2836,189 @@ def test_every_button_that_makes_a_request_can_show_it_is_working():
         "these buttons make a request but have no <span class='spinner'>, so they "
         "blank out while it runs: " + ", ".join(naked)
     )
+
+
+# --- what to make for this property (D121) ---------------------------------
+
+def _manifest_fmts(dp: str) -> list:
+    import json as _json
+
+    path = _TMP / f"DP{dp}" / "artifacts" / "manifest.json"
+    return [a["fmt"] for a in _json.loads(path.read_text())]
+
+
+def _outputs(dp: str):
+    store = RecordStore(DB_PATH)
+    try:
+        return store.get(dp).marketing.outputs
+    finally:
+        store.close()
+
+
+def test_selected_formats_keeps_the_advert_and_follows_the_pick():
+    from engine.render.base import ADVERT_FORMATS, FORMATS, OPTIONAL_FORMATS, selected_formats
+    from webapp.routes.gates import _OUTPUT_ORDER
+
+    assert selected_formats(None) == FORMATS              # never chosen = everything
+    assert selected_formats([]) == ADVERT_FORMATS          # the advert is always made
+    assert selected_formats(["saia_banner", "gone"]) == ADVERT_FORMATS + ["saia_banner"]
+    # The panel offers every optional format, so none can be made unchoosable.
+    assert sorted(_OUTPUT_ORDER) == sorted(OPTIONAL_FORMATS)
+
+
+def test_a_private_sale_gets_the_advert_and_info_pack_only():
+    """"A cheap house we are not taking to auction: just the ad and the info
+    pack." Chosen on gate 2 before approval, it costs no render, and approval
+    builds exactly that set."""
+    _needs_golden()
+    dp = "9410"
+    _golden_clone(dp, state="drafted")
+    client = _client()
+    _login_admin(client)
+
+    page = client.get(f"/gates/{dp}/ads")
+    assert "What to make" in page.text
+    assert 'name="output" value="saia_banner" checked' in page.text   # default: all
+    assert 'value="estate_board"' not in page.text                   # a property on its own
+
+    resp = client.post(f"/gates/{dp}/ads/outputs", data={"output": ["info_pack"]})
+    assert resp.status_code == 200
+    assert _outputs(dp) == ["info_pack"]
+    assert not (_TMP / f"DP{dp}" / "artifacts" / ".stale").exists()  # nothing built yet
+
+    client.post(f"/gates/{dp}/ads/approve", follow_redirects=False)
+    assert _state(dp) == "approved"
+    assert _manifest_fmts(dp) == ["demo_ad", "demo_ad_2", "demo_ad_3", "info_pack"]
+
+
+def test_changing_the_set_after_approval_waits_for_regenerate():
+    _needs_golden()
+    dp = "9411"
+    _golden_clone(dp, state="approved")
+    _render_pack(dp)
+    assert "auction_board" in _manifest_fmts(dp)
+    client = _client()
+    _login_admin(client)
+
+    resp = client.post(f"/gates/{dp}/ads/outputs", data={"output": ["saia_banner"]})
+    assert "Press Regenerate" in resp.text
+    assert "The adverts are older than your changes" in resp.text
+    assert "auction_board" in _manifest_fmts(dp), "the choice rendered instead of batching"
+
+    client.post(f"/gates/{dp}/ads/regenerate")
+    assert _manifest_fmts(dp) == ["demo_ad", "demo_ad_2", "demo_ad_3", "saia_banner"]
+
+    # Ticking everything again goes back to following the whole set.
+    from webapp.routes.gates import _OUTPUT_ORDER
+    everything = [f for f in _OUTPUT_ORDER if f != "estate_board"]
+    client.post(f"/gates/{dp}/ads/outputs", data={"output": everything})
+    assert _outputs(dp) is None
+
+
+def test_the_same_choice_twice_is_not_a_change():
+    _needs_golden()
+    dp = "9412"
+    _golden_clone(dp, state="approved")
+    _render_pack(dp)
+    client = _client()
+    _login_admin(client)
+    everything = client.get(f"/gates/{dp}/ads").text.count('name="output"')
+    assert everything >= 8
+
+    # Resubmitting the full set (the form posts every box) changes nothing.
+    from webapp.routes.gates import _OUTPUT_ORDER
+    client.post(f"/gates/{dp}/ads/outputs",
+                data={"output": [f for f in _OUTPUT_ORDER if f != "estate_board"]})
+    assert not (_TMP / f"DP{dp}" / "artifacts" / ".stale").exists()
+    assert _outputs(dp) is None
+
+
+# --- nothing sits at intake with nothing to click (D122) ------------------
+
+def _seed_intake_with_job(dp: str, job_state: str, detail: str) -> int:
+    from webapp import jobs as _jobs
+
+    store = RecordStore(DB_PATH)
+    try:
+        store.upsert(PropertyRecord(dp=dp), state="intake")
+    finally:
+        store.close()
+    payload = {"dp": dp, "lightstones": [f"/tmp/DP{dp}/uploads/ls.pdf"],
+               "property_reports": [], "valuations": [], "output_root": str(_TMP)}
+    job_id = _jobs.enqueue(DB_PATH, "extract", dp, payload=payload)
+    models.update_job(DB_PATH, job_id, state=job_state, detail=detail)
+    return job_id
+
+
+def _extract_jobs(dp: str) -> list:
+    return [j for j in models.list_jobs(DB_PATH, dp=dp) if j["kind"] == "extract"]
+
+
+def test_a_stopped_extraction_says_why_and_runs_again_from_the_board():
+    """Production, DP 3078.1: extraction was refused, and the board showed a grey
+    "Awaiting extraction" with nothing to click. The reason had only ever been
+    shown on the Intake screen at the moment of upload."""
+    dp = "9420"
+    _seed_intake_with_job(dp, "skipped: incomplete sources",
+                          "Nothing to extract: this intake needs a Property Report.")
+    client = _client()
+    _login_admin(client)
+
+    rows = client.get("/board/rows").text
+    row = rows[rows.index(f">{dp}<"):]
+    row = row[: row.index("</tr>")]
+    assert "Extraction stopped" in row
+    assert "needs a Property Report" in row            # the full reason, as the tooltip
+    assert f'hx-post="/board/{dp}/extract"' in row and "Run extraction" in row
+
+    resp = client.post(f"/board/{dp}/extract")
+    assert resp.status_code == 200
+    jobs_now = _extract_jobs(dp)
+    assert len(jobs_now) == 2 and jobs_now[0]["state"] == "queued"
+    assert jobs_now[0]["payload"]["lightstones"] == jobs_now[1]["payload"]["lightstones"]
+
+    # Queued now, so a second click cannot queue a second paid extraction.
+    client.post(f"/board/{dp}/extract")
+    assert len(_extract_jobs(dp)) == 2
+    rows = client.get("/board/rows").text
+    row = rows[rows.index(f">{dp}<"):]
+    assert "Extracting" in row[: row.index("</tr>")]
+
+
+def test_no_recognised_document_sends_the_row_to_intake():
+    dp = "9421"
+    _seed_intake_with_job(dp, "skipped: no documents", "Nothing to extract.")
+    client = _client()
+    _login_admin(client)
+    rows = client.get("/board/rows").text
+    row = rows[rows.index(f">{dp}<"):]
+    row = row[: row.index("</tr>")]
+    assert "No document recognised" in row
+    assert 'href="/intake"' in row and "/extract" not in row
+
+
+def test_rooms_are_typed_on_gate_2_when_no_document_gave_them():
+    """A Lightstone has no room counts, so a property extracted from one alone
+    arrives without them; the team types them beside the rest of the advert."""
+    dp = "9422"
+    record = PropertyRecord(
+        dp=dp,
+        identity=Identity(suburb="Helderfontein Estate", title_type="freehold"),
+        physical=Physical(),
+        marketing=Marketing(headline="A family home"),
+    )
+    store = RecordStore(DB_PATH)
+    try:
+        store.upsert(record, state="drafted")
+    finally:
+        store.close()
+    client = _client()
+    _login_admin(client)
+    page = client.get(f"/gates/{dp}/ads").text
+    assert 'name="bedrooms"' in page and 'name="bathrooms"' in page and 'name="garages"' in page
+
+    client.post(f"/gates/{dp}/ads/copy",
+                data={"bedrooms": "4", "bathrooms": "3", "garages": "two"})
+    physical = _public_view(dp)["physical"]
+    assert physical["bedrooms"] == 4 and physical["bathrooms_main_unit"] == 3
+    assert physical.get("garages") is None            # "two" is refused, not guessed

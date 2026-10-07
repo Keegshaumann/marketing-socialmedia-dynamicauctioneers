@@ -13,12 +13,19 @@
         {%- if not loop.last %}<span class="track__seg {{ 'is-done' if i < r.stage else '' }}"></span>{% endif %}
       {%- endfor %}
     </div>
-    <div class="track__label {{ 'is-flag' if r.state == 'flags_raised' else '' }}">{{ r.state|replace('_', ' ')|title }}</div>
+    <div class="track__label {{ 'is-flag' if r.state == 'flags_raised' or r.next.note else '' }}">{{ r.state|replace('_', ' ')|title }}</div>
+    {% if r.next.note %}<div class="track__why" title="{{ r.next.reason }}">{{ r.next.note }}</div>{% endif %}
   </td>
   <td class="ledger__meta">{{ r.days.label }}</td>
   <td class="ledger__meta">{{ r.owner }}</td>
   <td class="ledger__next">
-    {% if r.next.href %}
+    {% if r.next.retry %}
+      <button type="button" class="btn btn--{{ r.next.variant }} btn--sm"
+              hx-post="/board/{{ r.dp }}/extract" hx-target="#ledger-body" hx-swap="innerHTML"
+              title="{{ r.next.reason }}">
+        <span>{{ r.next.label }}</span>{{ ui.icon('chevron', 'icon--sm') }}<span class="spinner" aria-hidden="true"></span>
+      </button>
+    {% elif r.next.href %}
       <a class="btn btn--{{ r.next.variant }} btn--sm" href="{{ r.next.href }}">
         <span>{{ r.next.label }}</span>{{ ui.icon('chevron', 'icon--sm') }}
       </a>

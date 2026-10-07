@@ -387,7 +387,11 @@ def _finalize_intake(request: Request, db_path, output_root: str, job, batch_dir
 
     row = models.get_job(db_path, job_id)
     ctx = _job_ctx(row)
-    ctx["missing"] = job.missing  # e.g. no Property Report among the files
+    # A kind that simply was not uploaded is not a failure to classify (D122):
+    # a Lightstone alone is a complete intake now. The note is kept for the one
+    # case it still describes, files uploaded and none of them recognised.
+    recognised = job.lightstone_evms or job.property_reports or job.valuation_reports
+    ctx["missing"] = [] if recognised else job.missing
     return _view(request, "_intake_job.html", ctx)
 
 

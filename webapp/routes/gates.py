@@ -44,10 +44,13 @@ from starlette.templating import Jinja2Templates
 
 from engine.distribute.ghl import DELETE_CAVEAT
 from engine.render import DEFAULT_BACKEND, FORMATS, get_backend
+from engine.render.base import OPTIONAL_FORMATS, selected_formats
 from engine.render.html_backend import BRAND
 from engine.render.canva_backend import template_set_names
 from engine.render.copy import _template_copy
-from engine.render.service import apply_edits, apply_photos, copy_cache_key, render_all
+from engine.render.service import (
+    apply_edits, apply_photos, copy_cache_key, lot_group_summary, render_all,
+)
 from engine.schema import (
     PHYSICAL_SOURCE_PRECEDENCE,
     SOURCE_LABELS,
@@ -63,6 +66,7 @@ from engine.verify import (
     sign_off,
 )
 from webapp import models, tokens
+from webapp.routes.artifacts import FORMAT_META
 from webapp.auth import current_user, require_role
 
 router = APIRouter(prefix="/gates", tags=["gates"])
@@ -810,6 +814,13 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
             # Sale terms and running costs (D80): read from the OTP and the levy
             # statement when those were uploaded, typed when they were not.
             "terms_view": _terms_view(record),
+            # Room counts (D122): prefilled from the documents, typed when a
+            # Lightstone alone left them empty.
+            "rooms": {k: ("" if v is None else v) for k, v in (
+                ("bedrooms", (pv.get("physical") or {}).get("bedrooms")),
+                ("bathrooms", (pv.get("physical") or {}).get("bathrooms_main_unit")),
+                ("garages", (pv.get("physical") or {}).get("garages")),
+            )},
             # Design picker (D33): hidden unless more than one set is
             # configured AND the active renderer routes through Canva; the
             # first configured set is the default a blank pick follows.
@@ -828,6 +839,9 @@ def gate2_page(dp: str, request: Request, user: dict = Depends(require_role("app
             "qr_src": _qr_view(db_path, dp, record),
             "max_photos": _MAX_PHOTOS_TOTAL,
             "stale": _is_stale(db_path, dp),
+            # What is made beyond the advert (D121).
+            "outputs": _outputs_view(db_path, dp, record),
+            "outputs_later": state in _AD_ONLY_STATES,
             "approval_email": email_html,
             "links": links,
             "email_subject": email_subject,
@@ -1068,7 +1082,10 @@ def _photo_result(request: Request, db_path: str, dp: str, toast: Dict[str, Any]
         "partials/_gate2_photo_result.html",
         {"dp": dp, "tiles": tiles, "photos": _photo_view(db_path, dp, record),
          "qr_src": _qr_view(db_path, dp, record),
-            "max_photos": _MAX_PHOTOS_TOTAL, "toast": toast},
+            "max_photos": _MAX_PHOTOS_TOTAL, "toast": toast,
+         # The Regenerate banner lives inside #photos, so a swap without this
+         # dropped a banner that was still true until the next page load.
+         "stale": _is_stale(db_path, dp)},
     )
 
 
@@ -1634,6 +1651,98 @@ async def gate2_multi_property(dp: str, request: Request,
     return HTMLResponse("", headers={"HX-Refresh": "true"})
 
 
+# --- what to make for this property (D121) --------------------------------
+# A cheap house sold by offers needs the advert and the info pack, not an
+# auction board and a SAIA banner; another property needs the advert and the
+# banner and nothing else. The advert is always made (it is what gets approved),
+# so only the rest is offered. Listed with the printed pieces first and the
+# wording that goes with a post last: FORMATS is the render order, not this.
+_OUTPUT_ORDER = (
+    "info_pack", "saia_banner", "alert_mailer", "auction_board", "estate_board",
+    "webapp_icon", "portal_listing", "facebook_post", "email_blast",
+)
+_OUTPUT_HINTS = {
+    # The GHL post takes its caption from this file (distribute.ghl._caption_for)
+    # and falls back to a one-line generic caption without it.
+    "facebook_post": "The caption on the social post.",
+    "estate_board": "One board for every unit in the block.",
+}
+
+
+def _offered_outputs(db_path: str, dp: str) -> List[str]:
+    """The optional formats this property can have. The estate board exists only
+    for a unit whose siblings share a scheme (D79), so it is offered only then."""
+    store = _store(db_path)
+    try:
+        grouped = lot_group_summary(dp, store) is not None
+    finally:
+        store.close()
+    return [f for f in _OUTPUT_ORDER if f != "estate_board" or grouped]
+
+
+def _outputs_view(db_path: str, dp: str, record: PropertyRecord) -> List[Dict[str, Any]]:
+    chosen = record.marketing.outputs if record.marketing is not None else None
+    return [
+        {
+            "fmt": fmt,
+            "label": FORMAT_META[fmt]["label"],
+            "on": chosen is None or fmt in chosen,
+            "hint": _OUTPUT_HINTS.get(fmt, ""),
+        }
+        for fmt in _offered_outputs(db_path, dp)
+    ]
+
+
+@router.post("/{dp}/ads/outputs", response_class=HTMLResponse)
+async def gate2_outputs(dp: str, request: Request,
+                        user: dict = Depends(require_role("approver", "marketing"))):
+    """Choose what is made for this property beyond the advert (D121).
+
+    Saves on the click, like the icon picker (D100). Before approval nothing
+    renders, because only the advert exists until then and the choice is read
+    when the pack is built. Once the pack exists, a change marks it stale and
+    Regenerate builds the new set (D72), exactly like any other gate-2 edit.
+    """
+    from engine.schema import Marketing
+
+    db_path = _db(request)
+    form = await request.form()
+    offered = _offered_outputs(db_path, dp)
+    wanted = set(form.getlist("output"))          # an unticked box posts nothing
+    ticked = [f for f in offered if f in wanted]
+    # Everything ticked is stored as "never chosen", so the property keeps
+    # following the whole set, including any format added later.
+    value = None if len(ticked) == len(offered) else ticked
+
+    store = _store(db_path)
+    try:
+        rec = store.get(dp)
+        if rec is None:
+            raise HTTPException(status_code=404, detail="No such property.")
+        if rec.marketing is None:
+            rec.marketing = Marketing()
+        changed = selected_formats(rec.marketing.outputs) != selected_formats(value)
+        rec.marketing.outputs = value
+        state = store.get_state(dp)
+        store.upsert(rec, state=state)
+        if changed:
+            made = [FORMAT_META[f]["label"] for f in ticked]
+            store.record_signoff(dp, gate="edit", user=user["email"],
+                                 note="outputs: advert" + "".join(f", {m}" for m in made))
+    finally:
+        store.close()
+
+    toast: Optional[Dict[str, str]] = None
+    if changed and state in _AD_ONLY_STATES:
+        toast = {"tone": "ok", "title": "Saved", "text": "Made when the advert is approved."}
+    elif changed:
+        _reopen_if_live(db_path, dp, user["email"])
+        _mark_stale(db_path, dp, "outputs")
+        toast = {"tone": "ok", "title": "Saved",
+                 "text": "Press Regenerate to build the new set."}
+    return _photo_result(request, db_path, dp, toast)
+
+
 @router.post("/{dp}/ads/icons", response_class=HTMLResponse)
 async def gate2_feature_icons(dp: str, request: Request,
                               user: dict = Depends(require_role("approver", "marketing"))):
@@ -1989,6 +2098,11 @@ _EDIT_NUMBER_FIELDS = {
     "confirmation_days": ("sale_process.otp.confirmation_days", int, 0, 365),
     "monthly_rates": ("valuation.estimated_monthly_rates", float, 0.0, 10_000_000.0),
     "monthly_levy": ("valuation.monthly_levy", float, 0.0, 10_000_000.0),
+    # Room counts (D122). A Lightstone carries none, and a property may now be
+    # extracted from a Lightstone alone, so the team types them here.
+    "bedrooms": ("physical.bedrooms", int, 0, 50),
+    "bathrooms": ("physical.bathrooms_main_unit", int, 0, 50),
+    "garages": ("physical.garages", int, 0, 50),
 }
 
 # Terms that are a fixed choice. Validated against the allow-list like the sale
@@ -2013,6 +2127,9 @@ _FIELD_LABELS = {
     "confirmation_days": "Confirmation (days)",
     "monthly_rates": "Monthly rates",
     "monthly_levy": "Monthly levy",
+    "bedrooms": "Bedrooms",
+    "bathrooms": "Bathrooms",
+    "garages": "Garages",
 }
 # The three viewing states (fix list 4.6). Validated like the sale method so a
 # crafted POST cannot store an off-list value that then fails to round-trip.

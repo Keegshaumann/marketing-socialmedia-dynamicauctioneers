@@ -104,13 +104,50 @@ def _pipeline_stage(state: str) -> int:
     return _STAGE_INDEX.get(state, 0)
 
 
+# --- a property waiting on extraction (D122) ------------------------------
+# An intake row used to read "Awaiting extraction" in grey whatever had
+# happened, with nothing to click. DP 3078.1 sat there after its extraction was
+# refused, and the reason had only ever been shown on the Intake screen at the
+# moment of upload. The row now says what the extraction is doing, and when it
+# stopped, why, and offers the way on.
+
+def _last_extract(db_path: str, dp: str) -> Optional[Dict[str, Any]]:
+    for job in models.list_jobs(db_path, dp=dp, limit=20):
+        if job.get("kind") == "extract":
+            return job
+    return None
+
+
+def _extract_status(job: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """What an intake row says and offers, from its latest extract job."""
+    state = (job or {}).get("state") or ""
+    if not job or state in ("queued", "running"):
+        return {"label": "Extracting", "href": None, "variant": "muted", "note": None}
+    reason = (job.get("detail") or "").strip()
+    if state == "skipped: no documents":
+        # Nothing on the job can be read, so running it again is pointless.
+        return {"label": "Upload documents", "href": "/intake", "variant": "primary",
+                "note": "No document recognised", "reason": reason}
+    if state == "done":
+        # Done but still at intake means the record was not advanced; running
+        # again is the honest offer.
+        note = "Extraction did not advance the record"
+    elif state == "error":
+        note = "Extraction failed"
+    else:
+        note = "Extraction stopped"
+    return {"label": "Run extraction", "href": None, "variant": "primary",
+            "note": note, "reason": reason, "retry": True}
+
+
 def _deck_stats(rows: List[Dict[str, Any]]) -> Dict[str, int]:
     """The command-deck KPIs: live listings, the action queue, open flags, total."""
     live = sum(1 for r in rows if r["state"] in ("live", "updated"))
     flags = sum(1 for r in rows if r["state"] == "flags_raised")
     queue = sum(
         1 for r in rows
-        if r["next"]["href"] and r["state"] not in ("live", "updated")
+        if (r["next"]["href"] or r["next"].get("retry"))
+        and r["state"] not in ("live", "updated")
     )
     return {"live": live, "queue": queue, "flags": flags, "total": len(rows)}
 
@@ -181,7 +218,8 @@ def _load_rows(db_path: str) -> List[Dict[str, Any]]:
                     "days": _days_in_state(entered["at"] if entered else None),
                     "owner": _owner_from_note(last_actor["note"] if last_actor else None)
                     or "Unassigned",
-                    "next": _next_action(dp, state),
+                    "next": (_extract_status(_last_extract(db_path, dp))
+                             if state == "intake" else _next_action(dp, state)),
                     "edit_href": _edit_href(dp, state),
                     "stage": _pipeline_stage(state),
                 }
@@ -277,6 +315,35 @@ def board_rows(request: Request):
     if not auth.can(user, *auth.OPERATIONS):
         return RedirectResponse(auth.home_for(user), status_code=303)
     rows = _load_rows(auth.db_path_for(request))
+    return _view(request, "_board_rows.html", {"rows": rows, "animate": False})
+
+
+@router.post("/board/{dp}/extract", response_class=HTMLResponse)
+def board_extract(
+    dp: str,
+    request: Request,
+    user: dict = Depends(auth.require_role("approver", "marketing")),
+):
+    """Run a stopped extraction again, from the documents already uploaded (D122).
+
+    Re-queues the property's latest extract job with the same documents. Only
+    for a property still at intake whose extraction is not already queued or
+    running, so a double click cannot queue two paid extractions.
+    """
+    from engine.store import RecordStore
+    from webapp import jobs
+
+    db_path = auth.db_path_for(request)
+    store = RecordStore(models.resolve_db_path(db_path))
+    try:
+        state = store.get_state(dp)
+    finally:
+        store.close()
+    last = _last_extract(db_path, dp)
+    if (state == "intake" and last is not None and last.get("payload")
+            and last.get("state") not in ("queued", "running")):
+        jobs.enqueue(db_path, "extract", dp, payload=last["payload"])
+    rows = _load_rows(db_path)
     return _view(request, "_board_rows.html", {"rows": rows, "animate": False})
 
 

@@ -396,18 +396,29 @@ def _docs_line(n_light: int, n_report: int, n_valuation: int) -> str:
         if n_valuation:
             line += " A registered valuer's valuation report follows (third)."
         return line
-    counts = [f"{n_light} Lightstone EVM report(s)"]
+    # Only the kinds actually supplied are named (D122): a property may arrive
+    # with a Lightstone alone, or a report alone, and "0 Property Reports" in
+    # the directive invites the model to go looking for one.
+    counts = []
+    if n_light:
+        counts.append(f"{n_light} Lightstone EVM report(s)")
     if n_report:
         counts.append(f"{n_report} Dynamic Property Report(s)")
     if n_valuation:
         counts.append(f"{n_valuation} registered valuer's valuation report(s)")
-    return (
+    line = (
         "The documents above are this property's source reports (" + ", ".join(counts)
-        + "), the Lightstone EVM(s) first, then the Property Report(s), then any "
-        "valuation report(s). They may describe a single property that spans "
-        "several land portions; treat every document as describing ONE property "
-        "and synthesise a single record."
+        + "), in the order Lightstone EVM, Property Report, valuation report. They "
+        "may describe a single property that spans several land portions; treat "
+        "every document as describing ONE property and synthesise a single record."
     )
+    if not (n_report or n_valuation):
+        line += (
+            " There is no physical inspection among them, so leave any room count "
+            "or physical detail the documents do not state as null rather than "
+            "inferring it."
+        )
+    return line
 
 
 def build_request(
@@ -633,7 +644,32 @@ def extract_record(
         compliance=Compliance(owner_pii_redacted=True),
         **parts,
     )
-    return normalize_record(record)
+    return normalize_record(_blank_unstated_rooms(record, inspected=bool(reports or valuations)))
+
+
+# Room counts a desktop report cannot know (D122).
+_ROOM_FIELDS = ("bedrooms", "bathrooms_main_unit", "garages")
+
+
+def _blank_unstated_rooms(record: PropertyRecord, inspected: bool) -> PropertyRecord:
+    """With no inspection among the documents, a room count of 0 is stored as null.
+
+    Seen live on DP 3078.1 (a Lightstone alone, a house plainly visible on its
+    aerial photograph): the model answered 0 bedrooms, 0 bathrooms and 0
+    garages although the directive told it to leave counts the documents do
+    not state as null. Zero is a fact and null is an absence (hard rule 3), and
+    they behave differently downstream: null raises gate 1's missing-count note
+    and leaves gate 2's Rooms box empty for the team to fill, zero does
+    neither. A Lightstone does sometimes state a positive count (DP3060's
+    garages), so only a zero is treated as unstated.
+    """
+    physical = record.physical
+    if inspected or physical is None:
+        return record
+    for name in _ROOM_FIELDS:
+        if getattr(physical, name, None) == 0:
+            setattr(physical, name, None)
+    return record
 
 
 # --- code-side normalization (D23 follow-up) ------------------------------
@@ -678,6 +714,14 @@ def normalize_record(record: PropertyRecord) -> PropertyRecord:
 
     if record.identity is not None:
         record.identity.title_type = _normalize_title_type(record.identity.title_type)
+        # A master ref is the Master's file number (B33/2025), never our own DP.
+        # Seen live on DP 3078.1: with no mandate in the documents, the model
+        # copied the DP it was given in the directive, and the advert's top bar
+        # read "MASTER REF: DP 3078.1" beside "PROPERTY REF: DP3078.1".
+        ref = record.identity.mandate_ref
+        if isinstance(ref, str) and re.sub(r"[\s.]|^dp", "", ref.strip().lower()) == \
+                re.sub(r"[\s.]", "", str(record.dp).lower()):
+            record.identity.mandate_ref = None
 
     physical = record.physical
     if physical is not None and isinstance(physical.zoning, str) and physical.zoning.isupper():

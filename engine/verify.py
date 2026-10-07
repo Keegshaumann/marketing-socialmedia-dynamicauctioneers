@@ -293,7 +293,7 @@ def deterministic_checks(record: PropertyRecord) -> List[Flag]:
                     code="BED_BATH_SANITY",
                     title="Bedroom count missing or non-positive",
                     evidence=f"bedrooms = {bedrooms!r}.",
-                    action="Confirm the bedroom count from the inspection.",
+                    action="Confirm the bedroom count from the inspection, or type it on the ad review screen if no document gives it.",
                 )
             )
         elif bathrooms is not None and bathrooms > bedrooms + 3:

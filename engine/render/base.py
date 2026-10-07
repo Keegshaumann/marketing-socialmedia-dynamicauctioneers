@@ -38,6 +38,26 @@ FORMATS: List[str] = [
     "estate_board",
 ]
 
+# The advert and its two variations are always made: the advert is what gets
+# approved (D39). Everything else is the team's pick per property (D121), since
+# a small private sale needs an advert and a pack, not an auction board.
+ADVERT_FORMATS: List[str] = ["demo_ad", "demo_ad_2", "demo_ad_3"]
+OPTIONAL_FORMATS: List[str] = [f for f in FORMATS if f not in ADVERT_FORMATS]
+
+
+def selected_formats(outputs: Optional[List[str]]) -> List[str]:
+    """The formats a full render makes for a property, in ``FORMATS`` order.
+
+    ``outputs`` is ``marketing.outputs``: None (never chosen) is the whole set,
+    so every record written before the choice existed renders as it always did.
+    An unknown name is ignored rather than refused, so a format removed later
+    cannot break a stored choice.
+    """
+    if outputs is None:
+        return list(FORMATS)
+    picked = set(outputs)
+    return [f for f in FORMATS if f in ADVERT_FORMATS or f in picked]
+
 
 @dataclass
 class RenderRequest:

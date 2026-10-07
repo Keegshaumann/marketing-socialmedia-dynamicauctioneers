@@ -283,22 +283,109 @@ def test_a_lightstone_plus_a_valuation_is_enough_to_extract(tmp_path, monkeypatc
     assert "val.pdf" in str(seen.get("valuation_pdf"))
 
 
-def test_the_skip_message_says_what_is_missing(tmp_path, monkeypatch):
-    """The old message read "no source pair on the job payload" under a heading
-    that said "Pair received" - it contradicted itself and named neither the
-    document that was missing nor what to do about it."""
+def _reaches_extraction(tmp_path, monkeypatch, dp: str, **sources) -> dict:
+    """Run the extract job on ``sources`` with extraction stubbed; return the
+    kwargs extraction was called with ({} when the job never got that far)."""
+    from webapp import jobs
+
+    seen = {}
+
+    def _fake_extract(*a, **kw):
+        seen.update(kw)
+        seen["_args"] = a
+        raise RuntimeError("stop after the gate")
+
+    monkeypatch.setattr("engine.extract.extract_record", _fake_extract, raising=False)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key-not-used")
+    payload = {"dp": dp, "lightstones": [], "property_reports": [], "valuations": [],
+               "output_root": str(tmp_path)}
+    payload.update(sources)
+    try:
+        state, detail = jobs._handle_extract(str(tmp_path / "t.db"), {"dp": dp, "payload": payload})
+        assert not (state or "").startswith("skipped"), detail
+    except RuntimeError as exc:
+        assert "stop after the gate" in str(exc)
+    return seen
+
+
+# --- no property is refused for a missing document (D122) ------------------
+
+def test_a_lightstone_alone_is_extracted(tmp_path, monkeypatch):
+    """Reported from production: DP 3078.1 had only a Lightstone, the job was
+    skipped as "incomplete sources", and the board showed "Awaiting extraction"
+    with nothing to click. The team often has one document and nothing else."""
+    seen = _reaches_extraction(tmp_path, monkeypatch, "3078.1",
+                               lightstones=[str(tmp_path / "ls.pdf")])
+    assert seen, "extraction was never called: a Lightstone alone is still refused"
+    assert "ls.pdf" in str(seen["_args"][0])
+
+
+def test_a_property_report_alone_is_extracted(tmp_path, monkeypatch):
+    seen = _reaches_extraction(tmp_path, monkeypatch, "3079",
+                               property_reports=[str(tmp_path / "pr.pdf")])
+    assert seen, "extraction was never called: a Property Report alone is refused"
+
+
+def test_no_recognised_document_says_what_to_upload(tmp_path, monkeypatch):
+    """The one intake with nothing to read. The message names the documents
+    that would do and where to upload them."""
     from webapp import jobs
 
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key-not-used")
     state, detail = jobs._handle_extract(
         str(tmp_path / "t.db"),
         {"dp": "2677", "payload": {
-            "dp": "2677", "lightstones": [], "property_reports": [],
-            "valuations": [str(tmp_path / "val.pdf")],
+            "dp": "2677", "lightstones": [], "property_reports": [], "valuations": [],
             "output_root": str(tmp_path),
         }},
     )
-    assert "incomplete sources" in state
-    assert "Lightstone EVM" in detail          # names what is missing
-    assert "valuation" in detail               # names what did arrive
-    assert "uploads folder" in detail          # says what to do next
+    assert state == "skipped: no documents"
+    assert "Lightstone" in detail and "Property Report" in detail and "valuation" in detail
+    assert "Intake" in detail
+
+
+def test_the_directive_names_only_the_documents_supplied():
+    """With a Lightstone alone the model must not be told about Property
+    Reports that do not exist, and must leave room counts null."""
+    from engine.extract import _docs_line
+
+    alone = _docs_line(1, 0, 0)
+    assert "Property Report(s)" not in alone and "0 " not in alone
+    assert "no physical inspection" in alone
+    # The ordinary pair is unchanged.
+    assert _docs_line(1, 1, 0).startswith("The documents above are the Lightstone EVM report (first)")
+    assert "no physical inspection" not in _docs_line(2, 1, 0)
+
+
+def test_a_lightstone_alone_never_claims_zero_rooms():
+    """Live on DP 3078.1: a Lightstone alone, a house on its aerial photograph,
+    and the model answered 0 bedrooms, 0 bathrooms, 0 garages. Unstated is null,
+    so gate 1 notes it and gate 2's Rooms box is empty for the team to fill."""
+    from engine.extract import _blank_unstated_rooms
+    from engine.schema import Physical, PropertyRecord
+
+    def rec():
+        return PropertyRecord(dp="3078.1", physical=Physical(bedrooms=0, bathrooms_main_unit=0, garages=2))
+
+    alone = _blank_unstated_rooms(rec(), inspected=False).physical
+    assert alone.bedrooms is None and alone.bathrooms_main_unit is None
+    assert alone.garages == 2                      # a stated count is kept
+    # With an inspection among the documents, a zero is the inspector's word.
+    inspected = _blank_unstated_rooms(rec(), inspected=True).physical
+    assert inspected.bedrooms == 0 and inspected.bathrooms_main_unit == 0
+
+
+def test_our_own_dp_is_never_the_master_ref():
+    """Live on DP 3078.1: the model copied the DP from its directive into the
+    master ref, and the advert printed it twice under two different labels."""
+    from engine.extract import normalize_record
+    from engine.schema import Identity, PropertyRecord
+
+    for ref in ("DP 3078.1", "DP3078.1", "3078.1", "dp 3078.1"):
+        rec = normalize_record(PropertyRecord(dp="3078.1", identity=Identity(mandate_ref=ref)))
+        assert rec.identity.mandate_ref is None, ref
+    kept = normalize_record(PropertyRecord(dp="3078.1", identity=Identity(mandate_ref="B33/2025")))
+    assert kept.identity.mandate_ref == "B33/2025"
+    # Another property's number is not ours to drop.
+    other = normalize_record(PropertyRecord(dp="3078.1", identity=Identity(mandate_ref="DP 3078.2")))
+    assert other.identity.mandate_ref == "DP 3078.2"

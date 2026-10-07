@@ -399,6 +399,11 @@ class Marketing(_Base):
     # one, extents added). Only a person knows which, so it is asked (D112).
     # None on older records: two or more portions read as several (D108).
     multi_property_ad: Optional[bool] = None
+    # What gets made for THIS property beyond the advert (D121): format names
+    # from ``engine.render.base.OPTIONAL_FORMATS``. A cheap house sold by offers
+    # wants the advert and the info pack; another wants the advert and a SAIA
+    # banner. The advert is always made. None = never chosen = everything.
+    outputs: Optional[List[str]] = None
     # The named design/template set the render backends use (the marketing
     # team's pick on gate 2, D33). None = the default (first-configured) set.
     template_set: Optional[str] = None

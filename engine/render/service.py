@@ -41,7 +41,7 @@ from pathlib import Path
 from typing import Callable, List, Optional, Tuple, Union
 
 from engine.render import DEFAULT_BACKEND, get_backend
-from engine.render.base import FORMATS, Artifact, RenderRequest
+from engine.render.base import FORMATS, Artifact, RenderRequest, selected_formats
 from engine.render.copy import generate_copy
 from engine.schema import Marketing, PropertyRecord, override_key_allowed
 from engine.store import RecordStore
@@ -420,16 +420,20 @@ def render_all(
     format through its resolved backend(s), logs a manifest, returns the set.
 
     ``formats`` renders only that subset (validated against ``FORMATS``); default
-    (None) renders the full set. The manifest is written for exactly the formats
-    rendered, so an ad-only first pass (D39) lists only the ad, and the later
-    full pass rewrites the manifest with everything.
+    (None) renders the full set the team chose for this property
+    (``marketing.outputs``, D121), which is every format when they never chose.
+    The manifest is written for exactly the formats rendered, so an ad-only
+    first pass (D39) lists only the ad, and the later full pass rewrites the
+    manifest with the chosen set.
     """
-    targets = list(formats) if formats is not None else FORMATS
-    unknown = [f for f in targets if f not in FORMATS]
+    targets = list(formats) if formats is not None else None
+    unknown = [f for f in targets or [] if f not in FORMATS]
     if unknown:
         raise ValueError(f"Unknown format(s): {', '.join(unknown)}. Known: {', '.join(FORMATS)}.")
 
     record = _load_record(dp, store)
+    if targets is None:
+        targets = selected_formats(record.marketing.outputs if record.marketing else None)
     # Nothing to render needs no copy (D111). ``formats=[]`` is how gate 2 saves
     # an edit without rendering (D72), and it still ran the copy step below,
     # which makes the PAID model call on a cache miss: a draft caches no copy

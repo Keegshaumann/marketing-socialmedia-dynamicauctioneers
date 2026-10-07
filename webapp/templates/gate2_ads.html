@@ -71,13 +71,47 @@
           </div>
         </div>
         <div class="panel__body">
-          <p class="hint" style="margin:0 0 12px">The branded ad is ready. Export it or email it to the client for approval. The full pack (info pack, banners, socials) is generated once the ad is approved.</p>
+          <p class="hint" style="margin:0 0 12px">The branded ad is ready. Export it or email it to the client for approval. Everything ticked under What to make is generated once the ad is approved.</p>
           {% include 'partials/_gate2_gallery.html' %}
         </div>
       </div>
     </div>
 
     <div class="stack">
+      {# What is made beyond the advert (D121). A click saves; the pack is only
+         built at approval, so before that nothing renders. #}
+      <div class="panel" id="outputs">
+        <div class="panel__head">
+          <div class="panel__title">What to make</div>
+          <div class="panel__actions"><span class="hint">Tick what this property needs.</span></div>
+        </div>
+        <div class="panel__body">
+          <form hx-post="/gates/{{ dp }}/ads/outputs" hx-trigger="change"
+                hx-target="#photos" hx-swap="outerHTML">
+            <label class="checkline">
+              <input type="checkbox" checked disabled>
+              <span><strong>Advert</strong> <span class="hint hint--inline">always made, with its two variations</span></span>
+            </label>
+            <div class="outputs-grid">
+              {% for o in outputs %}
+              <label class="checkline"{% if o.hint %} title="{{ o.hint }}"{% endif %}>
+                <input type="checkbox" name="output" value="{{ o.fmt }}"{% if o.on %} checked{% endif %}>
+                <span>{{ o.label }}</span>
+              </label>
+              {% endfor %}
+            </div>
+            <div class="hint">
+              {% if outputs_later %}
+                Only the advert exists until it is approved. Everything ticked is made then.
+              {% else %}
+                A change here waits for <strong>Regenerate</strong>, like any other edit.
+              {% endif %}
+              The social post takes its caption from the Facebook post; without it the caption is one line.
+            </div>
+          </form>
+        </div>
+      </div>
+
       <div class="panel">
         <div class="panel__head"><div class="panel__title">Edit ad details</div></div>
         <div class="panel__body">
@@ -129,6 +163,26 @@
               <label class="label" for="mandate_ref">Master ref</label>
               <input class="input" id="mandate_ref" name="mandate_ref" value="{{ mandate_ref }}" placeholder="e.g. B33/2025">
               <div class="hint">Printed as MASTER REF on the advert's top bar.</div>
+            </div>
+            {# Room counts (D122). A Lightstone states none, so a property
+               extracted from one arrives without them. #}
+            <div class="field">
+              <div class="label">Rooms</div>
+              <div class="field-grid field-grid--3">
+                <div>
+                  <label class="label label--sm" for="bedrooms">Bedrooms</label>
+                  <input class="input" id="bedrooms" name="bedrooms" inputmode="numeric" value="{{ rooms.bedrooms }}">
+                </div>
+                <div>
+                  <label class="label label--sm" for="bathrooms">Bathrooms</label>
+                  <input class="input" id="bathrooms" name="bathrooms" inputmode="numeric" value="{{ rooms.bathrooms }}">
+                </div>
+                <div>
+                  <label class="label label--sm" for="garages">Garages</label>
+                  <input class="input" id="garages" name="garages" inputmode="numeric" value="{{ rooms.garages }}">
+                </div>
+              </div>
+              <div class="hint">Filled in from the documents where they give them. A Lightstone report has no room counts, so type them. Blank leaves the count off the advert.</div>
             </div>
             <div class="field">
               <label class="label" for="method">Sale method</label>

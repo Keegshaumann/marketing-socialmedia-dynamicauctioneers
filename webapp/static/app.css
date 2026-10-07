@@ -382,6 +382,8 @@ img { max-width: 100%; }
   margin-top: 6px; font-size: 11px; font-weight: 600; letter-spacing: .03em; color: var(--muted);
 }
 .track__label.is-flag { color: var(--note); }
+/* Why an intake row stopped (D122); the full reason is its tooltip. */
+.track__why { margin-top: 2px; font-size: 11px; color: var(--muted); }
 
 /* ---- Buttons ------------------------------------------------------------ */
 .btn {
@@ -515,11 +517,15 @@ img { max-width: 100%; }
 .auction-panel { border: 1px solid var(--accent-bd); background: var(--accent-bg); border-radius: 10px; padding: 12px 14px; }
 .auction-panel[hidden] { display: none; }
 .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; margin-top: 6px; }
+.field-grid--3 { grid-template-columns: 1fr 1fr 1fr; }
 .form-error { font-size: 12.5px; color: var(--block); font-weight: 600; margin-top: 6px; }
 .input.is-invalid, .textarea.is-invalid { border-color: var(--block); }
 
 .checkline { display: flex; align-items: center; gap: 9px; padding: 6px 0; }
 .checkline input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); }
+/* What to make (D121): two columns of ticks, one on a phone. */
+.outputs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+@media (max-width: 560px) { .outputs-grid { grid-template-columns: 1fr; } }
 
 /* ---- Drag-drop / intake ------------------------------------------------- */
 .dropzone {
