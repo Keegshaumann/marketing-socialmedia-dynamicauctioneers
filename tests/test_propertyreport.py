@@ -179,6 +179,16 @@ def test_a_full_sectional_report(tmp_path):
     assert tables[0].rows[5].cells[1].text == "R 850 000.00"
 
 
+def test_photos_go_into_word_at_print_size(tmp_path):
+    root = tmp_path / "report"
+    photos = ["photos/" + _picture(root / "photos" / f"p{n}.jpg", (1600, 1200) if n else (900, 1600)) for n in range(2)]
+    out = docx_build.build(_report(photos=photos), root, tmp_path / "9402 - PROPERTY REPORT.docx")
+    doc = Document(str(out))
+    blips = [s._inline.graphic.graphicData.pic.blipFill.blip.embed for s in doc.inline_shapes]
+    sizes = [Image.open(io.BytesIO(doc.part.related_parts[r].blob)).size for r in blips]
+    assert sizes == [(450, 800), (800, 600)]  # 1600 px kept on disk, about 275 dpi printed
+
+
 def test_a_minimal_freehold_report_leaves_empty_sections_out(tmp_path):
     out = docx_build.build(_report(description=""), tmp_path, tmp_path / "p.docx")
     paras = [p.strip() for p in _paragraphs(out)]

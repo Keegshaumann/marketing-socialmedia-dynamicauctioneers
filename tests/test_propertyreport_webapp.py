@@ -230,6 +230,24 @@ def test_photos_are_turned_upright_made_smaller_ordered_and_served(app_env):
     assert _get(app_env, "9504").photos == ["photos/a.jpg"]
 
 
+def test_a_report_takes_200_photos_and_says_so_past_that(app_env):
+    _start(app_env, "9510")
+    tiny = _jpeg((8, 6))
+    for start in range(0, 200, 40):
+        _upload(app_env, "9510", "photos", [(f"p{n}.jpg", tiny, "image/jpeg") for n in range(start, start + 40)])
+    assert len(_get(app_env, "9510").photos) == 200
+    refused = _upload(app_env, "9510", "photos", [("extra.jpg", tiny, "image/jpeg")])
+    assert "at most 200 photos" in unquote(refused.headers["HX-Redirect"])
+    assert len(_get(app_env, "9510").photos) == 200
+
+
+def test_files_past_one_requests_limit_are_reported_not_dropped_silently(app_env):
+    _start(app_env, "9511")
+    resp = _upload(app_env, "9511", "photos", [(f"p{n}.jpg", _jpeg((8, 6)), "image/jpeg") for n in range(43)])
+    assert len(_get(app_env, "9511").photos) == 40
+    assert "3 were not added" in unquote(resp.headers["HX-Redirect"])
+
+
 def test_a_lightstone_upload_without_a_key_still_draws_the_cover(app_env):
     _start(app_env, "9505")
     resp = _upload(app_env, "9505", "lightstone", [("EVM_Report.pdf", _evm_bytes(), "application/pdf")])

@@ -642,6 +642,75 @@
     if (label) label.classList.add('is-uploading');
   });
 
+  // A property report takes up to 200 photos, but one request carrying them all
+  // would pass nginx's 50 MB body limit, and the server takes 40 files a request.
+  // So a form marked data-batch="N" sends a bigger pick N files (and at most
+  // 40 MB) at a time, one after the other, each with the hx-include fields as the
+  // form itself would send them, then reloads once with every batch's notice.
+  var BATCH_BYTES = 40 * 1024 * 1024;
+
+  function fileBatches(files, most) {
+    var out = [], cur = [], bytes = 0;
+    Array.prototype.forEach.call(files, function (f) {
+      if (cur.length && (cur.length >= most || bytes + f.size > BATCH_BYTES)) {
+        out.push(cur); cur = []; bytes = 0;
+      }
+      cur.push(f); bytes += f.size;
+    });
+    if (cur.length) out.push(cur);
+    return out;
+  }
+
+  document.addEventListener('htmx:confirm', function (e) {
+    var form = e.detail && e.detail.elt;
+    if (!form || !form.matches || !form.matches('form[data-batch]')) return;
+    var input = form.querySelector('input[type="file"]');
+    var most = parseInt(form.getAttribute('data-batch'), 10) || 20;
+    if (!input || !input.files || input.files.length <= most) return;  // one request, as before
+    e.preventDefault();
+
+    var total = input.files.length;
+    var groups = fileBatches(input.files, most);
+    var include = form.getAttribute('hx-include');
+    var fields = include ? document.querySelector(include) : null;
+    var token = {};  // one work bar for the whole run, not one per batch
+    var sent = 0, notices = [], last = null;
+
+    function say() {
+      form.setAttribute('data-work', 'Uploading photos: ' + sent + ' of ' + total);
+      workStart(form, token);
+    }
+    function finish(extra) {
+      if (extra) notices.push(extra);
+      var url = new URL(last || window.location.pathname + '#documents', window.location.href);
+      url.searchParams.set('at', String(Date.now() * 1000));
+      if (notices.length) url.searchParams.set('notice', notices.join(' '));
+      else url.searchParams.delete('notice');
+      window.location.href = url.toString();
+    }
+    function post(i) {
+      if (i >= groups.length) { finish(); return; }
+      var body = fields ? new FormData(fields) : new FormData();
+      groups[i].forEach(function (f) { body.append(input.name, f, f.name); });
+      fetch(form.getAttribute('hx-post'), {
+        method: 'POST', body: body, credentials: 'same-origin', headers: { 'HX-Request': 'true' }
+      }).then(function (r) {
+        var to = r.headers.get('HX-Redirect');
+        if (!r.ok || !to) throw new Error('HTTP ' + r.status);
+        last = to;
+        var note = new URL(to, window.location.href).searchParams.get('notice');
+        if (note && notices.indexOf(note) === -1) notices.push(note);
+        sent += groups[i].length;
+        say();
+        post(i + 1);
+      }).catch(function () {
+        finish('The upload stopped after ' + sent + ' of ' + total + ' photos. Upload the rest again.');
+      });
+    }
+    say();
+    post(0);
+  });
+
   // Clear the per-click marks when the request ends, whichever way it ends: a
   // successful swap usually replaces the button anyway, but a 4xx partial or a
   // network error leaves the original in place and it must not stay locked.

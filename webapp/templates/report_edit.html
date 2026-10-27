@@ -9,7 +9,7 @@
 
 {% macro upload(dp, kind, label, accept, multiple=false) -%}
 <form class="doc-upload" hx-post="/reports/{{ dp }}/upload/{{ kind }}" hx-encoding="multipart/form-data"
-      hx-include="#report-form" hx-trigger="change">
+      hx-include="#report-form" hx-trigger="change"{% if multiple %} data-batch="20"{% endif %}>
   <label class="btn btn--ghost btn--sm">
     {{ ui.icon('plus', 'icon--sm') }}<span>{{ label }}</span>
     <span class="spinner" aria-hidden="true"></span>
@@ -107,7 +107,7 @@
 
       <div class="doc-slot">
         <div class="label">Photos{% if rep.photos %} ({{ rep.photos|length }}){% endif %}</div>
-        <div class="hint">They print after the report, six to a page, in this order. Phone photos are turned upright and made smaller.</div>
+        <div class="hint">Up to 200. They print after the report, six to a page, in this order. Phone photos are turned upright and made smaller.</div>
         {% if rep.photos %}
         <div class="proposal-thumbs">
           {% for f in rep.photos %}

@@ -55,9 +55,9 @@ templates = shared.templates
 _ROLES = ("properties",)  # the same people as the proposals and OTPs (D104)
 _DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 _IMAGES = (".png", ".jpg", ".jpeg")
-_MAX_PHOTOS = 120
-_MAX_PHOTO_UPLOAD = 40
-_PHOTO_EDGE = 1600  # phone photos are shrunk so a report with 50 of them stays a sensible size
+_MAX_PHOTOS = 200
+_MAX_PHOTO_UPLOAD = 40  # per request; the page sends a bigger pick in batches (app.js)
+_PHOTO_EDGE = 1600  # phone photos are shrunk for the screen; Word takes a smaller copy (docx_build)
 _MAX_LINES = 20
 
 require = auth.require_role(*_ROLES)
@@ -434,6 +434,7 @@ async def report_upload(
     limit = _MAX_PHOTO_UPLOAD if kind == "photos" else shared._MAX_FILES
     notes: List[str] = []
     added: List[str] = []
+    full = False
     for upload in files[:limit]:
         name = shared._safe_name(upload.filename)
         if Path(name).suffix.lower() not in accept:
@@ -446,6 +447,7 @@ async def report_upload(
         if kind == "photos":
             if len(report.photos) + len(added) >= _MAX_PHOTOS:
                 notes.append(f"A report holds at most {_MAX_PHOTOS} photos.")
+                full = True
                 break
             dest = shared._unique(root / "photos", f"{Path(name).stem}.jpg")
             try:
@@ -458,6 +460,9 @@ async def report_upload(
             dest = shared._unique(root / kind, name)
             dest.write_bytes(raw)
         added.append(f"{kind}/{dest.name}")
+    if len(files) > limit and not full:
+        # These used to be dropped without a word, so a report looked capped at 40.
+        notes.append(f"Only {limit} files go up at a time, so {len(files) - limit} were not added. Upload them again.")
 
     if kind == "lightstone" and added:
         from engine.proposal import lightstone

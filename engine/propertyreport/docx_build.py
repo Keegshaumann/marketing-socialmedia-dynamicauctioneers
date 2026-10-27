@@ -9,7 +9,7 @@ cut out (``scripts/build_report_template.py``). This fills it:
   freehold property, no inspection date) is removed with its heading, so the
   report never prints an empty heading or "TBC" where nothing was checked;
 * the Lightstone picture goes on the cover and the photos follow the text six to
-  a page, two across, in borderless tables.
+  a page, two across, in borderless tables, each a smaller copy made for print.
 
 The token filling is the proposal's (M9), so every document fills the same way.
 """
@@ -17,6 +17,7 @@ The token filling is the proposal's (M9), so every document fills the same way.
 from __future__ import annotations
 
 import copy
+import io
 from pathlib import Path
 from typing import List, Optional
 
@@ -47,6 +48,9 @@ _COVER_W_IN, _COVER_H_IN = 6.27, 5.0
 _PHOTO_W_IN, _PHOTO_H_IN = 2.9, 2.2
 _COLUMN_IN = 3.13
 PER_PAGE = 6
+# A photo prints 2.9 inches wide, so 800 px is about 275 dpi. The uploads keep 1600
+# px for the screen; at that size 200 photos made a Word file too big to email.
+_PRINT_PX = 800
 
 
 def _para(doc, token: str):
@@ -110,6 +114,16 @@ def _fit(path: Path, max_w: float, max_h: float):
     return Inches(width), Inches(height)
 
 
+def _print_copy(path: Path) -> io.BytesIO:
+    with Image.open(path) as im:
+        small = im.convert("RGB")
+    small.thumbnail((_PRINT_PX, _PRINT_PX))
+    out = io.BytesIO()
+    small.save(out, "JPEG", quality=80, optimize=True)
+    out.seek(0)
+    return out
+
+
 def _clear(p) -> None:
     for r in p.xpath(_RUN_XPATH):
         r.getparent().remove(r)
@@ -151,7 +165,7 @@ def _place_photos(doc, paths: List[Path]) -> None:
             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
             paragraph.paragraph_format.space_after = Pt(8)
             width, height = _fit(path, _PHOTO_W_IN, _PHOTO_H_IN)
-            paragraph.add_run().add_picture(str(path), width=width, height=height)
+            paragraph.add_run().add_picture(_print_copy(path), width=width, height=height)
         anchor.addnext(table._tbl)  # add_table appended it at the end; this moves it
         anchor = table._tbl
     closing = etree.Element(qn("w:p"))  # Word wants a paragraph after a closing table
