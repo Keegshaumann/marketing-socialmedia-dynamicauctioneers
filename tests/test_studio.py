@@ -375,13 +375,7 @@ def test_reading_the_documents_keeps_her_edits(app, monkeypatch):
         return {"headline": "CLAUDE HEADLINE", "subline": "MACADAMIA & AVOCADO FARM", "auction_date": "1 JAN 2000"}, []
     monkeypatch.setattr(F, "read_documents", fake_read)
 
-    class Now:  # run the job on this thread
-        def __init__(self, target, args, daemon):
-            self.target, self.args = target, args
-
-        def start(self):
-            self.target(*self.args)
-    monkeypatch.setattr(routes.threading, "Thread", Now)
+    monkeypatch.setattr(routes, "_in_background", lambda target, *args: target(*args))  # run it now
 
     r = c.post("/studio/DP9001/read")
     assert r.status_code == 200
@@ -447,3 +441,104 @@ def test_a_misspelt_aerial_still_counts():
                     key=catalog.photo_rank)
     assert photos[0].item_id == "2"
     assert render.photo_picks({}, photos)["aerial"] == "2"
+
+
+# --- Claude chooses the photos (studio.photopick) ---------------------------------
+
+def test_her_picks_beat_claudes_which_beat_the_rules(mirror):
+    from studio import catalog, render
+
+    photos = catalog.photos(catalog.items(catalog.get("DP9001")))
+    by_name = {p.name: p.item_id for p in photos}
+    claude = {"hero": by_name["house.jpg"], "aerial": by_name["house.jpg"], "photo2": "gone-from-folder",
+              "gallery": [by_name["house.jpg"]]}
+    picks = render.photo_picks({"aerial": by_name["orchard.jpg"], "claude": claude}, photos)
+    assert picks["aerial"] == by_name["orchard.jpg"]          # hers
+    assert picks["hero"] == by_name["house.jpg"]              # Claude's
+    assert picks.get("photo2") != "gone-from-folder"          # an id no longer in the folder is ignored
+    assert picks["gallery"] == [by_name["house.jpg"]]         # Claude's pack, until she changes it
+    mine = render.photo_picks({"gallery": [by_name["orchard.jpg"]], "claude": claude}, photos)
+    assert mine["gallery"] == [by_name["orchard.jpg"]]
+
+
+def test_a_pick_stores_only_what_she_placed(app):
+    from studio import catalog, state
+
+    c = app.login()
+    c.get("/studio/DP9001")
+    house = next(p for p in catalog.photos(catalog.items(catalog.get("DP9001"))) if p.name == "house.jpg")
+    c.post("/studio/DP9001/pick", data={"slot": "photo2", "item": house.item_id})
+    assert state.load(app.db, "DP9001")["photos"] == {"photo2": house.item_id}
+
+
+def test_the_photos_sent_to_claude_are_capped_with_the_teams_picks_first():
+    from studio import catalog, photopick
+
+    def item(n, rel):
+        return catalog.Item("d", str(n), rel.rsplit("/", 1)[-1], "x/" + rel, rel, False, 90_000, 0.0)
+
+    team = [item(f"t{i}", f"Media/Photos/TO BE USED/{i:03}.jpg") for i in range(10)]
+    rest = [item(f"o{i}", f"Media/Photos/Overall/{i:03}.jpg") for i in range(300)]
+    loose = [item("a", "Media/LOOSE ASSETS/truck.jpg")]
+    got = photopick.candidates(sorted(team + rest + loose, key=catalog.photo_rank))
+    assert len(got) == photopick.MAX_PHOTOS
+    assert [g.item_id for g in got[:10]] == [t.item_id for t in team]
+    assert "a" not in {g.item_id for g in got}
+    assert got[-1].item_id.startswith("o") and int(got[-1].item_id[1:]) > 250   # spread to the end
+
+
+def test_claudes_labels_become_photo_ids(mirror, monkeypatch):
+    from studio import catalog, facts as F, photopick
+
+    prop = catalog.get("DP9001")
+    photos = catalog.photos(catalog.items(prop))
+    sent = {}
+
+    def fake_ask(system, content, schema, **kw):
+        sent["images"] = sum(1 for c in content if c["type"] == "image")
+        sent["text"] = " ".join(c.get("text", "") for c in content)
+        return photopick.Picks(aerial="P1", hero=" p2 ", photo1="P2", photo2="P99", gallery=["P2", "P2", "P1", "x"])
+    monkeypatch.setattr(F, "ask", fake_ask)
+
+    got = photopick.choose(prop, photos, auction=True, about="MACADAMIA & AVOCADO FARM")
+    pool = photopick.candidates(photos)
+    assert sent["images"] == len(pool) and "AUCTION" in sent["text"] and "MACADAMIA" in sent["text"]
+    assert got["aerial"] == pool[0].item_id and got["hero"] == pool[1].item_id
+    assert "photo2" not in got                                  # an unknown label is dropped
+    assert got["gallery"] == [pool[1].item_id, pool[0].item_id]  # no repeats
+
+
+def test_reading_also_chooses_photos_and_keeps_hers(app, monkeypatch):
+    from studio import catalog, facts as F, photopick, render, state
+    from webapp.routes import studio as routes
+
+    c = app.login()
+    c.get("/studio/DP9001")
+    photos = catalog.photos(catalog.items(catalog.get("DP9001")))
+    by_name = {p.name: p.item_id for p in photos}
+    c.post("/studio/DP9001/pick", data={"slot": "hero", "item": by_name["house.jpg"]})
+
+    monkeypatch.setattr(F, "read_documents", lambda prop, items, sheets: ({"subline": "FARM"}, []))
+    monkeypatch.setattr(photopick, "choose", lambda prop, photos, auction, about="": {
+        "hero": by_name["orchard.jpg"], "aerial": by_name["orchard.jpg"]})
+    routes._read_job(app.db, "DP9001", "someone")
+
+    row = state.load(app.db, "DP9001")
+    assert row["reading"] == "done" and "photos chosen" in row["message"]
+    picks = render.photo_picks(row["photos"], photos)
+    assert picks["hero"] == by_name["house.jpg"]       # hers stays
+    assert picks["aerial"] == by_name["orchard.jpg"]   # Claude's fills the rest
+
+
+def test_a_failed_photo_choice_never_fails_the_read(app, monkeypatch):
+    from studio import facts as F, photopick, state
+    from webapp.routes import studio as routes
+
+    monkeypatch.setattr(F, "read_documents", lambda prop, items, sheets: ({"subline": "FARM"}, []))
+
+    def boom(*a, **k):
+        raise RuntimeError("no network")
+    monkeypatch.setattr(photopick, "choose", boom)
+    routes._read_job(app.db, "DP9001", "someone")
+    row = state.load(app.db, "DP9001")
+    assert row["reading"] == "done" and "photos chosen" not in row["message"]

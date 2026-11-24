@@ -179,10 +179,20 @@ def env() -> Environment:
 
 # --- the context a template sees ----------------------------------------------
 
+SLOTS = ("hero", "photo1", "photo2", "aerial")
+
+
 def photo_picks(photos: dict, all_photos: list[Item]) -> dict:
-    """The saved picks, with sensible picks for anything not chosen yet."""
+    """What she placed herself, then what Claude chose when it read the folder
+    (``photos["claude"]``, studio.photopick), then the studio's own rules for
+    anything still open."""
+    photos = photos or {}
     by_id = {p.item_id: p for p in all_photos}
-    picks = {k: v for k, v in (photos or {}).items() if k != "gallery" and v in by_id}
+    picks = {k: photos[k] for k in SLOTS if photos.get(k) in by_id}
+    claude = photos.get("claude") or {}
+    for k in SLOTS:
+        if k not in picks and claude.get(k) in by_id:
+            picks[k] = claude[k]
     # Aerials: named as such, or kept in the ad folder's IMAGES / AV IMAGES, which is
     # where the team saves the Google Earth captures with the red boundary drawn on.
     aerials = [p for p in all_photos if re.search(r"AERIA?E?L|AV IMAGE|GOOGLE|SATELLITE|BOUNDARY|MAP|^ADVERTISEMENTS?/[^/]*IMAGES/",
@@ -201,10 +211,12 @@ def photo_picks(photos: dict, all_photos: list[Item]) -> dict:
             if nxt:
                 picks[slot] = nxt.item_id
                 taken.add(nxt.item_id)
-    gallery = [g for g in (photos or {}).get("gallery", []) if g in by_id]
-    if not gallery and "gallery" not in (photos or {}):
-        from studio.catalog import is_asset_photo
-        gallery = [p.item_id for p in ordinary if not is_asset_photo(p)][:18]
+    if "gallery" in photos:                      # she has added or taken out a photo
+        gallery = [g for g in photos["gallery"] if g in by_id]
+    else:
+        gallery = [g for g in claude.get("gallery", []) if g in by_id]
+        if not gallery:
+            gallery = [p.item_id for p in ordinary if not is_asset_photo(p)][:18]
     picks["gallery"] = gallery
     return picks
 

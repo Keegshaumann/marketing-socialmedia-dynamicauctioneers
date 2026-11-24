@@ -19,6 +19,7 @@ from __future__ import annotations
 import logging
 import re
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
 from urllib.parse import quote
 
@@ -27,7 +28,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from pathlib import Path
 
-from studio import catalog, facts as F, form as FORM, render, state
+from studio import catalog, facts as F, form as FORM, photopick, render, state
 from studio.sharepoint import StoreError, store
 from webapp import auth, models
 
@@ -171,6 +172,26 @@ async def studio_mode(ref: str, request: Request, user=Depends(_can)):
 
 # --- reading the documents ------------------------------------------------------
 
+def _in_background(target, *args) -> None:
+    threading.Thread(target=target, args=args, daemon=True).start()
+
+
+def _choose_photos(db: str, prop: catalog.Property, items: list, row: dict, mode: str) -> bool:
+    """Claude's photo choice, stored beside hers as photos["claude"]. True when it chose."""
+    try:
+        f = row["facts"] or {}
+        about = ", ".join(x for x in (f.get("subline"), f.get("short_title"), f.get("headline")) if x)
+        chosen = photopick.choose(prop, catalog.photos(items), auction=(mode == "auction"), about=about)
+    except Exception:
+        log.exception("photo choice failed for %s; the studio's own picks stay", prop.ref)
+        return False
+    if not chosen:
+        return False
+    fresh = state.load(db, prop.ref)               # she may have placed a photo meanwhile
+    state.save(db, prop.ref, photos={**((fresh and fresh["photos"]) or {}), "claude": chosen})
+    return True
+
+
 def _read_job(db: str, ref: str, by: str) -> None:
     try:
         prop = catalog.get(ref)
@@ -179,13 +200,19 @@ def _read_job(db: str, ref: str, by: str) -> None:
         if row is None or not row["facts"]:   # never opened: start from the sheets
             state.save(db, ref, facts=F.initial(prop, items), mode=F.mode_for(prop))
             row = state.load(db, ref)
-        sheets = F.from_sheets(prop, items, row["mode"] or F.mode_for(prop))
-        found, warnings = F.read_documents(prop, items, sheets)
+        mode = row["mode"] or F.mode_for(prop)
+        sheets = F.from_sheets(prop, items, mode)
+        # The documents and the photos are two separate questions to Claude, asked
+        # side by side; a failed photo choice never fails the read.
+        with ThreadPoolExecutor(1) as ex:
+            docs = ex.submit(F.read_documents, prop, items, sheets)
+            chosen = _choose_photos(db, prop, items, row, mode)
+            found, warnings = docs.result()
         row = state.load(db, ref)
         merged = F.merge(row["facts"], found, row["edited"])
         merged = F.merge(merged, sheets, row["edited"])   # the sheets win on dates and prices
-        state.save(db, ref, facts=merged, reading="done", warnings=warnings,
-                   message=f"Read {datetime.now().strftime('%d %b %H:%M')}", by=by)
+        note = f"Read {datetime.now().strftime('%d %b %H:%M')}" + (", photos chosen" if chosen else "")
+        state.save(db, ref, facts=merged, reading="done", warnings=warnings, message=note, by=by)
     except Exception as exc:  # shown to her; the details go to the log
         log.exception("studio read failed for %s", ref)
         msg = str(exc) if isinstance(exc, StoreError) else "Reading the documents failed. Try again, or type the details in."
@@ -200,7 +227,7 @@ def studio_read(ref: str, request: Request, user=Depends(_can)):
     if row and row["reading"] == "running" and not _stale(row["updated_at"]):
         return studio_read_status(ref, request, user)
     state.save(db, prop.ref, reading="running", message="")
-    threading.Thread(target=_read_job, args=(db, prop.ref, user["email"]), daemon=True).start()
+    _in_background(_read_job, db, prop.ref, user["email"])
     return studio_read_status(ref, request, user)
 
 
@@ -228,15 +255,18 @@ async def studio_pick(ref: str, request: Request, user=Depends(_can)):
         raise HTTPException(400, "Not a photo in this property's folder")
     db = _db(request)
     row = state.load(db, prop.ref)
-    picks = render.photo_picks(row["photos"] if row else {}, photos)
+    # Only what she places herself is stored as hers; the other slots keep
+    # following Claude's choice (photos["claude"]) and the studio's rules.
+    saved = dict(row["photos"]) if row and row["photos"] else {}
     if slot in state.SLOTS:
-        picks[slot] = item_id
+        saved[slot] = item_id
     elif slot == "gallery":
-        g = picks.get("gallery", [])
-        picks["gallery"] = [x for x in g if x != item_id] if item_id in g else g + [item_id]
+        g = render.photo_picks(saved, photos).get("gallery", [])
+        saved["gallery"] = [x for x in g if x != item_id] if item_id in g else g + [item_id]
     else:
         raise HTTPException(400, "Unknown slot")
-    state.save(db, prop.ref, photos=picks, by=user["email"])
+    state.save(db, prop.ref, photos=saved, by=user["email"])
+    picks = render.photo_picks(saved, photos)
     return _tpl(request).TemplateResponse(request, "partials/_studio_photos.html", {
         "p": prop, "photos": photos, "picks": picks, "keep_open": True,
         "slot_labels": {"hero": "Background", "photo1": "Photo 1", "photo2": "Photo 2", "aerial": "Aerial"},

@@ -278,13 +278,23 @@ def read_documents(prop: Property, items: list[Item], sheets: dict) -> tuple[dic
         content.append({"type": "text", "text": f"=== {label}: {name} ===\n{text}"})
     content.append({"type": "text", "text": "Fill in every field for this property's ads and information pack."})
 
+    facts = ask(SYSTEM, content, Facts,
+                refusal="Claude declined to describe this property; fill the fields in by hand.").model_dump()
+    return facts, privacy_warnings(prop, facts)
+
+
+def ask(system: str, content: list[dict], schema: type[BaseModel], *, max_tokens: int = 16000,
+        effort: str = "medium", refusal: str = "Claude declined; fill this in by hand.") -> BaseModel:
+    """One structured answer from Claude, validated against ``schema``."""
+    import anthropic
+
     client = anthropic.Anthropic()
     # output_format is how the SDK hands back a validated Pydantic object; it warns
     # that the field is deprecated in favour of output_config.format, which would
     # return raw JSON instead. Fine to keep until the SDK drops it.
     warnings.filterwarnings("ignore", message=".*output_format.*deprecated", category=DeprecationWarning)
-    kwargs = dict(model=MODEL, max_tokens=16000, system=SYSTEM, output_config={"effort": "medium"},
-                  messages=[{"role": "user", "content": content}], output_format=Facts)
+    kwargs = dict(model=MODEL, max_tokens=max_tokens, system=system, output_config={"effort": effort},
+                  messages=[{"role": "user", "content": content}], output_format=schema)
     try:
         # Refusal fallbacks on (a safety classifier declining a property description
         # is unlikely, but then another model finishes the same request).
@@ -293,11 +303,10 @@ def read_documents(prop: Property, items: list[Item], sheets: dict) -> tuple[dic
         log.warning("fallbacks refused (%s); asking without them", exc)
         resp = client.messages.parse(**kwargs)
     if resp.stop_reason == "refusal":
-        raise StoreError("Claude declined to describe this property; fill the fields in by hand.")
+        raise StoreError(refusal)
     if resp.stop_reason == "max_tokens" or resp.parsed_output is None:
         raise StoreError("Claude's answer was cut short; try again.")
-    facts = resp.parsed_output.model_dump()
-    return facts, privacy_warnings(prop, facts)
+    return resp.parsed_output
 
 
 # --- privacy check ----------------------------------------------------------

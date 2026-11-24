@@ -6,7 +6,7 @@
     <span><strong>Reading the documents…</strong><br><span class="muted">About a minute. You can carry on; the fields fill in when it's done.</span></span>
   {% else %}
     <span>
-      {% if row.reading == 'done' %}<strong>Filled in from the documents.</strong> <span class="muted">{{ row.message }}. Anything you typed was left alone.</span>
+      {% if row.reading == 'done' %}<strong>Filled in from the documents.</strong> <span class="muted">{{ row.message }}. Anything you typed or placed yourself was left alone.</span>
       {% elif row.reading == 'failed' %}<strong class="t-block">Couldn't read them.</strong> <span class="muted">{{ row.message }}</span>
       {% else %}<strong>Fill everything in from the folder.</strong> <span class="muted">Claude reads the Lightstone, property report, valuation and OTP and writes every field. You check it.</span>{% endif %}
     </span>
