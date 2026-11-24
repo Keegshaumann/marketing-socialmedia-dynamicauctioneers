@@ -90,6 +90,14 @@ def test_studio_logins_cannot_open_proposals(env, role):
     assert client.post("/proposals/new", data={"dp": "9001"}, follow_redirects=False).status_code == 403
 
 
+def test_a_sign_in_is_recorded(env):
+    from webapp import models
+
+    env.login("marketing")
+    user = models.get_user(env.db, "marketing@dynamicauctioneers.co.za")
+    assert user.get("last_login_at")
+
+
 def test_admin_opens_both(env):
     client, landing = env.login("admin")
     assert landing == "/studio"

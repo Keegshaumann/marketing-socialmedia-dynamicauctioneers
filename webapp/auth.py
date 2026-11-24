@@ -116,6 +116,7 @@ def login_user(request: Request, email: str, password: str) -> bool:
     if not verify_password(password, user["pw_hash"]):
         return False
     request.session["user"] = user["email"]
+    models.mark_login(db_path_for(request), user["email"])
     return True
 
 

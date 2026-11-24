@@ -125,6 +125,12 @@ def init_db(db_path: Optional[str | Path] = None) -> str:
             );
             """
         )
+        # When each account last signed in (added 24 Nov 2026: nothing recorded it
+        # before, so "when did marketing last use it" could only be guessed from
+        # the web server's logs).
+        cols = {r[1] for r in conn.execute("PRAGMA table_info(users)")}
+        if "last_login_at" not in cols:
+            conn.execute("ALTER TABLE users ADD COLUMN last_login_at TEXT")
         conn.commit()
     finally:
         conn.close()
@@ -222,7 +228,7 @@ def get_user(db_path: Optional[str | Path], email: str) -> Optional[Dict[str, An
     conn = _connect(db_path)
     try:
         row = conn.execute(
-            "SELECT email, pw_hash, role, created_at FROM users WHERE email = ?",
+            "SELECT email, pw_hash, role, created_at, last_login_at FROM users WHERE email = ?",
             (email.strip().lower(),),
         ).fetchone()
         return dict(row) if row is not None else None
@@ -260,6 +266,16 @@ def set_password(db_path: Optional[str | Path], email: str, pw_hash: str) -> Non
             "UPDATE users SET pw_hash = ? WHERE email = ?",
             (pw_hash, email.strip().lower()),
         )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def mark_login(db_path: Optional[str | Path], email: str) -> None:
+    """Stamp the account's last sign-in (UTC)."""
+    conn = _connect(db_path)
+    try:
+        conn.execute("UPDATE users SET last_login_at = ? WHERE email = ?", (_now(), email.strip().lower()))
         conn.commit()
     finally:
         conn.close()
