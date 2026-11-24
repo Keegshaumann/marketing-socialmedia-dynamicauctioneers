@@ -1,0 +1,21 @@
+# The Ad Studio working by itself (D129, studio/auto.py): reads the properties
+# waiting on an ad and files their sets in SharePoint, and files them again when
+# the price, the auction date or someone's words change.
+# Install: copy both units to /etc/systemd/system, then
+#   systemctl daemon-reload && systemctl enable --now da-studio-auto.timer
+# Logs: journalctl -u da-studio-auto -n 50
+[Unit]
+Description=Ad Studio: prepare and file the ad sets
+After=network.target
+
+[Service]
+Type=oneshot
+User=dauction
+Group=dauction
+WorkingDirectory=/opt/da-marketing
+Environment=PLAYWRIGHT_BROWSERS_PATH=/opt/da-marketing/.playwright
+ExecStart=/opt/da-marketing/venv/bin/python -m studio.auto
+TimeoutStartSec=40min
+Nice=10
+NoNewPrivileges=true
+PrivateTmp=true

@@ -542,3 +542,300 @@ def test_a_failed_photo_choice_never_fails_the_read(app, monkeypatch):
     routes._read_job(app.db, "DP9001", "someone")
     row = state.load(app.db, "DP9001")
     assert row["reading"] == "done" and "photos chosen" not in row["message"]
+
+
+# --- the studio working by itself: prepare, file in SharePoint, keep current (D129) --
+
+class FakeSharePoint:
+    """Stands in for studio.writer.Writer: files by path, each with a content tag."""
+
+    client_id = "studio-app"
+
+    def __init__(self):
+        self.files, self.paths, self.calls, self.n = {}, {}, [], 0
+
+    def _meta(self, iid):
+        f = self.files[iid]
+        who = {"application": {"id": self.client_id}} if f["by"] == "app" else {"user": {"email": "nikki@x"}}
+        return {"id": iid, "name": f["path"].rsplit("/", 1)[-1], "cTag": f["ctag"],
+                "webUrl": "https://sp/" + f["path"], "lastModifiedBy": who}
+
+    def _tag(self):
+        self.n += 1
+        return f"c{self.n}"
+
+    def add(self, drive, path, data):
+        from studio.writer import WriteError
+        if path in self.paths:
+            raise WriteError("conflict", "a file of that name is there")
+        iid = f"sp{len(self.files) + 1}"
+        self.files[iid] = {"path": path, "data": data, "ctag": self._tag(), "by": "app"}
+        self.paths[path] = iid
+        self.calls.append(("add", path.rsplit("/", 2)[-2] + "/" + path.rsplit("/", 1)[-1]))
+        return self._meta(iid)
+
+    def replace(self, drive, item_id, name, data):
+        self.files[item_id].update(data=data, ctag=self._tag(), by="app")
+        self.calls.append(("replace", name))
+        return self._meta(item_id)
+
+    def item(self, drive, item_id):
+        return self._meta(item_id) if item_id in self.files else None
+
+    def by_path(self, drive, path):
+        return self._meta(self.paths[path]) if path in self.paths else None
+
+    def made_by_us(self, item):
+        return ((item.get("lastModifiedBy") or {}).get("application") or {}).get("id") == self.client_id
+
+    def folder_url(self, drive, path):
+        return "https://sp/" + path
+
+    # what people do in SharePoint
+    def person_edits(self, name):
+        iid = next(i for i, f in self.files.items() if f["path"].endswith("/" + name))
+        self.files[iid].update(data=b"theirs", ctag=self._tag(), by="person")
+
+    def person_deletes(self, name):
+        iid = next(i for i, f in self.files.items() if f["path"].endswith("/" + name))
+        del self.paths[self.files.pop(iid)["path"]]
+
+
+def _fake_build(prop, facts, picks, mode, items_by_id, kinds=None):
+    from studio import facts as F
+    out = {F.name_for(prop, "ad", mode): f"AD {facts.get('headline')} {facts.get('price')} {facts.get('auction_date')}".encode(),
+           F.name_for(prop, "board", mode): f"BOARD {facts.get('headline')}".encode(),
+           F.name_for(prop, "infopack", mode): f"PACK {facts.get('headline')}".encode()}
+    if mode == "auction":
+        out[F.name_for(prop, "saia", mode)] = b"SAIA"
+    return out
+
+
+@pytest.fixture
+def auto(app, monkeypatch):
+    """The studio's job with Claude, Chromium and SharePoint stood in for."""
+    from studio import auto as A, facts as F, photopick, render
+
+    reads = []
+
+    def fake_read(prop, items, sheets):
+        reads.append(prop.ref)
+        return {"headline": "MAKHADO | LIMPOPO", "subline": "MACADAMIA FARM", "caption": "Farm for sale."}, []
+
+    monkeypatch.setattr(F, "read_documents", fake_read)
+    monkeypatch.setattr(photopick, "choose", lambda prop, photos, auction, about="": {})
+    monkeypatch.setattr(render, "build", _fake_build)
+    sp = FakeSharePoint()
+    return SimpleNamespace(app=app, sp=sp, reads=reads, run=lambda **kw: A.run(app.db, kw.pop("w", sp), **kw))
+
+
+def _set_auction(mirror_db, ref, day):
+    conn = sqlite3.connect(mirror_db)
+    d = json.loads(conn.execute("SELECT data FROM files WHERE id = ?", (ref,)).fetchone()[0])
+    d["auction"] = day.isoformat()
+    d["proposal"]["date"] = day.isoformat()
+    conn.execute("UPDATE files SET data = ? WHERE id = ?", (json.dumps(d), ref))
+    conn.commit()
+    conn.close()
+
+
+def test_what_needs_an_ad(mirror):
+    from studio import auto as A, catalog
+    props = {p.ref: p for p in catalog.open_properties()}
+    kits = catalog.kits_for(list(props.values()))
+    assert A.needs_ad(props["DP9001"], kits[props["DP9001"].folder], date.today()) == "waiting"
+    assert A.needs_ad(props["DP9002"], kits[props["DP9002"].folder], date.today()) == ""   # has its for sale ad
+    assert A.folder_ready(catalog.items(props["DP9001"]))
+    assert not A.folder_ready(catalog.items(props["DP9002"]))          # one photo, no documents
+
+
+def test_the_studio_prepares_and_files_a_property_waiting_on_an_ad(auto):
+    from studio import publish, state
+    log = auto.run()
+    assert auto.reads == ["DP9001"]                       # DP9002 already has its ad
+    s = publish.get_set(auto.app.db, "DP9001")
+    assert s["status"] == "saved", log
+    added = sorted(path for op, path in auto.sp.calls if op == "add")
+    assert added == ["Advertisements/DP9001 AUCTION AD.png", "Advertisements/DP9001 AUCTION BOARD.pdf",
+                     "Advertisements/DP9001 POSTING COPY.txt", "Info Pack/DP9001 AUCTION INFO PACK.pdf"]
+    # the team's own SAIA banner was already there, so the studio added none beside it
+    assert not any("SAIA" in p for _, p in auto.sp.calls)
+    row = state.load(auto.app.db, "DP9001")
+    assert row["updated_by"] == "" and "by the studio" in row["message"]
+    # a second run with nothing changed touches nothing
+    auto.sp.calls.clear()
+    auto.run()
+    assert auto.sp.calls == [] and auto.reads == ["DP9001"]
+    # the list says so, and the studio's own work isn't under "You worked on"
+    page = auto.app.login().get("/studio").text
+    assert "In SharePoint" in page.split("Waiting on an ad", 1)[1].split("</section>", 1)[0]
+    assert "You worked on" not in page
+
+
+def test_a_new_auction_date_replaces_the_ad_in_place(auto, mirror):
+    auto.run()
+    first = dict(auto.sp.paths)
+    auto.sp.calls.clear()
+    later = SOON + timedelta(days=7)
+    _set_auction(mirror.db, "DP9001", later)
+    auto.run()
+    assert auto.sp.calls == [("replace", "DP9001 AUCTION AD.png")]      # only the file that changed
+    assert auto.sp.paths == first                                         # same files, new versions
+    ad = auto.sp.files[first[f"{AAA}/9001 - RHEDE BOERDERY BK_BR_/Advertisements/DP9001 AUCTION AD.png"]]
+    assert f"{later.day} " in ad["data"].decode()
+
+
+def test_files_people_changed_or_deleted_in_sharepoint_are_left_alone(auto, mirror, monkeypatch):
+    from studio import catalog, publish
+    auto.run()
+    auto.sp.person_edits("DP9001 AUCTION AD.png")
+    auto.sp.person_deletes("DP9001 AUCTION BOARD.pdf")
+    auto.sp.calls.clear()
+    _set_auction(mirror.db, "DP9001", SOON + timedelta(days=3))
+    from studio import render
+    monkeypatch.setattr(render, "build", lambda prop, facts, picks, mode, items, kinds=None: {
+        k: v + b" v2" for k, v in _fake_build(prop, facts, picks, mode, items).items()})
+    auto.run()
+    names = {n for _, n in auto.sp.calls}
+    assert "DP9001 AUCTION AD.png" not in names and "DP9001 AUCTION BOARD.pdf" not in names
+    assert ("replace", "DP9001 AUCTION INFO PACK.pdf") in auto.sp.calls
+    f = publish.files(auto.app.db, "DP9001")
+    assert f["DP9001 AUCTION AD.png"]["status"] == "theirs"
+    assert f["DP9001 AUCTION BOARD.pdf"]["status"] == "removed"
+    # a person pressing save adds the deleted board back, still not the changed ad
+    auto.sp.calls.clear()
+    publish.publish(auto.app.db, catalog.get("DP9001"), auto.sp, force=True)
+    assert ("add", "Advertisements/DP9001 AUCTION BOARD.pdf") in auto.sp.calls
+    assert not any(n.endswith("AUCTION AD.png") for _, n in auto.sp.calls)
+
+
+def test_a_privacy_warning_waits_for_a_person(auto, monkeypatch):
+    from studio import facts as F, publish
+    from webapp.routes import studio as routes
+    monkeypatch.setattr(F, "read_documents", lambda prop, items, sheets: (
+        {"headline": "RHEDE | LIMPOPO"}, ["Mentions RHEDE from the file name: check before it goes out."]))
+    auto.run()
+    s = publish.get_set(auto.app.db, "DP9001")
+    assert s["status"] == "held" and "RHEDE" in s["message"] and auto.sp.calls == []
+    # Nikki looks, then presses "Checked, save to SharePoint"
+    monkeypatch.setattr(routes, "_in_background", lambda target, *args: target(*args))
+    monkeypatch.setattr(routes, "writer", lambda: auto.sp)
+    c = auto.app.login()
+    assert "Checked, save to SharePoint" in c.get("/studio/DP9001").text
+    r = c.post("/studio/DP9001/publish")
+    assert r.status_code == 200 and "In SharePoint" in r.text
+    assert publish.get_set(auto.app.db, "DP9001")["status"] == "saved"
+    # the next run keeps it filed; the warning stays checked
+    auto.sp.calls.clear()
+    auto.run()
+    assert publish.get_set(auto.app.db, "DP9001")["status"] == "saved" and auto.sp.calls == []
+
+
+def test_a_set_missing_its_gold_line_waits(auto, monkeypatch):
+    from studio import facts as F, publish
+    monkeypatch.setattr(F, "read_documents", lambda prop, items, sheets: ({"subline": "FARM"}, []))
+    auto.run()
+    s = publish.get_set(auto.app.db, "DP9001")
+    assert s["status"] == "held" and "the gold line" in s["message"] and auto.sp.calls == []
+
+
+def test_someone_editing_is_left_to_settle_then_filed(auto, monkeypatch):
+    from studio import publish, state
+    auto.run()
+    auto.sp.calls.clear()
+    c = auto.app.login()
+    c.get("/studio/DP9001")
+    assert c.post("/studio/DP9001/save", data={"headline": "LOUIS TRICHARDT | LIMPOPO"}).status_code == 200
+    assert any("someone is editing" in line for line in auto.run()) and auto.sp.calls == []
+    # ten minutes later
+    row = state.load(auto.app.db, "DP9001")
+    from webapp import models
+    with models._connect(auto.app.db) as conn:
+        conn.execute("UPDATE studio SET updated_at = '2026-01-01T00:00:00+00:00' WHERE ref = 'DP9001'")
+    auto.run()
+    assert ("replace", "DP9001 AUCTION AD.png") in auto.sp.calls
+    assert "LOUIS TRICHARDT" in auto.sp.files[auto.sp.paths[next(p for p in auto.sp.paths if p.endswith("AUCTION AD.png"))]]["data"].decode()
+    assert row["updated_by"] == "marketing@dynamicauctioneers.co.za"
+
+
+def test_without_write_access_sets_are_only_prepared(auto):
+    from studio import publish
+    auto.run(w=None)
+    s = publish.get_set(auto.app.db, "DP9001")
+    assert s["status"] == "ready"
+    page = auto.app.login().get("/studio/DP9001").text
+    assert "can't save to SharePoint yet" in page and "Save to SharePoint</span>" not in page
+
+
+def test_reads_are_capped_and_a_failed_read_waits_a_day(auto, monkeypatch):
+    from studio import facts as F, publish, state
+    from studio.sharepoint import StoreError
+    assert auto.run(reads=0)[-1] == "1 more to read in later runs" and auto.reads == []
+
+    def broken(prop, items, sheets):
+        raise StoreError("There are no documents to read.")
+
+    monkeypatch.setattr(F, "read_documents", broken)
+    auto.run()
+    assert state.load(auto.app.db, "DP9001")["reading"] == "failed"
+    assert publish.get_set(auto.app.db, "DP9001")["read_at"]
+    assert not any(line.startswith("read ") for line in auto.run())     # not again today
+
+
+def test_switched_off(auto):
+    from webapp import models
+    models.set_setting(auto.app.db, "studio_auto", "off")
+    assert auto.run() == ["switched off (setting studio_auto)"] and auto.reads == []
+
+
+def test_the_studio_follows_the_sheets_unless_she_chose(auto, mirror):
+    from studio import catalog, prepare, state
+    db = auto.app.db
+    # a for-sale set the studio made; then an auction date arrives on the sheets
+    state.save(db, "DP9001", facts={"headline": "X", "sale_kind": "BUSINESS RESCUE"}, mode="forsale")
+    row = prepare.follow_the_sheets(db, catalog.get("DP9001"), state.load(db, "DP9001"))
+    assert row["mode"] == "auction" and row["facts"]["badge"] == "BUSINESS RESCUE AUCTION!"
+    assert row["facts"]["auction_date"]
+    # she switches it back to for sale herself: that sticks
+    auto.app.login().post("/studio/DP9001/mode", data={"mode": "forsale"})
+    row = prepare.follow_the_sheets(db, catalog.get("DP9001"), state.load(db, "DP9001"))
+    assert row["mode"] == "forsale"
+
+
+def test_files_go_in_the_folders_as_the_team_spells_them():
+    from studio.catalog import Item
+    from studio.publish import folder_for
+
+    def folders(*names):
+        return [Item("d", n, n, f"X/{n}", n, True, 0, 0) for n in names]
+
+    assert folder_for("DP1 AUCTION AD.png", folders("ADVERTISEMENTS", "Info pack")) == "ADVERTISEMENTS"
+    assert folder_for("DP1 AUCTION INFO PACK.pdf", folders("ADVERTISEMENTS", "Info pack")) == "Info pack"
+    assert folder_for("DP1 SAIA BANNER.png", folders("Advertisements & Budgets", "Advertisments")) == "Advertisments"
+    assert folder_for("DP1 SAIA BANNER.png", folders("Advertisements & Budgets")) == "Advertisements"
+    assert folder_for("DP1 FOR SALE INFO PACK.pdf", folders("Info Mailer")) == "Info Pack"
+
+
+def test_the_certificate_signs_the_sign_in():
+    import base64 as b64
+    from datetime import datetime as dt, timezone as tz
+    from cryptography import x509
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.asymmetric import padding, rsa
+    from cryptography.x509.oid import NameOID
+    from studio.writer import _assertion
+
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Dynamic Ad Studio")])
+    cert = (x509.CertificateBuilder().subject_name(name).issuer_name(name).public_key(key.public_key())
+            .serial_number(1).not_valid_before(dt.now(tz.utc)).not_valid_after(dt.now(tz.utc) + timedelta(days=1))
+            .sign(key, hashes.SHA256()))
+    pem = key.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8,
+                            serialization.NoEncryption()) + cert.public_bytes(serialization.Encoding.PEM)
+    token = _assertion("tenant-1", "client-1", pem)
+    head, body, sig = token.split(".")
+    pad = lambda s: s + "=" * (-len(s) % 4)
+    header, claims = json.loads(b64.urlsafe_b64decode(pad(head))), json.loads(b64.urlsafe_b64decode(pad(body)))
+    assert header["alg"] == "RS256" and b64.urlsafe_b64decode(pad(header["x5t"])) == cert.fingerprint(hashes.SHA1())
+    assert claims["iss"] == claims["sub"] == "client-1" and claims["aud"].endswith("/tenant-1/oauth2/v2.0/token")
+    key.public_key().verify(b64.urlsafe_b64decode(pad(sig)), f"{head}.{body}".encode(), padding.PKCS1v15(), hashes.SHA256())

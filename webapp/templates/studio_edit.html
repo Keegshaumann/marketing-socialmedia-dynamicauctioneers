@@ -49,6 +49,8 @@
       {% endif %}
     </section>
 
+    {% include "partials/_studio_sync.html" %}
+
     {% if row.warnings %}
     <div class="panel studio-warn">{% for w in row.warnings %}<div>{{ ui.icon('flag', 'icon--sm') }} {{ w }}</div>{% endfor %}</div>
     {% endif %}

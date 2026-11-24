@@ -1,0 +1,10 @@
+[Unit]
+Description=Ad Studio: prepare and file the ad sets every 15 minutes
+
+[Timer]
+OnBootSec=5min
+OnCalendar=*:05/15
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,39 @@
+{% import '_macros.html' as ui %}
+{%- set st = set.status if set else '' -%}
+<section class="panel studio-sync studio-sync--{{ st or 'none' }}" id="studio-sync"
+  {% if st == 'saving' %}hx-get="/studio/{{ p.ref }}/publish-status" hx-trigger="every 3s" hx-target="#studio-sync" hx-swap="outerHTML"{% endif %}>
+  <div class="studio-read__row">
+    {% if st == 'saving' %}
+      <span class="spinner" aria-hidden="true"></span>
+      <span><strong>Saving to SharePoint…</strong><br><span class="muted">Making the files and putting them in the property's folder. Under a minute.</span></span>
+    {% else %}
+      <span>
+        {% if st == 'saved' %}
+          <strong>In SharePoint.</strong> <span class="muted">{{ set.message }}</span><br>
+          <span class="muted">When the price or auction date changes on the sheets, or you change something here, the studio saves it again by itself within 15 minutes.</span>
+        {% elif st == 'held' %}
+          <strong class="t-block">Not saved to SharePoint yet.</strong> <span class="muted">{{ set.message }}</span>
+        {% elif st == 'failed' %}
+          <strong class="t-block">Saving didn't finish.</strong> <span class="muted">{{ set.message }}</span>
+        {% elif st == 'ready' or not can_save %}
+          <strong>Ready.</strong> <span class="muted">The studio can't save to SharePoint yet, so download the set for now.</span>
+        {% else %}
+          <strong>Not in SharePoint yet.</strong> <span class="muted">The studio saves properties waiting on an ad by itself once their folder has documents and photos. Press save to put this one there now.</span>
+        {% endif %}
+        {% if set and set.folder_url %}<br><a href="{{ set.folder_url }}" target="_blank" rel="noopener">Open the folder in SharePoint</a>{% endif %}
+      </span>
+      {% if can_save %}
+      <button class="btn {{ 'btn--ghost' if st == 'saved' else 'btn--primary' }} btn--sm" hx-post="/studio/{{ p.ref }}/publish" hx-target="#studio-sync" hx-swap="outerHTML">
+        {{ ui.icon('send', 'icon--sm') }}<span>{{ 'Save again now' if st == 'saved' else ('Checked, save to SharePoint' if st == 'held' else 'Save to SharePoint') }}</span></button>
+      {% endif %}
+    {% endif %}
+  </div>
+  {% if set_files %}
+  <details class="studio-docs"><summary class="muted">Files the studio saved ({{ set_files|length }})</summary>
+    <ul>{% for name, f in set_files.items() %}
+      <li>{% if f.web_url and f.status != 'removed' %}<a href="{{ f.web_url }}" target="_blank" rel="noopener">{{ name }}</a>{% else %}{{ name }}{% endif %}
+        {% if f.status == 'theirs' %}<span class="muted"> · changed in SharePoint by someone, so the studio leaves it alone</span>
+        {% elif f.status == 'removed' %}<span class="muted"> · deleted in SharePoint; press save to add it back</span>{% endif %}</li>
+    {% endfor %}</ul></details>
+  {% endif %}
+</section>

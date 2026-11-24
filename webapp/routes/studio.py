@@ -12,6 +12,12 @@ download the ads and the info pack.
 - ``GET  /studio/{ref}/preview/{kind}``  the live HTML of one output
 - ``GET  /studio/{ref}/file/{kind}``     the finished PNG / PDF
 - ``GET  /studio/{ref}/download``        every file for the property in one zip
+- ``POST /studio/{ref}/publish``         save the set into SharePoint now (D129)
+- ``GET  /studio/{ref}/publish-status``  polled while that runs
+
+The studio also works by itself (``studio.auto``, every 15 minutes): it reads the
+properties waiting on an ad and files each set in SharePoint, and files it again
+when the price, the auction date or someone's words change.
 """
 
 from __future__ import annotations
@@ -19,8 +25,7 @@ from __future__ import annotations
 import logging
 import re
 import threading
-from concurrent.futures import ThreadPoolExecutor
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime
 from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -28,8 +33,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from pathlib import Path
 
-from studio import catalog, facts as F, form as FORM, photopick, render, state
-from studio.sharepoint import StoreError, store
+from studio import auto, catalog, facts as F, form as FORM, prepare, publish, render, state
+from studio.sharepoint import store
+from studio.writer import writer
 from webapp import auth, models
 
 log = logging.getLogger("webapp.studio")
@@ -55,31 +61,10 @@ def _prop(ref: str) -> catalog.Property:
 
 
 def _load(request: Request, prop: catalog.Property, items: list[catalog.Item]) -> dict:
-    """The saved row, created with the sheet facts the first time a property opens.
-    Sheet facts that changed since (a new auction date, say) flow in unless edited."""
-    db = _db(request)
-    row = state.load(db, prop.ref)
-    if row is None:
-        state.save(db, prop.ref, facts=F.initial(prop, items), mode=F.mode_for(prop))
-        row = state.load(db, prop.ref)
-    else:
-        sheets = F.from_sheets(prop, items, row["mode"])
-        merged = F.merge(row["facts"], sheets, row["edited"])
-        if merged != row["facts"]:
-            state.save(db, prop.ref, facts=merged)
-            row["facts"] = merged
-    if row["reading"] == "running" and _stale(row["updated_at"]):
-        state.save(db, prop.ref, reading="failed", message="The read was interrupted; start it again.")
-        row = state.load(db, prop.ref)
-    row["mode"] = row["mode"] or F.mode_for(prop)
-    return row
+    return prepare.current(_db(request), prop, items)
 
 
-def _stale(iso: str) -> bool:
-    try:
-        return datetime.now(timezone.utc) - datetime.fromisoformat(iso) > timedelta(minutes=10)
-    except ValueError:
-        return True
+_stale = prepare.stale
 
 
 # --- the list -----------------------------------------------------------------
@@ -92,16 +77,19 @@ def studio_home(request: Request, user=Depends(_can)):
     worked = state.all_rows(_db(request))
     today = date.today()
 
+    sets = publish.all_sets(_db(request))
+
     def row(p):
-        return {"p": p, "kit": kits.get(p.folder, {}), "worked": worked.get(p.ref)}
+        return {"p": p, "kit": kits.get(p.folder, {}), "worked": worked.get(p.ref), "set": sets.get(p.ref)}
 
     upcoming = sorted((p for p in props if p.auction_date and p.auction_date >= today), key=lambda p: p.auction_date)
-    waiting = [p for p in props if p.waiting_on_ad
-               or (p in upcoming and not kits.get(p.folder, {}).get("auction_ad"))]
+    need = {p.ref: auto.needs_ad(p, kits.get(p.folder, {}), today) for p in props}
+    waiting = [p for p in props if need[p.ref] == "waiting"]
     upcoming_rest = [p for p in upcoming if p not in waiting]
-    no_ad = [p for p in props if p.status == "Being marketed" and p not in upcoming
-             and not any(kits.get(p.folder, {}).get(k) for k in ("forsale_ad", "auction_ad"))]
-    recent = sorted((p for p in props if p.ref in worked), key=lambda p: worked[p.ref]["updated_at"], reverse=True)[:8]
+    no_ad = [p for p in props if need[p.ref] == "no_ad"]
+    # "You worked on" is what people opened or changed, not what the studio did by itself.
+    people = {ref: r for ref, r in worked.items() if r["updated_by"]}
+    recent = sorted((p for p in props if p.ref in people), key=lambda p: people[p.ref]["updated_at"], reverse=True)[:8]
     return _tpl(request).TemplateResponse(request, "studio_home.html", {
         "user": user, "available": ok,
         "waiting": [row(p) for p in sorted(waiting, key=lambda p: p.auction_date or date.max)],
@@ -135,7 +123,14 @@ def studio_edit(ref: str, request: Request, user=Depends(_can)):
         "docs": [(k, i) for k in ("report", "lightstone", "valuation", "otp", "infopack", "proposal") for i in docs[k][:2]],
         "names": {f.kind: F.name_for(prop, f.kind, row["mode"]) for f in render.formats_for(row["mode"])},
         "slot_labels": {"hero": "Background", "photo1": "Photo 1", "photo2": "Photo 2", "aerial": "Aerial"},
+        **_sync_ctx(request, prop),
     })
+
+
+def _sync_ctx(request: Request, prop: catalog.Property) -> dict:
+    db = _db(request)
+    return {"set": publish.get_set(db, prop.ref), "set_files": publish.files(db, prop.ref),
+            "can_save": writer() is not None}
 
 
 @router.post("/studio/{ref}/save", response_class=HTMLResponse)
@@ -166,7 +161,9 @@ async def studio_mode(ref: str, request: Request, user=Depends(_can)):
         # The badge follows the mode unless she typed her own.
         if row and "badge" not in row["edited"] and facts.get("sale_kind"):
             facts["badge"] = f"{facts['sale_kind']} {'AUCTION' if mode == 'auction' else 'SALE'}!"
-        state.save(db, prop.ref, mode=mode, facts=facts, by=user["email"])
+        # Her choice sticks: the studio's own job no longer switches it with the sheets.
+        edited = (row["edited"] if row else set()) | {prepare.MODE_CHOSEN}
+        state.save(db, prop.ref, mode=mode, facts=facts, edited=edited, by=user["email"])
     return RedirectResponse(f"/studio/{quote(prop.ref)}", status_code=303)
 
 
@@ -176,47 +173,7 @@ def _in_background(target, *args) -> None:
     threading.Thread(target=target, args=args, daemon=True).start()
 
 
-def _choose_photos(db: str, prop: catalog.Property, items: list, row: dict, mode: str) -> bool:
-    """Claude's photo choice, stored beside hers as photos["claude"]. True when it chose."""
-    try:
-        f = row["facts"] or {}
-        about = ", ".join(x for x in (f.get("subline"), f.get("short_title"), f.get("headline")) if x)
-        chosen = photopick.choose(prop, catalog.photos(items), auction=(mode == "auction"), about=about)
-    except Exception:
-        log.exception("photo choice failed for %s; the studio's own picks stay", prop.ref)
-        return False
-    if not chosen:
-        return False
-    fresh = state.load(db, prop.ref)               # she may have placed a photo meanwhile
-    state.save(db, prop.ref, photos={**((fresh and fresh["photos"]) or {}), "claude": chosen})
-    return True
-
-
-def _read_job(db: str, ref: str, by: str) -> None:
-    try:
-        prop = catalog.get(ref)
-        items = catalog.items(prop)
-        row = state.load(db, ref)
-        if row is None or not row["facts"]:   # never opened: start from the sheets
-            state.save(db, ref, facts=F.initial(prop, items), mode=F.mode_for(prop))
-            row = state.load(db, ref)
-        mode = row["mode"] or F.mode_for(prop)
-        sheets = F.from_sheets(prop, items, mode)
-        # The documents and the photos are two separate questions to Claude, asked
-        # side by side; a failed photo choice never fails the read.
-        with ThreadPoolExecutor(1) as ex:
-            docs = ex.submit(F.read_documents, prop, items, sheets)
-            chosen = _choose_photos(db, prop, items, row, mode)
-            found, warnings = docs.result()
-        row = state.load(db, ref)
-        merged = F.merge(row["facts"], found, row["edited"])
-        merged = F.merge(merged, sheets, row["edited"])   # the sheets win on dates and prices
-        note = f"Read {datetime.now().strftime('%d %b %H:%M')}" + (", photos chosen" if chosen else "")
-        state.save(db, ref, facts=merged, reading="done", warnings=warnings, message=note, by=by)
-    except Exception as exc:  # shown to her; the details go to the log
-        log.exception("studio read failed for %s", ref)
-        msg = str(exc) if isinstance(exc, StoreError) else "Reading the documents failed. Try again, or type the details in."
-        state.save(db, ref, reading="failed", message=msg)
+_read_job = prepare.read
 
 
 @router.post("/studio/{ref}/read", response_class=HTMLResponse)
@@ -351,16 +308,40 @@ def studio_download(ref: str, request: Request, user=Depends(_can)):
     prop = _prop(ref)
     items = catalog.items(prop)
     row = _load(request, prop, items)
-    picks = render.photo_picks(row["photos"], catalog.photos(items))
     try:
-        files = render.build(prop, row["facts"], picks, row["mode"], {i.item_id: i for i in items})
+        files = publish.build(prop, row, items)
     except Exception:
         log.exception("render all %s", prop.ref)
         raise HTTPException(500, "Making the files failed")
     _hand_to_proposals(_db(request), prop, files)
-    copy = "\n\n".join(x for x in (row["facts"].get("caption"), row["facts"].get("listing")) if x)
-    if copy:
-        files[f"DP{prop.number} POSTING COPY.txt"] = copy.encode("utf-8")
     word = "AUCTION" if row["mode"] == "auction" else "FOR SALE"
     return Response(render.zip_files(files), media_type="application/zip",
                     headers={"Content-Disposition": f'attachment; filename="DP{prop.number} {word} SET.zip"'})
+
+
+# --- saving into SharePoint (D129) ------------------------------------------------
+
+def _publish_job(db: str, ref: str) -> None:
+    try:
+        publish.publish(db, catalog.get(ref), writer(), force=True)
+    except Exception:
+        log.exception("saving %s to SharePoint", ref)
+        publish.set_status(db, ref, status="failed", message="Saving to SharePoint failed; try again in a minute.")
+
+
+@router.post("/studio/{ref}/publish", response_class=HTMLResponse)
+def studio_publish(ref: str, request: Request, user=Depends(_can)):
+    prop = _prop(ref)
+    db = _db(request)
+    s = publish.get_set(db, prop.ref)
+    if not (s and s["status"] == "saving" and not _stale(s["updated_at"])):
+        publish.set_status(db, prop.ref, status="saving", message="")
+        _in_background(_publish_job, db, prop.ref)
+    return studio_publish_status(ref, request, user)
+
+
+@router.get("/studio/{ref}/publish-status", response_class=HTMLResponse)
+def studio_publish_status(ref: str, request: Request, user=Depends(_can)):
+    prop = _prop(ref)
+    return _tpl(request).TemplateResponse(request, "partials/_studio_sync.html",
+                                          {"p": prop, "user": user, **_sync_ctx(request, prop)})

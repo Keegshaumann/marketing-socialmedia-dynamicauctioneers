@@ -11,6 +11,12 @@
 {% macro kitrow(r) -%}
   {%- set k = r.kit -%}
   <span class="kit">
+    {%- set st = r.set.status if r.set else '' -%}
+    {% if r.worked and r.worked.reading == 'running' %}<span class="badge badge--note" title="Claude is reading the folder">Preparing</span>
+    {% elif st == 'saved' %}<span class="badge badge--ok" title="{{ r.set.message }}">In SharePoint</span>
+    {% elif st == 'held' %}<span class="badge badge--block" title="{{ r.set.message }}">Check</span>
+    {% elif st == 'ready' %}<span class="badge badge--neutral" title="{{ r.set.message }}">Ready</span>
+    {% elif st == 'failed' %}<span class="badge badge--block" title="{{ r.set.message }}">Didn't save</span>{% endif %}
     {% for key, label in kit_labels %}
       {% if key in ('forsale_ad', 'auction_ad', 'saia', 'board', 'infopack') %}
       <span class="kit__chip {{ 'is-done' if k.get(key) else '' }}" title="{{ label }}{{ ' is in the folder' if k.get(key) else ' not in the folder yet' }}">{{ label }}</span>
@@ -39,7 +45,7 @@
 {% if waiting %}
 <section class="studio-group">
   <h2 class="studio-group__title">Waiting on an ad <span class="badge badge--note">{{ waiting|length }}</span></h2>
-  <p class="muted studio-group__why">Auctions coming up with no auction ad in the folder yet, and proposals the properties team marked "await ad".</p>
+  <p class="muted studio-group__why">Auctions coming up with no auction ad in the folder yet, and proposals the properties team marked "await ad". The studio prepares these by itself and saves them to SharePoint; open one to check or change it.</p>
   <div class="studio-list">{% for r in waiting %}{{ prow(r) }}{% endfor %}</div>
 </section>
 {% endif %}

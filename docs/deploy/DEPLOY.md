@@ -110,6 +110,38 @@ When checking a new Xneelo record, ask Xneelo's own nameserver
 (`dig +short @ns1.host-h.net A <name>`): a public resolver asked before the
 record exists caches the "no such name" answer for 30 minutes.
 
+## The studio working by itself (D129)
+
+`da-studio-auto.timer` runs `python -m studio.auto` every 15 minutes (at :05, :20,
+:35, :50) as `dauction`. Each run reads up to 4 properties waiting on an ad
+(`STUDIO_AUTO_READS` in .env changes the number) and files every prepared set in
+the property's SharePoint folder, again whenever it changes. Logs:
+`journalctl -u da-studio-auto -n 50`. Off: `sqlite3 engine.db "insert or replace
+into settings values ('studio_auto','off')"` (back on with `'on'`). See what a run
+would do without doing it: `sudo -u dauction ./venv/bin/python -m studio.auto --dry-run`.
+
+**Saving to SharePoint** needs its own app registration, so the reading app (the
+director's) stays read-only:
+
+1. Make the certificate on the server: `sudo ./scripts/make_studio_cert.sh`. The
+   private key never leaves `/etc/da-studio/`; `/etc/da-studio/dynamic-ad-studio.cer`
+   is the public half.
+2. Entra admin centre > App registrations > New registration "Dynamic Ad Studio"
+   (this tenant only, no redirect). Certificates & secrets > Certificates > upload
+   the `.cer`. API permissions > Add > Microsoft Graph > Application permissions >
+   `Sites.Selected` > Grant admin consent.
+3. Give it write on the Marketing site only (Graph Explorer, signed in as an admin,
+   with `Sites.FullControl.All` consented):
+   `GET https://graph.microsoft.com/v1.0/sites/dynamicauctioneers.sharepoint.com:/sites/Marketing?$select=id`, then
+   `POST https://graph.microsoft.com/v1.0/sites/<that id>/permissions` with
+   `{"roles": ["write"], "grantedToIdentities": [{"application": {"id": "<client id>", "displayName": "Dynamic Ad Studio"}}]}`.
+4. In `/opt/da-marketing/.env`: `STUDIO_WRITE_TENANT_ID` (same tenant as
+   `STUDIO_GRAPH_TENANT_ID`), `STUDIO_WRITE_CLIENT_ID` (the new app's) and
+   `STUDIO_WRITE_CERT=/etc/da-studio/studio-write.pem`, then
+   `systemctl restart da-marketing`. The next run files every set marked Ready.
+
+The certificate is valid two years (renewal steps are in the script's header).
+
 ## First-time provisioning (how this box was built)
 
 For rebuilding from scratch: install `python3-venv python3-pip nginx certbot
