@@ -23,3 +23,6 @@ designs/incoming/*
 
 # Cached Claude results (extraction / market research), regenerable
 .ai-cache/
+
+# Ad Studio photo/document cache (D127)
+.studio-cache/

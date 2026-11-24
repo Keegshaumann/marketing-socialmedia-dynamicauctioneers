@@ -2,6 +2,19 @@
 
 Property-marketing automation for Dynamic Auctioneers (SA liquidation-auction firm, owner Ronnie; built by Keegan/Cognexa). One structured record per property; every ad rendered from it. Kills the "repost the ad 4+ times on every price change" problem.
 
+## Current state (24 Nov 2026): read before anything below
+
+**The marketing pipeline (intake, gates 1-3, artifacts, posting, board, settings) was scrapped on 24 Nov 2026 (SPEC D127).** It held 3 records and had posted nothing; the marketer kept making everything by hand. Most of the "Current status" history further down describes code that no longer exists; the last commit that had it is tagged `marketing-flow-final`.
+
+What the app is now:
+
+- **Ad Studio** (`studio/`, routes in `webapp/routes/studio.py`, roles marketing/approver/admin, lands on `/studio`): pick an open property, Claude reads its SharePoint folder (Lightstone, property report, valuation, OTP), the marketer checks the words and photos, and downloads the team's own layouts named the team's way: ad 1080x1350 (for sale / auction), SAIA banner 952x239, app icon 1280x960, board 900x1200 pt PDF, A4 info pack PDF, QR codes, posting copy. Templates in `studio/templates/`, rebuilt from DP3098, DP3107 and DP2987.
+  - Data: the director platform's mirror, read-only (`DIRECTOR_DB`, default `/opt/dynamic-director/director.db`; the `dauction` user is in the `director` group). Bytes: Graph with the director's read-only app (`STUDIO_GRAPH_TENANT_ID/CLIENT_ID/CLIENT_SECRET`, never `MS_GRAPH_*`, which would switch on the dormant proposal upload), or the synced OneDrive folder when `STUDIO_SOURCE=local`. Cache: `STUDIO_CACHE`.
+  - Per-property state (facts, hand-edited fields, photo picks, mode) is the `studio` table in engine.db. A read never overwrites a field the marketer typed; the sheets win on dates and prices.
+  - Fonts: Montserrat must be installed on the machine (it is on the VPS); Oswald ships in `studio/assets/fonts/`. Icons are Material Symbols (Apache-2.0) in `studio/assets/icons/`.
+- **Property documents** (unchanged): proposals, OTPs and property reports (M9-M11) for the `properties` role. They still read the old `records` table for prefill, so `engine/store.py` and `engine/schema.py` stay.
+- Tests: `pytest tests` (171 at the rebuild, offline and key-free; one renders through a real headless browser when one is available).
+
 ## Read this first
 
 **`SPEC.md` is the source of truth.** Modules M1–M7, phased build plan, acceptance criteria, decision log, open questions. Rules:

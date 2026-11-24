@@ -1,8 +1,8 @@
 """The properties role (D104): each role opens only its own screens. Offline, key-free.
 
 A properties login builds auction proposals, which show sellers' names and ID
-numbers, and sees nothing of the marketing pipeline. Marketing and approver
-logins run the pipeline and cannot open proposals. Admin opens everything.
+numbers, and cannot open the Ad Studio. Marketing and approver logins use the
+Ad Studio (D127) and cannot open proposals. Admin opens everything.
 """
 
 from __future__ import annotations
@@ -23,6 +23,8 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setenv("APP_SECRET", "test-secret-roles")
     monkeypatch.setenv("ENGINE_ALLOW_INSECURE_COOKIE", "1")
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    # No director mirror: the studio list says so instead of failing.
+    monkeypatch.setenv("DIRECTOR_DB", str(tmp_path / "no-director.db"))
 
     from webapp import auth, models
     from webapp.main import create_app
@@ -56,39 +58,44 @@ def test_a_properties_login_lands_on_proposals_and_stays_there(env):
     assert client.get("/proposals").status_code == 200
 
 
-def test_a_properties_login_cannot_open_the_marketing_pipeline(env):
+def test_a_properties_login_cannot_open_the_studio(env):
     client, _ = env.login("properties")
-    for path in ("/board", "/board/rows", "/intake", "/intake/job/1"):
-        assert _location(client, path) == (303, "/proposals"), path
-    for path in ("/artifacts/9001", "/artifacts/9001/download", "/post/9001", "/gates/9001/ads"):
+    for path in ("/studio", "/studio/DP3107", "/studio/DP3107/preview/ad", "/studio/DP3107/download"):
         assert client.get(path, follow_redirects=False).status_code == 403, path
-    assert client.post("/intake/upload", files={"files": ("a.pdf", b"%PDF")}).status_code == 403
+    assert client.post("/studio/DP3107/save", data={"headline": "x"}).status_code == 403
+    assert client.post("/studio/DP3107/read").status_code == 403
+
+
+def test_the_old_marketing_pipeline_is_gone(env):
+    client, _ = env.login("admin")
+    for path in ("/board", "/intake", "/gates/9001/ads", "/artifacts/9001", "/post/9001", "/settings"):
+        assert client.get(path, follow_redirects=False).status_code == 404, path
 
 
 def test_the_navigation_shows_each_role_its_own_screens(env):
     properties, _ = env.login("properties")
     page = properties.get("/proposals").text
-    assert 'href="/proposals"' in page and 'href="/intake"' not in page
+    assert 'href="/proposals"' in page and 'href="/studio"' not in page
 
     marketing, _ = env.login("marketing")
-    board = marketing.get("/board").text
-    assert 'href="/intake"' in board and 'href="/proposals"' not in board
+    studio = marketing.get("/studio").text
+    assert 'href="/studio"' in studio and 'href="/proposals"' not in studio
 
 
 @pytest.mark.parametrize("role", ["marketing", "approver"])
-def test_pipeline_logins_cannot_open_proposals(env, role):
+def test_studio_logins_cannot_open_proposals(env, role):
     client, landing = env.login(role)
-    assert landing == "/board"
+    assert landing == "/studio"
     assert client.get("/proposals", follow_redirects=False).status_code == 403
     assert client.post("/proposals/new", data={"dp": "9001"}, follow_redirects=False).status_code == 403
 
 
 def test_admin_opens_both(env):
     client, landing = env.login("admin")
-    assert landing == "/board"
-    assert client.get("/board").status_code == 200
+    assert landing == "/studio"
+    assert client.get("/studio").status_code == 200
     page = client.get("/proposals").text
-    assert 'href="/proposals"' in page and 'href="/intake"' in page
+    assert 'href="/proposals"' in page and 'href="/studio"' in page
 
 
 # --- the account script ---------------------------------------------------------------

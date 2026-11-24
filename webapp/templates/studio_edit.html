@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% import '_macros.html' as ui %}
+{% block title %}{{ p.ref }} · Ad Studio{% endblock %}
+{% block subheading %}
+<div class="topbar__sub muted">{{ p.name }} · {{ p.status }}{% if p.auction_date %} · auction {{ p.auction_date.strftime('%d %b %Y') }}{% if p.online is not none %} ({{ 'online' if p.online else 'on site' }}){% endif %}{% endif %}</div>
+{% endblock %}
+{% block topbar_actions %}
+<a class="btn btn--ghost btn--sm" href="/studio">All properties</a>
+<form method="post" action="/studio/{{ p.ref }}/mode" class="seg" role="group" aria-label="What this set is for">
+  <button class="seg__opt {{ 'is-on' if row.mode == 'forsale' else '' }}" name="mode" value="forsale">For sale</button>
+  <button class="seg__opt {{ 'is-on' if row.mode == 'auction' else '' }}" name="mode" value="auction">Auction</button>
+</form>
+<a class="btn btn--gold" href="/studio/{{ p.ref }}/download" data-busy="Making the files…">{{ ui.icon('download', 'icon--sm') }}<span>Download the set</span></a>
+{% endblock %}
+{% block content_mod %}content--wide{% endblock %}
+
+{% macro text(name, label, hint='', wide=false) -%}
+<div class="field {{ 'field--wide' if wide else '' }}"><label class="label label--sm" for="f-{{ name }}">{{ label }}</label>
+  <input class="input" id="f-{{ name }}" name="{{ name }}" value="{{ v[name] }}" autocomplete="off">
+  {% if hint %}<div class="hint">{{ hint }}</div>{% endif %}</div>
+{%- endmacro %}
+{% macro area(name, label, hint='', rows=4) -%}
+<div class="field field--wide"><label class="label label--sm" for="f-{{ name }}">{{ label }}</label>
+  <textarea class="textarea" id="f-{{ name }}" name="{{ name }}" rows="{{ rows }}">{{ v[name] }}</textarea>
+  {% if hint %}<div class="hint">{{ hint }}</div>{% endif %}</div>
+{%- endmacro %}
+{% macro feats(key, label, n) -%}
+<div class="field field--wide"><div class="label label--sm">{{ label }}</div>
+  {% for i in range(n) %}{% set ft = v[key][i] %}
+  <div class="featrow">
+    <select class="select" name="{{ key }}_icon_{{ i }}" aria-label="Icon {{ i + 1 }}">
+      {% for ic in icons %}<option value="{{ ic }}" {{ 'selected' if ft.icon == ic else '' }}>{{ 'm²' if ic == 'm2' else ('HA' if ic == 'ha' else ic.replace('_', ' ')) }}</option>{% endfor %}
+    </select>
+    <input class="input" name="{{ key }}_text_{{ i }}" value="{{ ft.text }}" placeholder="{{ 'e.g. ±74m² UNIT' if i == 0 else '' }}" aria-label="Line {{ i + 1 }}">
+  </div>
+  {% endfor %}</div>
+{%- endmacro %}
+
+{% block content %}
+<div class="studio-edit">
+  <div class="studio-edit__left">
+    <section class="panel studio-read" id="studio-read">
+      {% include "partials/_studio_read.html" %}
+      {% if docs %}
+      <details class="studio-docs"><summary class="muted">What it reads ({{ docs|length }} files)</summary>
+        <ul>{% for kind, i in docs %}<li>{{ i.rel }}</li>{% endfor %}</ul></details>
+      {% else %}
+      <p class="muted">There's no Lightstone, property report, valuation or OTP in the folder yet, so type the details in.</p>
+      {% endif %}
+    </section>
+
+    {% if row.warnings %}
+    <div class="panel studio-warn">{% for w in row.warnings %}<div>{{ ui.icon('flag', 'icon--sm') }} {{ w }}</div>{% endfor %}</div>
+    {% endif %}
+
+    <form id="studio-form" class="studio-form" hx-post="/studio/{{ p.ref }}/save" hx-trigger="input changed delay:900ms, change" hx-target="#saved" hx-swap="innerHTML">
+      <div class="studio-saved" id="saved" aria-live="polite"></div>
+
+      <details class="studio-sec" open><summary>The ad</summary>
+        <div class="field-grid">
+          {{ text('headline', 'Gold line', 'e.g. SS LOS ANGELES or MAKHADO | LIMPOPO', true) }}
+          {{ text('subline', 'White line', 'e.g. 3 BEDROOM APARTMENT', true) }}
+          {{ text('headline2', 'Second gold line', 'Optional, e.g. SUNNYSIDE | PRETORIA', true) }}
+          {{ text('badge', 'Badge', '', true) }}
+          {% if row.mode == 'forsale' %}{{ text('address', 'Address strip', '', true) }}{% endif %}
+          {{ feats('features', 'Features (size first)', 4) }}
+          {% if row.mode == 'auction' %}
+            {{ text('panel_title', 'Side panel heading', 'Optional, e.g. ORCHARDS:', true) }}
+            {{ feats('panel', 'Side panel lines', 3) }}
+          {% endif %}
+          {{ text('disclaimer', 'Occupation line', 'Leave empty when it is vacant', true) }}
+          {% if row.mode == 'forsale' %}
+            {{ text('price', 'Price box', 'e.g. OFFERS FROM R380 000', true) }}
+          {% else %}
+            {{ text('auction_kind', 'Online or on site', 'ONLINE or ON-SITE') }}
+            {{ text('auction_date', 'Auction date', 'e.g. 28 JAN 2027') }}
+            {{ text('auction_time', 'Time', 'e.g. 10:00 - 12:00') }}
+          {% endif %}
+          {{ text('master_ref', 'Master ref', 'e.g. T1233/26') }}
+          {{ text('phone', 'Phone') }}
+          {{ text('email', 'Email', '', true) }}
+        </div>
+      </details>
+
+      <details class="studio-sec"><summary>{{ 'Banner, app icon and board' if row.mode == 'auction' else 'Board' }}</summary>
+        <div class="field-grid">
+          {{ text('short_title', 'One-line title', 'e.g. ±38.15 HA MACADAMIA & AVOCADO FARM', true) }}
+          {{ text('short_place', 'One-line place', 'e.g. MAKHADO, LOUIS TRICHARDT | LIMPOPO', true) }}
+          {{ text('sale_kind', 'Sale type', 'BUSINESS RESCUE, LIQUIDATION, INSOLVENCY, DECEASED ESTATE', true) }}
+          {{ area('board_lines', 'Board: what it is (2 lines)', '', 2) }}
+          {{ area('board_place', 'Board: where (1-2 lines)', '', 2) }}
+          {% if row.mode == 'auction' %}{{ text('location_line', 'App icon: location line', '', true) }}{% endif %}
+          {{ text('qr_link', 'QR code link', 'Paste the auction or listing link. Empty = dynamicauctioneers.co.za', true) }}
+        </div>
+      </details>
+
+      <details class="studio-sec"><summary>Info pack</summary>
+        <div class="field-grid">
+          {{ text('pack_title', 'Cover title', '', true) }}
+          {{ text('pack_region', 'Cover region', '', true) }}
+          {{ text('pack_strapline', 'Cover strap', 'Highlights split by |', true) }}
+          {{ text('pack_footer', 'Cover footer', '', true) }}
+          {{ text('viewing', 'Viewing', '', true) }}
+          {{ area('overview', 'Property overview', 'One row per line: LABEL | text', 6) }}
+          {{ area('rates', 'Rates & taxes', 'One per line: Portion 27 | ± R1 645', 2) }}
+          {{ area('terms', 'Sale overview (from the OTP)', 'One line each', 4) }}
+          {{ text('confirmation', 'Confirmation line', 'e.g. Subject To 30 days Confirmation By Seller', true) }}
+          {{ area('description', 'Description', 'Paragraphs split by an empty line', 8) }}
+          {{ area('portions', 'Property details', 'One per line: label | legal description | extent | municipality | zoning | title deed', 3) }}
+          {{ area('improvements', 'Main improvements', 'A heading ending in ":" then one "icon | text" per line', 8) }}
+          {{ area('best_use', 'Highest & best use', 'One per line', 3) }}
+          {{ area('condition', 'Property condition', 'LABEL | text', 2) }}
+          {{ area('highlights', 'Investment highlights', 'LABEL | text', 5) }}
+        </div>
+      </details>
+
+      <details class="studio-sec"><summary>Posting copy</summary>
+        <div class="field-grid">
+          {{ area('caption', 'Social caption (Facebook, Instagram, LinkedIn, TikTok)', '', 6) }}
+          <div class="field--wide"><button type="button" class="btn btn--ghost btn--sm" data-copy="#f-caption">Copy caption</button></div>
+          {{ area('listing', 'Portal listing (Propdata, Property24)', '', 8) }}
+          <div class="field--wide"><button type="button" class="btn btn--ghost btn--sm" data-copy="#f-listing">Copy listing</button></div>
+        </div>
+      </details>
+    </form>
+  </div>
+
+  <div class="studio-edit__right">
+    <section class="panel" id="studio-photos">
+      {% include "partials/_studio_photos.html" %}
+    </section>
+
+    <div class="studio-previews">
+      {% for fm in formats %}
+      <figure class="pv-card {{ 'pv-card--pack' if fm.kind == 'infopack' else '' }}">
+        <figcaption>
+          <span class="pv-card__title">{{ fm.label }}</span><span class="muted pv-card__name">{{ names[fm.kind] }}</span>
+          <a class="btn btn--ghost btn--sm" href="/studio/{{ p.ref }}/file/{{ fm.kind }}" data-busy="Making…">{{ ui.icon('download', 'icon--sm') }}<span>Download</span></a>
+        </figcaption>
+        <div class="pv" data-w="{{ fm.width }}" data-h="{{ fm.height }}" {{ 'data-pack=1' if fm.kind == 'infopack' else '' }}>
+          <iframe src="/studio/{{ p.ref }}/preview/{{ fm.kind }}" title="{{ fm.label }} preview" loading="lazy"
+                  width="{{ fm.width }}" height="{{ fm.height }}" {{ 'scrolling=no' if fm.kind != 'infopack' else '' }}></iframe>
+        </div>
+      </figure>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+<script src="/static/studio.js?v={{ static_v('studio.js') }}" defer></script>
+{% endblock %}

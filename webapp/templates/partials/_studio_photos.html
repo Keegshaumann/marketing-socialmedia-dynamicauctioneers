@@ -1,0 +1,34 @@
+<div class="studio-photos__head">
+  <h2 class="studio-photos__title">Photos <span class="muted">{{ photos|length }} in the folder</span></h2>
+  <div class="studio-photos__picked">
+    {% for slot, label in slot_labels.items() %}
+      {% set pid = picks.get(slot) %}
+      <span class="pick"><span class="pick__label">{{ label }}</span>
+        {% if pid %}<img src="/studio/{{ p.ref }}/photo/{{ pid }}/tile" alt="">{% else %}<span class="pick__none">none</span>{% endif %}</span>
+    {% endfor %}
+    <span class="pick"><span class="pick__label">Info pack</span><span class="pick__count">{{ picks.get('gallery', [])|length }}</span></span>
+  </div>
+</div>
+{% if photos %}
+<details class="studio-photos__all" {{ 'open' if not picks.get('hero') else '' }}>
+  <summary>Choose photos</summary>
+  <p class="muted">Hover a photo and choose where it goes. "Pack" adds it to the info pack's photo pages (click again to take it out).</p>
+  <div class="ph-grid">
+    {% for ph in photos %}
+    {% set in_pack = ph.item_id in picks.get('gallery', []) %}
+    <div class="ph {{ 'in-pack' if in_pack else '' }}" title="{{ ph.rel }}">
+      <img src="/studio/{{ p.ref }}/photo/{{ ph.item_id }}/tile" loading="lazy" alt="{{ ph.name }}">
+      <div class="ph__tags">{% for slot, label in slot_labels.items() %}{% if picks.get(slot) == ph.item_id %}<span>{{ label }}</span>{% endif %}{% endfor %}</div>
+      <div class="ph__act">
+        {% for slot, label in slot_labels.items() %}
+        <button type="button" hx-post="/studio/{{ p.ref }}/pick" hx-vals='{"slot": "{{ slot }}", "item": "{{ ph.item_id }}"}' hx-target="#studio-photos">{{ label }}</button>
+        {% endfor %}
+        <button type="button" class="{{ 'on' if in_pack else '' }}" hx-post="/studio/{{ p.ref }}/pick" hx-vals='{"slot": "gallery", "item": "{{ ph.item_id }}"}' hx-target="#studio-photos">{{ 'In pack ✓' if in_pack else 'Pack' }}</button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</details>
+{% else %}
+<p class="muted">No photos in the property's folder yet. Save them in Media/Photos on SharePoint; they show here within the hour.</p>
+{% endif %}

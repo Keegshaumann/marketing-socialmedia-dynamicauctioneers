@@ -92,7 +92,7 @@
           {{ upload(p.dp, 'advert', 'Upload the advert', 'image/png,image/jpeg') }}
           {% if engine_advert %}
           <button type="button" class="btn btn--ghost btn--sm" hx-post="/proposals/{{ p.dp }}/advert/engine" hx-include="#proposal-form">
-            {{ ui.icon('photo', 'icon--sm') }}<span>Use this DP's platform advert</span>
+            {{ ui.icon('photo', 'icon--sm') }}<span>Use the Ad Studio's advert</span>
             <span class="spinner" aria-hidden="true"></span>
           </button>
           {% endif %}

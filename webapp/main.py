@@ -4,11 +4,10 @@ This is the composition root for the marketing platform. It:
 
 - opens the shared SQLite database (``ENGINE_DB`` or ``./engine.db``) and creates
   the platform tables (``init_db``), then seeds the bootstrap admin on first run;
-- installs Starlette ``SessionMiddleware`` keyed on the *same* persisted secret
-  the approve-by-email tokens use (``models.get_or_create_secret``), so sessions
-  and tokens never drift apart;
+- installs Starlette ``SessionMiddleware`` keyed on the persisted secret
+  (``models.get_or_create_secret``);
 - starts the single background job ``Worker`` at startup and stops it at
-  shutdown, so extraction / verify / render / post run off the request path;
+  shutdown, so the property documents' Lightstone reads run off the request path;
 - mounts ``/static`` and registers one ``Jinja2Templates`` environment (brand
   tokens as globals; the SVG icon macro lives in ``_macros.html`` and each
   template imports it), exposed on ``app.state.templates`` for the routers;
@@ -69,16 +68,11 @@ BRAND_TOKENS = {
 # Route modules to include, in nav order. Missing modules (parallel build) are
 # skipped so the app always boots.
 ROUTE_MODULES = (
-    "board",
-    "intake",
-    "proposals",
+    "account",     # sign in / out, root redirect
+    "studio",      # the Ad Studio: marketing's ads and info packs (D127)
+    "proposals",   # the properties team's documents (M9-M11)
     "otps",
     "reports",
-    "gates",
-    "artifacts",
-    "post",
-    "settings",
-    "email_approve",
 )
 
 

@@ -1,0 +1,16 @@
+{% import '_macros.html' as ui %}
+<div class="studio-read__row" id="studio-read-status"
+     {% if row.reading == 'running' %}hx-get="/studio/{{ p.ref }}/read-status?poll=1" hx-trigger="every 3s" hx-target="#studio-read-status" hx-swap="outerHTML"{% endif %}>
+  {% if row.reading == 'running' %}
+    <span class="spinner" aria-hidden="true"></span>
+    <span><strong>Reading the documents…</strong><br><span class="muted">About a minute. You can carry on; the fields fill in when it's done.</span></span>
+  {% else %}
+    <span>
+      {% if row.reading == 'done' %}<strong>Filled in from the documents.</strong> <span class="muted">{{ row.message }}. Anything you typed was left alone.</span>
+      {% elif row.reading == 'failed' %}<strong class="t-block">Couldn't read them.</strong> <span class="muted">{{ row.message }}</span>
+      {% else %}<strong>Fill everything in from the folder.</strong> <span class="muted">Claude reads the Lightstone, property report, valuation and OTP and writes every field. You check it.</span>{% endif %}
+    </span>
+    <button class="btn {{ 'btn--ghost' if row.reading == 'done' else 'btn--primary' }} btn--sm" hx-post="/studio/{{ p.ref }}/read" hx-target="#studio-read-status" hx-swap="outerHTML">
+      {{ ui.icon('sparkles', 'icon--sm') }}<span>{{ 'Read again' if row.reading in ('done', 'failed') else 'Read the documents' }}</span></button>
+  {% endif %}
+</div>

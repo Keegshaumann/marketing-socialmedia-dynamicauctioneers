@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% import '_macros.html' as ui %}
+{% block title %}Ad Studio{% endblock %}
+{% block subheading %}<div class="topbar__sub muted">Ads, banners, boards and info packs, made from each property's own folder.</div>{% endblock %}
+{% block topbar_actions %}
+<label class="studio-search"><span class="sr-only">Find a property</span>
+  <input class="input" type="search" placeholder="Find a property: 3107, Rhede, Sunnyside..." data-studio-search autofocus>
+</label>
+{% endblock %}
+
+{% macro kitrow(r) -%}
+  {%- set k = r.kit -%}
+  <span class="kit">
+    {% for key, label in kit_labels %}
+      {% if key in ('forsale_ad', 'auction_ad', 'saia', 'board', 'infopack') %}
+      <span class="kit__chip {{ 'is-done' if k.get(key) else '' }}" title="{{ label }}{{ ' is in the folder' if k.get(key) else ' not in the folder yet' }}">{{ label }}</span>
+      {% endif %}
+    {% endfor %}
+  </span>
+{%- endmacro %}
+
+{% macro prow(r, show_date=true) -%}
+  {%- set p = r.p -%}
+  <a class="studio-row" href="/studio/{{ p.ref }}" data-search="{{ (p.ref ~ ' ' ~ p.number ~ ' ' ~ p.name ~ ' ' ~ p.status)|lower }}">
+    <span class="studio-row__ref">{{ p.ref }}</span>
+    <span class="studio-row__name">{{ p.name }}<span class="muted"> · {{ p.status }}</span></span>
+    {% if show_date %}<span class="studio-row__date">{% if p.auction_date %}{{ p.auction_date.strftime('%d %b %Y') }}{% if p.online is not none %} · {{ 'online' if p.online else 'on site' }}{% endif %}{% endif %}</span>{% endif %}
+    {{ kitrow(r) }}
+  </a>
+{%- endmacro %}
+
+{% block content %}
+{% if not available %}
+  <div class="panel"><strong>The property list can't be read right now.</strong>
+    <p class="muted">The studio reads the director platform's copy of the SharePoint folders. Try again in a minute; if it stays like this, tell Keegan.</p></div>
+{% else %}
+
+<div data-studio-groups>
+{% if waiting %}
+<section class="studio-group">
+  <h2 class="studio-group__title">Waiting on an ad <span class="badge badge--note">{{ waiting|length }}</span></h2>
+  <p class="muted studio-group__why">Auctions coming up with no auction ad in the folder yet, and proposals the properties team marked "await ad".</p>
+  <div class="studio-list">{% for r in waiting %}{{ prow(r) }}{% endfor %}</div>
+</section>
+{% endif %}
+
+{% if recent %}
+<section class="studio-group">
+  <h2 class="studio-group__title">You worked on</h2>
+  <div class="studio-list">{% for r in recent %}{{ prow(r) }}{% endfor %}</div>
+</section>
+{% endif %}
+
+{% if upcoming %}
+<section class="studio-group">
+  <h2 class="studio-group__title">Other auctions coming up</h2>
+  <div class="studio-list">{% for r in upcoming %}{{ prow(r) }}{% endfor %}</div>
+</section>
+{% endif %}
+
+{% if no_ad %}
+<section class="studio-group">
+  <h2 class="studio-group__title">Being marketed, no ad in the folder <span class="badge badge--neutral">{{ no_ad|length }}</span></h2>
+  <div class="studio-list">{% for r in no_ad %}{{ prow(r, false) }}{% endfor %}</div>
+</section>
+{% endif %}
+</div>
+
+<section class="studio-group" data-studio-all hidden>
+  <h2 class="studio-group__title">Matching properties</h2>
+  <div class="studio-list">{% for r in everyone %}{{ prow(r) }}{% endfor %}</div>
+  <p class="muted" data-studio-none hidden>No open property matches. Closed and sold files aren't listed.</p>
+</section>
+{% endif %}
+<script src="/static/studio.js?v={{ static_v('studio.js') }}" defer></script>
+{% endblock %}

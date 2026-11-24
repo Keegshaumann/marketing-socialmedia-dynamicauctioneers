@@ -1,22 +1,16 @@
-"""Background job queue and worker thread (M8, Phase 4).
+"""Background job queue and worker thread.
 
-The platform runs slow work (extraction, verification, rendering, posting) off
-the request path. A route enqueues a job (``enqueue``) and HTMX polls its status
-(``get_job``); a single background thread (``Worker``) drains the queue one job at
-a time. One worker means no locking dance around SQLite writes.
+Slow work for the property documents runs off the request path: a route enqueues
+a job (``enqueue``) and HTMX polls its status (``get_job``); one background thread
+(``Worker``) drains the queue a job at a time, so SQLite writes never contend.
 
-Job kinds and how each degrades without an ``ANTHROPIC_API_KEY``:
+Job kinds:
 
-- ``extract`` -- KEY-GATED. Extraction needs the model; without a key the job is
-  marked ``skipped: no API key`` and the flow continues on the intake+photos +
-  template paths (the record already exists from upload/intake).
-- ``verify``  -- runs the deterministic checks (key-free) and writes the memo;
-  the optional market research is key-gated inside the engine and simply omitted.
-- ``render``  -- fully key-free: ``render_all`` falls back to template copy when
-  no key is present, so every artifact still renders.
-- ``post``    -- TOKEN-GATED. Needs a GHL token in settings; without it the job
-  produces a ready-to-post pack / logs intent (Phase 5 scaffold) rather than
-  posting, and is marked ``skipped``.
+- ``proposal_prefill`` / ``otp_prefill`` / ``report_prefill`` -- KEY-GATED: read a
+  document's new Lightstone reports into its blank fields; without
+  ``ANTHROPIC_API_KEY`` the job is skipped and the fields are typed by hand.
+- ``proposal_publish`` -- CREDENTIAL-GATED: save a generated proposal in
+  SharePoint (dormant behind ``MS_GRAPH_*``, D105).
 
 Hard rule: the worker NEVER crashes. Every handler runs inside a guard; any
 exception is recorded on the job row as ``state="error"`` with the message, and
@@ -36,13 +30,7 @@ from webapp.models import get_job  # re-exported: get_job(db_path, id)
 
 log = logging.getLogger(__name__)
 
-JOB_KINDS = ("extract", "verify", "render", "post", "proposal_prefill", "proposal_publish", "otp_prefill", "report_prefill")
-
-# Lifecycle states in which re-running extraction over an EXISTING record is
-# safe: nothing has been signed off, drafted or published yet, so rewriting the
-# sourced facts cannot contradict a human decision. Past these, _handle_extract
-# refuses (see the comment there).
-_RE_EXTRACT_STATES = frozenset({"intake", "extracted", "flags_raised"})
+JOB_KINDS = ("proposal_prefill", "proposal_publish", "otp_prefill", "report_prefill")
 
 _POLL_INTERVAL = 0.25  # seconds between queue polls when idle
 
@@ -79,251 +67,8 @@ def _output_root(job: Dict[str, Any], db_path: Optional[str]) -> str:
 
 # --- handlers -------------------------------------------------------------
 # Each returns (state, detail). They may raise; the worker guard records it.
-
-def _handle_render(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, str]:
-    """Render every artifact for the DP. Key-free (template copy fallback)."""
-    from engine.render.service import render_all
-    from engine.store import RecordStore
-
-    dp = job.get("dp")
-    if not dp:
-        return "error", "render job has no DP number."
-
-    store = RecordStore(models.resolve_db_path(db_path))
-    try:
-        artifacts = render_all(dp, store, output_root=_output_root(job, db_path))
-    finally:
-        store.close()
-    fmts = ", ".join(sorted({a.fmt for a in artifacts}))
-    return "done", f"rendered {len(artifacts)} artifacts ({fmts})"
-
-
-def _handle_verify(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, str]:
-    """Run deterministic verification + memo. Research is key-gated in-engine."""
-    from engine.store import RecordStore
-    from engine.verify import verify as run_verify
-
-    dp = job.get("dp")
-    if not dp:
-        return "error", "verify job has no DP number."
-
-    store = RecordStore(models.resolve_db_path(db_path))
-    try:
-        # client stays None: the deterministic checks + memo run key-free; the
-        # market-research section is simply omitted without a key.
-        memo_path, flags = run_verify(dp, store, client=None)
-    finally:
-        store.close()
-    blocks = sum(1 for f in flags if getattr(f, "severity", None) == "block")
-    detail = f"memo written ({memo_path}); {len(flags)} flags, {blocks} blocking"
-    if not _has_api_key():
-        detail += " (market research skipped: no API key)"
-    return "done", detail
-
-
-def _handle_extract(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, str]:
-    """Extraction. KEY-GATED: skipped cleanly without a key."""
-    if not _has_api_key():
-        return (
-            "skipped: no API key",
-            "extraction needs ANTHROPIC_API_KEY; intake + photos + template "
-            "paths continue without it.",
-        )
-
-    # With a key: run extraction over the uploaded sources if paths were
-    # supplied. A property may carry several EVMs (multi-portion), so the payload
-    # holds LISTS; the singular keys are still read for any older queued job.
-    payload = job.get("payload") or {}
-    dp = job.get("dp")
-
-    def _paths(plural_key: str, singular_key: str) -> list:
-        vals = payload.get(plural_key)
-        if vals:
-            return list(vals)
-        one = payload.get(singular_key)
-        return [one] if one else []
-
-    lightstones = _paths("lightstones", "lightstone")
-    reports = _paths("property_reports", "property_report")
-    valuations = _paths("valuations", "valuation")  # optional 3rd source (D35)
-    # NO PROPERTY IS REFUSED FOR A MISSING DOCUMENT (D122). The rule used to
-    # demand a Lightstone plus a Property Report or valuation (D88), and a
-    # property with only a Lightstone sat at intake with nothing to click. The
-    # team often has one document and nothing else. Extraction reads whatever
-    # was supplied, a fact no document carries stays null (hard rule 3), gate 1
-    # notes what is missing, and gate 2 is where the team types it. Only an
-    # intake with no recognised document at all has nothing to read.
-    if not (dp and (lightstones or reports or valuations)):
-        return (
-            "skipped: no documents",
-            "Nothing to extract: none of the uploaded files was recognised as a "
-            "Lightstone report, a Property Report or a valuation. Upload one of "
-            "those for this property on the Intake screen.",
-        )
-
-    from engine.extract import extract_record, prompt_version
-    from engine.schema import Marketing, PropertyRecord
-    from engine.store import RecordStore
-    from engine import aicache
-
-    # Re-extraction REWRITES the sourced facts (identity, physical, valuation and
-    # the physical-conflict resolutions). Once a human has signed off gate 1 those
-    # facts underpin a verification memo, a drafted advert and possibly a live
-    # listing, none of which this job can honestly rebuild: the sign-off would
-    # still read as valid for facts nobody checked, and the rendered ads would
-    # assert the old ones (hard rules 2 and 3). The state machine has no backward
-    # move to send it through the gates again, so refuse instead. The new source
-    # files are already saved in the property's uploads folder; to genuinely
-    # re-extract, delete the property on the board and intake it afresh.
-    store = RecordStore(models.resolve_db_path(db_path))
-    try:
-        existing = store.get(dp)
-        state = store.get_state(dp)
-        if existing is not None and state not in _RE_EXTRACT_STATES:
-            return (
-                "skipped: already signed off",
-                f"DP {dp} is at '{state}', past gate 1, so re-extraction would "
-                "rewrite facts under a signed-off memo and an already-drafted "
-                "advert. The uploaded documents were saved to the property's "
-                "uploads folder. To re-extract from scratch, delete the property "
-                "on the board and intake it again.",
-            )
-    finally:
-        store.close()
-
-    # Extraction is the single most expensive call in the system (six calls, both
-    # source PDFs on each). It is a pure function of the documents, so an
-    # identical set of files is served from cache instead of paid for again -
-    # which is exactly what a delete-and-re-intake does, whether that is a
-    # marketer fixing a mistake or a tester running the flow repeatedly.
-    output_root = _output_root(job, db_path)
-    cache_key = aicache.key(
-        "extract",
-        prompt_version(),
-        aicache.file_digest(lightstones + reports + valuations),
-    )
-    cached = aicache.load("extract", cache_key, output_root)
-    record = None
-    if cached is not None:
-        try:
-            record = PropertyRecord.model_validate(cached)
-        except Exception:  # a stale/incompatible entry must never block a render
-            record = None
-
-    from_cache = record is not None
-    if record is None:
-        record = extract_record(
-            lightstones, reports, dp=dp, parent_dp=payload.get("parent_dp"), valuation_pdf=valuations
-        )
-        aicache.save("extract", cache_key, record.model_dump(mode="json"), output_root)
-
-    # The identity fields are stamped by code, never by the model, so a cached
-    # record is re-stamped for THIS property: the same documents filed under a
-    # different DP still hit the cache.
-    record.dp = dp
-    record.parent_dp = payload.get("parent_dp") or record.parent_dp
-
-    # The OTP's sale terms and the levy statement's monthly figure (D75). These
-    # are read from the uploaded documents rather than the model, so they are
-    # applied AFTER the cache restore: a cached extraction of the same property
-    # documents still picks up an OTP added later.
-    try:
-        from engine.intake import attach_paperwork, build_combined_job
-
-        paperwork = [Path(p) for p in (payload.get("otps") or []) + (payload.get("levy_statements") or [])]
-        if paperwork:
-            job = build_combined_job(paperwork, dp=dp)
-            for note in attach_paperwork(record, job):
-                log.info("dp=%s %s", dp, note)
-    except Exception as exc:  # never fail an extraction over the paperwork
-        log.warning("dp=%s paperwork not attached: %s", dp, exc)
-
-    store = RecordStore(models.resolve_db_path(db_path))
-    try:
-        # Before gate 1 a re-extraction is safe (a retry, or adding a valuation
-        # report). Extraction rebuilds only the source-derived sections, so carry
-        # over the human-owned layers that do not assert sourced facts: the photo
-        # picks and design choice, the explicit field corrections, and the parent
-        # link. The verification memo is deliberately NOT carried: it describes
-        # the previous facts and must be re-run against these.
-        existing = store.get(dp)
-        if existing is not None:
-            if existing.marketing is not None:
-                fresh = record.marketing or Marketing()
-                fresh.hero_photo = fresh.hero_photo or existing.marketing.hero_photo
-                fresh.gallery = fresh.gallery or existing.marketing.gallery
-                fresh.template_set = fresh.template_set or existing.marketing.template_set
-                # The several-Lightstones answer is the marketer's (D112), never
-                # the documents', so it always survives a re-extraction.
-                if existing.marketing.multi_property_ad is not None:
-                    fresh.multi_property_ad = existing.marketing.multi_property_ad
-                record.marketing = fresh
-            record.human_overrides = record.human_overrides or existing.human_overrides
-            if record.parent_dp is None:
-                record.parent_dp = existing.parent_dp
-        store.upsert(record, state="extracted")
-        # upsert only sets state on the FIRST insert; the intake upload already
-        # created this record at "intake", so the state arg above is ignored and
-        # we must advance it explicitly, or the board stays on "Awaiting
-        # extraction" forever. Guard it so re-extracting an already-advanced
-        # record is a no-op rather than an illegal backward transition.
-        if store.get_state(dp) == "intake":
-            store.transition(dp, "extracted", note="extraction complete")
-    finally:
-        store.close()
-    if from_cache:
-        return "done", f"extracted record for DP {dp} (reused the cached extraction of these documents; no API cost)"
-    return "done", f"extracted record for DP {dp}"
-
-
-def _handle_post(db_path: Optional[str], job: Dict[str, Any]) -> Tuple[str, str]:
-    """Distribution. TOKEN-GATED: without a GHL token, build a ready-to-post pack.
-
-    Phase 5 (``engine.distribute``) owns the real posting client. This handler is
-    forward-compatible: if that package is present and a token is configured it
-    delegates; otherwise it logs a ``ready`` channel status per configured channel
-    and marks the job skipped, so the flow never stalls waiting on credentials.
-    """
-    dp = job.get("dp")
-    if not dp:
-        return "error", "post job has no DP number."
-
-    token = models.get_setting(db_path, "ghl_token")
-    payload = job.get("payload") or {}
-    version = int(payload.get("version", 1))
-    channels = payload.get("channels") or [
-        "property24",
-        "own_website",
-        "facebook",
-        "email_list",
-    ]
-
-    if not token:
-        for channel in channels:
-            models.log_channel_status(db_path, dp, channel, version, "ready")
-        return (
-            "skipped: no GHL token",
-            "no GoHighLevel token configured; a ready-to-post pack was logged "
-            f"for {len(channels)} channels (Phase 5 scaffold).",
-        )
-
-    # A token exists: delegate to Phase 5 if it has landed, else log intent.
-    try:
-        from engine.distribute.ghl import post_to_planner  # type: ignore
-    except Exception:
-        for channel in channels:
-            models.log_channel_status(db_path, dp, channel, version, "pending")
-        return (
-            "skipped: distribution pending",
-            "GHL token present but engine.distribute is not available yet "
-            "(Phase 5); intent logged.",
-        )
-
-    result = post_to_planner(dp, payload.get("artifacts"), channels, token=token)  # type: ignore
-    for channel in channels:
-        models.log_channel_status(db_path, dp, channel, version, "posted")
-    return "done", f"posted to {len(channels)} channels via GHL ({result!r})"
-
+# The marketing pipeline's extract / verify / render / post jobs were removed with
+# that pipeline (D127); the Ad Studio reads documents on its own thread.
 
 def _proposal_root(job: Dict[str, Any], db_path: Optional[str], folder: str = "proposal") -> Path:
     return Path(_output_root(job, db_path)) / f"DP{job.get('dp')}" / folder
@@ -433,10 +178,6 @@ def _handle_proposal_publish(db_path: Optional[str], job: Dict[str, Any]) -> Tup
 
 
 _HANDLERS: Dict[str, Callable[[Optional[str], Dict[str, Any]], Tuple[str, str]]] = {
-    "extract": _handle_extract,
-    "verify": _handle_verify,
-    "render": _handle_render,
-    "post": _handle_post,
     "proposal_prefill": _handle_proposal_prefill,
     "proposal_publish": _handle_proposal_publish,
     "otp_prefill": _handle_otp_prefill,

@@ -1,0 +1,54 @@
+{% extends "_canvas.html.j2" %}
+{# The site board, 1200x1600 px = 900x1200 pt (DP3107 AUCTION BOARD.pdf). #}
+{% block css %}
+@page{size:900pt 1200pt;margin:0}
+html,body{background:var(--orange)}
+.big{font-weight:900;line-height:1}
+.lockup{display:flex;align-items:center;gap:10px}
+.lockup .mark{width:250px;height:166px;overflow:hidden;position:relative}
+.lockup .mark img{position:absolute;left:-6px;top:-10px;width:262px}
+{% endblock %}
+{% block body %}
+{# the side band, words reading upward #}
+<div class="abs" style="left:0;top:0;width:236px;height:1298px;background:var(--orange)"></div>
+<div class="abs" style="left:118px;top:649px;transform:translate(-50%,-50%) rotate(-90deg);display:flex;align-items:center;gap:22px;white-space:nowrap">
+  <span class="big" style="background:#0b0b0b;color:#fff;font-size:196px;padding:4px 22px 10px">{{ 'ON' if auction else 'FOR' }}</span>
+  <span class="big" style="color:#0b0b0b;font-size:208px">{{ 'AUCTION' if auction else 'SALE' }}</span>
+</div>
+
+{# the top block #}
+<div class="abs" style="left:236px;top:0;width:964px;height:290px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+  {% if auction %}
+  <div class="big fit" data-fit data-min="60" style="font-size:150px;max-width:930px">{{ f.auction_kind or 'ONLINE' }}</div>
+  <div class="big fit" data-fit data-min="30" style="font-size:74px;margin-top:10px;max-width:930px">{{ f.auction_date }}{% if f.auction_time %} @ {{ f.auction_time.split('-')[0].strip() }}{% endif %}</div>
+  {% else %}
+  <div class="big fit" data-fit data-min="40" style="font-size:96px;max-width:930px">OFFERS FROM</div>
+  <div class="big fit" data-fit data-min="30" style="font-size:110px;margin-top:10px;max-width:930px">{{ (f.price or '').replace('OFFERS FROM', '').strip() | nb }}</div>
+  {% endif %}
+</div>
+
+<div class="abs" style="left:236px;top:290px;width:964px;height:1008px;background:#fff;color:#0b0b0b;display:flex;flex-direction:column;align-items:center;padding:20px 28px 0">
+  {% set kind_line = (f.sale_kind ~ (' AUCTION' if auction else ' SALE')) if f.sale_kind else '' %}
+  {% if kind_line %}<div class="big fit" data-fit data-min="24" style="font-size:58px;color:var(--orange);max-width:900px">{{ kind_line }}</div>{% endif %}
+  {% for line in (f.board_lines or [f.subline])[:2] %}
+  <div class="big fit" data-fit data-min="28" style="font-size:{{ 66 if loop.first else 84 }}px;max-width:900px;margin-top:6px">{{ line | nb }}</div>
+  {% endfor %}
+  {% for line in (f.board_place or [f.headline])[:2] %}
+  <div class="big fit" data-fit data-min="28" style="font-size:84px;color:var(--orange);max-width:900px;margin-top:6px">{{ line | nb }}</div>
+  {% endfor %}
+  <div style="position:relative;width:420px;height:420px;margin-top:24px;flex:none">
+    {{ qr_svg(f.qr_link) }}
+    <div style="position:absolute;left:50%;top:50%;width:112px;height:112px;transform:translate(-50%,-50%);background:#fff;display:flex;align-items:center;justify-content:center"><img src="{{ logo('auctioneers-on-light') }}" style="width:104px"></div>
+  </div>
+  <div class="big" style="font-size:72px;display:flex;align-items:center;gap:18px;margin-top:22px">{{ icon('call', 70) }}{{ f.phone | nb }}</div>
+</div>
+
+<div class="abs" style="left:0;top:1298px;width:1200px;height:302px;background:#050505">
+  <div class="abs" style="left:58px;top:151px;transform:translate(-50%,-50%) rotate(-90deg);border:3px solid #fff;border-radius:30px;padding:6px 22px;font-weight:700;font-size:24px;white-space:nowrap">REF: {{ ref }}</div>
+  <div class="abs lockup" style="left:150px;top:52px">
+    <div class="mark"><img src="{{ logo('auctioneers-on-dark') }}"></div>
+    <div style="display:flex;flex-direction:column;line-height:1"><span style="font-weight:800;font-size:118px;letter-spacing:.02em">DYNAMIC</span>
+      <span class="goldtext" style="font-weight:600;font-size:56px;letter-spacing:.24em;margin-top:8px">AUCTIONEERS</span></div>
+  </div>
+</div>
+{% endblock %}

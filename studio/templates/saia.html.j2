@@ -1,0 +1,23 @@
+{% extends "_canvas.html.j2" %}
+{# The SAIA listing banner, 952x239 (DP3107 SAIA BANNER.png). #}
+{% block css %}
+.cond{font-family:'Oswald Studio','Oswald',sans-serif;font-weight:700;letter-spacing:.005em;line-height:1}
+{% endblock %}
+{% block body %}
+{% if aerial %}<img class="bg" src="{{ aerial }}" style="left:262px;width:690px;height:178px;filter:brightness(.55)">{% endif %}
+<div class="abs" style="left:0;top:0;width:276px;height:178px;background:linear-gradient(135deg,#fafafa 0%,#e4e4e4 60%,#cfcfcf 100%)">
+  <img src="{{ logo('auctioneers-on-light') }}" style="position:absolute;left:64px;top:-6px;width:146px">
+  <div class="goldbar" style="position:absolute;left:0;bottom:0;width:276px;height:44px;display:flex;align-items:center;gap:12px;padding-left:34px;font-weight:800;font-size:25px">
+    <span style="width:32px;height:32px;border-radius:50%;background:#0b0b0b;color:#e9cf8a;display:flex;align-items:center;justify-content:center">{{ icon('call', 20) }}</span>{{ f.phone | nb }}
+  </div>
+</div>
+<div class="abs" style="left:290px;top:10px;width:640px">
+  <div class="cond fit" data-fit data-min="18" style="font-size:38px;height:42px">{{ (f.short_title or f.subline) | nb }}</div>
+  <div class="cond fit" data-fit data-min="18" style="font-size:38px;height:42px;margin-top:4px">{{ (f.short_place or f.headline) | nb }}</div>
+  <div class="cond fit" data-fit data-min="18" style="font-size:40px;height:46px;margin-top:20px;width:520px">{{ (f.auction_kind or 'ONLINE') }} {{ f.sale_kind }} AUCTION</div>
+</div>
+<div class="abs" style="right:16px;top:148px;font-weight:700;font-size:15px">REF: {{ ref }}</div>
+<div class="abs" style="left:0;top:178px;width:952px;height:61px;background:#050505;border-top:3px solid #c9a45c;display:flex;align-items:center;justify-content:center;padding:0 16px">
+  <div class="cond goldtext fit" data-fit data-min="20" style="font-size:52px;width:920px;text-align:center;height:56px;line-height:56px">{{ (f.auction_kind or 'ONLINE') }} AUCTION {{ weekday(f.auction_date) }} {{ f.auction_date }}{% if f.auction_time %} | {{ f.auction_time }}{% endif %}</div>
+</div>
+{% endblock %}

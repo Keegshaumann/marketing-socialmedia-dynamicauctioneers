@@ -37,10 +37,10 @@ from webapp import models
 ADMIN_EMAIL = "admin@dynamicauctioneers.co.za"
 ADMIN_ROLE = "admin"
 ROLES = ("marketing", "approver", "properties")
-# The roles that run the marketing pipeline: board, intake, gates, artifacts and
-# posting. ``properties`` is deliberately not one of them. The properties team
-# builds auction proposals (M9), which show sellers' names and ID numbers, and
-# sees nothing else; marketing and approver accounts do not see proposals (D104).
+# The roles that open the Ad Studio (D127). ``properties`` is deliberately not one
+# of them: the properties team builds auction proposals (M9), which show sellers'
+# names and ID numbers, and sees nothing else; marketing and approver accounts do
+# not see proposals (D104).
 OPERATIONS = ("marketing", "approver")
 
 
@@ -186,10 +186,10 @@ def can(user: Optional[Dict[str, Any]], *roles: str) -> bool:
 
 
 def home_for(user: Optional[Dict[str, Any]]) -> str:
-    """The screen a user lands on: Proposals for a properties login, else the board."""
+    """The screen a user lands on: Proposals for a properties login, else the Ad Studio."""
     if user is not None and user.get("role") == "properties":
         return "/proposals"
-    return "/board"
+    return "/studio"
 
 
 # --- first-run seeding ----------------------------------------------------
