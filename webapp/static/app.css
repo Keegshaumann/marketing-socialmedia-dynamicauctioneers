@@ -1259,6 +1259,8 @@ tr:hover .iconbtn { opacity: 1; }
 .studio-docs { margin-top: 10px; font-size: 12px; }
 .studio-docs ul { margin: 6px 0 0 16px; color: var(--muted); }
 .studio-warn { border-color: var(--note-bd); background: var(--note-bg); color: var(--note); font-size: 13px; display: grid; gap: 4px; }
+.studio-sync, .studio-warn { margin-top: 12px; }
+.studio-sync--held, .studio-sync--failed { border-color: var(--note-bd); }
 .studio-form { position: relative; }
 .studio-saved { position: sticky; top: 0; z-index: 2; text-align: right; font-size: 12px; min-height: 16px; }
 .studio-sec { border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface); margin-bottom: 12px; }
