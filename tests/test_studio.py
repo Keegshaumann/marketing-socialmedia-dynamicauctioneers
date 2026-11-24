@@ -839,3 +839,20 @@ def test_the_certificate_signs_the_sign_in():
     assert header["alg"] == "RS256" and b64.urlsafe_b64decode(pad(header["x5t"])) == cert.fingerprint(hashes.SHA1())
     assert claims["iss"] == claims["sub"] == "client-1" and claims["aud"].endswith("/tenant-1/oauth2/v2.0/token")
     key.public_key().verify(b64.urlsafe_b64decode(pad(sig)), f"{head}.{body}".encode(), padding.PKCS1v15(), hashes.SHA256())
+
+
+def test_a_folder_with_the_teams_whole_set_is_not_read_or_filed(auto, mirror):
+    from studio import catalog, publish
+    conn = sqlite3.connect(mirror.db)
+    folder = f"{AAA}/9001 - RHEDE BOERDERY BK_BR_"
+    for n, name in enumerate(["DP9001 AUCTION AD.png", "DP9001 APP ICON.png", "DP9001 AUCTION BOARD.pdf"]):
+        conn.execute("INSERT INTO items VALUES ('drv', ?, ?, 0, 1.0, 50000, NULL, ?)",
+                     (f"team{n}", name, f"{folder}/Advertisements/{name}"))
+    conn.execute("INSERT INTO items VALUES ('drv', 'team9', 'DP9001 INFO PACK.pdf', 0, 1.0, 50000, NULL, ?)",
+                 (f"{folder}/Info Pack/DP9001 INFO PACK.pdf",))
+    conn.commit()
+    conn.close()
+    auto.run()
+    assert auto.reads == [] and auto.sp.calls == []      # "await ad" on the sheet, but nothing missing
+    s = publish.publish(auto.app.db, catalog.get("DP9001"), auto.sp, force=True)
+    assert s["status"] == "complete" and auto.sp.calls == []

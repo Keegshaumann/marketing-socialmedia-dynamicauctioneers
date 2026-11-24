@@ -4,7 +4,8 @@
 
 1. **Prepares** each open property that needs an ad (the list's "Waiting on an
    ad" and "Being marketed, no ad" groups) once its folder is ready, meaning at
-   least one Lightstone, property report, valuation or OTP and four photos:
+   least one Lightstone, property report, valuation or OTP and four photos, and
+   still missing part of the set (an "await ad" note can outlive the ad):
    Claude reads the documents and chooses the photos, exactly as the "Read the
    documents" button does. At most ``--reads`` per run (each costs about R10 of
    Claude), soonest auction first; a failed read is retried the next day.
@@ -99,8 +100,11 @@ def run(db: str, w: Optional[Writer] = None, *, reads: int = 4, dry_run: bool = 
         tried = (sets.get(ref) or {}).get("read_at", "")
         if tried and _ago(tried) < RETRY_READ:
             continue
-        if not folder_ready(catalog.items(p)):
+        items = catalog.items(p)
+        if not folder_ready(items):
             continue
+        if not publish.gaps(p, prepare.auto_mode(p), items):
+            continue                                   # the team already made the whole set
         queue.append((p, group))
     queue.sort(key=lambda pg: _priority(*pg))
     for p, group in queue[:reads]:

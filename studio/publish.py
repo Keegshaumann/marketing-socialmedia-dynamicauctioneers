@@ -31,7 +31,7 @@ import re
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from studio import catalog, prepare, render, state
+from studio import catalog, facts as F, prepare, render, state
 from studio.writer import Writer, WriteError, sha
 
 log = logging.getLogger("studio.publish")
@@ -42,7 +42,7 @@ RENDER_VERSION = "1"
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS studio_sets (
     ref         TEXT PRIMARY KEY,
-    status      TEXT NOT NULL DEFAULT '',     -- saving | saved | held | ready | failed
+    status      TEXT NOT NULL DEFAULT '',     -- saving | saved | held | ready | failed | complete
     message     TEXT NOT NULL DEFAULT '',
     fingerprint TEXT NOT NULL DEFAULT '',     -- of what is in SharePoint now
     mode        TEXT NOT NULL DEFAULT '',
@@ -194,6 +194,13 @@ def team_has(name: str, items: list[catalog.Item], ours: set[str]) -> bool:
     return catalog.kit(theirs).get(kind, False)
 
 
+def gaps(prop: catalog.Property, mode: str, items: list[catalog.Item], ours: set[str] = frozenset()) -> list[str]:
+    """The set's main files (ad, banner, icon, board, pack) the folder has no file of
+    its own for. Empty: the team already made the whole set, nothing to add."""
+    return [F.name_for(prop, fmt.kind, mode) for fmt in render.formats_for(mode)
+            if not team_has(F.name_for(prop, fmt.kind, mode), items, set(ours))]
+
+
 # --- filing -----------------------------------------------------------------------
 
 def publish(db: str, prop: catalog.Property, w: Optional[Writer], *, force: bool = False) -> dict:
@@ -211,6 +218,12 @@ def publish(db: str, prop: catalog.Property, w: Optional[Writer], *, force: bool
         cleared = sorted(set(cleared) | set(row["warnings"]))
         set_status(db, prop.ref, cleared=cleared)
 
+    known = files(db, prop.ref)
+    ours = {f["item_id"] for f in known.values() if f["item_id"]}
+    if not gaps(prop, row["mode"], items, ours):
+        set_status(db, prop.ref, status="complete", mode=row["mode"],
+                   message="The folder already has the team's own files for this set, so there is nothing to add.")
+        return get_set(db, prop.ref)
     need = missing(row, pk)
     if need:
         set_status(db, prop.ref, status="held", mode=row["mode"],
@@ -240,8 +253,6 @@ def publish(db: str, prop: catalog.Property, w: Optional[Writer], *, force: bool
         set_status(db, prop.ref, status="failed", message="Making the files failed; the studio tries again shortly.")
         return get_set(db, prop.ref)
 
-    known = files(db, prop.ref)
-    ours = {f["item_id"] for f in known.values() if f["item_id"]}
     done, skipped, problems = [], [], []
     for name, data in made.items():
         f = known.get(name)
