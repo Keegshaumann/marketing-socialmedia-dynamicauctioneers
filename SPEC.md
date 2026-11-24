@@ -514,7 +514,7 @@ Rule: no phase starts until the previous phase's acceptance criteria are checked
 9. ~~**Artifact specs for the §12 set**~~ — **resolved (D74, D61)**: the team supplied `DP2817.3 - AUCTION BOARD.png` (1200x1600), `DP3071 BILLBOARD.png` (3000x2000, a separate landscape product, parked) and four real information packs, and the templates are built to them. Still open: which printer, and where each is uploaded.
 10. **Who is "admin@dynamicauctioneers.co.za"** — which humans sit behind the internal-approval inbox (the "THEM" in the workflow), and do they want email-button approval?
 11. **Alert mailer scheduling** — can the mailer be created *and scheduled* via the GHL API, or is v1 "system generates banner + HTML + list, human clicks schedule"? (extends Q6)
-12. **Platform hosting + domain** — **hosting resolved (D34)**: a Hostinger VPS, nginx TLS, deployed via `scripts/deploy.sh`. Still open: a real subdomain (e.g. marketing.dynamicauctioneers.co.za) in place of the current `nip.io` address, which needs whoever holds their DNS.
+12. **Platform hosting + domain** — **hosting resolved (D34)**: a Hostinger VPS, nginx TLS, deployed via `scripts/deploy.sh`. **Domain resolved (2026-11-24):** https://studio.dynamicauctioneers.co.za (A record at Xneelo, its own nginx site and certificate); the `nip.io` address still works and is not redirected.
 13. **Platform user list** — names + emails for the ~5 accounts, and who holds the *approver* role (ties to Q10's "who is behind admin@")
 
 ## 11. Glossary

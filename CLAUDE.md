@@ -6,6 +6,8 @@ Property-marketing automation for Dynamic Auctioneers (SA liquidation-auction fi
 
 **The marketing pipeline (intake, gates 1-3, artifacts, posting, board, settings) was scrapped on 24 Nov 2026 (SPEC D127).** It held 3 records and had posted nothing; the marketer kept making everything by hand. Most of the "Current status" history further down describes code that no longer exists; the last commit that had it is tagged `marketing-flow-final`.
 
+Address: **https://studio.dynamicauctioneers.co.za** (since 24 Nov 2026). The old https://46.202.175.127.nip.io serves the same app and is not redirected; see `docs/deploy/DEPLOY.md` "Addresses".
+
 What the app is now:
 
 - **Ad Studio** (`studio/`, routes in `webapp/routes/studio.py`, roles marketing/approver/admin, lands on `/studio`): pick an open property, Claude reads its SharePoint folder (Lightstone, property report, valuation, OTP), the marketer checks the words and photos, and downloads the team's own layouts named the team's way: ad 1080x1350 (for sale / auction), SAIA banner 952x239, app icon 1280x960, board 900x1200 pt PDF, A4 info pack PDF, QR codes, posting copy. Templates in `studio/templates/`, rebuilt from DP3098, DP3107 and DP2987.

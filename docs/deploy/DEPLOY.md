@@ -2,8 +2,9 @@
 
 The marketing platform runs on a **Hostinger VPS** (Ubuntu 24.04 LTS).
 
-- **Live URL:** https://46.202.175.127.nip.io (temporary hostname — see "Swap to a
-  real domain" below)
+- **Live URL:** https://studio.dynamicauctioneers.co.za (since 24 Nov 2026). The
+  old https://46.202.175.127.nip.io still serves the same app and is deliberately
+  not redirected, so nobody using it is signed out (see "Addresses" below).
 - **Server IP:** `46.202.175.127`  •  SSH: `ssh root@46.202.175.127`
 - **App directory:** `/opt/da-marketing` (a clone of this repo)
 - **Runs as:** systemd service `da-marketing`, a single uvicorn process on
@@ -19,8 +20,8 @@ The marketing platform runs on a **Hostinger VPS** (Ubuntu 24.04 LTS).
 | Database | `/opt/da-marketing/engine.db` (`ENGINE_DB`) |
 | Property data / uploads / artifacts | `/opt/da-marketing/DP<dp>/...` (`output_root=/opt/da-marketing`) |
 | systemd unit | `/etc/systemd/system/da-marketing.service` (copy in `docs/deploy/`) |
-| nginx site | `/etc/nginx/sites-available/da-marketing` (copy in `docs/deploy/`) |
-| TLS cert | `/etc/letsencrypt/live/46.202.175.127.nip.io/` (auto-renews) |
+| nginx sites | `/etc/nginx/sites-available/da-studio` (studio.dynamicauctioneers.co.za) and `da-marketing` (nip.io); base copies in `docs/deploy/nginx-da-*.conf` |
+| TLS certs | `/etc/letsencrypt/live/studio.dynamicauctioneers.co.za/` and `/etc/letsencrypt/live/46.202.175.127.nip.io/` (both auto-renew) |
 
 ## Everyday operations
 
@@ -89,20 +90,25 @@ echo "ssh-ed25519 AAAA... theirname-dev" >> ~/.ssh/authorized_keys
 
 Revoke by deleting their line from `~/.ssh/authorized_keys`.
 
-## Swap to a real domain (marketing.dynamicauctioneers.co.za)
+## Addresses
 
-1. In DNS, add an **A record** for the subdomain → `46.202.175.127`. Wait for it
-   to resolve (`dig +short marketing.dynamicauctioneers.co.za`).
-2. On the server, set the nginx `server_name` to the new domain and reload:
-   ```bash
-   sed -i 's/server_name .*/server_name marketing.dynamicauctioneers.co.za;/' \
-     /etc/nginx/sites-available/da-marketing
-   nginx -t && systemctl reload nginx
-   certbot --nginx -d marketing.dynamicauctioneers.co.za --redirect \
-     --non-interactive --agree-tos -m keegs.haumann@gmail.com
-   ```
-3. `ENGINE_HTTPS=true` is already set, so nothing else changes. The old nip.io
-   cert can be left to expire.
+Both names reach the same uvicorn process and the same database:
+
+- **studio.dynamicauctioneers.co.za**: an A record at Xneelo (the
+  dynamicauctioneers.co.za DNS, Dynamic Auctioneers account, next to `clerk` and
+  `director`) pointing at `46.202.175.127`, served by the `da-studio` nginx site
+  with its own Let's Encrypt certificate.
+- **46.202.175.127.nip.io**: the original address, still served by the
+  `da-marketing` site for the properties team's bookmarks.
+
+Sign-in cookies belong to one host name, so anyone moving to the new address
+signs in once there. To retire the nip.io name later, change the `da-marketing`
+site to `return 301 https://studio.dynamicauctioneers.co.za$request_uri;` and
+let its certificate lapse.
+
+When checking a new Xneelo record, ask Xneelo's own nameserver
+(`dig +short @ns1.host-h.net A <name>`): a public resolver asked before the
+record exists caches the "no such name" answer for 30 minutes.
 
 ## First-time provisioning (how this box was built)
 
