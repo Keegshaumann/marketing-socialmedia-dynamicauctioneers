@@ -85,6 +85,9 @@ class Facts(BaseModel):
     auction_kind: str = Field(description='"ONLINE" or "ON-SITE" when it goes to auction; else ""')
     auction_date: str = Field(description='e.g. "28 JAN 2027"; else ""')
     auction_time: str = Field(description='e.g. "10:00 - 12:00"; else ""')
+    master_ref: str = Field(description='Master of the High Court reference for an insolvent estate or company in '
+                                        'liquidation, as on the OTP\'s "MASTER REFERENCE" line or the instruction, '
+                                        'e.g. "G907/2025", "T1233/26"; "" if no document gives one')
     # --- banners, icon and board ---
     short_title: str = Field(description='One line: "±38.15 HA MACADAMIA & AVOCADO FARM", "3 BEDROOM APARTMENT"')
     short_place: str = Field(description='One line: "MAKHADO, LOUIS TRICHARDT | LIMPOPO"')

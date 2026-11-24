@@ -351,6 +351,8 @@ def test_picking_photos(app):
     house = next(p for p in photos if p.name == "house.jpg")
     r = c.post("/studio/DP9001/pick", data={"slot": "hero", "item": house.item_id})
     assert r.status_code == 200
+    # The grid stays open after a pick, so the next photo is one click away.
+    assert '<details class="studio-photos__all" open' in r.text
     r = c.post("/studio/DP9001/pick", data={"slot": "gallery", "item": house.item_id})
     from studio import state
     picks = state.load(app.db, "DP9001")["photos"]

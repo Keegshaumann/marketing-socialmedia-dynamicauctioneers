@@ -10,7 +10,7 @@
   </div>
 </div>
 {% if photos %}
-<details class="studio-photos__all" {{ 'open' if not picks.get('hero') else '' }}>
+<details class="studio-photos__all" {{ 'open' if keep_open or not picks.get('hero') else '' }}>
   <summary>Choose photos</summary>
   <p class="muted">Hover a photo and choose where it goes. "Pack" adds it to the info pack's photo pages (click again to take it out).</p>
   <div class="ph-grid">

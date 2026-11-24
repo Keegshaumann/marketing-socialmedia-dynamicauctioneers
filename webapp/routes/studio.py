@@ -238,7 +238,7 @@ async def studio_pick(ref: str, request: Request, user=Depends(_can)):
         raise HTTPException(400, "Unknown slot")
     state.save(db, prop.ref, photos=picks, by=user["email"])
     return _tpl(request).TemplateResponse(request, "partials/_studio_photos.html", {
-        "p": prop, "photos": photos, "picks": picks,
+        "p": prop, "photos": photos, "picks": picks, "keep_open": True,
         "slot_labels": {"hero": "Background", "photo1": "Photo 1", "photo2": "Photo 2", "aerial": "Aerial"},
     }, headers={"HX-Trigger": "studio-refresh"})
 
