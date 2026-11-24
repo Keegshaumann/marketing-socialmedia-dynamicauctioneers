@@ -199,7 +199,7 @@ def photo_rank(i: Item) -> tuple:
     """Aerials, then the team's own picks ("TO BE USED"), then the general
     photos, with valuer and loose-asset photos last."""
     rel = i.rel.upper()
-    if "AERIAL" in rel or "AV IMAGE" in rel or "/AV " in rel:
+    if re.search(r"AERIA?E?L", rel) or "AV IMAGE" in rel or "/AV " in rel:
         group = 0
     elif "IMAGES" in rel and rel.startswith("ADVERTISEMENT"):
         group = 1

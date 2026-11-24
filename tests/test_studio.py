@@ -434,3 +434,16 @@ def test_a_real_render_when_chromium_is_available(mirror, tmp_path):
     ad = Image.open(io.BytesIO(files["DP9001 AUCTION AD.png"]))
     assert ad.size == (1080, 1350)
     assert files["DP9001 AUCTION BOARD.pdf"].startswith(b"%PDF")
+
+
+def test_a_misspelt_aerial_still_counts():
+    # DP3025 keeps its aerial as Media/Photos/Overall/AERIEL VIEW.png.
+    from studio import catalog, render
+
+    def item(n, rel):
+        return catalog.Item("d", n, rel.rsplit("/", 1)[-1], "x/" + rel, rel, False, 90_000, 0.0)
+
+    photos = sorted([item("1", "Media/Photos/Overall/IMG_1.jpeg"), item("2", "Media/Photos/Overall/AERIEL VIEW.png")],
+                    key=catalog.photo_rank)
+    assert photos[0].item_id == "2"
+    assert render.photo_picks({}, photos)["aerial"] == "2"

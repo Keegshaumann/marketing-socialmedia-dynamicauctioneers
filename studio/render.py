@@ -185,7 +185,7 @@ def photo_picks(photos: dict, all_photos: list[Item]) -> dict:
     picks = {k: v for k, v in (photos or {}).items() if k != "gallery" and v in by_id}
     # Aerials: named as such, or kept in the ad folder's IMAGES / AV IMAGES, which is
     # where the team saves the Google Earth captures with the red boundary drawn on.
-    aerials = [p for p in all_photos if re.search(r"AERIAL|AV IMAGE|GOOGLE|SATELLITE|BOUNDARY|MAP|^ADVERTISEMENTS?/[^/]*IMAGES/",
+    aerials = [p for p in all_photos if re.search(r"AERIA?E?L|AV IMAGE|GOOGLE|SATELLITE|BOUNDARY|MAP|^ADVERTISEMENTS?/[^/]*IMAGES/",
                                                    p.rel.upper())]
     ordinary = [p for p in all_photos if p not in aerials]
     from studio.catalog import is_asset_photo
