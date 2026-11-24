@@ -176,7 +176,10 @@ def _read_job(db: str, ref: str, by: str) -> None:
         prop = catalog.get(ref)
         items = catalog.items(prop)
         row = state.load(db, ref)
-        sheets = F.from_sheets(prop, items, row["mode"])
+        if row is None or not row["facts"]:   # never opened: start from the sheets
+            state.save(db, ref, facts=F.initial(prop, items), mode=F.mode_for(prop))
+            row = state.load(db, ref)
+        sheets = F.from_sheets(prop, items, row["mode"] or F.mode_for(prop))
         found, warnings = F.read_documents(prop, items, sheets)
         row = state.load(db, ref)
         merged = F.merge(row["facts"], found, row["edited"])

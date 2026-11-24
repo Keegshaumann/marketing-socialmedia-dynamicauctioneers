@@ -390,6 +390,18 @@ def test_reading_the_documents_keeps_her_edits(app, monkeypatch):
     assert row["facts"]["auction_date"] != "1 JAN 2000"   # the sheets win on the date
 
 
+def test_reading_a_property_never_opened_starts_from_the_sheets(app, monkeypatch):
+    from studio import facts as F, state
+    from webapp.routes import studio as routes
+
+    monkeypatch.setattr(F, "read_documents", lambda prop, items, sheets: ({"subline": "3 BEDROOM APARTMENT"}, []))
+    routes._read_job(app.db, "DP9002", "someone")
+    row = state.load(app.db, "DP9002")
+    assert row["reading"] == "done"
+    assert row["facts"]["subline"] == "3 BEDROOM APARTMENT"
+    assert row["facts"]["price"] == "OFFERS FROM R380 000"
+
+
 def test_an_unknown_property_is_a_404(app):
     assert app.login().get("/studio/DP1").status_code == 404
 
