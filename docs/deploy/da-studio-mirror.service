@@ -1,0 +1,15 @@
+# Copies the director mirror's property list and folder listings for the Ad Studio
+# (scripts/copy_director_db.py). Runs as `director`, which owns the source.
+# Install: copy both units to /etc/systemd/system, then
+#   systemctl daemon-reload && systemctl enable --now da-studio-mirror.timer
+[Unit]
+Description=Ad Studio: copy the director mirror's property list
+After=network.target
+
+[Service]
+Type=oneshot
+User=director
+Group=dauction
+UMask=0027
+ExecStart=/usr/bin/python3 /opt/da-marketing/scripts/copy_director_db.py /opt/dynamic-director/director.db /var/lib/da-studio/director.db
+Nice=10

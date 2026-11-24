@@ -3,8 +3,9 @@
 The director platform (``/opt/dynamic-director``) walks the property folders on
 SharePoint every hour and keeps the listing in SQLite, along with what the team's
 sheets say about each file (auction date, listed price, occupancy...). The studio
-only ever reads that database, opened read-only, so the two apps cannot disturb
-each other.
+reads a copy of its ``files`` and ``items`` tables, refreshed every ten minutes
+(``scripts/copy_director_db.py``), opened read-only, so the two apps cannot
+disturb each other.
 """
 
 from __future__ import annotations
@@ -27,7 +28,9 @@ _ARTWORK = re.compile(r"\b(AD|ADS|REEL|BANNER|ICON|QR|BOARD|BORD|BILLBOARD|LOGO|
 
 
 def director_db() -> str:
-    return os.environ.get("DIRECTOR_DB", "/opt/dynamic-director/director.db")
+    # On the server this is the studio's own copy (scripts/copy_director_db.py):
+    # the director's live WAL database cannot be read reliably from another account.
+    return os.environ.get("DIRECTOR_DB", "/var/lib/da-studio/director.db")
 
 
 def _connect() -> sqlite3.Connection:
