@@ -68,10 +68,17 @@ def run(db: str, w: Optional[Writer] = None, *, reads: int = 4, dry_run: bool = 
     from webapp import models
 
     out: list[str] = []
+
+    def say(line: str) -> None:            # logged as it happens: a run can take minutes
+        out.append(line)
+        log.info(line)
+
     if (models.get_setting(db, "studio_auto", "on") or "on").lower() == "off":
-        return ["switched off (setting studio_auto)"]
+        say("switched off (setting studio_auto)")
+        return out
     if not catalog.available():
-        return ["the director mirror can't be read; nothing done"]
+        say("the director mirror can't be read; nothing done")
+        return out
     today = date.today()
     props = catalog.open_properties()
     kits = catalog.kits_for(props)
@@ -97,15 +104,15 @@ def run(db: str, w: Optional[Writer] = None, *, reads: int = 4, dry_run: bool = 
         queue.append((p, group))
     queue.sort(key=lambda pg: _priority(*pg))
     for p, group in queue[:reads]:
-        out.append(f"read {p.ref} ({group})")
         if dry_run:
+            say(f"read {p.ref} ({group})")
             continue
         publish.set_status(db, p.ref, read_at=datetime.now(timezone.utc).isoformat(timespec="seconds"))
         prepare.read(db, p.ref, prepare.STUDIO)
         row = state.load(db, p.ref)
-        out[-1] += f": {row['reading']}" + (f" ({row['message']})" if row["reading"] == "failed" else "")
+        say(f"read {p.ref} ({group}): {row['reading']}" + (f" ({row['message']})" if row["reading"] == "failed" else ""))
     if len(queue) > reads:
-        out.append(f"{len(queue) - reads} more to read in later runs")
+        say(f"{len(queue) - reads} more to read in later runs")
 
     # 2. file what is prepared, and what changed since
     sets = publish.all_sets(db)
@@ -121,15 +128,15 @@ def run(db: str, w: Optional[Writer] = None, *, reads: int = 4, dry_run: bool = 
         if r["reading"] == "running" or (sets.get(ref) or {}).get("status") == "saving" and _ago(sets[ref]["updated_at"]) < SETTLE:
             continue
         if r["updated_by"] and _ago(r["updated_at"]) < SETTLE:
-            out.append(f"{ref}: someone is editing; next run")
+            say(f"{ref}: someone is editing; next run")
             continue
         if dry_run:
-            out.append(f"file {ref}")
+            say(f"file {ref}")
             continue
         before = (sets.get(ref) or {}).get("message")
         s = publish.publish(db, p, w)
         if s and (s["message"] != before or s["status"] != (sets.get(ref) or {}).get("status")):
-            out.append(f"{ref}: {s['status']} - {s['message']}")
+            say(f"{ref}: {s['status']} - {s['message']}")
     return out
 
 
@@ -146,8 +153,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     from webapp import models
     db = models.resolve_db_path()
-    for line in run(db, writer(), reads=args.reads, dry_run=args.dry_run):
-        log.info(line)
+    run(db, writer(), reads=args.reads, dry_run=args.dry_run)
     return 0
 
 
