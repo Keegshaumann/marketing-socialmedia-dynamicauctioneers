@@ -391,13 +391,20 @@ def master_ref(all_items: list[Item]) -> str:
 READ_KINDS = ("report", "lightstone", "valuation", "otp")
 
 
+# How many of each kind Claude reads (studio.facts._READ), newest or best first. Only these
+# count towards the documents' signature, so an annexure or a signed scan filed beside the OTP
+# doesn't send the folder to be read again.
+READ_COUNT = {"report": 2, "lightstone": 4, "valuation": 1, "otp": 1}
+
+
 def signatures(all_items: list[Item]) -> tuple[str, str]:
-    """(photos, documents): change when a photo or a document is added, replaced or removed."""
+    """(photos, documents): change when a photo is added, replaced or removed, or a
+    document Claude reads is."""
     import hashlib
 
     docs = documents(all_items)
     ph = sorted(f"{i.item_id}:{i.modified}" for i in photos(all_items))
-    dc = sorted(f"{i.item_id}:{i.modified}" for k in READ_KINDS for i in docs[k])
+    dc = sorted(f"{i.item_id}:{i.modified}" for k in READ_KINDS for i in docs[k][:READ_COUNT[k]])
     return (hashlib.sha1("|".join(ph).encode()).hexdigest()[:16],
             hashlib.sha1("|".join(dc).encode()).hexdigest()[:16])
 
@@ -405,7 +412,7 @@ def signatures(all_items: list[Item]) -> tuple[str, str]:
 def newest(all_items: list[Item]) -> float:
     """When the newest photo or document was saved (0 when there are none)."""
     docs = documents(all_items)
-    stamps = [i.modified for i in photos(all_items)] + [i.modified for k in READ_KINDS for i in docs[k]]
+    stamps = [i.modified for i in photos(all_items)] + [i.modified for k in READ_KINDS for i in docs[k][:READ_COUNT[k]]]
     return max(stamps, default=0.0)
 
 

@@ -382,10 +382,10 @@ def _text_docx(raw: bytes, cap: int) -> str:
 
 # (kind, label for Claude, how many files, page limit, character cap)
 _READ = (
-    ("report", "PROPERTY REPORT (inspection)", 2, 40, 60_000),
-    ("lightstone", "LIGHTSTONE / DEEDS REPORT", 4, 20, 40_000),
-    ("valuation", "VALUATION", 1, 25, 40_000),
-    ("otp", "OFFER TO PURCHASE / CONDITIONS OF SALE", 1, 30, 60_000),     # 30 pages when it is a PDF
+    ("report", "PROPERTY REPORT (inspection)", catalog.READ_COUNT["report"], 40, 60_000),
+    ("lightstone", "LIGHTSTONE / DEEDS REPORT", catalog.READ_COUNT["lightstone"], 20, 40_000),
+    ("valuation", "VALUATION", catalog.READ_COUNT["valuation"], 25, 40_000),
+    ("otp", "OFFER TO PURCHASE / CONDITIONS OF SALE", catalog.READ_COUNT["otp"], 30, 60_000),   # 30 pages as a PDF
     ("infopack", "AN EARLIER INFO PACK FOR THIS PROPERTY", 1, 20, 30_000),
     ("proposal", "AUCTION PROPOSAL", 1, 0, 20_000),
 )

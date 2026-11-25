@@ -965,7 +965,7 @@ def test_her_own_photo_choice_is_not_redone(auto, mirror, monkeypatch):
 
 def test_a_new_document_means_the_documents_are_read_again(auto, mirror):
     auto.run()
-    _add_item(mirror.db, "OTP & ROA/9001 - OTP v2.docx", "otp2", size=20_000)
+    _add_item(mirror.db, "OTP & ROA/9001 - OTP v2.docx", "otp2", size=20_000, modified=2.0)   # the newer OTP
     auto.run()
     assert auto.reads == ["DP9001"]
     _quiet_since_yesterday(auto.app.db)
@@ -1547,3 +1547,13 @@ def test_a_marketed_property_missing_only_its_pack_waits_for_the_setting(app):
     assert A.reads_by_itself(app.db, p, "no_pack", date.today())
     assert A.needs_ad(p, {**kit, "infopack": True}, date.today()) == ""
     assert A.reads_by_itself(app.db, p, "no_ad", date.today())
+
+
+def test_a_file_filed_beside_the_otp_is_not_a_new_document(mirror):
+    from studio import catalog
+    p = catalog.get("DP9001")
+    before = catalog.signatures(catalog.items(p))[1]
+    _add_item(mirror.db, "OTP & ROA/Annexure A - site plan.pdf", "annex", modified=5.0)
+    assert catalog.signatures(catalog.items(p))[1] == before
+    _add_item(mirror.db, "OTP & ROA/9001 - OTP signed.pdf", "otp3", modified=6.0)   # still not the Word OTP read
+    assert catalog.signatures(catalog.items(p))[1] == before
