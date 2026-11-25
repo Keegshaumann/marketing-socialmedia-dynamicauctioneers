@@ -190,6 +190,8 @@ def run(db: str, w: Optional[Writer] = None, *, reads: int = 4, dry_run: bool = 
         if p is None or not r or r["reading"] != "done" or not settled.get(ref) or not s.get("read_docs_sig"):
             continue
         if s["docs_sig"] != s["read_docs_sig"]:
+            if (s.get("read_at") or "") > (s.get("changed_at") or "") and _ago(s["read_at"]) < RETRY_READ:
+                continue                               # tried since they came and it failed; the earlier read stands
             jobs.append((_priority(p, "waiting"), "read", p, "new documents"))
         elif s["photos_sig"] != s["read_photos_sig"]:
             if prepare.placed_by_a_person(state.load(db, ref)):

@@ -132,5 +132,23 @@ def read(db: str, ref: str, by: str) -> None:
         state.set_status(db, ref, read_docs_sig=dc, read_photos_sig=ph)
     except Exception as exc:  # shown to her; the details go to the log
         log.exception("studio read failed for %s", ref)
-        msg = str(exc) if isinstance(exc, StoreError) else "Reading the documents failed. Try again, or type the details in."
-        state.save(db, ref, reading="failed", message=msg)
+        if isinstance(exc, StoreError):
+            msg = str(exc)
+        elif out_of_credit(exc):
+            msg = NO_CREDIT
+        else:
+            msg = "Reading the documents failed. Try again, or type the details in."
+        if (state.get_set(db, ref) or {}).get("read_docs_sig"):
+            # a re-read that fails leaves the last good read as it was
+            state.save(db, ref, reading="done", message=f"{msg} The earlier details stand.")
+        else:
+            state.save(db, ref, reading="failed", message=msg)
+
+
+NO_CREDIT = ("The studio's Claude account has run out of credit, so it can't read documents right now. "
+             "Keegan needs to top it up; typing the details in still works.")
+
+
+def out_of_credit(exc: BaseException) -> bool:
+    """Anthropic refuses every call once the prepaid balance is spent (400, "credit balance is too low")."""
+    return "credit balance" in str(exc).lower()

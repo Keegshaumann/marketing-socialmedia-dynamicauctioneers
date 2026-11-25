@@ -790,6 +790,35 @@ def test_reads_are_capped_and_a_failed_read_waits_a_day(auto, monkeypatch):
     assert not any(line.startswith("read ") for line in auto.run())     # not again today
 
 
+def test_a_failed_re_read_keeps_the_last_good_one(auto, monkeypatch):
+    from studio import facts as F, prepare, state
+    auto.run()                                            # a good first read
+    good = state.load(auto.app.db, "DP9001")
+    assert good["reading"] == "done"
+
+    def no_credit(prop, items, sheets):
+        raise RuntimeError("Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', "
+                           "'message': 'Your credit balance is too low to access the Anthropic API.'}}")
+
+    monkeypatch.setattr(F, "read_documents", no_credit)
+    prepare.read(auto.app.db, "DP9001", prepare.STUDIO)
+    row = state.load(auto.app.db, "DP9001")
+    assert row["reading"] == "done" and row["facts"] == good["facts"]
+    assert row["message"].startswith(prepare.NO_CREDIT) and row["message"].endswith("The earlier details stand.")
+
+
+def test_a_failed_catch_up_read_waits_a_day(auto, mirror, monkeypatch):
+    from studio import facts as F, state
+    auto.run()
+    _add_item(mirror.db, "OTP & ROA/9001 - OTP v2.docx", "otp2", size=20_000)
+    auto.run()
+    _quiet_since_yesterday(auto.app.db)
+    monkeypatch.setattr(F, "read_documents", lambda *a: (_ for _ in ()).throw(RuntimeError("API down")))
+    assert any("new documents" in line for line in auto.run())       # tried, failed
+    assert state.load(auto.app.db, "DP9001")["reading"] == "done"   # the first read stands
+    assert not any("new documents" in line for line in auto.run())   # not every 15 minutes
+
+
 def test_switched_off(auto):
     from webapp import models
     models.set_setting(auto.app.db, "studio_auto", "off")
@@ -879,7 +908,10 @@ def _add_item(mirror_db, rel, item_id, *, modified=1.0, size=50_000):
 
 def _quiet_since_yesterday(db, ref="DP9001"):
     from studio import state
-    state.set_status(db, ref, changed_at="2026-01-01T00:00:00+00:00")
+    cols = {"changed_at": "2026-01-01T00:00:00+00:00"}
+    if (state.get_set(db, ref) or {}).get("read_at"):
+        cols["read_at"] = "2025-12-31T00:00:00+00:00"   # the last read came before the change
+    state.set_status(db, ref, **cols)
 
 
 def test_a_folder_still_filling_up_waits_a_day(auto, mirror):
