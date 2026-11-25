@@ -37,7 +37,7 @@ from studio.writer import Writer, WriteError, sha
 log = logging.getLogger("studio.publish")
 
 # Bump when a layout changes so every filed set is made again with it.
-RENDER_VERSION = "3"   # 25 Nov 2026: + AD 2, the team's big-photo layout
+RENDER_VERSION = "4"   # 25 Nov 2026: + AD 2 (big photo) and the billboard
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS studio_files (
@@ -147,6 +147,8 @@ def folder_for(name: str, items: list[catalog.Item]) -> str:
 
 def _kind(name: str) -> str:
     n = name.upper()
+    if "BILLBOARD" in n:
+        return "billboard"
     for key, label, rx in catalog.KIT:
         if rx.search(n):
             return key
@@ -165,6 +167,8 @@ def team_has(name: str, items: list[catalog.Item], ours: set[str]) -> bool:
     theirs = [i for i in items if not i.is_folder and i.item_id not in ours]
     if kind == "qr":
         return any(i.top.startswith("ADVERT") and "QR" in i.name.upper() for i in theirs)
+    if kind == "billboard":
+        return any(i.top.startswith("ADVERT") and "BILLBOARD" in i.name.upper() for i in theirs)
     return catalog.kit(theirs).get(kind, False)
 
 
@@ -201,7 +205,12 @@ def gaps(prop: catalog.Property, mode: str, items: list[catalog.Item], ours: set
     """The set's main files (ad, banner, icon, board, pack) the folder has no file of
     its own for. Empty: the team already made the whole set, nothing to add."""
     return [F.name_for(prop, fmt.kind, mode) for fmt in render.formats_for(mode)
-            if not team_has(F.name_for(prop, fmt.kind, mode), items, set(ours))]
+            if fmt.kind in CORE and not team_has(F.name_for(prop, fmt.kind, mode), items, set(ours))]
+
+
+# The set proper. AD 2 and the billboard are extras: they go with any set the studio
+# files, but a missing extra alone is never a reason to read a folder or file a set.
+CORE = ("ad", "saia", "icon", "board", "infopack")
 
 
 # --- filing -----------------------------------------------------------------------

@@ -50,6 +50,7 @@ FORMATS = {
     "saia": Format("saia", "SAIA banner", 952, 239, modes=("auction",)),
     "icon": Format("icon", "App icon", 1280, 960, modes=("auction",)),
     "board": Format("board", "Board", 1200, 1600, pdf=True, pdf_size=(900, 1200)),
+    "billboard": Format("billboard", "Billboard", 3000, 2000, pdf=True, pdf_size=(2250, 1500)),   # 3 m x 2 m
     "infopack": Format("infopack", "Info pack", 794, 1123, pdf=True),
 }
 

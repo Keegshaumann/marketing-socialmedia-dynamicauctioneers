@@ -266,6 +266,7 @@ def test_default_photo_picks(mirror):
 @pytest.mark.parametrize("kind,mode", [("ad", "forsale"), ("ad", "auction"), ("ad2", "forsale"), ("ad2", "auction"),
                                        ("saia", "auction"),
                                        ("icon", "auction"), ("board", "auction"), ("board", "forsale"),
+                                       ("billboard", "auction"), ("billboard", "forsale"),
                                        ("infopack", "auction")])
 def test_every_template_renders_its_words(kind, mode):
     from studio import catalog, facts as F, render
@@ -280,7 +281,7 @@ def test_every_template_renders_its_words(kind, mode):
     html = render.html(kind, ctx)
     assert "RHEDE" not in html                 # the matter name never reaches an output
     assert "data-ready" not in html or True
-    text = {"ad": "MAKHADO | LIMPOPO", "ad2": "MAKHADO | LIMPOPO", "saia": "BUSINESS RESCUE", "icon": "PROPERTY REF: DP9001",
+    text = {"ad": "MAKHADO | LIMPOPO", "ad2": "MAKHADO | LIMPOPO", "billboard": "MACADAMIA", "saia": "BUSINESS RESCUE", "icon": "PROPERTY REF: DP9001",
             "board": "MAKHADO", "infopack": "PROPERTY OVERVIEW"}[kind]
     assert text in html
 
@@ -1084,3 +1085,18 @@ def test_the_big_photo_ad_is_filed_beside_the_first(auto):
     html = render.html("ad2", render.context(prop, {"features": [{"icon": "bed", "text": "3 BEDROOMS"}]}, {}, "forsale",
                                              lambda i, s: ""))
     assert "REAL ESTATE" in html and "MAKE US AN OFFER!" in html and "3 BEDROOMS" in html
+
+
+def test_the_billboard_names_the_day_and_never_counts_as_a_gap(mirror):
+    from studio import catalog, facts as F, publish, render
+    from studio.catalog import Property
+    prop = Property(ref="DP3107", name="X", folder="F", status="")
+    f = {"sale_kind": "BUSINESS RESCUE", "auction_date": "28 JAN 2027", "auction_time": "10:00 - 12:00",
+         "auction_kind": "ONLINE", "board_lines": ["MACADAMIA & AVOCADO", "±38.15 HA FARM"]}
+    html = render.html("billboard", render.context(prop, f, {}, "auction", lambda i, s: ""))
+    assert "BUSINESS RESCUE AUCTION" in html and "THURSDAY 28 JAN 2027" in html and "ONLINE" in html
+    assert F.name_for(prop, "billboard", "auction") == "DP3107 AUCTION BILLBOARD.pdf"
+    assert publish.kind_of("DP3107 AUCTION BILLBOARD.pdf") == "billboard"
+    # a team billboard stops the studio's, but a missing billboard alone is no gap
+    p = catalog.get("DP9001")
+    assert all("BILLBOARD" not in g and " AD 2" not in g for g in publish.gaps(p, "auction", catalog.items(p)))

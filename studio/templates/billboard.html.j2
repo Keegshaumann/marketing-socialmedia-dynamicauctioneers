@@ -1,0 +1,74 @@
+{% extends "_canvas.html.j2" %}
+{# The roadside billboard, 3000x2000 px = 2250x1500 pt, printed 3 m x 2 m. Laid out like the team's
+   DP3107, DP2969 and DP2854 billboards (Oct-Nov 2026): black logo band with the reference, orange band
+   with the sale and the day, white band with what it is, black band with the auction kind (or MAKE AN
+   OFFER), the phone number and the QR code. #}
+{% block css %}
+@page{size:2250pt 1500pt;margin:0}
+html,body{background:#0b0b0b}
+.big{font-weight:900;line-height:1;white-space:nowrap}
+.lockup{display:flex;align-items:center;gap:22px}
+.lockup .mark{width:300px;height:198px;overflow:hidden;position:relative}
+.lockup .mark img{position:absolute;left:-8px;top:-12px;width:316px}
+.lockup .words{display:flex;flex-direction:column;line-height:1}
+.shadow-dark{text-shadow:0 8px 0 rgba(0,0,0,.55)}
+.shadow-soft{text-shadow:0 5px 0 rgba(0,0,0,.18)}
+.pair{display:flex;align-items:stretch;border:8px solid #fff}
+.pair span{font-weight:900;font-size:200px;line-height:1;padding:10px 34px 18px;white-space:nowrap}
+{% endblock %}
+{% block body %}
+{% set kind_word = 'AUCTION' if auction else 'SALE' %}
+{% set sale_line = ((f.sale_kind ~ ' ' ~ kind_word) if f.sale_kind else ('PROPERTY AUCTION' if auction else 'FOR SALE')) %}
+
+{# 1. the logo band #}
+<div class="abs" style="left:0;top:0;width:3000px;height:400px;background:#0b0b0b"></div>
+<div class="abs lockup" style="left:0;top:100px;width:3000px;justify-content:center">
+  <div class="mark"><img src="{{ logo('auctioneers-on-dark') }}"></div>
+  <div class="words"><span style="font-weight:800;font-size:168px;letter-spacing:.03em">DYNAMIC</span>
+    <span class="goldtext" style="font-weight:600;font-size:74px;letter-spacing:.27em;margin-top:12px">AUCTIONEERS</span></div>
+</div>
+<div class="abs" style="right:60px;top:44px;border:6px solid #fff;border-radius:64px;padding:14px 48px;font-weight:800;font-size:{{ 46 if f.master_ref else 56 }}px;line-height:1.15;text-align:center;white-space:nowrap">
+  {% if f.master_ref %}MASTER REF:<br>{{ f.master_ref }}{% else %}REF: {{ ref }}{% endif %}
+</div>
+
+{# 2. the orange band: the sale, and when #}
+<div class="abs" style="left:0;top:400px;width:3000px;height:476px;background:var(--orange);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px">
+  <div class="big fit shadow-dark" data-fit data-min="110" style="font-size:236px;color:#fff;max-width:2860px">{{ sale_line }}</div>
+  {% if auction %}
+  {% set day = weekday(f.auction_date) %}
+  <div class="big fit shadow-soft" data-fit data-min="80" style="font-size:150px;color:#0b0b0b;max-width:2860px">{{ ((day ~ ' ') if day else '') ~ (f.auction_date or '') }}{% if f.auction_time %} | {{ f.auction_time }}{% endif %}</div>
+  {% else %}
+  <div class="big fit shadow-soft" data-fit data-min="80" style="font-size:150px;color:#0b0b0b;max-width:2860px">{{ (f.price or f.subline or 'OFFERS WELCOME') | nb }}</div>
+  {% endif %}
+</div>
+
+{# 3. the white band: what it is #}
+{% set lines = (f.board_lines or [f.short_title or f.subline])[:2] %}
+<div class="abs" style="left:0;top:876px;width:3000px;height:442px;background:#fff;color:#0b0b0b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px">
+  {% for line in lines %}
+  <div class="big fit shadow-soft" data-fit data-min="90" style="font-size:{{ 190 if loop.last else 150 }}px;max-width:2860px">{{ line | nb }}</div>
+  {% endfor %}
+</div>
+
+{# 4. the black band: how to buy, the number and the QR code #}
+<div class="abs" style="left:0;top:1318px;width:3000px;height:682px;background:#0b0b0b"></div>
+<div class="abs" style="left:110px;top:1376px;width:2040px;display:flex;flex-direction:column;align-items:center;gap:46px">
+  <div class="pair">
+    {% if auction %}
+    <span style="color:var(--orange);background:#0b0b0b">{{ 'ONSITE' if (f.auction_kind or '').upper().startswith('ON-SITE') or (f.auction_kind or '').upper() == 'ONSITE' else 'ONLINE' }}</span><span style="color:#0b0b0b;background:#fff">AUCTION</span>
+    {% else %}
+    <span style="color:var(--orange);background:#0b0b0b">MAKE AN</span><span style="color:#0b0b0b;background:#fff">OFFER</span>
+    {% endif %}
+  </div>
+  <div style="display:flex;align-items:center;gap:56px">
+    <span style="width:230px;height:230px;border-radius:50%;background:#fff;color:#0b0b0b;display:flex;align-items:center;justify-content:center">{{ icon('call', 150) }}</span>
+    <span class="big" style="font-size:250px;color:#fff">{{ f.phone | nb }}</span>
+  </div>
+</div>
+<div class="abs" style="left:2250px;top:1380px;width:600px;height:600px;background:#fff;border:8px solid #fff;outline:6px solid #fff;padding:22px">
+  <div style="position:relative;width:100%;height:100%">
+    {{ qr_svg(f.qr_link) }}
+    <div style="position:absolute;left:50%;top:50%;width:150px;height:150px;transform:translate(-50%,-50%);background:#fff;border-radius:22px;display:flex;align-items:center;justify-content:center"><img src="{{ logo('auctioneers-on-light') }}" style="width:124px"></div>
+  </div>
+</div>
+{% endblock %}

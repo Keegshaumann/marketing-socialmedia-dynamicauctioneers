@@ -491,6 +491,7 @@ def name_for(prop: Property, kind: str, mode: str) -> str:
         "saia": f"{n} SAIA BANNER.png",
         "icon": f"{n} APP ICON.png",
         "board": f"{n} {'AUCTION' if mode == 'auction' else 'FOR SALE'} BOARD.pdf",
+        "billboard": f"{n} {'AUCTION' if mode == 'auction' else 'FOR SALE'} BILLBOARD.pdf",
         "infopack": f"{n} {'AUCTION' if mode == 'auction' else 'FOR SALE'} INFO PACK.pdf",
         "qr_black": f"{n} - QR CODE BLACK.png",
         "qr_white": f"{n} - QR CODE WHITE.png",

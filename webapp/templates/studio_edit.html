@@ -145,7 +145,7 @@
     <div class="studio-previews">
       {% for fm in formats %}
       {% set theirs = team_for.get(fm.kind) %}
-      <figure class="pv-card {{ 'pv-card--pack' if fm.kind == 'infopack' and not theirs else '' }} {{ 'pv-card--team' if theirs else '' }}">
+      <figure class="pv-card {{ 'pv-card--pack' if fm.kind in ('infopack', 'billboard') and not theirs else '' }} {{ 'pv-card--team' if theirs else '' }}">
         {% if theirs %}
         <figcaption>
           <span class="pv-card__title">{{ fm.label }}</span><span class="badge badge--ok">Made by the team</span>
