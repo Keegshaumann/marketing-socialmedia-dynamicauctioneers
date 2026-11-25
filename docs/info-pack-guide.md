@@ -577,3 +577,8 @@ Underlying Rhede sources reviewed in this workflow include:
 The guide also incorporates explicit user corrections visible in the project and relevant available earlier work: separate portion features, include building areas where supplied, avoid vague unsupported outbuildings, distinguish zoning from usage, keep features relevant, and always include investment highlights.
 
 Earlier draft text may be superseded by later instructions or approved packs. For every new job, repeat source intake rather than treating this guide or a past property's finished pack as evidence of the new property's facts.
+
+## Studio decisions (where the Ad Studio differs from this guide)
+
+- **No names (25 November 2026).** The studio's packs leave out the registered owner, the company or VAT registration number and the business rescue practitioner or other representative, although section 8.2 and the DP3107 reference pack include them. Keegan decided this; the read's instructions (`studio/facts.py`) and the privacy check enforce it.
+- **Registration fees** come from the instruction, not the documents. When no document states one, the studio leaves it out rather than guess (rule 1); the team adds it in the studio.
