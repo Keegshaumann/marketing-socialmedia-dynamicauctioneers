@@ -145,6 +145,28 @@ def read(db: str, ref: str, by: str) -> None:
             state.save(db, ref, reading="failed", message=msg)
 
 
+def has_details(facts: dict) -> bool:
+    """The pack's detail sections (studio.facts.read_details) are in."""
+    return any((facts or {}).get(k) for k in ("sale_info", "particulars", "conditions"))
+
+
+def read_details(db: str, ref: str) -> bool:
+    """Only the pack's detail sections, for a set read before they existed. Leaves
+    everything else, and whatever a person edited, as it is."""
+    try:
+        prop = catalog.get(ref)
+        items = catalog.items(prop)
+        row = state.load(db, ref)
+        mode = row["mode"] or F.mode_for(prop)
+        details = F.read_details(prop, items, F.from_sheets(prop, items, mode))
+    except Exception:
+        log.exception("the pack's detail sections failed for %s", ref)
+        return False
+    row = state.load(db, ref)
+    state.save(db, ref, facts=F.merge(row["facts"], details, row["edited"]))
+    return True
+
+
 NO_CREDIT = ("The studio's Claude account has run out of credit, so it can't read documents right now. "
              "Keegan needs to top it up; typing the details in still works.")
 

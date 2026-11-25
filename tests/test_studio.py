@@ -1724,3 +1724,25 @@ def test_the_form_edits_the_pack_tables_and_sections():
     back = FORM.from_form({"tables": v["tables"], "sections": v["sections"], "conditions": v["conditions"], "map_pin": v["map_pin"]})
     assert back["tables"] == facts["tables"] and back["sections"] == facts["sections"]
     assert back["conditions"] == facts["conditions"] and back["map_pin"] == "-22.9, 30.0"
+
+
+
+def test_a_set_read_before_the_pack_details_gets_them_once(auto, monkeypatch):
+    from studio import facts as F, state
+    auto.run()                                              # read and filed, with no detail sections
+    asked = []
+
+    def fake_details(prop, items, sheets, content=None):
+        asked.append(prop.ref)
+        return {"conditions": [{"label": "Deposit", "text": "10% after the auction"}],
+                "sale_info": [], "particulars": [], "map_pin": "", "tables": [], "sections": [], "fica": []}
+    monkeypatch.setattr(F, "read_details", fake_details)
+    _quiet_since_yesterday(auto.app.db)
+    with __import__("webapp.models", fromlist=["x"])._connect(auto.app.db) as conn:   # the read was long ago
+        conn.execute("UPDATE studio_sets SET read_at = '2025-12-31T00:00:00+00:00'")
+    log = auto.run()
+    assert asked == ["DP9001"] and any("detail sections for DP9001: done" in line for line in log)
+    assert state.load(auto.app.db, "DP9001")["facts"]["conditions"][0]["text"] == "10% after the auction"
+    assert auto.reads == ["DP9001"]                         # the documents weren't read again in full
+    auto.run()
+    assert asked == ["DP9001"]                              # once

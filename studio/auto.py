@@ -269,6 +269,11 @@ def run(db: str, w: Optional[Writer] = None, *, reads: int = 4, dry_run: bool = 
                 state.set_status(db, ref, read_photos_sig=s["photos_sig"])   # her choice stands
             else:
                 jobs.append((_priority(p, "waiting"), "photos", p, "new photos"))
+        elif s.get("status") != "complete" and not kits.get(p.folder, {}).get("infopack") \
+                and not prepare.has_details((state.load(db, ref) or {}).get("facts")):
+            # read before the pack had its detail sections (25 Nov 2026): those alone
+            if not (s.get("read_at") and _ago(s["read_at"]) < RETRY_READ):
+                jobs.append((_priority(p, "waiting"), "details", p, "the pack's detail sections"))
     jobs.sort(key=lambda j: j[0])
     for _, kind, p, why in jobs[:reads]:
         if dry_run:
@@ -279,6 +284,9 @@ def run(db: str, w: Optional[Writer] = None, *, reads: int = 4, dry_run: bool = 
             prepare.read(db, p.ref, prepare.STUDIO)
             row = state.load(db, p.ref)
             say(f"read {p.ref} ({why}): {row['reading']}" + (f" ({row['message']})" if row["reading"] == "failed" else ""))
+        elif kind == "details":
+            state.set_status(db, p.ref, read_at=datetime.now(timezone.utc).isoformat(timespec="seconds"))
+            say(f"read {why} for {p.ref}: {'done' if prepare.read_details(db, p.ref) else 'failed'}")
         else:
             row = state.load(db, p.ref)
             items = catalog.items(p)
