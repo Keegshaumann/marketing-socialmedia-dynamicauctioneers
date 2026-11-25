@@ -19,11 +19,11 @@ html,body{background:var(--orange)}
 {# the top block #}
 <div class="abs" style="left:236px;top:0;width:964px;height:290px;display:flex;flex-direction:column;align-items:center;justify-content:center">
   {% if auction %}
-  <div class="big fit" data-fit data-min="60" style="font-size:150px;max-width:930px">{{ f.auction_kind or 'ONLINE' }}</div>
-  <div class="big fit" data-fit data-min="30" style="font-size:74px;margin-top:10px;max-width:930px">{{ f.auction_date }}{% if f.auction_time %} @ {{ f.auction_time.split('-')[0].strip() }}{% endif %}</div>
+  <div class="big fit" data-fit data-min="60" style="font-size:150px;max-width:890px">{{ f.auction_kind or 'ONLINE' }}</div>
+  <div class="big fit" data-fit data-min="30" style="font-size:74px;margin-top:10px;max-width:890px">{{ f.auction_date }}{% if f.auction_time %} @ {{ f.auction_time.split('-')[0].strip() }}{% endif %}</div>
   {% else %}
-  <div class="big fit" data-fit data-min="40" style="font-size:96px;max-width:930px">OFFERS FROM</div>
-  <div class="big fit" data-fit data-min="30" style="font-size:110px;margin-top:10px;max-width:930px">{{ (f.price or '').replace('OFFERS FROM', '').strip() | nb }}</div>
+  <div class="big fit" data-fit data-min="40" style="font-size:96px;max-width:890px">OFFERS FROM</div>
+  <div class="big fit" data-fit data-min="30" style="font-size:110px;margin-top:10px;max-width:890px">{{ (f.price or '').replace('OFFERS FROM', '').strip() | nb }}</div>
   {% endif %}
 </div>
 

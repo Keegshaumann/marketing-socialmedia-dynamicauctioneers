@@ -1,0 +1,70 @@
+{# The ads' features, the way the team lists them (DP2933, DP2956, Nov 2026): a single dwelling is one list;
+   a property with a flat or cottages gets the whole property's size on its own line, a boxed group for the
+   main house, a smaller boxed group per extra unit (identical units together, with the count), and
+   anything shared after. Counts are even (4 or 6, 2 or 4), so the boxes stay symmetrical. Sizes shrink
+   with the number of lines so it always fits the panel. #}
+
+{% macro row(ft, fs, ic, tw) -%}
+<div class="feat" style="gap:{{ (fs * 0.6)|round|int }}px">
+  <span style="width:{{ ic }}px;height:{{ (ic * 0.88)|round|int }}px;display:flex;align-items:center;justify-content:center;flex:none">{{ icon(ft.icon, ic, (ic * 0.86)|round|int) }}</span>
+  <span class="t" style="font-size:{{ fs }}px;width:{{ tw }}px;display:flex;flex-direction:column;justify-content:center;line-height:1.1">
+    <span>{{ ft.text | nb }}</span>{% if ft.note %}<span style="font-size:{{ (fs * 0.55)|round|int }}px;font-weight:700;opacity:.9;margin-top:2px">{{ ft.note | nb }}</span>{% endif %}
+  </span>
+</div>
+{%- endmacro %}
+
+{% macro lines(f) -%}
+{%- set n = (f.features or [])[:6]|length + (f.shared_features or [])|length -%}
+{%- for u in f.extra_units or [] %}{% set n = n + (u['items'] or [])|length %}{% endfor -%}
+{{ n + (f.extra_units or [])|length + (1 if f.extra_units else 0) }}
+{%- endmacro %}
+
+{% macro sizes(f, roomy) -%}
+{%- set n = lines(f)|int -%}
+{%- if n <= 4 %}{{ 32 if roomy else 30 }}{% elif n <= 6 %}{{ 29 if roomy else 26 }}{% elif n <= 8 %}26{% elif n <= 10 %}23{% elif n <= 13 %}20{% else %}18{% endif -%}
+{%- endmacro %}
+
+{# one column: the first ad's panel #}
+{% macro column(f, width, roomy=true) -%}
+{%- set fs = sizes(f, roomy)|int -%}
+{%- set ic = (fs * 2.15)|round|int -%}
+{%- set tw = width - ic - (fs * 0.6)|round|int - 8 -%}
+{% if f.extra_units %}
+  {% set shared = f.shared_features or [] %}
+  {% if shared %}{{ row(shared[0], fs, ic, tw) }}{% endif %}
+  <div class="grp">{% if f.main_title %}<div class="grp__t" style="font-size:{{ (fs * 0.62)|round|int }}px">{{ f.main_title }}</div>{% endif %}
+    {% for ft in (f.features or [])[:6] %}{{ row(ft, fs, ic, tw - 34) }}{% endfor %}</div>
+  {% for u in f.extra_units %}
+  <div class="grp">{% if u.title %}<div class="grp__t" style="font-size:{{ (fs * 0.62)|round|int }}px">{{ u.title }}</div>{% endif %}
+    {% for ft in u['items'] %}{{ row(ft, fs, ic, tw - 34) }}{% endfor %}</div>
+  {% endfor %}
+  {% for ft in shared[1:] %}{{ row(ft, fs, ic, tw) }}{% endfor %}
+{% else %}
+  {% for ft in (f.features or [])[:6] %}{{ row(ft, fs, ic, tw) }}{% endfor %}
+{% endif %}
+{%- endmacro %}
+
+{# two columns: AD 2's box (main house on the left, the flat or cottages on the right) #}
+{% macro columns(f, width) -%}
+{%- set fs = ((sizes(f, false)|int) * 0.92)|round|int -%}
+{%- set ic = (fs * 2.0)|round|int -%}
+{%- set half = ((width - 28) / 2)|int -%}
+{%- set tw = half - ic - (fs * 0.6)|round|int - 8 -%}
+{% if f.extra_units %}
+  {% set shared = f.shared_features or [] %}
+  <div style="display:flex;flex-direction:column;justify-content:space-evenly;gap:6px;min-width:0">
+    {% if shared %}{{ row(shared[0], fs, ic, tw) }}{% endif %}
+    <div class="grp">{% if f.main_title %}<div class="grp__t" style="font-size:{{ (fs * 0.62)|round|int }}px">{{ f.main_title }}</div>{% endif %}
+      {% for ft in (f.features or [])[:6] %}{{ row(ft, fs, ic, tw - 34) }}{% endfor %}</div>
+  </div>
+  <div style="display:flex;flex-direction:column;justify-content:space-evenly;gap:6px;min-width:0">
+    {% for u in f.extra_units %}
+    <div class="grp">{% if u.title %}<div class="grp__t" style="font-size:{{ (fs * 0.62)|round|int }}px">{{ u.title }}</div>{% endif %}
+      {% for ft in u['items'] %}{{ row(ft, fs, ic, tw - 34) }}{% endfor %}</div>
+    {% endfor %}
+    {% for ft in shared[1:] %}{{ row(ft, fs, ic, tw) }}{% endfor %}
+  </div>
+{% else %}
+  {% for ft in (f.features or [])[:6] %}{{ row(ft, fs, ic, tw) }}{% endfor %}
+{% endif %}
+{%- endmacro %}

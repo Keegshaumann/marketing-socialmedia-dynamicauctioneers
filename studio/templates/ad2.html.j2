@@ -1,4 +1,5 @@
 {% extends "_canvas.html.j2" %}
+{% import "_features.html.j2" as fx with context %}
 {# The team's other 1080x1350 ad layout, after DP3100, DP3067 and DP3078.1 (Nov 2026): the logo across
    the top, three heading lines and the sale badge, one big photo (the aerial with its boundary on an
    auction) with the address on it and a column of three more beside it, the features in two columns,
@@ -23,6 +24,9 @@
 {% endblock %}
 {% block body %}
 {% set main = aerial if auction else (hero or aerial) %}
+{# a flat or cottages: shorter photos, a taller two-column features box #}
+{% set ph = 360 if f.extra_units else 518 %}
+{% set ftop = 400 + ph + 16 %}
 {% if main %}<img class="bg" src="{{ main }}" style="filter:brightness(.32) blur(2px);transform:scale(1.04)">{% endif %}
 
 <div class="abs topbar goldbar">
@@ -43,7 +47,7 @@
   {% if f.badge %}<div class="badge fit rv-shine" data-fit data-min="20" style="height:52px;max-width:700px;font-size:32px;margin-top:14px;flex:none">{{ f.badge | nb }}</div>{% endif %}
 </div>
 
-<div class="abs frame rv-main" style="left:54px;top:400px;width:652px;height:518px">
+<div class="abs frame rv-main" style="left:54px;top:400px;width:652px;height:{{ ph }}px">
   {% if main %}<img src="{{ main }}">{% endif %}
   {% if f.address %}
   <div style="position:absolute;left:18px;right:18px;bottom:16px;min-height:40px;background:#fff;border-radius:20px;display:flex;align-items:center;justify-content:center;gap:8px;color:#111;padding:3px 16px">
@@ -52,21 +56,19 @@
   {% endif %}
 </div>
 
-<div class="abs rv-col" style="left:722px;top:400px;width:304px;height:518px;display:flex;flex-direction:column;gap:12px">
+<div class="abs rv-col" style="left:722px;top:400px;width:304px;height:{{ ph }}px;display:flex;flex-direction:column;gap:12px">
   {% for p in extras %}<div class="frame" style="flex:1"><img src="{{ p }}"></div>{% endfor %}
 </div>
 
-<div class="abs box rv-feats" style="left:54px;top:934px;width:972px;height:198px;padding:12px 26px;display:grid;grid-template-columns:1fr 1fr;align-content:space-evenly;column-gap:28px">
-  {% for ft in f.features[:5] %}
-  <div class="feat"><span style="width:54px;height:50px;display:flex;align-items:center;justify-content:center">{{ icon(ft.icon, 52, 46) }}</span>
-    <span class="t" data-fit data-min="14" style="font-size:25px;height:54px;width:360px">{{ ft.text | nb }}</span></div>
-  {% endfor %}
+<div class="abs box rv-feats" style="left:54px;top:{{ ftop }}px;width:972px;height:{{ 1132 - ftop }}px;padding:12px 26px;display:grid;grid-template-columns:1fr 1fr;align-content:space-evenly;column-gap:28px;row-gap:4px;font-weight:800">
+  {% if f.extra_units %}{{ fx.columns(f, 920) }}
+  {% else %}{% for ft in (f.features or [])[:6] %}{{ fx.row(ft, 25, 52, 360) }}{% endfor %}{% endif %}
 </div>
 
-<div class="abs box fit rv-price rv-shine" data-fit data-min="24" style="left:54px;top:1146px;width:972px;height:80px;border-radius:6px;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:{{ 44 if auction else 54 }}px">{% if auction %}{{ auction_line | nb }}{% else %}{{ (f.price or 'MAKE US AN OFFER!') | nb }}{% endif %}</div>
+<div class="abs box fit rv-price rv-shine" data-fit data-min="24" style="left:54px;top:1146px;width:972px;height:80px;padding:0 34px;border-radius:6px;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:{{ 44 if auction else 54 }}px">{% if auction %}{{ auction_line | nb }}{% else %}{{ (f.price or 'MAKE US AN OFFER!') | nb }}{% endif %}</div>
 
 {% if f.disclaimer %}
-<div class="abs fit rv-late" data-fit data-min="11" style="left:94px;top:1234px;width:892px;height:32px;border:2px solid var(--goldline);border-radius:16px;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px">{{ f.disclaimer | nb }}</div>
+<div class="abs fit rv-late" data-fit data-min="11" style="left:94px;top:1234px;width:892px;height:32px;padding:0 26px;border:2px solid var(--goldline);border-radius:16px;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px">{{ f.disclaimer | nb }}</div>
 {% endif %}
 
 <div class="abs bottombar goldbar">

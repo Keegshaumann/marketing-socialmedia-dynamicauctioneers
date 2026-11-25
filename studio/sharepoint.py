@@ -42,9 +42,15 @@ def cache_dir() -> Path:
     return p
 
 
+# The photos the studio uses are colour graded (``_grade``). Bump when the grading
+# changes, so every cached copy is graded again.
+GRADE = "g1"
+
+
 def _key(item: Item, what: str) -> Path:
     h = hashlib.sha1(f"{item.drive_id}|{item.item_id}|{item.modified}|{what}".encode()).hexdigest()[:24]
-    return cache_dir() / h[:2] / f"{h}{'.jpg' if what in SIZES or what.startswith('thumb') else item.ext}"
+    jpeg = what.split("-")[0] in SIZES or what.startswith("thumb")
+    return cache_dir() / h[:2] / f"{h}{'.jpg' if jpeg else item.ext}"
 
 
 class Store:
@@ -68,16 +74,19 @@ class Store:
         return data
 
     def image(self, item: Item, size: str = "view") -> bytes:
-        """A JPEG of the photo, longest edge at most ``SIZES[size]``, turned upright."""
+        """A JPEG of the photo, longest edge at most ``SIZES[size]``, turned upright and
+        colour graded (``_grade``: light and colour only, nothing in the picture changes)."""
         px = SIZES[size]
-        path = _key(item, size)
+        path = _key(item, f"{size}-{GRADE}")
         if path.exists():
             return path.read_bytes()
         data = None
         if item.ext in (".heic", ".heif"):
             data = self._graph_render(item, px)   # Pillow cannot read HEIC; SharePoint can
+            if data is not None:
+                data = _shrink(data, px, grade=True)
         if data is None:
-            data = _shrink(self.content(item), px)
+            data = _shrink(self.content(item), px, grade=True)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
         return data
@@ -99,7 +108,7 @@ class Store:
         return data
 
 
-def _shrink(raw: bytes, px: int) -> bytes:
+def _shrink(raw: bytes, px: int, grade: bool = False) -> bytes:
     from PIL import Image, ImageOps
 
     with Image.open(io.BytesIO(raw)) as im:
@@ -109,9 +118,33 @@ def _shrink(raw: bytes, px: int) -> bytes:
             bg.paste(im.convert("RGBA"), mask=im.convert("RGBA").split()[-1])
             im = bg
         im.thumbnail((px, px))
+        im = im.convert("RGB")
+        if grade:
+            im = _grade(im)
         out = io.BytesIO()
-        im.convert("RGB").save(out, "JPEG", quality=88, optimize=True)
+        im.save(out, "JPEG", quality=88, optimize=True)
         return out.getvalue()
+
+
+def _grade(im):
+    """Colour grading for property photos, nothing more: the photo's own levels
+    stretched (a grey, hazy shot gets its blacks and whites back), vibrancy added
+    where it is flat (a photo that already has colour gets almost none), a dark
+    photo lifted a little and a flat one given a touch of contrast. Nothing is
+    added to or taken out of the picture."""
+    from PIL import ImageEnhance, ImageOps, ImageStat
+
+    hsv = im.convert("HSV")
+    sat = ImageStat.Stat(hsv.getchannel("S")).mean[0] / 255
+    val = ImageStat.Stat(hsv.getchannel("V")).mean[0] / 255
+    spread = ImageStat.Stat(im.convert("L")).stddev[0] / 255
+    im = ImageOps.autocontrast(im, cutoff=(0.4, 0.4), preserve_tone=True)
+    im = ImageEnhance.Color(im).enhance(1.06 + max(0.0, min(0.30, (0.40 - sat) * 1.1)))
+    if val < 0.45:
+        im = ImageEnhance.Brightness(im).enhance(1 + min(0.16, (0.45 - val) * 0.8))
+    if spread < 0.20:
+        im = ImageEnhance.Contrast(im).enhance(1.06)
+    return im
 
 
 def _pdf_first_page(raw: bytes, px: int) -> Optional[bytes]:

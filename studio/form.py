@@ -11,7 +11,7 @@ from typing import Any
 
 from studio.facts import ICONS
 
-STRINGS = ("headline", "subline", "headline2", "badge", "address", "disclaimer", "price",
+STRINGS = ("headline", "subline", "headline2", "badge", "address", "disclaimer", "price", "main_title",
            "auction_kind", "auction_date", "auction_time", "short_title", "short_place", "sale_kind",
            "location_line", "pack_title", "pack_region", "pack_strapline", "pack_footer", "confirmation",
            "viewing", "caption", "listing", "master_ref", "phone", "email", "qr_link")
@@ -19,7 +19,9 @@ LINES = ("board_lines", "board_place", "terms", "best_use")
 PARAGRAPHS = ("description",)
 ROWS = ("overview", "rates", "condition", "highlights")
 PORTION_KEYS = ("label", "legal_description", "extent", "municipality", "zoning", "title_deed")
-FEATURE_SLOTS = {"features": 5}
+FEATURE_SLOTS = {"features": 6, "shared_features": 2}
+# Grouped lists: a heading line ending in ":" then one "icon | text | note" per line (note optional).
+GROUPS = ("improvements", "extra_units")
 
 
 def _rows_text(rows: list[dict]) -> str:
@@ -46,15 +48,17 @@ def to_form(facts: dict) -> dict[str, Any]:
     for k in ROWS:
         v[k] = _rows_text(facts.get(k))
     v["portions"] = "\n".join(" | ".join(p.get(k, "") for k in PORTION_KEYS) for p in facts.get("portions") or [])
-    lines = []
-    for g in facts.get("improvements") or []:
-        lines.append(f"{g.get('title', '')}:")
-        lines += [f"{it.get('icon', '')} | {it.get('text', '')}" for it in g.get("items") or []]
-        lines.append("")
-    v["improvements"] = "\n".join(lines).strip()
+    for k in GROUPS:
+        lines = []
+        for g in facts.get(k) or []:
+            lines.append(f"{g.get('title', '')}:")
+            lines += [" | ".join(x for x in (it.get("icon", ""), it.get("text", ""), it.get("note", "")) if x)
+                      if it.get("note") else f"{it.get('icon', '')} | {it.get('text', '')}" for it in g.get("items") or []]
+            lines.append("")
+        v[k] = "\n".join(lines).strip()
     for k, n in FEATURE_SLOTS.items():
-        items = list(facts.get(k) or [])
-        items += [{"icon": "", "text": ""}] * (n - len(items))
+        items = [dict({"note": ""}, **it) for it in (facts.get(k) or [])]
+        items += [{"icon": "", "text": "", "note": ""}] * (n - len(items))
         v[k] = items[:n]
     return v
 
@@ -81,33 +85,45 @@ def from_form(form: dict[str, str]) -> dict:
                 cells = [c.strip() for c in line.split("|")] + [""] * 6
                 portions.append(dict(zip(PORTION_KEYS, cells[:6])))
         out["portions"] = portions
-    if "improvements" in form:
-        groups: list[dict] = []
-        for line in (form.get("improvements") or "").splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            if line.endswith(":") and "|" not in line:
-                groups.append({"title": line[:-1].strip(), "items": []})
-                continue
-            if not groups:
-                groups.append({"title": "IMPROVEMENTS", "items": []})
-            icon, _, text = line.partition("|")
-            if not text:
-                icon, text = "home", icon
-            icon = icon.strip().lower()
-            groups[-1]["items"].append({"icon": icon if icon in ICONS else "home", "text": text.strip()})
-        out["improvements"] = groups
+    for k in GROUPS:
+        if k in form:
+            out[k] = _parse_groups(form.get(k) or "", "IMPROVEMENTS" if k == "improvements" else "FLAT")
     for k, n in FEATURE_SLOTS.items():
         if f"{k}_text_0" in form:
             items = []
             for i in range(n):
                 text = (form.get(f"{k}_text_{i}") or "").strip()
                 icon = (form.get(f"{k}_icon_{i}") or "home").strip()
+                note = (form.get(f"{k}_note_{i}") or "").strip()
                 if text:
-                    items.append({"icon": icon if icon in ICONS else "home", "text": text})
+                    item = {"icon": icon if icon in ICONS else "home", "text": text}
+                    if note:
+                        item["note"] = note
+                    items.append(item)
             out[k] = items
     return out
+
+
+def _parse_groups(text: str, first: str) -> list[dict]:
+    groups: list[dict] = []
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        if line.endswith(":") and "|" not in line:
+            groups.append({"title": line[:-1].strip(), "items": []})
+            continue
+        if not groups:
+            groups.append({"title": first, "items": []})
+        cells = [c.strip() for c in line.split("|")]
+        if len(cells) == 1:
+            cells = ["home"] + cells
+        icon, item_text, note = (cells + ["", ""])[:3]
+        item = {"icon": icon.lower() if icon.lower() in ICONS else "home", "text": item_text}
+        if note:
+            item["note"] = note
+        groups[-1]["items"].append(item)
+    return groups
 
 
 def changed_keys(before: dict, after: dict) -> set[str]:

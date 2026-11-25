@@ -1350,3 +1350,6 @@ img[data-thumb].is-missing { visibility: hidden; }
 .pv-team__note { font-size: 12px; margin: 8px 0 4px; }
 .pv-studio summary { font-size: 12px; cursor: pointer; margin: 4px 0; }
 @media (max-width: 1100px) { .studio-home { grid-template-columns: 1fr; } .studio-glance { position: static; order: -1; } }
+
+.featrow { grid-template-columns: 120px minmax(0, 1fr) 150px; }
+.featrow__note { font-size: 12px; }

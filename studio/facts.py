@@ -46,6 +46,8 @@ ICONS = ["m2", "ha", "bed", "bathtub", "garage", "local_parking", "pool", "kitch
 class Feature(BaseModel):
     icon: str = Field(description=f"One of: {', '.join(ICONS)}")
     text: str
+    note: str = Field(description='Optional small second line under the feature, e.g. "MAIN EN-SUITE", '
+                                  '"2 BATHROOMS ARE EN-SUITE", "6 BEDROOMS & 3 BATHROOMS IN TOTAL"; else ""')
 
 
 class Row(BaseModel):
@@ -68,8 +70,9 @@ class Group(BaseModel):
 
 
 FEATURES_RULE = (
-    "4 or 5 headline features for the adverts (never fewer than 4, never more than 5), the ones a buyer "
-    "decides on, most important first: the size (floor or land), then bedrooms and bathrooms for a home, "
+    "Exactly 4 or 6 headline features for the adverts (an even number, so the layout stays symmetrical; "
+    "never 5), the ones a buyer decides on, most important first. When the property has more than one "
+    "dwelling, these are the MAIN dwelling's own features (see main_title and extra_units): the size (floor or land), then bedrooms and bathrooms for a home, "
     "then the strongest selling points the documents support, such as an income or tenant in place, a second "
     "dwelling, garages or parking, a pool, security or a gated estate, a borehole or water rights, orchards, "
     "sheds or a packhouse, a view. Never what the advert already says elsewhere (the price, the town or "
@@ -84,8 +87,28 @@ FEATURES_RULE = (
 )
 
 
+UNITS_RULE = (
+    "Other dwellings on the property, beside the main house: a flat, flatlet, granny flat, cottage, bachelor "
+    "unit or apartment. Think as a home buyer, or an investor wanting rental income: each kind gets its own "
+    "group, titled the way the team does (\"FLAT\", \"COTTAGES\", \"GRANNY FLAT\"), with its top 2 or 4 "
+    "features (an even number; fewer than the main house's): separate entrance, the layout (\"OPEN PLAN LIVING & "
+    "BEDROOM\"), its bathroom, kitchenette, its own garden, parking or carport. Identical units are one group "
+    "with the count in its first feature (\"2 BACHELOR COTTAGES\") plus what they share (\"COMMUNAL LAUNDRY "
+    "ROOM\"). Empty when there is only one dwelling."
+)
+SHARED_RULE = (
+    "Only when there are extra_units: 1 or 2 features of the whole property, shown outside the groups: "
+    "the property's size first (\"±923m² PROPERTY\"), then anything shared (\"DOUBLE GARAGE\", a borehole). "
+    "Empty for a single dwelling."
+)
+
+
 class Features(BaseModel):
     features: list[Feature] = Field(description=FEATURES_RULE)
+    main_title: str = Field(description='"MAIN HOUSE" (or "FARMHOUSE", "MAIN DWELLING") when there are '
+                                        'extra_units; "" for a single dwelling')
+    extra_units: list["Group"] = Field(description=UNITS_RULE)
+    shared_features: list[Feature] = Field(description=SHARED_RULE)
 
 
 class Facts(BaseModel):
@@ -98,6 +121,10 @@ class Facts(BaseModel):
                                    '"DECEASED ESTATE SALE!", or the same with AUCTION! for an auction')
     address: str = Field(description="Street address as the public would search it, upper case, no erf numbers")
     features: list[Feature] = Field(description=FEATURES_RULE)
+    main_title: str = Field(description='"MAIN HOUSE" (or "FARMHOUSE", "MAIN DWELLING") when there are '
+                                        'extra_units; "" for a single dwelling')
+    extra_units: list[Group] = Field(description=UNITS_RULE)
+    shared_features: list[Feature] = Field(description=SHARED_RULE)
     disclaimer: str = Field(description='Occupation line when occupied, e.g. "PURCHASER TO DO EVICTION | VACANT '
                                         'OCCUPATION CANNOT BE GUARANTEED"; else ""')
     price: str = Field(description='e.g. "OFFERS FROM R380 000"; "" if no price is known')
@@ -154,6 +181,30 @@ def tidy(value):
     if isinstance(value, dict):
         return {k: tidy(v) for k, v in value.items()}
     return value
+
+
+def even(items: list, most: int) -> list:
+    """At most ``most`` and an even number, dropping the least important (the last)."""
+    items = list(items or [])[:most]
+    return items[:len(items) - (len(items) % 2)] if len(items) > 2 else items
+
+
+def balance(facts: dict) -> dict:
+    """The feature counts the team's layouts need: 4 or 6 for the main dwelling, 2 or 4
+    per extra unit, 1 or 2 for the whole property."""
+    f = dict(facts)
+    if "features" in f:
+        feats = list(f.get("features") or [])[:6]
+        f["features"] = feats[:len(feats) - 1] if len(feats) == 5 else feats
+    if f.get("extra_units"):
+        f["extra_units"] = [{**u, "items": even(u.get("items"), 4)} for u in f["extra_units"] if u.get("items")]
+    if "shared_features" in f:
+        f["shared_features"] = list(f.get("shared_features") or [])[:2]
+    if not f.get("extra_units"):
+        f["extra_units"], f["shared_features"] = [], []
+        if "main_title" in f:
+            f["main_title"] = ""
+    return f
 
 
 def blank() -> dict:
@@ -263,6 +314,18 @@ TANK, FRUIT TREES, 4 GARAGE PARKINGS & 3 CARPORTS
 - Insolvency sale, house in an estate: RANDBURG | GAUTENG / DOUBLE-STOREY 4-BED HOME / OLIVEWOOD ESTATE
 - Liquidation sale, luxury house: LUXURY 4 BEDROOM FAMILY HOME / HELDERFONTEIN ESTATE | MIDRAND; features ±623m² \
 PROPERTY, 4 EN-SUITE BEDROOMS, SWIMMING POOL, SOLAR PANELS & INVERTER, DOUBLE GARAGE & AMPLE PARKING
+Properties with more than one dwelling (the team lists each dwelling's features separately, for a home \
+buyer or an investor wanting rental income):
+- Harties, house with a flat: features (main house) 3 BEDROOMS (note MAIN EN-SUITE), 3 BATHROOMS, OPEN PLAN \
+LIVING WITH BUILT-IN FIRE PLACE, KITCHEN & SCULLERY, PATIO WITH BUILT-IN BRAAI, DOUBLE GARAGE; main_title MAIN \
+HOUSE; extra_units FLAT: SEPARATE ENTRANCE, OPEN PLAN LIVING & BEDROOM, EN-SUITE BATHROOM, KITCHENETTE; \
+shared_features ±1 006m² PROPERTY
+- Parktown North, house and two cottages: subline 3-BED HOME & 2 COTTAGES; features ±284m² HOME, 3 BEDROOMS \
+(note MAIN HAS DRESSING ROOM), 3 BATHROOMS (note 2 BATHROOMS ARE EN-SUITE), KITCHEN & SCULLERY; main_title MAIN \
+HOUSE; extra_units COTTAGES: 2 BACHELOR COTTAGES, COMMUNAL LAUNDRY ROOM; shared_features ±923m² PROPERTY, \
+DOUBLE GARAGE
+Feature counts are even so the layout stays symmetrical: 4 or 6 for the main dwelling, 2 or 4 per extra unit.
+
 Note how the heading names what makes the property worth buying (WITH A GRANNY FLAT, INVESTMENT UNIT, OCEAN VIEWS) \
 and the estate or complex when there is one; features are specific (KITCHEN WITH SCULLERY, not KITCHEN).
 
@@ -346,8 +409,7 @@ def read_documents(prop: Property, items: list[Item], sheets: dict) -> tuple[dic
 
     facts = ask(SYSTEM, content, Facts,
                 refusal="Claude declined to describe this property; fill the fields in by hand.").model_dump()
-    facts = tidy(facts)
-    facts["features"] = facts.get("features", [])[:5]
+    facts = balance(tidy(facts))
     link = team_qr_link(items)
     if link:
         facts["qr_link"] = link
@@ -355,18 +417,20 @@ def read_documents(prop: Property, items: list[Item], sheets: dict) -> tuple[dic
 
 
 def pick_features(prop: Property, facts: dict) -> list[dict]:
-    """The 4-5 features again, chosen from what an earlier read already found
-    (no documents: a small, cheap question)."""
+    """The features again (main dwelling, extra units, whole property), chosen from what
+    an earlier read already found (no documents: a small, cheap question). Returns
+    {features, main_title, extra_units, shared_features}."""
     import json as _json
 
     known = {k: facts.get(k) for k in ("headline", "subline", "short_title", "description", "overview",
-                                        "improvements", "highlights", "condition", "best_use", "features")}
+                                        "improvements", "highlights", "condition", "best_use", "features",
+                                        "extra_units", "shared_features")}
     content = [{"type": "text", "text": f"Property {prop.ref}. What the documents said, as already written up:\n"
                 + _json.dumps(known, ensure_ascii=False, indent=1)
                 + "\n\nChoose the advert's headline features from this. Keep the house style of the existing features."}]
-    got = ask(SYSTEM, content, Features, max_tokens=3000, effort="low",
+    got = ask(SYSTEM, content, Features, max_tokens=4000, effort="low",
               refusal="Claude declined; the features stay as they were.")
-    return tidy([f.model_dump() for f in got.features])[:5]
+    return balance(tidy(got.model_dump()))
 
 
 def team_qr_link(items: list[Item]) -> str:

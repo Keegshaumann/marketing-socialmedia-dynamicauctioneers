@@ -49,14 +49,19 @@ def refresh(db: str, ref: str, dry_run: bool, read_when_thin: bool = False, choo
         notes.append("phone tidied")
     if "features" not in row["edited"]:
         try:
-            new = F.pick_features(prop, facts)
+            got = F.pick_features(prop, facts)
         except Exception as exc:  # keep the old ones; say why
-            new = []
+            got = {}
             notes.append(f"features kept ({exc})")
-        if new:   # fewer than 4 holds the set for a person to add one (publish.missing)
-            facts["features"] = new
+        if got.get("features"):   # fewer than 4 holds the set for a person to add one (publish.missing)
+            for k in ("features", "main_title", "extra_units", "shared_features"):
+                if k not in row["edited"]:
+                    facts[k] = got.get(k, [] if k != "main_title" else "")
+            new = got["features"]
             notes.append(("features: " if len(new) >= 4 else f"only {len(new)} real features: ")
-                         + " / ".join(f["text"] for f in new))
+                         + " / ".join(f["text"] for f in new)
+                         + "".join(f" | {u.get('title')}: " + " / ".join(i["text"] for i in u.get("items", []))
+                                   for u in got.get("extra_units") or []))
     if "qr_link" not in row["edited"]:
         link = F.team_qr_link(catalog.items(prop))
         if link and link != facts.get("qr_link"):

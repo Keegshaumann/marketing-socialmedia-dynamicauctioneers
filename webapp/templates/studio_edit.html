@@ -24,14 +24,16 @@
   <textarea class="textarea" id="f-{{ name }}" name="{{ name }}" rows="{{ rows }}">{{ v[name] }}</textarea>
   {% if hint %}<div class="hint">{{ hint }}</div>{% endif %}</div>
 {%- endmacro %}
-{% macro feats(key, label, n) -%}
+{% macro feats(key, label, n, hint='') -%}
 <div class="field field--wide"><div class="label label--sm">{{ label }}</div>
+  {% if hint %}<div class="hint" style="margin:-2px 0 6px">{{ hint }}</div>{% endif %}
   {% for i in range(n) %}{% set ft = v[key][i] %}
   <div class="featrow">
     <select class="select" name="{{ key }}_icon_{{ i }}" aria-label="Icon {{ i + 1 }}">
       {% for ic in icons %}<option value="{{ ic }}" {{ 'selected' if ft.icon == ic else '' }}>{{ 'm²' if ic == 'm2' else ('HA' if ic == 'ha' else ic.replace('_', ' ')) }}</option>{% endfor %}
     </select>
-    <input class="input" name="{{ key }}_text_{{ i }}" value="{{ ft.text }}" placeholder="{{ 'e.g. ±74m² UNIT' if i == 0 else '' }}" aria-label="Line {{ i + 1 }}">
+    <input class="input" name="{{ key }}_text_{{ i }}" value="{{ ft.text }}" placeholder="{{ 'e.g. ±74m² UNIT' if i == 0 and key == 'features' else '' }}" aria-label="Line {{ i + 1 }}">
+    <input class="input featrow__note" name="{{ key }}_note_{{ i }}" value="{{ ft.note or '' }}" placeholder="small note" aria-label="Note under line {{ i + 1 }}">
   </div>
   {% endfor %}</div>
 {%- endmacro %}
@@ -65,7 +67,10 @@
           {{ text('headline2', 'Second gold line', 'Optional, e.g. SUNNYSIDE | PRETORIA', true) }}
           {{ text('badge', 'Badge', '', true) }}
           {% if row.mode == 'forsale' %}{{ text('address', 'Address strip', '', true) }}{% endif %}
-          {{ feats('features', 'Features: 4 or 5, most important first', 5) }}
+          {{ feats('features', 'Features: 4 or 6, most important first', 6, 'With a flat or cottages: the main house only. Keep it even, so the ad stays symmetrical.') }}
+          {{ text('main_title', 'Main dwelling heading', 'MAIN HOUSE when there is a flat or cottage; empty when there is only one dwelling', true) }}
+          {{ area('extra_units', 'Flats and cottages', 'Each one: a heading ending in ":" (FLAT:, COTTAGES:) then 2 or 4 lines of "icon | text | note"; identical units together with the count, e.g. "bed | 2 BACHELOR COTTAGES"', 5) }}
+          {{ feats('shared_features', 'For the whole property (with a flat or cottages)', 2, 'The size first, then anything shared such as a double garage') }}
           {{ text('disclaimer', 'Occupation line', 'Leave empty when it is vacant', true) }}
           {% if row.mode == 'forsale' %}
             {{ text('price', 'Price box', 'e.g. OFFERS FROM R380 000', true) }}

@@ -209,7 +209,7 @@ def test_form_round_trip():
         "features": [{"icon": "m2", "text": "±74m² UNIT"}, {"icon": "bed", "text": "3 BEDROOM"}],
     }
     v = FORM.to_form(facts)
-    assert len(v["features"]) == 5                       # room for a fifth feature
+    assert len(v["features"]) == 6                       # room for six
     submitted = {k: val for k, val in v.items() if k != "features"}
     for key in ("features",):
         for i, ft in enumerate(v[key]):
@@ -964,14 +964,14 @@ def test_the_ad_has_a_background_and_three_more_photos(mirror):
         assert len(set(ctx["extras"])) == 3
 
 
-def test_the_ad_shows_up_to_five_features():
+def test_the_ad_shows_up_to_six_features():
     from studio import render
     from studio.catalog import Property
     prop = Property(ref="DP9001", name="X", folder="F", status="")
-    feats = [{"icon": "home", "text": f"FEATURE {n}"} for n in range(1, 7)]
+    feats = [{"icon": "home", "text": f"FEATURE {n}"} for n in range(1, 8)]
     for mode in ("auction", "forsale"):
         out = render.html("ad", render.context(prop, {"features": feats}, {}, mode, lambda i, s: ""))
-        assert "FEATURE 5" in out and "FEATURE 6" not in out and "PROPERTY FEATURES" in out
+        assert "FEATURE 6" in out and "FEATURE 7" not in out and "PROPERTY FEATURES" in out
 
 
 def test_the_studios_qr_codes_scan_and_reuse_the_teams_link(mirror):
@@ -1132,3 +1132,73 @@ def test_a_real_reel_when_chromium_and_ffmpeg_are_there():
     except Exception as exc:  # no browser on this machine
         pytest.skip(f"no Chromium: {exc}")
     assert data[4:8] == b"ftyp" and len(data) > 1000
+
+
+
+# --- flats and cottages, even counts, graded photos (25 Nov) ------------------------------
+
+def test_feature_counts_stay_even():
+    from studio import facts as F
+    f = F.balance({"features": [{"text": str(n)} for n in range(5)], "main_title": "MAIN HOUSE",
+                   "extra_units": [{"title": "FLAT", "items": [{"text": str(n)} for n in range(3)]},
+                                   {"title": "EMPTY", "items": []}],
+                   "shared_features": [{"text": "a"}, {"text": "b"}, {"text": "c"}]})
+    assert len(f["features"]) == 4 and [len(u["items"]) for u in f["extra_units"]] == [2]
+    assert len(f["shared_features"]) == 2
+    single = F.balance({"features": [{"text": "x"}] * 7, "main_title": "MAIN HOUSE", "extra_units": [],
+                        "shared_features": [{"text": "s"}]})
+    assert len(single["features"]) == 6 and single["main_title"] == "" and single["shared_features"] == []
+
+
+def test_a_house_with_a_flat_lists_each_dwelling_separately():
+    from studio import render
+    from studio.catalog import Property
+    prop = Property(ref="DP2933", name="X", folder="F", status="")
+    f = {"headline": "HARTIES", "main_title": "MAIN HOUSE",
+         "features": [{"icon": "bed", "text": "3 BEDROOMS", "note": "MAIN EN-SUITE"}, {"icon": "bathtub", "text": "3 BATHROOMS"},
+                      {"icon": "kitchen", "text": "KITCHEN & SCULLERY"}, {"icon": "garage", "text": "DOUBLE GARAGE"}],
+         "extra_units": [{"title": "FLAT", "items": [{"icon": "home", "text": "SEPARATE ENTRANCE"},
+                                                     {"icon": "bathtub", "text": "EN-SUITE BATHROOM"}]}],
+         "shared_features": [{"icon": "m2", "text": "±1 006m² PROPERTY"}]}
+    for kind in ("ad", "ad2", "reel"):
+        for mode in ("forsale", "auction"):
+            html = render.html(kind, render.context(prop, f, {}, mode, lambda i, s: ""))
+            assert html.count('class="grp"') == 2 and "MAIN HOUSE" in html and ">FLAT<" in html
+            assert "MAIN EN-SUITE" in html and "SEPARATE ENTRANCE" in html
+
+
+def test_a_flat_with_one_feature_waits_for_a_second():
+    from studio import publish
+    row = {"mode": "forsale", "facts": {"headline": "X", "features": [{"text": str(n)} for n in range(4)],
+                                         "extra_units": [{"title": "FLAT", "items": [{"text": "SEPARATE ENTRANCE"}]}]}}
+    assert any("second feature for the flat" in m for m in publish.missing(row, {"hero": "a", "photo1": "b", "photo2": "c"}))
+
+
+def test_the_extra_units_survive_the_form():
+    from studio import form as FORM
+    facts = {"extra_units": [{"title": "COTTAGES", "items": [{"icon": "bed", "text": "2 BACHELOR COTTAGES"},
+                                                             {"icon": "home", "text": "COMMUNAL LAUNDRY ROOM", "note": "SHARED"}]}],
+             "main_title": "MAIN HOUSE", "features": [{"icon": "bed", "text": "3 BEDROOMS", "note": "MAIN HAS DRESSING ROOM"}],
+             "shared_features": [{"icon": "m2", "text": "±923m² PROPERTY"}]}
+    v = FORM.to_form(facts)
+    submitted = {k: val for k, val in v.items() if k not in ("features", "shared_features")}
+    for key in ("features", "shared_features"):
+        for i, ft in enumerate(v[key]):
+            submitted[f"{key}_icon_{i}"], submitted[f"{key}_text_{i}"], submitted[f"{key}_note_{i}"] = ft["icon"], ft["text"], ft["note"]
+    back = FORM.from_form(submitted)
+    for k in facts:
+        assert back[k] == facts[k], k
+
+
+def test_photos_are_graded_but_never_changed(tmp_path):
+    from PIL import Image, ImageStat
+    from studio.sharepoint import _shrink
+    grey = Image.new("RGB", (400, 300), (120, 125, 130))
+    for x in range(400):                                  # a dull, low-contrast scene
+        for y in range(0, 300, 3):
+            grey.putpixel((x, y), (110 + x % 40, 118, 126))
+    buf = io.BytesIO(); grey.save(buf, "JPEG", quality=95)
+    out = Image.open(io.BytesIO(_shrink(buf.getvalue(), 400, grade=True)))
+    before, after = ImageStat.Stat(grey.convert("L")), ImageStat.Stat(out.convert("L"))
+    assert out.size == grey.size                           # same picture, same frame
+    assert after.stddev[0] > before.stddev[0]              # more contrast

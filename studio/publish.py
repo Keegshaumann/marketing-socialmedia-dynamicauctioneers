@@ -37,7 +37,7 @@ from studio.writer import Writer, WriteError, sha
 log = logging.getLogger("studio.publish")
 
 # Bump when a layout changes so every filed set is made again with it.
-RENDER_VERSION = "5"   # 25 Nov 2026: + AD 2 (big photo), the billboard and the reel
+RENDER_VERSION = "6"   # 25 Nov 2026: flats and cottages grouped, 4-6 features, padding, graded photos
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS studio_files (
@@ -126,7 +126,10 @@ def missing(row: dict, pk: dict) -> list[str]:
         out.append("the auction date")
     real = [x for x in f.get("features") or [] if (x.get("text") or "").strip()]
     if len(real) < 4:
-        out.append("a fourth feature" if len(real) == 3 else f"{4 - len(real)} more features (4 or 5 in all)")
+        out.append("a fourth feature" if len(real) == 3 else f"{4 - len(real)} more features (4 or 6 in all)")
+    for u in f.get("extra_units") or []:
+        if len([x for x in u.get("items") or [] if (x.get("text") or "").strip()]) == 1:
+            out.append(f"a second feature for the {(u.get('title') or 'flat').lower()} (2 or 4)")
     return out
 
 
