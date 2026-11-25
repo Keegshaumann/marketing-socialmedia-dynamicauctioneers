@@ -463,7 +463,9 @@ def read_documents(prop: Property, items: list[Item], sheets: dict) -> tuple[dic
         content.append({"type": "text", "text": f"=== {label}: {name} ===\n{text}"})
     content.append({"type": "text", "text": "Fill in every field for this property's ads and information pack."})
 
-    facts = ask(SYSTEM, content, Facts,
+    from studio import lessons
+
+    facts = ask(SYSTEM + lessons.block("words"), content, Facts,
                 refusal="Claude declined to describe this property; fill the fields in by hand.").model_dump()
     facts = balance(tidy(movables_apart(placed(facts))))
     link = team_qr_link(items)
@@ -484,7 +486,9 @@ def pick_features(prop: Property, facts: dict) -> list[dict]:
     content = [{"type": "text", "text": f"Property {prop.ref}. What the documents said, as already written up:\n"
                 + _json.dumps(known, ensure_ascii=False, indent=1)
                 + "\n\nChoose the advert's headline features from this. Keep the house style of the existing features."}]
-    got = ask(SYSTEM, content, Features, max_tokens=4000, effort="low",
+    from studio import lessons
+
+    got = ask(SYSTEM + lessons.block("words"), content, Features, max_tokens=4000, effort="low",
               refusal="Claude declined; the features stay as they were.")
     return balance(tidy(placed(got.model_dump())))
 

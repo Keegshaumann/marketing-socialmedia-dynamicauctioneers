@@ -1365,3 +1365,18 @@ img[data-thumb].is-missing { visibility: hidden; }
 
 .featrow { grid-template-columns: 120px minmax(0, 1fr) 150px; }
 .featrow__note { font-size: 12px; }
+
+/* "Something wrong? Teach the studio" under each output, and the lessons page */
+.teach{margin-top:8px;font-size:12px}
+.teach summary{cursor:pointer;color:var(--muted)}
+.teach form{display:grid;gap:8px;margin-top:8px}
+.teach .textarea{width:100%;min-height:54px}
+.teach__btns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.teach__result{margin-top:8px;display:grid;gap:4px;line-height:1.45}
+.teach__rule{font-style:italic}
+.lesson{display:grid;gap:8px;padding:12px 16px;border-top:1px solid var(--hairline-soft)}
+.lesson:first-child{border-top:0}
+.lesson.is-off{opacity:.55}
+.lesson__said{font-size:12px}
+.lesson__rule{width:100%}
+.lesson__actions{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}

@@ -38,6 +38,21 @@
   {% endfor %}</div>
 {%- endmacro %}
 
+{% macro teach(kind, label) -%}
+<details class="teach"><summary>Something wrong? Teach the studio</summary>
+  <form hx-post="/studio/{{ p.ref }}/lesson" hx-target="next .teach__out" hx-swap="innerHTML">
+    <input type="hidden" name="kind" value="{{ kind }}">
+    <textarea class="textarea" name="text" rows="2" maxlength="1500" required
+      placeholder="What's wrong with this {{ label|lower }}? e.g. You missed the borehole in the valuation. Never use a photo of a broken gate."></textarea>
+    <div class="teach__btns">
+      <button class="btn btn--ghost btn--sm" name="fix" value="0" title="Learn it for every property from now on">Remember for next time</button>
+      <button class="btn btn--primary btn--sm" name="fix" value="1" title="Learn it, and change this property now too">Remember, and fix it here</button>
+    </div>
+  </form>
+  <div class="teach__out"></div>
+</details>
+{%- endmacro %}
+
 {% block content %}
 <div class="studio-edit">
   <div class="studio-edit__left">
@@ -162,6 +177,7 @@
         <a href="/studio/{{ p.ref }}/open/{{ theirs.item.item_id }}" target="_blank" rel="noopener" class="pv-team">
           <img src="/studio/{{ p.ref }}/thumb/{{ theirs.item.item_id }}" alt="{{ theirs.item.name }}" loading="lazy" data-thumb></a>
         <p class="muted pv-team__note">{{ theirs.item.name }}, {{ theirs.date }}. The studio won't make its own {{ fm.label|lower }} for this property.</p>
+        {{ teach(fm.kind, fm.label) }}
         <details class="pv-studio"><summary class="muted">The studio's version, for comparison</summary>
           <div class="pv" data-w="{{ fm.width }}" data-h="{{ fm.height }}" {{ 'data-pack=1' if fm.kind == 'infopack' else '' }}>
             <iframe src="/studio/{{ p.ref }}/preview/{{ fm.kind }}" title="{{ fm.label }} preview" loading="lazy"
@@ -177,6 +193,7 @@
           <iframe src="/studio/{{ p.ref }}/preview/{{ fm.kind }}" title="{{ fm.label }} preview" loading="lazy"
                   width="{{ fm.width }}" height="{{ fm.height }}" {{ 'scrolling=no' if fm.kind != 'infopack' else '' }}></iframe>
         </div>
+        {{ teach(fm.kind, fm.label) }}
         {% endif %}
       </figure>
       {% endfor %}

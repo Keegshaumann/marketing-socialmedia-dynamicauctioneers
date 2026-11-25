@@ -20,7 +20,7 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
-from studio import catalog, facts as F, form as FORM, photopick, prepare, state
+from studio import catalog, facts as F, form as FORM, lessons, photopick, prepare, state
 from studio.sharepoint import StoreError
 
 log = logging.getLogger("studio.ask")
@@ -228,7 +228,7 @@ def _run(db: str, a: dict) -> None:
     items = catalog.items(prop)
     row = state.load(db, ref) or prepare.current(db, prop, items)
     mode = row["mode"] or F.mode_for(prop)
-    answer = F.ask(F.SYSTEM + "\n\n" + RULES, _content(prop, row["facts"], mode, a["text"]), Answer,
+    answer = F.ask(F.SYSTEM + lessons.block("words", db) + "\n\n" + RULES, _content(prop, row["facts"], mode, a["text"]), Answer,
                    max_tokens=12000, refusal="Claude declined that request; change it in the fields below.")
 
     changes: dict[str, Any] = {}

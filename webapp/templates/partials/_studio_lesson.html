@@ -1,0 +1,10 @@
+<div class="teach__result" {% if lesson.status == 'learning' %}hx-get="/studio/{{ p.ref }}/lesson/{{ lesson.id }}" hx-trigger="every 2s" hx-swap="outerHTML"{% endif %}>
+  {% if lesson.status == 'learning' %}
+    <span class="spinner" aria-hidden="true"></span> <span class="muted">Learning it…</span>
+  {% else %}
+    <div><strong>Learned.</strong> {{ lesson.reply }}</div>
+    <div class="muted teach__rule">“{{ lesson.rule }}” <span class="badge badge--neutral">{{ scopes.get(lesson.scope, lesson.scope) }}</span></div>
+    {% if lesson.scope == 'layout' %}<div class="muted">Layout lessons go to Keegan to build into the design.</div>{% endif %}
+    <a href="/studio/lessons" class="muted">Everything the studio has learned</a>
+  {% endif %}
+</div>

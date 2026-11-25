@@ -141,7 +141,9 @@ def choose(prop: Property, photos: list[Item], *, auction: bool, about: str = ""
         return {}
     content.append({"type": "text", "text": "Choose the photos."})
 
-    answer = F.ask(SYSTEM, content, Picks, max_tokens=4000,
+    from studio import lessons
+
+    answer = F.ask(SYSTEM + lessons.block("photos"), content, Picks, max_tokens=4000,
                    refusal="Claude declined to choose the photos; pick them by hand.")
 
     def item_id(label: str) -> Optional[str]:
@@ -206,7 +208,9 @@ def rechoose(prop: Property, photos: list[Item], *, auction: bool, wish: str, cu
     content.append({"type": "text", "text": "The current choice:\n" + "\n".join(now)})
     content.append({"type": "text", "text": f"Her request: {wish}"})
 
-    answer = F.ask(SYSTEM + "\n\n" + WISH, content, Rechosen, max_tokens=4000,
+    from studio import lessons
+
+    answer = F.ask(SYSTEM + lessons.block("photos") + "\n\n" + WISH, content, Rechosen, max_tokens=4000,
                    refusal="Claude declined to change the photos; place them by hand.")
     out: dict = {}
     for slot in {c.strip().lower() for c in answer.changed}:

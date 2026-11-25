@@ -1,9 +1,10 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
-{# The A4 information pack. Pages after the team's DP2987 pack (Oct 2026), and since 25 Nov 2026 their
-   newer packs' way of filling a page (DP2969, DP3114): gold-edged cards with big icons, gold dividers,
-   tables where a list reads better as one, mixed-size photo pages, and photos in whatever room the
-   words leave, so no page ends in white space. #}
+{# The A4 information pack, after the team's packs (DP2987, and since 25 Nov 2026 their newer DP2969 and
+   DP3114): gold-edged cards with big icons, gold dividers, tables where a list reads better as one.
+   The sections run on from page to page, as blocks the script at the end lays onto A4 pages: a heading
+   never ends a page, and the room a page has left takes a photo, wide or a pair. Photos always keep
+   their landscape shape (4:3, a phone photo's own), never cut into a tall strip, and each is used once. #}
 <style>
 @page{size:A4;margin:0}
 :root{--gold:linear-gradient(90deg,#ac874a 0%,#ddc689 55%,#c7a560 100%);--goldv:linear-gradient(180deg,#f6e5ab 0%,#ddbd73 42%,#b48c47 78%,#9a7638 100%);--goldline:#c9a45c;--golddeep:#a7843f;--ink:#111;--paper:#f6f3ec}
@@ -12,7 +13,6 @@ html,body{background:#d9d9d9}
 body{font-family:'Montserrat',sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .page{width:794px;height:1123px;position:relative;overflow:hidden;background:#fff;page-break-after:always;break-after:page;margin:0 auto 16px}
 @media print{.page{margin:0}html,body{background:#fff}}
-/* a soft grey sweep low on every inner page, as on the team's pages */
 .page.inner-page::before{content:"";position:absolute;left:-10%;right:-10%;bottom:-140px;height:420px;background:radial-gradient(ellipse at 30% 100%,#ece8df 0%,rgba(236,232,223,0) 70%);z-index:0}
 /* Solid gold in print: Chrome's PDF output draws clipped gradient text as a box. */
 .goldtext{color:#c9a45c}
@@ -25,14 +25,16 @@ body{font-family:'Montserrat',sans-serif;color:var(--ink);-webkit-font-smoothing
 .corner-tr{position:absolute;right:0;top:0;width:118px;height:118px;background:var(--gold);clip-path:polygon(0 0,100% 0,100% 100%);z-index:0}
 .corner-bl{position:absolute;left:0;bottom:0;width:150px;height:150px;background:var(--gold);clip-path:polygon(0 0,100% 100%,0 100%);z-index:0}
 .pno{position:absolute;right:30px;bottom:22px;font-weight:800;font-size:13px;color:var(--golddeep);z-index:2}
-.inner{position:absolute;left:56px;right:56px;top:52px;bottom:64px;display:flex;flex-direction:column;gap:14px;z-index:1}
-h1{font-weight:800;font-size:24px;text-align:center;letter-spacing:.02em;flex:none}
+.inner{position:absolute;left:56px;right:56px;top:52px;bottom:64px;display:flex;flex-direction:column;gap:14px;z-index:1;overflow:hidden}
+.inner > *{flex:none}
+#flow{position:absolute;left:-9999px;top:0;width:682px}
+h1{font-weight:800;font-size:24px;text-align:center;letter-spacing:.02em}
 h1 b{color:var(--golddeep);font-weight:800}
-.divider{display:flex;align-items:center;gap:14px;font-weight:900;font-size:15px;letter-spacing:.05em;flex:none;white-space:nowrap}
+.divider{display:flex;align-items:center;gap:14px;font-weight:900;font-size:15px;letter-spacing:.05em;white-space:nowrap}
 .divider::before,.divider::after{content:"";flex:1;height:3px;background:var(--gold);border-radius:2px}
 .card{border:2px solid var(--goldline);border-radius:10px;background:#fff;padding:14px 18px;position:relative}
 .card__t{display:inline-block;background:#111;color:#fff;font-weight:800;font-size:11px;letter-spacing:.07em;padding:5px 14px;border-radius:0 0 8px 8px;margin:-14px 0 10px;text-transform:uppercase}
-table.kv{width:100%;border-collapse:collapse;font-size:10.5px;flex:none;background:#fff}
+table.kv{width:100%;border-collapse:collapse;font-size:10.5px;background:#fff}
 table.kv td{border:1px solid #d6cfbf;padding:7px 10px;vertical-align:top;line-height:1.35}
 table.kv td.k{width:32%;background:var(--paper);font-weight:800;text-transform:uppercase;font-size:9.5px;letter-spacing:.02em}
 table.list{width:100%;border-collapse:collapse;font-size:10.5px;background:#fff}
@@ -44,35 +46,28 @@ table.list td.no{width:34px;color:var(--golddeep);font-weight:800;text-align:rig
 .bullets li{display:flex;gap:10px;align-items:flex-start}
 .bullets li::before{content:"";flex:none;width:9px;height:9px;margin-top:4px;background:var(--goldline);transform:rotate(45deg)}
 .pill{display:inline-block;background:var(--gold);border-radius:14px;padding:5px 20px;font-weight:800;font-size:11px}
-.viewing{border:2px solid #111;border-radius:8px;padding:9px;text-align:center;font-weight:800;font-size:15px;flex:none;background:#fff}
+.viewing{border:2px solid #111;border-radius:8px;padding:9px;text-align:center;font-weight:800;font-size:15px;background:#fff}
 p.body{font-size:11.5px;line-height:1.62;text-align:justify}
-.photo{border:3px solid var(--goldline);overflow:hidden;background:#eee;border-radius:6px;min-height:0}
+.photo{border:3px solid var(--goldline);overflow:hidden;background:#eee;border-radius:6px}
 .photo img{width:100%;height:100%;object-fit:cover;display:block}
-/* photos in the room the words leave; dropped by the script below when too little is left */
-.filler{flex:1 1 0;min-height:0;display:grid;gap:12px}
-.filler .photo{height:100%}
-.feats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;flex:none}
+/* photos keep a landscape 4:3 shape: one wide, or a pair */
+.prow{display:grid;gap:12px}
+.prow--wide{grid-template-columns:1fr}
+.prow--pair{grid-template-columns:1fr 1fr}
+.prow--trio{grid-template-columns:1fr 1fr 1fr}
+.prow .photo{aspect-ratio:4/3}
+.feats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .feat{display:flex;align-items:center;gap:12px;border:2px solid var(--goldline);border-radius:10px;padding:10px 12px;background:#fff;font-weight:800;font-size:10.5px;line-height:1.25;text-transform:uppercase;min-height:64px}
 .feat .ic{color:var(--golddeep)}
 .feat small{display:block;font-size:8.5px;font-weight:700;color:#555;margin-top:2px}
-.cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;flex:none}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
 .irow{display:flex;align-items:center;gap:12px;padding:6px 0;font-weight:700;font-size:10.5px;line-height:1.25;text-transform:uppercase;border-bottom:1px dashed #e2dbc9}
 .irow:last-child{border-bottom:0}
 .irow .ic{color:var(--golddeep)}
-.rates{display:flex;gap:12px;flex:none}
+.rates{display:flex;gap:12px}
 .rate{flex:1;border:2px solid var(--goldline);border-radius:10px;padding:9px 12px;display:flex;gap:10px;align-items:center;font-size:10.5px;background:#fff}
 .rate .ic{color:var(--golddeep)}
-.gal{flex:1 1 0;min-height:0;display:grid;gap:12px}
-.gal .photo{height:100%}
-.gal--big{grid-template-rows:2fr 1fr 1fr;grid-template-areas:"a a" "b c" "d e"}
-.gal--grid{grid-template-rows:1fr 1fr 1fr;grid-template-areas:"a b" "c d" "e f"}
-.gal--side{grid-template-columns:1.5fr 1fr;grid-template-rows:1fr 1fr 1fr;grid-template-areas:"a b" "a c" "d e"}
-.gal--n1{grid-template-areas:"a"}
-.gal--n2{grid-template-rows:1fr 1fr;grid-template-areas:"a" "b"}
-.gal--n3{grid-template-rows:1.4fr 1fr;grid-template-areas:"a a" "b c"}
-.gal--n4{grid-template-rows:1fr 1fr;grid-template-areas:"a b" "c d"}
-.gal--n5{grid-template-rows:2fr 1fr 1fr;grid-template-areas:"a a" "b c" "d e"}
-.toc{display:grid;gap:12px;flex:none}
+.toc{display:grid;gap:12px}
 .toc .row{display:flex;align-items:center;gap:14px;font-size:14px;font-weight:700}
 .toc .n{width:34px;height:34px;flex:none;border-radius:8px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900}
 .toc .dots{flex:1;border-bottom:2px dotted #b9b2a3;transform:translateY(-4px)}
@@ -80,13 +75,10 @@ p.body{font-size:11.5px;line-height:1.62;text-align:justify}
 </style></head><body>
 
 {% set auction_word = 'ON AUCTION' if auction else 'FOR SALE' %}
-{% macro filler(photos) -%}
-  {%- if photos -%}
-  <div class="filler" data-filler data-rows style="grid-template-columns:repeat({{ [photos|length, 2]|min }},1fr)">
-    {%- for p in photos %}<div class="photo"><img src="{{ p }}"></div>{% endfor -%}
-  </div>
-  {%- endif -%}
-{%- endmacro %}
+{% set no = {} %}{% for n, title in sections %}{% set _ = no.update({title: n}) %}{% endfor %}
+{% macro head(title, text) -%}<h1 data-sec="{{ title }}" data-keep><b>{{ no[title] }}.</b> {{ text }}</h1>{%- endmacro %}
+<script type="application/json" id="pack-photos">{{ pack_photos | tojson }}</script>
+<script type="application/json" id="contents-photos">{{ contents_photos | tojson }}</script>
 
 {# ---------------------------------- cover ---------------------------------- #}
 <div class="page" style="background:#000">
@@ -106,132 +98,122 @@ p.body{font-size:11.5px;line-height:1.62;text-align:justify}
 </div>
 
 {# ---------------------------------- contents ---------------------------------- #}
-<div class="page inner-page">
+<div class="page inner-page" id="contents-page">
   <div class="corner-tr"></div><div class="corner-bl"></div>
-  <div class="inner" style="top:70px;gap:26px">
-    <div style="font-weight:900;font-size:28px;letter-spacing:.02em;flex:none">TABLE OF CONTENTS</div>
+  <div class="inner" style="top:70px;gap:22px">
+    <div style="font-weight:900;font-size:28px;letter-spacing:.02em">TABLE OF CONTENTS</div>
     <div class="toc">
-    {% for no, title, pages in toc %}
-      <div class="row"><span class="n">{{ no }}</span><span>{{ title }}</span><span class="dots"></span><span class="pg">{{ pages }}</span></div>
+    {% for n, title in sections %}
+      <div class="row"><span class="n">{{ n }}</span><span>{{ title }}</span><span class="dots"></span><span class="pg" data-toc="{{ title }}"></span></div>
     {% endfor %}
     </div>
     <div class="divider" style="font-size:13px">{{ (f.short_title or f.pack_title) | nb }}</div>
-    {{ filler(contents_fill) }}
   </div>
 </div>
 
-{# ---------------------------------- the sections ---------------------------------- #}
-{% for pg in pack_pages %}
-<div class="page inner-page">
-  <div class="corner-tr"></div><div class="corner-bl"></div>
-  <div class="pno">{{ pg.no }}.</div>
-  <div class="inner">
+{# ---------------------------------- the sections, as blocks ---------------------------------- #}
+<div id="flow">
+  {{ head("Property & Sale Overview", "PROPERTY OVERVIEW") }}
+  {% if f.overview %}<table class="kv">{% for r in f.overview %}<tr><td class="k">{{ r.label }}</td><td>{{ r.text | nb }}</td></tr>{% endfor %}</table>{% endif %}
+  {% if f.rates %}
+  <div class="rates">
+    {% for r in f.rates[:4] %}<div class="rate">{{ icon('home', 28) }}<div><div style="font-weight:800;text-transform:uppercase;font-size:9.5px">{{ r.label }}</div><div>Rates &amp; Taxes: {{ r.text | nb }}</div></div></div>{% endfor %}
+  </div>
+  {% endif %}
+  <div style="display:flex;justify-content:center"><div class="goldbar" style="width:72%;border-radius:16px;padding:6px 10px;text-align:center;font-weight:800;font-size:11px">All Outstanding Fees, if any, to be Settled by the Seller.</div></div>
+  {% if f.terms or f.confirmation %}{# from the OTP; no box at all rather than an empty one #}
+  <div class="divider" data-keep>SALE OVERVIEW</div>
+  <div class="card">
+    <ul class="bullets">{% for t in f.terms %}<li>{{ t | nb }}</li>{% endfor %}</ul>
+    {% if f.confirmation %}<div style="text-align:center;margin-top:10px"><span class="pill">{{ f.confirmation | nb }}</span></div>{% endif %}
+  </div>
+  {% endif %}
+  {% if f.viewing %}<div class="viewing">VIEWING: {{ f.viewing | nb }}</div>{% endif %}
+  {% if aerial %}<div class="prow prow--wide" data-fixed><div class="photo"><img src="{{ aerial }}"></div></div>{% endif %}
 
-  {% if pg.kind == 'overview' %}
-    <h1><b>{{ pg.section }}.</b> PROPERTY OVERVIEW</h1>
-    {% if f.overview %}
-    <table class="kv">{% for r in f.overview %}<tr><td class="k">{{ r.label }}</td><td>{{ r.text | nb }}</td></tr>{% endfor %}</table>
-    {% endif %}
-    {% if f.rates %}
-    <div class="rates">
-      {% for r in f.rates[:4] %}
-      <div class="rate">{{ icon('home', 28) }}<div><div style="font-weight:800;text-transform:uppercase;font-size:9.5px">{{ r.label }}</div><div>Rates &amp; Taxes: {{ r.text | nb }}</div></div></div>
-      {% endfor %}
-    </div>
-    {% endif %}
-    <div class="goldbar" style="align-self:center;width:72%;border-radius:16px;padding:6px 10px;text-align:center;font-weight:800;font-size:11px;flex:none">All Outstanding Fees, if any, to be Settled by the Seller.</div>
-    {% if f.terms or f.confirmation %}{# from the OTP; no box at all rather than an empty one #}
-    <div class="divider">SALE OVERVIEW</div>
-    <div class="card" style="flex:none">
-      <ul class="bullets">{% for t in f.terms %}<li>{{ t | nb }}</li>{% endfor %}</ul>
-      {% if f.confirmation %}<div style="text-align:center;margin-top:10px"><span class="pill">{{ f.confirmation | nb }}</span></div>{% endif %}
-    </div>
-    {% endif %}
-    {% if f.viewing %}<div class="viewing">VIEWING: {{ f.viewing | nb }}</div>{% endif %}
-    {% if aerial %}<div class="filler" data-filler style="grid-template-columns:1fr"><div class="photo"><img src="{{ aerial }}"></div></div>{% endif %}
-
-  {% elif pg.kind == 'description' %}
-    <h1><b>{{ pg.section }}.</b> PROPERTY DESCRIPTION</h1>
-    {% for para in f.description %}<p class="body">{{ para | nb }}</p>{% endfor %}
-    {% if f.features %}
-    <div class="divider">KEY FEATURES</div>
-    <div class="feats">
-      {% for ft in f.features[:6] %}{% set parts = (ft.text or '').split(' | ', 1) %}
-      <div class="feat">{{ icon(ft.icon, 38, 34) }}<span>{{ parts[0] | nb }}{% if parts|length > 1 and parts[1] %}<small>{{ parts[1] | nb }}</small>{% endif %}</span></div>
-      {% endfor %}
-    </div>
-    {% endif %}
-    {{ filler(pg.fill) }}
-
-  {% elif pg.kind == 'details' %}
-    <h1><b>{{ pg.section }}.</b> PROPERTY DETAILS</h1>
-    {% for p in f.portions[:3] %}
-      <div class="divider" style="font-size:13px">{{ p.label | nb }}</div>
-      <table class="kv">
-        {% for k, v in [('Legal description', p.legal_description), ('Extent', p.extent), ('Municipality', p.municipality), ('Zoning', p.zoning), ('Title deed', p.title_deed)] %}
-          {% if v %}<tr><td class="k">{{ k }}</td><td>{{ v | nb }}</td></tr>{% endif %}
-        {% endfor %}
-      </table>
+  {% if f.description %}
+  {{ head("Property Description", "PROPERTY DESCRIPTION") }}
+  {% for para in f.description %}<p class="body">{{ para | nb }}</p>{% endfor %}
+  <div data-photos="2"></div>
+  {% endif %}
+  {% if f.features %}
+  <div class="divider" data-keep>KEY FEATURES</div>
+  <div class="feats">
+    {% for ft in f.features[:6] %}{% set parts = (ft.text or '').split(' | ', 1) %}
+    <div class="feat">{{ icon(ft.icon, 38, 34) }}<span>{{ parts[0] | nb }}{% if parts|length > 1 and parts[1] %}<small>{{ parts[1] | nb }}</small>{% endif %}</span></div>
     {% endfor %}
-    {{ filler(pg.fill) }}
-
-  {% elif pg.kind == 'improvements' %}
-    <h1>{% if pg.first %}<b>{{ pg.section }}.</b> {% endif %}MAIN IMPROVEMENTS</h1>
-    <div class="cards">
-      {% for g in pg.groups %}
-      <div class="card">
-        <div class="card__t">{{ g.title | nb }}</div>
-        {% for it in g['items'][:10] %}<div class="irow">{{ icon(it.icon, 30, 28) }}<span>{{ it.text | nb }}</span></div>{% endfor %}
-      </div>
-      {% endfor %}
-    </div>
-    {{ filler(pg.fill) }}
-
-  {% elif pg.kind == 'movables' %}
-    <h1>{% if pg.first %}<b>{{ pg.section }}.</b> {% endif %}MOVABLE ASSETS INCLUDED</h1>
-    {% if pg.first %}<p class="body" style="text-align:center;flex:none">Sold together with the property{{ ' as one lot' if auction else '' }}, voetstoots, as listed in the conditions of sale.</p>{% endif %}
-    {% set half = ((pg['items']|length + 1) // 2) if pg['items']|length > 12 else pg['items']|length %}
-    <div style="display:grid;grid-template-columns:{{ '1fr 1fr' if pg['items']|length > 12 else '1fr' }};gap:14px;flex:none;align-items:start">
-      {% for col in ([pg['items'][:half], pg['items'][half:]] if pg['items']|length > 12 else [pg['items']]) %}
-      {% set offset = pg.start + (0 if loop.first else half) %}
-      <table class="list">
-        <tr><th style="text-align:right">NO.</th><th>ASSET</th></tr>
-        {% for m in col %}<tr><td class="no">{{ offset + loop.index0 }}</td><td>{{ m | nb }}</td></tr>{% endfor %}
-      </table>
-      {% endfor %}
-    </div>
-    {{ filler(pg.fill) }}
-
-  {% elif pg.kind == 'use' %}
-    {% if f.best_use %}
-    <h1><b>{{ pg.section }}.</b> HIGHEST &amp; BEST USE</h1>
-    <div class="card" style="flex:none">
-      <div class="card__t">The highest and best use is considered to be</div>
-      <ul class="bullets">{% for b in f.best_use %}<li>{{ b | nb }}</li>{% endfor %}</ul>
-    </div>
-    {% endif %}
-    {% if f.condition %}
-    <div class="divider">PROPERTY CONDITION</div>
-    <table class="kv">{% for r in f.condition %}<tr><td class="k">{{ r.label }}</td><td>{{ r.text | nb }}</td></tr>{% endfor %}</table>
-    {% endif %}
-    {{ filler(pg.fill) }}
-
-  {% elif pg.kind == 'gallery' %}
-    {% if pg.first %}<h1><b>{{ pg.section }}.</b> PHOTOGRAPHIC OVERVIEW</h1>{% endif %}
-    <div class="gal gal--{{ pg.layout }}">
-      {% for p in pg.photos %}<div class="photo" style="grid-area:{{ 'abcdef'[loop.index0] }}"><img src="{{ p }}"></div>{% endfor %}
-    </div>
-
-  {% elif pg.kind == 'highlights' %}
-    <h1><b>{{ pg.section }}.</b> INVESTMENT HIGHLIGHTS</h1>
-    <table class="kv">{% for r in f.highlights %}<tr><td class="k">{{ r.label | nb }}</td><td>{{ r.text | nb }}</td></tr>{% endfor %}</table>
-    <div class="goldbar" style="align-self:center;border-radius:16px;padding:7px 26px;font-weight:900;font-size:12px;flex:none;letter-spacing:.04em">{{ "DON'T MISS THIS AUCTION" if auction else "MAKE YOUR OFFER TODAY" }}</div>
-    {{ filler(pg.fill) }}
+  </div>
   {% endif %}
 
+  {% if f.portions %}
+  {{ head("Property Details", "PROPERTY DETAILS") }}
+  {% for p in f.portions[:3] %}
+  <div class="divider" style="font-size:13px" data-keep>{{ p.label | nb }}</div>
+  <table class="kv">
+    {% for k, v in [('Legal description', p.legal_description), ('Extent', p.extent), ('Municipality', p.municipality), ('Zoning', p.zoning), ('Title deed', p.title_deed)] %}
+      {% if v %}<tr><td class="k">{{ k }}</td><td>{{ v | nb }}</td></tr>{% endif %}
+    {% endfor %}
+  </table>
+  {% endfor %}
+  {% endif %}
+
+  {% if f.improvements %}
+  {{ head("Main Improvements", "MAIN IMPROVEMENTS") }}
+  {% for pair in f.improvements | batch(2) %}
+  <div class="cards">
+    {% for g in pair %}
+    <div class="card"><div class="card__t">{{ g.title | nb }}</div>
+      {% for it in g['items'][:12] %}<div class="irow">{{ icon(it.icon, 30, 28) }}<span>{{ it.text | nb }}</span></div>{% endfor %}
+    </div>
+    {% endfor %}
   </div>
+  {% endfor %}
+  {% endif %}
+
+  {% if f.movables %}
+  {{ head("Movable Assets Included", "MOVABLE ASSETS INCLUDED") }}
+  <p class="body" style="text-align:center" data-keep>Sold together with the property{{ ' as one lot' if auction else '' }}, voetstoots, as listed in the conditions of sale.</p>
+  {% for chunk in f.movables | batch(24) %}
+  {% set base = loop.index0 * 24 %}
+  {% set half = ((chunk|length + 1) // 2) if chunk|length > 8 else chunk|length %}
+  <div style="display:grid;grid-template-columns:{{ '1fr 1fr' if chunk|length > 8 else '1fr' }};gap:14px;align-items:start">
+    {% for col in ([chunk[:half], chunk[half:]] if chunk|length > 8 else [chunk]) %}
+    {% set offset = base + (0 if loop.first else half) %}
+    <table class="list">
+      <tr><th style="text-align:right">NO.</th><th>ASSET</th></tr>
+      {% for m in col %}<tr><td class="no">{{ offset + loop.index }}</td><td>{{ m | nb }}</td></tr>{% endfor %}
+    </table>
+    {% endfor %}
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  {% if f.best_use or f.condition %}
+  {{ head("Highest & Best Use", "HIGHEST & BEST USE") }}
+  {% if f.best_use %}
+  <div class="card"><div class="card__t">The highest and best use is considered to be</div>
+    <ul class="bullets">{% for b in f.best_use %}<li>{{ b | nb }}</li>{% endfor %}</ul></div>
+  {% endif %}
+  {% if f.condition %}
+  <div class="divider" data-keep>PROPERTY CONDITION</div>
+  <table class="kv">{% for r in f.condition %}<tr><td class="k">{{ r.label }}</td><td>{{ r.text | nb }}</td></tr>{% endfor %}</table>
+  {% endif %}
+  {% endif %}
+
+  {% if gallery %}
+  {{ head("Photographic Overview", "PHOTOGRAPHIC OVERVIEW") }}
+  <div data-gallery></div>
+  {% endif %}
+
+  {% if f.highlights %}
+  {{ head("Investment Highlights", "INVESTMENT HIGHLIGHTS") }}
+  <table class="kv">{% for r in f.highlights %}<tr><td class="k">{{ r.label | nb }}</td><td>{{ r.text | nb }}</td></tr>{% endfor %}</table>
+  <div style="display:flex;justify-content:center"><div class="goldbar" style="border-radius:16px;padding:7px 26px;font-weight:900;font-size:12px;letter-spacing:.04em">{{ "DON'T MISS THIS AUCTION" if auction else "MAKE YOUR OFFER TODAY" }}</div></div>
+  {% endif %}
 </div>
-{% endfor %}
+
+<div id="pages"></div>
+<template id="page-shell"><div class="page inner-page"><div class="corner-tr"></div><div class="corner-bl"></div><div class="pno"></div><div class="inner"></div></div></template>
 
 {# ---------------------------------- back cover ---------------------------------- #}
 <div class="page" style="background:#000">
@@ -264,31 +246,132 @@ p.body{font-size:11.5px;line-height:1.62;text-align:justify}
       while (over() && s > min && i < 300) { s -= 1; el.style.fontSize = s + 'px'; i++; }
     });
   }
-  // The room the words leave: under 150px is left empty rather than squeezed; otherwise as
-  // many rows of photos as keep them about landscape-shaped (~270px a row): one row is a
-  // pair, more rows put one wide photo over pairs.
-  function fillers() {
-    document.querySelectorAll('[data-filler]').forEach(function (el) {
-      var h = el.getBoundingClientRect().height;
-      if (h < 150) { el.remove(); return; }
-      if (!el.hasAttribute('data-rows')) return;
-      var photos = [].slice.call(el.children), cols = Math.min(2, photos.length);
-      var rows = Math.max(1, Math.min(Math.round(h / 270), Math.ceil(photos.length / 2) || 1));
-      var show = rows === 1 ? cols : Math.min(photos.length, 1 + 2 * (rows - 1));
-      while (rows > 1 && 1 + 2 * (rows - 1) > photos.length) rows--;
-      show = rows === 1 ? cols : 1 + 2 * (rows - 1);
-      el.style.gridTemplateRows = 'repeat(' + rows + ',1fr)';
-      photos.forEach(function (p, i) {
-        if (i >= show) { p.remove(); return; }
-        if (rows > 1 && i === 0 && cols === 2) p.style.gridColumn = '1 / span 2';
+  function json(id) { try { return JSON.parse(document.getElementById(id).textContent) || []; } catch (e) { return []; } }
+
+  // Each photo's own shape, known before the pages are laid out.
+  var ratio = {};
+  function preload(srcs) {
+    return Promise.all(srcs.map(function (s) {
+      return new Promise(function (done) {
+        var im = new Image();
+        im.onload = function () { if (im.naturalWidth && im.naturalHeight) ratio[s] = im.naturalWidth / im.naturalHeight; done(); };
+        im.onerror = function () { done(); };
+        im.src = s;
       });
+    }));
+  }
+  // One wide photo keeps its own landscape shape (an aerial shows the whole boundary); a
+  // pair or three side by side are 4:3, a phone photo's own. Never a tall crop.
+  function shape(s, n) { return n === 1 ? Math.min(1.9, Math.max(1.25, ratio[s] || 4 / 3)) : 4 / 3; }
+  function photoRow(srcs) {
+    var row = document.createElement('div');
+    row.className = 'prow ' + ['', 'prow--wide', 'prow--pair', 'prow--trio'][srcs.length];
+    srcs.forEach(function (s) {
+      var d = document.createElement('div'), img = document.createElement('img');
+      d.className = 'photo'; d.style.aspectRatio = shape(s, srcs.length);
+      img.src = s; d.appendChild(img); row.appendChild(d);
+    });
+    return row;
+  }
+  function over(box) { return box.scrollHeight > box.clientHeight + 1; }
+
+  // The room a page has left takes photos while they fit whole: one wide, else a pair,
+  // else three small ones; anything less stays white rather than squeezing a photo.
+  function fillRest(box, pool, keep) {
+    for (var guard = 0; guard < 10; guard++) {
+      var placed = false;
+      for (var n = 1; n <= 3 && !placed; n++) {
+        if (pool.length < n || pool.length - n < keep) continue;
+        var row = photoRow(pool.slice(0, n));
+        box.appendChild(row);
+        if (over(box)) { box.removeChild(row); } else { pool.splice(0, n); placed = true; }
+      }
+      if (!placed) return;
+    }
+  }
+
+  function layout() {
+    var flow = document.getElementById('flow'), out = document.getElementById('pages'),
+        shell = document.getElementById('page-shell');
+    if (!flow || !out || !shell) return;
+    // the contents page first, with the ad's own photos, which the pages then don't repeat
+    var cover = json('contents-photos'), shown = cover.slice();
+    var contents = document.querySelector('#contents-page .inner');
+    if (contents) fillRest(contents, cover, 0);
+    shown = shown.filter(function (s) { return cover.indexOf(s) < 0; });
+    var pool = json('pack-photos');
+    if (pool.length > shown.length + 8) pool = pool.filter(function (s) { return shown.indexOf(s) < 0; });
+    var keep = Math.min(9, Math.ceil(pool.length / 2));      // kept back for the photo pages
+    var pages = [], inner = null, sec = null, first = {}, last = {};
+
+    function newPage() {
+      var pg = shell.content.firstElementChild.cloneNode(true);
+      out.appendChild(pg); pages.push(pg);
+      pg.querySelector('.pno').textContent = pages.length + '.';
+      inner = pg.querySelector('.inner');
+    }
+    function breakPage() { fillRest(inner, pool, keep); newPage(); }
+    function note() { if (sec) last[sec] = pages.length; }
+
+    flow.querySelectorAll('[data-fixed] .photo').forEach(function (d) {
+      var img = d.querySelector('img'); if (img) d.style.aspectRatio = shape(img.getAttribute('src'), 1);
+    });
+    var blocks = [].slice.call(flow.children).map(function (b) {
+      if (!b.hasAttribute('data-photos')) return b;
+      var n = +b.dataset.photos;
+      return pool.length - n >= keep ? photoRow(pool.splice(0, n)) : null;
+    }).filter(Boolean);
+
+    newPage();
+    for (var i = 0; i < blocks.length; i++) {
+      var b = blocks[i];
+      if (b.hasAttribute('data-gallery')) {
+        // the photo pages: the photos still unused, page by page, as they fit; three
+        // stay back for the room the last page leaves
+        var tail = pool.length > 9 ? 3 : 0;
+        for (var guard = 0; pool.length > tail && guard < 40; guard++) {
+          fillRest(inner, pool, tail); note();
+          if (pool.length > tail) newPage();
+        }
+        continue;
+      }
+      var group = [b];        // a heading or divider stays with the block after it
+      while (group[group.length - 1].hasAttribute('data-keep') && blocks[i + 1] && !blocks[i + 1].hasAttribute('data-gallery')) {
+        group.push(blocks[++i]);
+      }
+      var head = group[0].getAttribute('data-sec');
+      if (head === 'Photographic Overview' && inner.children.length) breakPage();
+      group.forEach(function (g) { inner.appendChild(g); });
+      if (over(inner) && inner.children.length > group.length) {
+        group.forEach(function (g) { inner.removeChild(g); });
+        breakPage();
+        group.forEach(function (g) { inner.appendChild(g); });
+      }
+      if (head) { sec = head; first[sec] = first[sec] || pages.length; }
+      note();
+    }
+    fillRest(inner, pool, 0);
+    flow.parentNode.removeChild(flow);
+    document.querySelectorAll('[data-toc]').forEach(function (el) {
+      var t = el.getAttribute('data-toc'), a = first[t], z = last[t];
+      el.textContent = a ? (z && z !== a ? a + '-' + z : '' + a) : '';
     });
   }
-  function done() { fit(); fillers(); document.body.dataset.ready = '1'; }
-  var waiting = [].slice.call(document.images).filter(function (i) { return !i.complete; })
-    .map(function (i) { return new Promise(function (r) { i.onload = i.onerror = r; }); });
-  Promise.all([document.fonts.ready].concat(waiting)).then(done);
-  setTimeout(done, 15000);
+
+  var started = false;
+  function start() {
+    if (started) return;
+    started = true;
+    fit();
+    var srcs = json('pack-photos').concat(json('contents-photos'));
+    document.querySelectorAll('#flow img').forEach(function (i) { srcs.push(i.getAttribute('src')); });
+    Promise.race([preload(srcs), new Promise(function (r) { setTimeout(r, 9000); })]).then(function () {
+      layout();
+      document.body.dataset.ready = '1';
+    });
+  }
+  Promise.all([document.fonts.ready]).then(start);
+  setTimeout(start, 6000);
 })();
 </script>
 </body></html>

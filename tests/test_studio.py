@@ -237,22 +237,15 @@ def test_weekday():
     assert weekday("") == ""
 
 
-def test_pack_pages_and_contents():
+def test_pack_sections_in_order():
     from studio import render
 
-    six = [{"icon": "home", "text": "X"}] * 6
-    f = {"description": ["x"], "portions": [{}], "improvements": [{"title": str(i), "items": six} for i in range(5)],
-         "movables": [f"ITEM {n}" for n in range(40)], "best_use": ["y"], "highlights": [{"label": "a", "text": "b"}]}
-    pages = render.pack_pages(f, ["p"] * 12, auction=True)
-    assert [p["kind"] for p in pages] == ["overview", "description", "details", "improvements", "improvements",
-                                          "movables", "movables", "use", "gallery", "gallery", "gallery", "highlights"]
-    assert [p["no"] for p in pages] == list(range(1, 13))
-    assert [p["layout"] for p in pages if p["kind"] == "gallery"] == ["big", "grid", "n1"]
-    assert pages[6]["start"] == 37 and pages[6]["items"] == ["ITEM 36", "ITEM 37", "ITEM 38", "ITEM 39"]
-    toc = render.toc(pages)
-    assert toc[3] == (4, "Main Improvements", "4-5")
-    assert toc[4] == (5, "Movable Assets Included", "6-7")
-    assert toc[-1] == (8, "Investment Highlights", "12")
+    f = {"description": ["x"], "portions": [{}], "improvements": [{"title": "A", "items": []}],
+         "movables": ["TRACTOR"], "best_use": ["y"], "highlights": [{"label": "a", "text": "b"}]}
+    assert render.pack_sections(f, ["p"]) == [
+        "Property & Sale Overview", "Property Description", "Property Details", "Main Improvements",
+        "Movable Assets Included", "Highest & Best Use", "Photographic Overview", "Investment Highlights"]
+    assert render.pack_sections({}, []) == ["Property & Sale Overview"]
 
 
 def test_default_photo_picks(mirror):
@@ -1565,24 +1558,24 @@ def test_a_file_filed_beside_the_otp_is_not_a_new_document(mirror):
     assert catalog.signatures(catalog.items(p))[1] == before
 
 
-def test_the_pack_lists_every_movable_and_fills_spare_room_with_photos():
+def test_the_pack_lists_every_movable_and_lays_its_photos_out_landscape():
     from studio import catalog, facts as F, render
 
     p = catalog.Property(ref="DP9001", name="RHEDE", folder="x", status="")
     movables = [f"ASSET {n}" for n in range(1, 18)]
     f = F.blank() | {"pack_title": "±38.15 HA FARM", "description": ["A farm."], "movables": movables,
-                     "terms": ["10% deposit"], "features": [{"icon": "ha", "text": "±38.15 HA | TOTAL"}]}
+                     "terms": ["10% deposit"], "features": [{"icon": "ha", "text": "±38.15 HA | TOTAL"}],
+                     "best_use": ["Farming"]}
     picks = {"aerial": "air", "hero": "front", "photo1": "p1", "photo2": "p2", "gallery": [f"g{n}" for n in range(9)]}
     ctx = render.context(p, f, picks, "auction", lambda i, s: f"/img/{i}")
     html = render.html("infopack", ctx)
     assert "MOVABLE ASSETS INCLUDED" in html and all(m in html for m in movables)
     assert ">17<" in html                                   # numbered, in two columns
-    assert html.count("data-filler") >= 3                   # photos wherever the words leave room
-    desc = next(pg for pg in ctx["pack_pages"] if pg["kind"] == "description")
-    mov = next(pg for pg in ctx["pack_pages"] if pg["kind"] == "movables")
-    assert desc["fill"] and mov["fill"] and not set(desc["fill"]) & set(mov["fill"])   # different photos per page
-    assert "/img/air" not in desc["fill"] + mov["fill"]     # the aerial is the overview's
-    assert "gal--big" in html and "gal--n4" in html         # mixed photo pages (5 then 4)
+    assert ctx["pack_photos"][:9] == [f"/img/g{n}" for n in range(9)]   # each photo once, aerial apart
+    assert "/img/air" not in ctx["pack_photos"] and len(set(ctx["pack_photos"])) == len(ctx["pack_photos"])
+    assert ctx["contents_photos"] == ["/img/front", "/img/p1", "/img/p2"]
+    assert 'data-sec="Movable Assets Included"' in html and 'data-toc="Highest &amp; Best Use"' in html
+    assert "aspect-ratio:4/3" in html and "prow--trio" in html            # landscape rows only
     assert "<small>TOTAL</small>" in html                   # a feature's second line
 
 
@@ -1610,3 +1603,78 @@ def test_a_photo_copied_into_to_be_used_is_sent_once():
                      item("t1", "Media/Photos/To be used/1-01.jpeg", 210_311)], key=catalog.photo_rank)
     got = [p.item_id for p in photopick.candidates(photos)]
     assert got == ["t1", "o2"]                      # the team's copy, once; the other Overall photo too
+
+
+# --- what the team teaches the studio --------------------------------------------------------
+
+def _teach(app, monkeypatch, scope, rule, said="You missed the borehole", fix="0", ref="DP9001", fail=False):
+    from studio import facts as F, lessons
+    from webapp.routes import studio as routes
+
+    def fake_ask(system, content, schema, **kw):
+        if fail:
+            raise RuntimeError("API down")
+        return lessons.Lesson(scope=scope, rule=rule, reply="From now on I will.")
+    monkeypatch.setattr(F, "ask", fake_ask)
+    monkeypatch.setattr(routes, "_in_background", lambda target, *args: target(*args))
+    c = app.login()
+    c.get(f"/studio/{ref}")
+    return c, c.post(f"/studio/{ref}/lesson", data={"text": said, "kind": "infopack", "fix": fix},
+                     headers={"HX-Request": "true"})
+
+
+def test_a_lesson_becomes_a_rule_every_later_request_follows(app, monkeypatch):
+    from studio import lessons
+    rule = "List every borehole and its yield in the improvements when the documents mention one."
+    c, r = _teach(app, monkeypatch, "words", rule)
+    assert "Learned." in r.text and rule in r.text
+    assert rule in lessons.block("words", app.db) and lessons.block("photos", app.db) == ""
+    # her next change request carries it
+    _, _, sent = _ask(app, monkeypatch, _answer([("headline", "X")]))
+    assert rule in sent["system"]
+    # the lessons page shows who taught it where, and it can be turned off
+    page = c.get("/studio/lessons").text
+    assert rule in page and "You missed the borehole" in page and "DP9001" in page
+    lid = lessons.all_lessons(app.db)[0]["id"]
+    assert c.post(f"/studio/lessons/{lid}", data={"active": "0"}, follow_redirects=False).status_code == 303
+    assert lessons.block("words", app.db) == ""
+
+
+def test_a_photo_lesson_reaches_the_photo_choice_and_a_layout_one_stays_for_keegan(app, monkeypatch):
+    from studio import catalog, facts as F, lessons, photopick
+    _teach(app, monkeypatch, "photos", "Never use a photo of a broken gate or fence as a background.")
+    _teach(app, monkeypatch, "layout", "Keep photos landscape; never crop them into tall strips.")
+    sent = {}
+
+    def fake_ask(system, content, schema, **kw):
+        sent["system"] = system
+        return photopick.Picks(aerial="P1", hero="P1", photo1="", photo2="", photo3="", gallery=[])
+    monkeypatch.setattr(F, "ask", fake_ask)
+    prop = catalog.get("DP9001")
+    photopick.choose(prop, catalog.photos(catalog.items(prop)), auction=True)
+    assert "broken gate" in sent["system"] and "tall strips" not in sent["system"]
+    assert "tall strips" not in lessons.block("words", app.db)
+    page = app.login().get("/studio/lessons").text
+    assert "Keegan builds these in" in page and "tall strips" in page
+
+
+def test_teach_and_fix_it_here_also_asks_for_the_change(app, monkeypatch):
+    from studio import ask as A
+    c, r = _teach(app, monkeypatch, "words", "Say SECOND HOUSE once.", said="The main house box repeats SECOND HOUSE",
+                  fix="1", ref="DP9002")
+    assert r.headers.get("HX-Refresh") == "true"
+    assert A.latest(app.db, "DP9002")["text"] == "The main house box repeats SECOND HOUSE"
+
+
+def test_when_claude_cant_word_it_her_words_stand(app, monkeypatch):
+    from studio import lessons
+    _, r = _teach(app, monkeypatch, "words", "", said="Always put the extent from the title deed", fail=True)
+    assert "Learned." in r.text
+    assert "Always put the extent from the title deed" in lessons.block("words", app.db)
+
+
+def test_the_property_page_offers_to_teach_the_studio_under_each_output(app):
+    page = app.login().get("/studio/DP9001").text
+    assert page.count("Something wrong? Teach the studio") >= 4
+    assert 'name="kind" value="infopack"' in page
+    assert 'href="/studio/lessons"' in app.login().get("/studio").text

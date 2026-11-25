@@ -303,125 +303,45 @@ def context(prop: Property, facts: dict, picks: dict, mode: str, photo_src: Call
         "aerial": src("aerial") or src("hero"), "gallery": gallery,
         "extras": [photo_src(i, "view") for i in extra_ids],
         "auction_line": " | ".join(x for x in (f"{f.get('auction_kind') or 'ONLINE'} AUCTION", when) if x),
-        **_pack_photos(picks, photo_src, pack_pages(f, gallery, auction)),
+        **pack_photos(picks, photo_src),
+        "sections": list(enumerate(pack_sections(f, gallery), 1)),
     }
 
 
-# Photos offered to fill the room a pack page has left; the template's script shows as many
-# rows as the room takes (a pair, or one wide over pairs) and drops the lot when it is too
-# little. The overview page shows the aerial instead.
-FILL = {"description": 5, "details": 5, "improvements": 5, "movables": 5, "use": 5, "highlights": 5}
-
-
-def _pack_photos(picks: dict, photo_src: Callable[[str, str], str], pages: list[dict]) -> dict:
-    """Photos for the pack's spare room: the ad's photos, then the gallery, each page
-    taking the next ones so no two pages show the same pair."""
+def pack_photos(picks: dict, photo_src: Callable[[str, str], str]) -> dict:
+    """The pack's photos, each used once: Claude's walk-through (the gallery) with the ad's
+    photos, which the pack's script places as it lays the pages out (a pair after the
+    description, a wide photo or a pair in the room a page has left, the rest on the photo
+    pages). The aerial is the overview's; the contents page has the ad's own photos."""
     ids: list[str] = []
-    for i in [picks.get("photo1"), picks.get("photo2"), picks.get("photo3"), picks.get("hero"),
-              *picks.get("gallery", [])]:
+    for i in [*picks.get("gallery", []), picks.get("photo1"), picks.get("photo2"), picks.get("photo3"),
+              picks.get("hero")]:
         if i and i not in ids and i != picks.get("aerial"):
             ids.append(i)
-    pool = [photo_src(i, "gallery") for i in ids]
-    n = 0
-
-    def take(k: int) -> list[str]:
-        nonlocal n
-        if not pool:
-            return []
-        got = [pool[(n + j) % len(pool)] for j in range(min(k, len(pool)))]
-        n += k
-        return got
-
-    contents = take(5)
-    for pg in pages:
-        pg["fill"] = take(FILL.get(pg["kind"], 0))
-    return {"pack_pages": pages, "contents_fill": contents, "back_photo": (take(1) or [""])[0]}
+    contents = [photo_src(i, "gallery") for i in (picks.get("hero"), picks.get("photo1"), picks.get("photo2")) if i]
+    return {"pack_photos": [photo_src(i, "gallery") for i in ids], "contents_photos": contents}
 
 
-MOVABLES_PER_PAGE = 36      # two columns of 18 rows
-
-
-def _improvement_pages(groups: list[dict]) -> list[list[dict]]:
-    """The improvement cards, two side by side, as many rows of them as fit a page."""
-    pages, cur, used = [], [], 0
-    for i in range(0, len(groups), 2):
-        pair = groups[i:i + 2]
-        need = 64 + 40 * max(min(len(g.get("items") or []), 10) for g in pair)
-        if cur and used + need > 840:
-            pages.append(cur)
-            cur, used = [], 0
-        cur += pair
-        used += need
-    if cur:
-        pages.append(cur)
-    return pages
-
-
-# Gallery pages take turns: one big photo over four, an even six, a tall one beside two.
-_GALLERY_TURNS = (("big", 5), ("grid", 6), ("side", 5))
-
-
-def gallery_pages(gallery: list[str]) -> list[tuple[str, list[str]]]:
-    out, i, turn = [], 0, 0
-    while i < len(gallery):
-        layout, n = _GALLERY_TURNS[turn % len(_GALLERY_TURNS)]
-        photos = gallery[i:i + n]
-        out.append((layout if len(photos) == n else f"n{len(photos)}", photos))
-        i += n
-        turn += 1
-    return out
-
-
-def pack_pages(f: dict, gallery: list[str], auction: bool) -> list[dict]:
-    """The info pack's page plan, so the contents page can print page numbers."""
-    pages: list[dict] = []
-    n = 0
-
-    def add(kind: str, title: str = "", **kw):
-        nonlocal n
-        n += 1
-        pages.append({"kind": kind, "title": title, "no": n, **kw})
-
-    add("overview", "Property & Sale Overview")
-    if f.get("description"):
-        add("description", "Property Description")
-    if f.get("portions"):
-        add("details", "Property Details")
-    for k, groups in enumerate(_improvement_pages(f.get("improvements") or [])):
-        add("improvements", "Main Improvements", groups=groups, first=k == 0)
-    movables = f.get("movables") or []
-    for i in range(0, len(movables), MOVABLES_PER_PAGE):
-        add("movables", "Movable Assets Included", items=movables[i:i + MOVABLES_PER_PAGE], start=i + 1,
-            first=i == 0)
+def pack_sections(f: dict, gallery: list[str]) -> list[str]:
+    """The pack's sections in order, as the contents page lists them. They run on from
+    one page to the next; the pack's script finds their page numbers."""
+    out = ["Property & Sale Overview"]
+    for key, title in (("description", "Property Description"), ("portions", "Property Details"),
+                       ("improvements", "Main Improvements"), ("movables", "Movable Assets Included")):
+        if f.get(key):
+            out.append(title)
     if f.get("best_use") or f.get("condition"):
-        add("use", "Highest & Best Use")
-    for k, (layout, photos) in enumerate(gallery_pages(gallery)):
-        add("gallery", "Photographic Overview", photos=photos, layout=layout, first=k == 0)
+        out.append("Highest & Best Use")
+    if gallery:
+        out.append("Photographic Overview")
     if f.get("highlights"):
-        add("highlights", "Investment Highlights")
-    # Number the sections in order of first appearance, as DP2987 does.
-    sec, seen = 0, {}
-    for p in pages:
-        if p["title"] not in seen:
-            sec += 1
-            seen[p["title"]] = sec
-        p["section"] = seen[p["title"]]
-    return pages
-
-
-def toc(pages: list[dict]) -> list[tuple[int, str, str]]:
-    out, seen = [], {}
-    for p in pages:
-        seen.setdefault(p["title"], []).append(p["no"])
-    for title, nos in seen.items():
-        first = next(p for p in pages if p["title"] == title)["section"]
-        out.append((first, title, f"{nos[0]}" if len(nos) == 1 else f"{nos[0]}-{nos[-1]}"))
+        out.append("Investment Highlights")
     return out
 
 
 def html(kind: str, ctx: dict) -> str:
     fmt = FORMATS[kind]
-    return env().get_template(f"{kind}.html.j2").render(fmt=fmt, toc=toc(ctx["pack_pages"]), **ctx)
+    return env().get_template(f"{kind}.html.j2").render(fmt=fmt, **ctx)
 
 
 # --- the files ----------------------------------------------------------------

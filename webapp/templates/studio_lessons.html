@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}What the studio has learned · Ad Studio{% endblock %}
+{% block subheading %}<div class="topbar__sub muted">What the team has taught it. Every property it makes from now on follows these.</div>{% endblock %}
+{% block topbar_actions %}<a class="btn btn--ghost btn--sm" href="/studio">All properties</a>{% endblock %}
+{% block content %}
+{% if not total %}
+<div class="panel"><strong>Nothing yet.</strong>
+  <p class="muted">Under each ad, banner and info pack on a property's page there's "Something wrong? Teach the studio". Say what was wrong in your own words; the studio turns it into a rule and follows it on every property after that.</p></div>
+{% endif %}
+{% for scope, title in scopes.items() %}{% if by_scope[scope] %}
+<section class="studio-group">
+  <h2 class="studio-group__title">{{ title }} <span class="badge badge--neutral">{{ by_scope[scope]|length }}</span></h2>
+  {% if scope == 'layout' %}<p class="muted studio-group__why">How the files look. The studio can't change its own design, so Keegan builds these in.</p>{% endif %}
+  <div class="studio-list">
+  {% for l in by_scope[scope] %}
+    <form class="lesson {{ '' if l.active else 'is-off' }}" method="post" action="/studio/lessons/{{ l.id }}">
+      <div class="lesson__said muted">{{ l.taught_by.split('@')[0] }} on {{ l.ref or 'a property' }}{% if l.kind %} ({{ labels.get(l.kind, l.kind) }}){% endif %}, {{ l.created_at[:10] }}: “{{ l.said }}”</div>
+      <textarea class="textarea lesson__rule" name="rule" rows="2" aria-label="The rule">{{ l.rule or l.said }}</textarea>
+      <div class="lesson__actions">
+        <select class="select" name="scope" aria-label="About">{% for k, t in scopes.items() %}<option value="{{ k }}" {{ 'selected' if k == l.scope else '' }}>{{ t }}</option>{% endfor %}</select>
+        <button class="btn btn--ghost btn--sm" type="submit">Save</button>
+        {% if l.active %}<button class="btn btn--ghost btn--sm" name="active" value="0">Turn off</button>
+        {% else %}<span class="badge badge--neutral">Off</span><button class="btn btn--ghost btn--sm" name="active" value="1">Turn on</button>{% endif %}
+      </div>
+    </form>
+  {% endfor %}
+  </div>
+</section>
+{% endif %}{% endfor %}
+{% endblock %}

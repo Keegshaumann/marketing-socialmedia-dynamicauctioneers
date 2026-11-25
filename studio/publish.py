@@ -37,7 +37,7 @@ from studio.writer import Writer, WriteError, sha
 log = logging.getLogger("studio.publish")
 
 # Bump when a layout changes so every filed set is made again with it.
-RENDER_VERSION = "7"   # 25 Nov 2026: the pack fills its pages (cards, dividers, tables, filler photos), movables
+RENDER_VERSION = "8"   # 25 Nov 2026: the pack runs on page to page, landscape photos only, movables
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS studio_files (

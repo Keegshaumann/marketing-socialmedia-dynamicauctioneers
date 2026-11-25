@@ -18,6 +18,9 @@ download the ads and the info pack.
 - ``POST /studio/{ref}/ask``             a change asked for in her own words (background)
 - ``GET  /studio/{ref}/ask-status``      polled while that runs
 - ``POST /studio/{ref}/ask/{id}/undo``   put back what the latest request changed
+- ``POST /studio/{ref}/lesson``          teach the studio something for every future property
+- ``GET  /studio/{ref}/lesson/{id}``     polled while Claude words it
+- ``GET  /studio/lessons``               everything the team has taught it; turn one off or reword it
 
 The studio also works by itself (``studio.auto``, every 15 minutes): it reads the
 properties waiting on an ad and files each set in SharePoint, and files it again
@@ -37,7 +40,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from pathlib import Path
 
-from studio import ask as ASK, auto, catalog, facts as F, form as FORM, prepare, publish, render, state
+from studio import ask as ASK, auto, catalog, facts as F, form as FORM, lessons as LESSONS, prepare, publish, render, state
 from studio.sharepoint import store
 from studio.writer import writer
 from webapp import auth, models
@@ -148,6 +151,61 @@ def _glance(db: str, props: list, sets: dict, worked: dict) -> dict:
                                        "why": s["message"].replace("Not saved yet: ", "").replace(" Press save once it's right.", "")}
                                       for s in needs[:8]],
             "needs_total": len(needs), "latest": latest}
+
+
+# --- what the team has taught the studio ------------------------------------------------
+
+@router.get("/studio/lessons", response_class=HTMLResponse)
+def studio_lessons(request: Request, user=Depends(_can)):
+    rows = LESSONS.all_lessons(_db(request))
+    return _tpl(request).TemplateResponse(request, "studio_lessons.html", {
+        "user": user, "by_scope": LESSONS.as_rows(rows), "scopes": LESSONS.SCOPES, "total": len(rows),
+        "labels": {k: f.label for k, f in render.FORMATS.items()},
+    })
+
+
+@router.post("/studio/lessons/{lesson_id}")
+async def studio_lesson_edit(lesson_id: int, request: Request, user=Depends(_can)):
+    db = _db(request)
+    if LESSONS.get(db, lesson_id) is None:
+        raise HTTPException(404)
+    form = await request.form()
+    if "active" in form:
+        LESSONS.set_active(db, lesson_id, form.get("active") == "1")
+    if form.get("rule"):
+        LESSONS.save_rule(db, lesson_id, str(form.get("rule")), str(form.get("scope") or "words"))
+    return RedirectResponse("/studio/lessons", status_code=303)
+
+
+@router.post("/studio/{ref}/lesson", response_class=HTMLResponse)
+async def studio_lesson(ref: str, request: Request, user=Depends(_can)):
+    prop = _prop(ref)
+    db = _db(request)
+    form = await request.form()
+    said = str(form.get("text") or "").strip()
+    kind = str(form.get("kind") or "")
+    if not said:
+        return HTMLResponse('<p class="muted">Say what was wrong first.</p>')
+    lesson_id = LESSONS.add(db, prop.ref, kind if kind in render.FORMATS else "", said, user["email"])
+    _in_background(LESSONS.learn, db, lesson_id)
+    if form.get("fix") == "1":          # and change it on this property now, as a request
+        last = ASK.latest(db, prop.ref)
+        if not (last and last["status"] == "running"):
+            if state.load(db, prop.ref) is None:
+                prepare.current(db, prop, catalog.items(prop))
+            _in_background(ASK.run, db, ASK.start(db, prop.ref, said, user["email"]))
+        return HTMLResponse("", headers={"HX-Refresh": "true"})
+    return studio_lesson_status(ref, lesson_id, request, user)
+
+
+@router.get("/studio/{ref}/lesson/{lesson_id}", response_class=HTMLResponse)
+def studio_lesson_status(ref: str, lesson_id: int, request: Request, user=Depends(_can)):
+    prop = _prop(ref)
+    lesson = LESSONS.get(_db(request), lesson_id)
+    if lesson is None or lesson["ref"] != prop.ref:
+        raise HTTPException(404)
+    return _tpl(request).TemplateResponse(request, "partials/_studio_lesson.html",
+                                          {"p": prop, "lesson": lesson, "scopes": LESSONS.SCOPES})
 
 
 # --- one property ---------------------------------------------------------------
