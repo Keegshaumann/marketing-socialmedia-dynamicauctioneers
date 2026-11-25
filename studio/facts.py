@@ -487,6 +487,7 @@ def name_for(prop: Property, kind: str, mode: str) -> str:
     n = f"DP{prop.number}"
     return {
         "ad": f"{n} {'AUCTION' if mode == 'auction' else 'FOR SALE'} AD.png",
+        "ad2": f"{n} {'AUCTION' if mode == 'auction' else 'FOR SALE'} AD 2.png",
         "saia": f"{n} SAIA BANNER.png",
         "icon": f"{n} APP ICON.png",
         "board": f"{n} {'AUCTION' if mode == 'auction' else 'FOR SALE'} BOARD.pdf",

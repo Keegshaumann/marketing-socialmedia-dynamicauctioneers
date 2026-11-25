@@ -263,7 +263,8 @@ def test_default_photo_picks(mirror):
     assert "tractor.jpg" not in [by_name[i] for i in picks["gallery"]]
 
 
-@pytest.mark.parametrize("kind,mode", [("ad", "forsale"), ("ad", "auction"), ("saia", "auction"),
+@pytest.mark.parametrize("kind,mode", [("ad", "forsale"), ("ad", "auction"), ("ad2", "forsale"), ("ad2", "auction"),
+                                       ("saia", "auction"),
                                        ("icon", "auction"), ("board", "auction"), ("board", "forsale"),
                                        ("infopack", "auction")])
 def test_every_template_renders_its_words(kind, mode):
@@ -279,7 +280,7 @@ def test_every_template_renders_its_words(kind, mode):
     html = render.html(kind, ctx)
     assert "RHEDE" not in html                 # the matter name never reaches an output
     assert "data-ready" not in html or True
-    text = {"ad": "MAKHADO | LIMPOPO", "saia": "BUSINESS RESCUE", "icon": "PROPERTY REF: DP9001",
+    text = {"ad": "MAKHADO | LIMPOPO", "ad2": "MAKHADO | LIMPOPO", "saia": "BUSINESS RESCUE", "icon": "PROPERTY REF: DP9001",
             "board": "MAKHADO", "infopack": "PROPERTY OVERVIEW"}[kind]
     assert text in html
 
@@ -604,6 +605,7 @@ class FakeSharePoint:
 def _fake_build(prop, facts, picks, mode, items_by_id, kinds=None):
     from studio import facts as F
     out = {F.name_for(prop, "ad", mode): f"AD {facts.get('headline')} {facts.get('price')} {facts.get('auction_date')} {picks.get('hero')}".encode(),
+           F.name_for(prop, "ad2", mode): f"AD2 {facts.get('headline')} {facts.get('auction_date')}".encode(),
            F.name_for(prop, "board", mode): f"BOARD {facts.get('headline')}".encode(),
            F.name_for(prop, "infopack", mode): f"PACK {facts.get('headline')}".encode()}
     if mode == "auction":
@@ -658,7 +660,8 @@ def test_the_studio_prepares_and_files_a_property_waiting_on_an_ad(auto):
     s = publish.get_set(auto.app.db, "DP9001")
     assert s["status"] == "saved", log
     added = sorted(path for op, path in auto.sp.calls if op == "add")
-    assert added == ["Advertisements/DP9001 AUCTION AD.png", "Advertisements/DP9001 AUCTION BOARD.pdf",
+    assert added == ["Advertisements/DP9001 AUCTION AD 2.png", "Advertisements/DP9001 AUCTION AD.png",
+                     "Advertisements/DP9001 AUCTION BOARD.pdf",
                      "Advertisements/DP9001 POSTING COPY.txt", "Info Pack/DP9001 AUCTION INFO PACK.pdf"]
     # the team's own SAIA banner was already there, so the studio added none beside it
     assert not any("SAIA" in p for _, p in auto.sp.calls)
@@ -681,7 +684,8 @@ def test_a_new_auction_date_replaces_the_ad_in_place(auto, mirror):
     later = SOON + timedelta(days=7)
     _set_auction(mirror.db, "DP9001", later)
     auto.run()
-    assert auto.sp.calls == [("replace", "DP9001 AUCTION AD.png")]      # only the file that changed
+    assert sorted(auto.sp.calls) == [("replace", "DP9001 AUCTION AD 2.png"),
+                                     ("replace", "DP9001 AUCTION AD.png")]   # only the files that changed
     assert auto.sp.paths == first                                         # same files, new versions
     ad = auto.sp.files[first[f"{AAA}/9001 - RHEDE BOERDERY BK_BR_/Advertisements/DP9001 AUCTION AD.png"]]
     assert f"{later.day} " in ad["data"].decode()
@@ -1069,3 +1073,14 @@ def test_the_glance_never_shows_the_studios_ad_as_the_teams(auto, mirror):
     conn.close()
     page = auto.app.login().get("/studio").text
     assert "Latest by the studio" in page and "Latest by the team" not in page
+
+
+def test_the_big_photo_ad_is_filed_beside_the_first(auto):
+    from studio import facts as F, render
+    from studio.catalog import Property
+    prop = Property(ref="DP9001", name="X", folder="F", status="")
+    assert F.name_for(prop, "ad2", "auction") == "DP9001 AUCTION AD 2.png"
+    assert [f.kind for f in render.formats_for("forsale")][:2] == ["ad", "ad2"]
+    html = render.html("ad2", render.context(prop, {"features": [{"icon": "bed", "text": "3 BEDROOMS"}]}, {}, "forsale",
+                                             lambda i, s: ""))
+    assert "REAL ESTATE" in html and "MAKE US AN OFFER!" in html and "3 BEDROOMS" in html

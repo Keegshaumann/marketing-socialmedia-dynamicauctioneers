@@ -179,7 +179,8 @@ def _team_ctx(request: Request, prop: catalog.Property, items: list, mode: str) 
     newest: dict[str, dict] = {}
     for f in team:
         newest.setdefault(f["kind"], f)
-    by_format = {"ad": newest.get("auction_ad" if mode == "auction" else "forsale_ad"), "saia": newest.get("saia"),
+    their_ad = newest.get("auction_ad" if mode == "auction" else "forsale_ad")
+    by_format = {"ad": their_ad, "ad2": their_ad, "saia": newest.get("saia"),
                  "icon": newest.get("icon"), "board": newest.get("board"), "infopack": newest.get("infopack")}
     return {"team": team, "team_for": {k: v for k, v in by_format.items() if v}}
 

@@ -46,6 +46,7 @@ class Format:
 
 FORMATS = {
     "ad": Format("ad", "Ad", 1080, 1350),
+    "ad2": Format("ad2", "Ad 2, big photo", 1080, 1350),   # the team's other layout (DP3100, DP3078.1)
     "saia": Format("saia", "SAIA banner", 952, 239, modes=("auction",)),
     "icon": Format("icon", "App icon", 1280, 960, modes=("auction",)),
     "board": Format("board", "Board", 1200, 1600, pdf=True, pdf_size=(900, 1200)),

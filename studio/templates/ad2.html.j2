@@ -1,0 +1,76 @@
+{% extends "_canvas.html.j2" %}
+{# The team's other 1080x1350 ad layout, after DP3100, DP3067 and DP3078.1 (Nov 2026): the logo across
+   the top, three heading lines and the sale badge, one big photo (the aerial with its boundary on an
+   auction) with the address on it and a column of three more beside it, the features in two columns,
+   then the auction line or the price. #}
+{% block css %}
+.topbar{left:0;top:0;width:1080px;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font-weight:800;font-size:20px;letter-spacing:.01em}
+.bottombar{left:0;bottom:0;width:1080px;height:74px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-weight:800;font-size:25px}
+.bottombar .c{display:flex;align-items:center;gap:14px}
+.bottombar .dot{width:46px;height:46px;border-radius:50%;background:#0b0b0b;color:#e9cf8a;display:flex;align-items:center;justify-content:center}
+.badge{background:var(--gold);color:#0b0b0b;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px rgba(0,0,0,.6);padding:0 26px}
+.box{background:rgba(0,0,0,.8);border:3px solid var(--goldline);border-radius:14px}
+.h1{font-weight:900;line-height:1.02}
+.h2{font-weight:800;line-height:1.05}
+.lockup{display:flex;align-items:center;gap:10px}
+.lockup .mark{width:124px;height:82px;overflow:hidden;position:relative}
+.lockup .mark img{position:absolute;left:-4px;top:-5px;width:132px}
+.lockup .words{display:flex;flex-direction:column;line-height:1}
+.frame{border:3px solid rgba(255,255,255,.9);border-radius:14px;overflow:hidden;box-shadow:0 10px 24px rgba(0,0,0,.6);background:#222;position:relative}
+.frame img{width:100%;height:100%;object-fit:cover;display:block}
+.feat{display:flex;align-items:center;gap:16px;font-weight:800}
+.feat .t{line-height:1.08;display:flex;align-items:center}
+{% endblock %}
+{% block body %}
+{% set main = aerial if auction else (hero or aerial) %}
+{% if main %}<img class="bg" src="{{ main }}" style="filter:brightness(.32) blur(2px);transform:scale(1.04)">{% endif %}
+
+<div class="abs topbar goldbar">
+  <span>{% if f.master_ref %}MASTER REF: {{ f.master_ref }}{% endif %}</span>
+  <span>PROPERTY REF: {{ ref }}</span>
+</div>
+
+<div class="abs lockup" style="left:0;top:58px;width:1080px;justify-content:center">
+  <div class="mark"><img src="{{ logo('auctioneers-on-dark' if auction else 'realestate-on-dark') }}"></div>
+  <div class="words"><span style="font-weight:800;font-size:52px;letter-spacing:.02em">DYNAMIC</span>
+    <span class="goldtext" style="font-weight:600;font-size:22px;letter-spacing:.26em;margin-top:7px">{{ 'AUCTIONEERS' if auction else 'REAL ESTATE' }}</span></div>
+</div>
+
+<div class="abs" style="left:54px;top:154px;width:972px">
+  <div class="h1 goldtext glow fit" data-fit data-min="34" style="font-size:66px;height:74px">{{ f.headline | nb }}</div>
+  {% if f.subline %}<div class="h2 fit tshadow" data-fit data-min="24" style="font-size:44px;height:52px;margin-top:2px">{{ f.subline | nb }}</div>{% endif %}
+  {% if f.headline2 %}<div class="h1 goldtext glow fit" data-fit data-min="22" style="font-size:38px;height:46px;margin-top:2px">{{ f.headline2 | nb }}</div>{% endif %}
+</div>
+{% if f.badge %}<div class="abs badge fit" data-fit data-min="20" style="left:54px;top:334px;height:52px;max-width:700px;font-size:32px">{{ f.badge | nb }}</div>{% endif %}
+
+<div class="abs frame" style="left:54px;top:400px;width:652px;height:518px">
+  {% if main %}<img src="{{ main }}">{% endif %}
+  {% if f.address %}
+  <div style="position:absolute;left:18px;right:18px;bottom:16px;min-height:40px;background:#fff;border-radius:20px;display:flex;align-items:center;justify-content:center;gap:8px;color:#111;padding:3px 16px">
+    {{ icon('location_on', 22) }}<span data-fit data-min="11" style="font-weight:800;font-size:16px;line-height:1.15;width:560px;height:36px;display:flex;align-items:center;justify-content:center;text-align:center">{{ f.address | nb }}</span>
+  </div>
+  {% endif %}
+</div>
+
+<div class="abs" style="left:722px;top:400px;width:304px;height:518px;display:flex;flex-direction:column;gap:12px">
+  {% for p in extras %}<div class="frame" style="flex:1"><img src="{{ p }}"></div>{% endfor %}
+</div>
+
+<div class="abs box" style="left:54px;top:934px;width:972px;height:198px;padding:12px 26px;display:grid;grid-template-columns:1fr 1fr;align-content:space-evenly;column-gap:28px">
+  {% for ft in f.features[:5] %}
+  <div class="feat"><span style="width:54px;height:50px;display:flex;align-items:center;justify-content:center">{{ icon(ft.icon, 52, 46) }}</span>
+    <span class="t" data-fit data-min="14" style="font-size:25px;height:54px;width:360px">{{ ft.text | nb }}</span></div>
+  {% endfor %}
+</div>
+
+<div class="abs box fit" data-fit data-min="24" style="left:54px;top:1146px;width:972px;height:80px;border-radius:6px;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:{{ 44 if auction else 54 }}px">{% if auction %}{{ auction_line | nb }}{% else %}{{ (f.price or 'MAKE US AN OFFER!') | nb }}{% endif %}</div>
+
+{% if f.disclaimer %}
+<div class="abs fit" data-fit data-min="11" style="left:94px;top:1234px;width:892px;height:32px;border:2px solid var(--goldline);border-radius:16px;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px">{{ f.disclaimer | nb }}</div>
+{% endif %}
+
+<div class="abs bottombar goldbar">
+  <span class="c"><span class="dot">{{ icon('call', 28) }}</span>{{ f.phone | nb }}</span>
+  <span class="c">{{ icon('mail', 44, 38) }}<span class="fit" data-fit data-min="16" style="display:block;max-width:660px">{{ f.email }}</span></span>
+</div>
+{% endblock %}
