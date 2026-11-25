@@ -5,7 +5,7 @@
   <div class="studio-read__row">
     {% if st == 'saving' %}
       <span class="spinner" aria-hidden="true"></span>
-      <span><strong>Saving to SharePoint…</strong><br><span class="muted">Making the files and putting them in the property's folder. Under a minute.</span></span>
+      <span><strong>{{ 'Rushing it…' if set.message.startswith('Rushed') else 'Saving to SharePoint…' }}</strong><br><span class="muted">{% if set.message %}{{ set.message[8:] if set.message.startswith('Rushed: ') else set.message }}{% else %}Making the files and putting them in the property's folder. Under a minute.{% endif %}</span></span>
     {% else %}
       <span>
         {% if st == 'saved' %}
@@ -22,11 +22,14 @@
         {% elif st == 'ready' or not can_save %}
           <strong>Ready.</strong> <span class="muted">The studio can't save to SharePoint yet, so download the set for now.</span>
         {% else %}
-          <strong>Not in SharePoint yet.</strong> <span class="muted">The studio saves properties waiting on an ad by itself once their folder has documents and photos. Press save to put this one there now.</span>
+          <strong>Not in SharePoint yet.</strong> <span class="muted">The studio makes and saves properties waiting on an ad by itself once their folder has documents and photos and nothing new has arrived for a day. Rush makes this one now, with what the folder holds.</span>
         {% endif %}
         {% if set and set.folder_url %}<br><a href="{{ set.folder_url }}" target="_blank" rel="noopener">Open the folder in SharePoint</a>{% endif %}
       </span>
-      {% if can_save %}
+      {% if st in ('', 'waiting') %}
+      <button class="btn btn--primary btn--sm" hx-post="/studio/{{ p.ref }}/rush" hx-swap="none" title="Read the documents if needed, choose the photos and save the set now, without waiting">
+        {{ ui.icon('bolt', 'icon--sm') }}<span>Rush: make it now</span></button>
+      {% elif can_save %}
       <button class="btn {{ 'btn--ghost' if st == 'saved' else 'btn--primary' }} btn--sm" hx-post="/studio/{{ p.ref }}/publish" hx-target="#studio-sync" hx-swap="outerHTML">
         {{ ui.icon('send', 'icon--sm') }}<span>{{ 'Save again now' if st == 'saved' else ('Checked, save to SharePoint' if st == 'held' else 'Save to SharePoint') }}</span></button>
       {% endif %}

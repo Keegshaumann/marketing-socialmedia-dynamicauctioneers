@@ -103,11 +103,13 @@ ul.dots{font-size:11.5px;line-height:1.7;padding-left:18px}
     </div>
     {% endif %}
     <div class="goldbar" style="margin:18px auto 0;width:70%;border-radius:16px;padding:6px 10px;text-align:center;font-weight:800;font-size:11px">All Outstanding Fees, if any, to be Settled by the Seller.</div>
+    {% if f.terms or f.confirmation %}{# from the OTP; no box at all rather than an empty one #}
     <h2 style="font-size:20px;font-weight:900">SALE OVERVIEW</h2>
     <div class="terms">
       {% for t in f.terms %}<div>{{ t | nb }}</div>{% endfor %}
       {% if f.confirmation %}<div class="pill">{{ f.confirmation | nb }}</div>{% endif %}
     </div>
+    {% endif %}
     {% if f.viewing %}<div class="viewing">VIEWING:<br>{{ f.viewing | nb }}</div>{% endif %}
 
   {% elif pg.kind == 'description' %}

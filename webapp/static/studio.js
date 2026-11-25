@@ -41,6 +41,14 @@
   }
   document.body.addEventListener('studio-refresh', refresh);
 
+  // --- "Ask for a change": Cmd/Ctrl+Enter sends it ---
+  document.addEventListener('keydown', function (e) {
+    var t = e.target;
+    if (e.key !== 'Enter' || !(e.metaKey || e.ctrlKey) || !t.closest || !t.closest('.studio-ask__form')) return;
+    e.preventDefault();
+    t.closest('form').requestSubmit();
+  });
+
   // --- copy buttons ---
   document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-copy]');

@@ -1,0 +1,39 @@
+{% import '_macros.html' as ui %}
+<section class="panel studio-ask" id="studio-ask"
+  {% if ask and ask.status == 'running' %}hx-get="/studio/{{ p.ref }}/ask-status?poll=1" hx-trigger="every 3s" hx-target="#studio-ask" hx-swap="outerHTML"{% endif %}>
+  <h2 class="studio-ask__title">Ask for a change</h2>
+  {% if ask and ask.status == 'running' %}
+    <div class="studio-read__row studio-ask__running">
+      <span class="spinner" aria-hidden="true"></span>
+      <span><strong>Making the change…</strong><br><span class="muted">“{{ ask.text }}” Usually under a minute (longer when photos change). The page updates by itself.</span></span>
+    </div>
+  {% else %}
+    <p class="muted studio-ask__hint">Say what should be different, the way you'd tell a colleague: the words on the ads or the pack, or which photos go where. Claude changes only that, and you can undo it.</p>
+    <form class="studio-ask__form" hx-post="/studio/{{ p.ref }}/ask" hx-target="#studio-ask" hx-swap="outerHTML">
+      <label class="sr-only" for="ask-text">What should change?</label>
+      <textarea class="textarea" id="ask-text" name="text" rows="2" maxlength="1500" required
+        placeholder="e.g. Take SECOND 3-BED HOUSE out of the main house and add the double garage. Use the pool photo as the background."></textarea>
+      <button class="btn btn--primary btn--sm" type="submit">{{ ui.icon('sparkles', 'icon--sm') }}<span>Make the change</span></button>
+    </form>
+    {% if ask %}
+    <div class="studio-ask__last studio-ask__last--{{ ask.status }}">
+      <div class="muted">You asked: “{{ ask.text }}”</div>
+      {% if ask.status == 'done' %}
+        <div>{{ ask.reply }}</div>
+        {% if ask.changed %}
+        <div class="studio-ask__changed"><span class="muted">Changed: {{ ask.changed|join(', ') }}.</span>
+          <button class="btn btn--ghost btn--sm" hx-post="/studio/{{ p.ref }}/ask/{{ ask.id }}/undo" hx-target="#studio-ask" hx-swap="outerHTML">Undo this change</button></div>
+        {% endif %}
+      {% elif ask.status == 'undone' %}
+        <div>Undone: {{ ask.changed|join(', ') }} went back to how {{ 'they were' if ask.changed|length > 1 else 'it was' }}.</div>
+      {% else %}
+        <div class="t-block">{{ ask.reply }}</div>
+      {% endif %}
+    </div>
+    {% endif %}
+    {% if asks|length > 1 %}
+    <details class="studio-docs"><summary class="muted">Earlier requests ({{ asks|length - 1 }})</summary>
+      <ul>{% for a in asks[1:] %}<li>“{{ a.text }}”<span class="muted"> · {{ 'undone' if a.status == 'undone' else (a.changed|join(', ') if a.changed else a.reply) }}</span></li>{% endfor %}</ul></details>
+    {% endif %}
+  {% endif %}
+</section>

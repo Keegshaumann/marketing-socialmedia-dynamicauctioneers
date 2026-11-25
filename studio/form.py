@@ -24,6 +24,32 @@ FEATURE_SLOTS = {"features": 6, "shared_features": 2}
 GROUPS = ("improvements", "extra_units")
 
 
+# What each field is called on the studio's page (studio_edit.html), so a request in her
+# own words ("the gold line", "the price box") reaches the right field (studio.ask).
+LABELS = {
+    "headline": "Gold line (ad heading line 1)", "subline": "White line (ad heading line 2)",
+    "headline2": "Second gold line (ad heading line 3)", "badge": "Badge (the sale badge on the ad)",
+    "address": "Address strip (for sale ad)", "features": "Features (the ad's feature list, main dwelling)",
+    "main_title": "Main dwelling heading", "extra_units": "Flats and cottages (their own feature boxes)",
+    "shared_features": "For the whole property (size first, then anything shared)",
+    "disclaimer": "Occupation line", "price": "Price box", "auction_kind": "Online or on site",
+    "auction_date": "Auction date", "auction_time": "Auction time", "master_ref": "Master ref",
+    "phone": "Phone", "email": "Email", "short_title": "One-line title (banner, app icon, reel)",
+    "short_place": "One-line place (banner, app icon, reel)", "sale_kind": "Sale type",
+    "board_lines": "Board: what it is (2 lines)", "board_place": "Board: where (1-2 lines)",
+    "location_line": "App icon: location line", "qr_link": "QR code link",
+    "pack_title": "Info pack cover title", "pack_region": "Info pack cover region",
+    "pack_strapline": "Info pack cover strap", "pack_footer": "Info pack cover footer",
+    "viewing": "Viewing", "overview": "Info pack: property overview table",
+    "rates": "Info pack: rates & taxes", "terms": "Info pack: sale overview (from the OTP)",
+    "confirmation": "Info pack: confirmation line", "description": "Info pack: description",
+    "portions": "Info pack: property details", "improvements": "Info pack: main improvements",
+    "best_use": "Info pack: highest & best use", "condition": "Info pack: property condition",
+    "highlights": "Info pack: investment highlights", "caption": "Social caption",
+    "listing": "Portal listing (Propdata, Property24)",
+}
+
+
 def _rows_text(rows: list[dict]) -> str:
     return "\n".join(f"{r.get('label', '')} | {r.get('text', '')}" for r in rows or [])
 

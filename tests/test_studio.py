@@ -921,7 +921,7 @@ def test_a_folder_still_filling_up_waits_a_day(auto, mirror):
     assert auto.reads == [] and any("still arriving" in line for line in log)
     s = state.get_set(auto.app.db, "DP9001")
     assert s["status"] == "waiting" and "nothing new has arrived for 24 hours" in s["message"]
-    assert "Read the documents" in s["message"]
+    assert "press Rush" in s["message"]
     _quiet_since_yesterday(auto.app.db)
     auto.run()
     assert auto.reads == ["DP9001"] and state.get_set(auto.app.db, "DP9001")["status"] == "saved"
@@ -1283,3 +1283,212 @@ def test_the_studios_own_homepage_qr_is_not_taken_for_the_teams_link(mirror):
     conn.commit()
     conn.close()
     assert F.team_qr_link(catalog.items(catalog.get("DP9001"))) == ""
+
+
+# --- Rush: make it now instead of waiting ----------------------------------------------
+
+def _now_in_background(monkeypatch, sp):
+    from webapp.routes import studio as routes
+    monkeypatch.setattr(routes, "_in_background", lambda target, *args: target(*args))
+    monkeypatch.setattr(routes, "writer", lambda: sp)
+
+
+def test_rush_makes_a_set_whose_folder_is_still_filling_now(auto, mirror, monkeypatch):
+    from studio import state
+    _add_item(mirror.db, "Media/Photos/Overall/kitchen.jpg", "fresh1", modified="now")
+    auto.run()
+    assert auto.reads == [] and state.get_set(auto.app.db, "DP9001")["status"] == "waiting"
+    c = auto.app.login()
+    page = c.get("/studio").text
+    assert 'hx-post="/studio/DP9001/rush?from=list"' in page          # on the list
+    assert "Rush: make it now" in c.get("/studio/DP9001").text        # and on its page
+    _now_in_background(monkeypatch, auto.sp)
+    r = c.post("/studio/DP9001/rush", headers={"HX-Request": "true"})
+    assert r.headers.get("HX-Refresh") == "true"
+    s = state.get_set(auto.app.db, "DP9001")
+    assert auto.reads == ["DP9001"] and s["status"] == "saved" and s["rushed_at"] and s["rushed_sig"]
+    assert ("add", "Advertisements/DP9001 AUCTION AD.png") in auto.sp.calls
+    assert state.load(auto.app.db, "DP9001")["updated_by"] == "marketing@dynamicauctioneers.co.za"
+    # the studio's own runs count the folder as settled now: no "waiting", no second read
+    auto.sp.calls.clear()
+    auto.run()
+    assert state.get_set(auto.app.db, "DP9001")["status"] == "saved" and auto.reads == ["DP9001"]
+    assert auto.sp.calls == []
+    assert 'rush?from=list' not in c.get("/studio").text               # nothing left to rush
+    # something new arriving after the rush waits again, as usual
+    _add_item(mirror.db, "OTP & ROA/9001 - OTP v2.docx", "otp2", size=20_000, modified="now")
+    auto.run()
+    assert auto.reads == ["DP9001"]
+
+
+def test_rush_from_the_list_answers_with_a_badge(auto, monkeypatch):
+    _now_in_background(monkeypatch, auto.sp)
+    r = auto.app.login().post("/studio/DP9001/rush?from=list", headers={"HX-Request": "true"})
+    assert "Rushing" in r.text and auto.reads == ["DP9001"]
+
+
+def test_rush_never_counts_as_checking_the_privacy_warnings(auto, monkeypatch):
+    from studio import facts as F, state
+    monkeypatch.setattr(F, "read_documents", lambda prop, items, sheets: (
+        {"headline": "RHEDE | LIMPOPO", "features": [{"icon": "ha", "text": f"FEATURE {n}"} for n in range(4)]},
+        ["Mentions RHEDE from the file name: check before it goes out."]))
+    _now_in_background(monkeypatch, auto.sp)
+    auto.app.login().post("/studio/DP9001/rush")
+    s = state.get_set(auto.app.db, "DP9001")
+    assert s["status"] == "held" and "RHEDE" in s["message"] and auto.sp.calls == []
+
+
+def test_rush_after_a_read_only_files_it(auto, mirror, monkeypatch):
+    from studio import state
+    from webapp import models
+    models.set_setting(auto.app.db, "studio_auto", "off")
+    c = auto.app.login()
+    _now_in_background(monkeypatch, auto.sp)
+    c.post("/studio/DP9001/read")
+    assert auto.reads == ["DP9001"]
+    c.post("/studio/DP9001/rush")
+    assert auto.reads == ["DP9001"]                                   # not read twice
+    assert state.get_set(auto.app.db, "DP9001")["status"] == "saved"
+
+
+def test_a_rush_whose_read_fails_says_so(auto, monkeypatch):
+    from studio import facts as F, state
+    monkeypatch.setattr(F, "read_documents", lambda *a: (_ for _ in ()).throw(RuntimeError("credit balance is too low")))
+    _now_in_background(monkeypatch, auto.sp)
+    auto.app.login().post("/studio/DP9001/rush")
+    s = state.get_set(auto.app.db, "DP9001")
+    assert s["status"] == "held" and "run out of credit" in s["message"] and "fill in" in s["message"]
+    assert state.load(auto.app.db, "DP9001")["reading"] == "failed"
+
+
+# --- a change asked for in her own words -------------------------------------------------
+
+def _answer(changes=(), photos="", reply="Done."):
+    from studio import ask as A
+    return A.Answer(changes=[A.Change(field=f, value=v if isinstance(v, str) else json.dumps(v)) for f, v in changes],
+                    photos=photos, reply=reply)
+
+
+def _ask(app, monkeypatch, answer, text="Make the gold line SS ROSEBANK and add a pool", ref="DP9002"):
+    from studio import facts as F
+    from webapp.routes import studio as routes
+    sent = {}
+
+    def fake_ask(system, content, schema, **kw):
+        sent["system"], sent["text"] = system, " ".join(x.get("text", "") for x in content)
+        if isinstance(answer, Exception):
+            raise answer
+        return answer
+    monkeypatch.setattr(F, "ask", fake_ask)
+    monkeypatch.setattr(routes, "_in_background", lambda target, *args: target(*args))
+    c = app.login()
+    c.get(f"/studio/{ref}")
+    r = c.post(f"/studio/{ref}/ask", data={"text": text})
+    return c, r, sent
+
+
+FOUR = [{"icon": "m2", "text": "±74m² UNIT"}, {"icon": "bed", "text": "2 BEDROOMS"},
+        {"icon": "bathtub", "text": "1 BATHROOM"}, {"icon": "pool", "text": "COMPLEX POOL"}]
+
+
+def test_asking_for_a_change_changes_only_those_fields(app, monkeypatch):
+    from studio import state
+    c, r, sent = _ask(app, monkeypatch, _answer([("headline", "SS ROSEBANK"), ("features", FOUR),
+                                                 ("not_a_field", "x")], reply="I changed the gold line and added the pool."))
+    assert "Make the gold line SS ROSEBANK" in sent["text"] and "Gold line" in sent["text"]
+    assert "MM MAHLOHONOLO" in sent["text"] and "never print it" in sent["text"]
+    row = state.load(app.db, "DP9002")
+    assert row["facts"]["headline"] == "SS ROSEBANK" and row["facts"]["features"] == FOUR
+    assert {"headline", "features"} <= row["edited"] and "not_a_field" not in row["facts"]
+    assert row["facts"]["price"] == "OFFERS FROM R380 000"            # untouched
+    assert row["updated_by"] == "marketing@dynamicauctioneers.co.za"   # so the studio files it again
+    assert "I changed the gold line" in r.text and "Changed: Gold line, Features" in r.text
+    assert "Undo this change" in r.text
+    assert "Ask for a change" in c.get("/studio/DP9002").text
+
+
+def test_a_change_can_be_undone_once(app, monkeypatch):
+    from studio import ask as A, state
+    c, r, _ = _ask(app, monkeypatch, _answer([("headline", "SS ROSEBANK")]))
+    before = state.load(app.db, "DP9002")
+    assert before["facts"]["headline"] == "SS ROSEBANK"
+    a = A.latest(app.db, "DP9002")
+    r = c.post(f"/studio/DP9002/ask/{a['id']}/undo", headers={"HX-Request": "true"})
+    assert r.headers.get("HX-Refresh") == "true"
+    row = state.load(app.db, "DP9002")
+    assert row["facts"]["headline"] == "" and "headline" not in row["edited"]
+    assert A.latest(app.db, "DP9002")["status"] == "undone"
+    r = c.post(f"/studio/DP9002/ask/{a['id']}/undo")
+    assert "HX-Refresh" not in r.headers and "Undone: Gold line" in r.text
+    assert c.post("/studio/DP9001/ask/%d/undo" % a["id"]).status_code == 404   # another property's
+
+
+def test_asking_for_other_photos_places_them_as_hers(app, monkeypatch):
+    from studio import catalog, photopick, render, state
+    photos = catalog.photos(catalog.items(catalog.get("DP9001")))
+    by_name = {p.name: p.item_id for p in photos}
+    seen = {}
+
+    def fake_rechoose(prop, photos, auction, wish, current):
+        seen.update(wish=wish, auction=auction)
+        return {"aerial": by_name["orchard.jpg"]}
+    monkeypatch.setattr(photopick, "rechoose", fake_rechoose)
+    c, r, _ = _ask(app, monkeypatch, _answer(photos="the orchard as the background"), ref="DP9001",
+                   text="Use the orchard photo as the background")
+    assert seen == {"wish": "the orchard as the background", "auction": True}
+    row = state.load(app.db, "DP9001")
+    assert row["photos"]["aerial"] == by_name["orchard.jpg"]
+    assert "Changed: Background (auction)" in r.text
+    # undo takes her placed photo away again, so the earlier choice shows
+    from studio import ask as A
+    c.post(f"/studio/DP9001/ask/{A.latest(app.db, 'DP9001')['id']}/undo")
+    assert "aerial" not in state.load(app.db, "DP9001")["photos"]
+
+
+def test_an_odd_number_of_features_is_evened_and_she_is_told(app, monkeypatch):
+    from studio import state
+    five = FOUR + [{"icon": "garage", "text": "CARPORT"}]
+    _, r, _ = _ask(app, monkeypatch, _answer([("features", five)]))
+    assert state.load(app.db, "DP9002")["facts"]["features"] == FOUR
+    assert "left out CARPORT" in r.text
+
+
+def test_a_failed_request_says_why_and_changes_nothing(app, monkeypatch):
+    from studio import ask as A, state
+    _, r, _ = _ask(app, monkeypatch, RuntimeError("Your credit balance is too low"))
+    assert A.latest(app.db, "DP9002")["status"] == "failed" and "run out of credit" in r.text
+    assert state.load(app.db, "DP9002")["facts"]["headline"] == ""
+
+
+def test_her_values_come_back_in_the_studios_shapes():
+    from studio import ask as A
+    assert A.clean("headline", ' "SS ROSEBANK" ') == "SS ROSEBANK"
+    assert A.clean("features", json.dumps([{"icon": "rocket", "text": "X", "note": "Y"}])) == [{"icon": "home", "text": "X | Y"}]
+    got = A.clean("features", json.dumps(["bed | 3 BEDROOMS", "DOUBLE GARAGE"]))
+    assert got == [{"icon": "bed", "text": "3 BEDROOMS"}, {"icon": "home", "text": "DOUBLE GARAGE"}]
+    assert A.clean("extra_units", json.dumps([{"title": "FLAT:", "items": [{"icon": "home", "text": "SEPARATE ENTRANCE"}]},
+                                              {"title": "EMPTY", "items": []}])) == [
+        {"title": "FLAT", "items": [{"icon": "home", "text": "SEPARATE ENTRANCE"}]}]
+    assert A.clean("terms", json.dumps(["10% DEPOSIT", " "])) == ["10% DEPOSIT"]
+    with pytest.raises(ValueError):
+        A.clean("features", '{"icon": "bed"}')
+    with pytest.raises(ValueError):
+        A.clean("features", "not json")
+
+
+def test_rechoosing_photos_changes_only_the_slots_she_asked_about(mirror, monkeypatch):
+    from studio import catalog, facts as F, photopick
+    prop = catalog.get("DP9001")
+    photos = catalog.photos(catalog.items(prop))
+    pool = photopick.candidates(photos)
+    current = {"aerial": pool[0].item_id, "hero": pool[1].item_id, "photo1": pool[2].item_id}
+    sent = {}
+
+    def fake_ask(system, content, schema, **kw):
+        sent["text"] = " ".join(c.get("text", "") for c in content)
+        return photopick.Rechosen(aerial="P3", hero="P1", photo1="P1", photo2="", photo3="", gallery=[],
+                                  changed=["aerial", "photo1", "nonsense"])
+    monkeypatch.setattr(F, "ask", fake_ask)
+    got = photopick.rechoose(prop, photos, auction=True, wish="the orchard as the background", current=current)
+    assert "aerial: P1" in sent["text"] and "Her request: the orchard as the background" in sent["text"]
+    assert got == {"aerial": pool[2].item_id, "photo1": pool[0].item_id}   # hero was not asked about

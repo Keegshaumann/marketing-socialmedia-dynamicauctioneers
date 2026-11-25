@@ -14,6 +14,10 @@ download the ads and the info pack.
 - ``GET  /studio/{ref}/download``        every file for the property in one zip
 - ``POST /studio/{ref}/publish``         save the set into SharePoint now (D129)
 - ``GET  /studio/{ref}/publish-status``  polled while that runs
+- ``POST /studio/{ref}/rush``            make and save the set now, without waiting for the folder
+- ``POST /studio/{ref}/ask``             a change asked for in her own words (background)
+- ``GET  /studio/{ref}/ask-status``      polled while that runs
+- ``POST /studio/{ref}/ask/{id}/undo``   put back what the latest request changed
 
 The studio also works by itself (``studio.auto``, every 15 minutes): it reads the
 properties waiting on an ad and files each set in SharePoint, and files it again
@@ -33,7 +37,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from pathlib import Path
 
-from studio import auto, catalog, facts as F, form as FORM, prepare, publish, render, state
+from studio import ask as ASK, auto, catalog, facts as F, form as FORM, prepare, publish, render, state
 from studio.sharepoint import store
 from studio.writer import writer
 from webapp import auth, models
@@ -83,7 +87,8 @@ def studio_home(request: Request, user=Depends(_can)):
     sets = publish.all_sets(_db(request))
 
     def row(p):
-        return {"p": p, "kit": kits.get(p.folder, {}), "worked": worked.get(p.ref), "set": sets.get(p.ref)}
+        return {"p": p, "kit": kits.get(p.folder, {}), "worked": worked.get(p.ref), "set": sets.get(p.ref),
+                "need": need.get(p.ref, "")}
 
     upcoming = sorted((p for p in props if p.auction_date and p.auction_date >= today), key=lambda p: p.auction_date)
     need = {p.ref: auto.needs_ad(p, kits.get(p.folder, {}), today) for p in props}
@@ -168,6 +173,7 @@ def studio_edit(ref: str, request: Request, user=Depends(_can)):
         "names": {f.kind: F.name_for(prop, f.kind, row["mode"]) for f in render.formats_for(row["mode"])},
         "slot_labels": SLOT_LABELS,
         **_sync_ctx(request, prop),
+        **_ask_ctx(request, prop),
         **_team_ctx(request, prop, items, row["mode"]),
     })
 
@@ -404,6 +410,89 @@ def studio_publish_status(ref: str, request: Request, user=Depends(_can)):
     prop = _prop(ref)
     return _tpl(request).TemplateResponse(request, "partials/_studio_sync.html",
                                           {"p": prop, "user": user, **_sync_ctx(request, prop)})
+
+
+# --- Rush: make and save it now instead of waiting --------------------------------------
+
+def _rush_job(db: str, ref: str, by: str, read: bool) -> None:
+    try:
+        auto.rush(db, ref, by, writer(), read=read)
+    except Exception:
+        log.exception("rushing %s", ref)
+        publish.set_status(db, ref, status="failed", message="Rushing it didn't finish; try again in a minute.")
+        row = state.load(db, ref)
+        if row and row["reading"] == "running":
+            state.save(db, ref, reading="failed", message="The read was interrupted; start it again.")
+
+
+@router.post("/studio/{ref}/rush", response_class=HTMLResponse)
+def studio_rush(ref: str, request: Request, user=Depends(_can)):
+    """Skip the wait for the folder to settle and the queue: read the documents if
+    they need it, choose the photos, and save the set to SharePoint now."""
+    prop = _prop(ref)
+    db = _db(request)
+    s = publish.get_set(db, prop.ref)
+    row = state.load(db, prop.ref)
+    busy = (s and s["status"] == "saving" and not _stale(s["updated_at"])) or \
+        (row and row["reading"] == "running" and not _stale(row["updated_at"]))
+    if not busy:
+        items = catalog.items(prop)
+        if row is None:
+            prepare.current(db, prop, items)        # as when the page first opens
+        read = auto.wants_read(db, prop.ref, items)
+        if read:
+            state.save(db, prop.ref, reading="running", message="")
+        publish.set_status(db, prop.ref, status="saving", message=(
+            "Rushed: reading the documents and choosing the photos, then saving. About three minutes."
+            if read else "Rushed: making the files and saving them now."))
+        _in_background(_rush_job, db, prop.ref, user["email"], read)
+    if request.query_params.get("from") == "list":
+        return HTMLResponse('<span class="badge badge--note" title="Being made now">Rushing</span>')
+    return HTMLResponse("", headers={"HX-Refresh": "true"})
+
+
+# --- a change asked for in her own words ----------------------------------------------------
+
+def _ask_ctx(request: Request, prop: catalog.Property) -> dict:
+    asks = ASK.history(_db(request), prop.ref)
+    return {"asks": asks, "ask": asks[0] if asks else None}
+
+
+@router.post("/studio/{ref}/ask", response_class=HTMLResponse)
+async def studio_ask(ref: str, request: Request, user=Depends(_can)):
+    prop = _prop(ref)
+    db = _db(request)
+    text = str((await request.form()).get("text") or "").strip()
+    last = ASK.latest(db, prop.ref)
+    if text and not (last and last["status"] == "running"):
+        if state.load(db, prop.ref) is None:
+            prepare.current(db, prop, catalog.items(prop))
+        _in_background(ASK.run, db, ASK.start(db, prop.ref, text, user["email"]))
+    return studio_ask_status(ref, request, user)
+
+
+@router.get("/studio/{ref}/ask-status", response_class=HTMLResponse)
+def studio_ask_status(ref: str, request: Request, user=Depends(_can)):
+    prop = _prop(ref)
+    ctx = _ask_ctx(request, prop)
+    headers = {}
+    if ctx["ask"] and ctx["ask"]["status"] != "running" and request.headers.get("HX-Request") \
+            and request.query_params.get("poll"):
+        headers["HX-Refresh"] = "true"   # the fields and previews need the change
+    return _tpl(request).TemplateResponse(request, "partials/_studio_ask.html",
+                                          {"p": prop, "user": user, **ctx}, headers=headers)
+
+
+@router.post("/studio/{ref}/ask/{ask_id}/undo", response_class=HTMLResponse)
+def studio_ask_undo(ref: str, ask_id: int, request: Request, user=Depends(_can)):
+    prop = _prop(ref)
+    db = _db(request)
+    a = ASK.get(db, ask_id)
+    if a is None or a["ref"] != prop.ref:
+        raise HTTPException(404)
+    if ASK.undo(db, ask_id, user["email"]):
+        return HTMLResponse("", headers={"HX-Refresh": "true"})
+    return studio_ask_status(ref, request, user)
 
 
 # --- the team's own files, and the studio's saved ones, as pictures -------------------

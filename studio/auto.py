@@ -19,6 +19,10 @@
    sheets, or someone's edit in the studio (left 10 minutes to settle first).
    See ``studio.publish`` for what is never touched.
 
+A person can skip the wait and the queue with **Rush** (``rush``): the set is made
+and filed straight away with what the folder holds, and the folder counts as
+settled until something new arrives.
+
 Switch it off with the setting ``studio_auto = off`` (scripts or the database);
 the screens keep working either way.
 """
@@ -95,14 +99,19 @@ def observe(db: str, p: catalog.Property, items: list[catalog.Item], s: Optional
     elif (ph, dc) != (s.get("photos_sig"), s.get("docs_sig")):
         changed = datetime.now(timezone.utc).isoformat(timespec="seconds")
     else:
-        return _ago(s["changed_at"]) >= quiet
+        return _ago(s["changed_at"]) >= quiet or _rushed_with(s, ph, dc)
     cols = {"photos_sig": ph, "docs_sig": dc, "changed_at": changed}
     row = state.load(db, p.ref)
     if not s.get("read_docs_sig") and row and row["reading"] == "done":
         # read before the studio kept track: it was made from what is there now
         cols.update(read_photos_sig=ph, read_docs_sig=dc)
     state.set_status(db, p.ref, **cols)
-    return _ago(changed) >= quiet
+    return _ago(changed) >= quiet or _rushed_with(s, ph, dc)
+
+
+def _rushed_with(s: dict, ph: str, dc: str) -> bool:
+    """Someone pressed Rush and nothing has arrived since: it counts as settled."""
+    return bool(s.get("rushed_sig")) and s["rushed_sig"] == f"{ph}|{dc}"
 
 
 def _waiting(db: str, ref: str, s: Optional[dict], quiet: timedelta) -> None:
@@ -113,9 +122,53 @@ def _waiting(db: str, ref: str, s: Optional[dict], quiet: timedelta) -> None:
         when = "recently"
     hours = int(quiet.total_seconds() // 3600)
     msg = (f"Photos or documents were added to the folder {when}. The studio makes the set once nothing "
-           f"new has arrived for {hours} hours. To go now: Read the documents, then Save to SharePoint.")
+           f"new has arrived for {hours} hours. To make it now with what is there, press Rush.")
     if s.get("status") != "waiting" or s.get("message") != msg:
         state.set_status(db, ref, status="waiting", message=msg)
+
+
+def wants_read(db: str, ref: str, items: list[catalog.Item]) -> bool:
+    """Whether making the set now needs Claude to read the documents first: they were
+    never read (or the last read failed), or a new document came in since."""
+    row = state.load(db, ref)
+    if not row or row["reading"] != "done":
+        return True
+    read_sig = (state.get_set(db, ref) or {}).get("read_docs_sig")
+    return bool(read_sig) and read_sig != catalog.signatures(items)[1]
+
+
+def rush(db: str, ref: str, by: str, w: Optional[Writer], *, read: Optional[bool] = None) -> Optional[dict]:
+    """A person pressed Rush: make and file this property's set now, with what its
+    folder holds, instead of waiting for the folder to settle or for its turn.
+
+    The documents are read first when they were never read or a new one came in (and
+    the photos chosen again when more arrived and nobody placed their own). It files
+    the way the studio's own job does, never as a person's "save": a privacy warning
+    still waits for someone to look. Later runs count the folder as settled until
+    something new arrives. Returns the set's status row."""
+    p = catalog.get(ref)
+    if p is None:
+        return None
+    items = catalog.items(p)
+    observe(db, p, items, state.get_set(db, ref), quiet_for(db))
+    ph, dc = catalog.signatures(items)
+    state.set_status(db, ref, rushed_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                     rushed_sig=f"{ph}|{dc}")
+    if read is None:
+        read = wants_read(db, ref, items)
+    if read:
+        prepare.read(db, ref, by)
+    else:
+        row = state.load(db, ref)
+        s = state.get_set(db, ref) or {}
+        if row and s.get("read_photos_sig") and s["read_photos_sig"] != ph and not prepare.placed_by_a_person(row):
+            prepare.choose_photos(db, p, items, row, row["mode"] or prepare.auto_mode(p))
+    row = state.load(db, ref)
+    s = publish.publish(db, p, w)
+    if row and row["reading"] == "failed" and s and s["status"] != "saved":
+        state.set_status(db, ref, message=f"{row['message']} {s['message']}".strip())
+        s = state.get_set(db, ref)
+    return s
 
 
 def run(db: str, w: Optional[Writer] = None, *, reads: int = 4, dry_run: bool = False) -> list[str]:

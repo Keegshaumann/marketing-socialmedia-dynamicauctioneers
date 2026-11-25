@@ -50,7 +50,8 @@ CREATE TABLE IF NOT EXISTS studio_sets (
     updated_at  TEXT NOT NULL DEFAULT ''
 );
 """
-_SET_COLUMNS = ("photos_sig", "docs_sig", "changed_at", "read_photos_sig", "read_docs_sig")
+# rushed_at / rushed_sig: when a person pressed Rush, and what the folder held then
+_SET_COLUMNS = ("photos_sig", "docs_sig", "changed_at", "read_photos_sig", "read_docs_sig", "rushed_at", "rushed_sig")
 
 
 def _conn(db_path: Optional[str]) -> sqlite3.Connection:

@@ -19,6 +19,10 @@
     {% elif st == 'waiting' %}<span class="badge badge--neutral" title="{{ r.set.message }}">Waiting</span>
     {% elif st == 'ready' %}<span class="badge badge--neutral" title="{{ r.set.message }}">Ready</span>
     {% elif st == 'failed' %}<span class="badge badge--block" title="{{ r.set.message }}">Didn't save</span>{% endif %}
+    {% if r.need and st in ('', 'waiting', 'failed') and not (r.worked and r.worked.reading == 'running') %}
+    <button class="btn btn--ghost btn--sm studio-rush" hx-post="/studio/{{ r.p.ref }}/rush?from=list" hx-swap="outerHTML"
+            title="Make and save {{ r.p.ref }}'s set now instead of waiting for its folder to settle">Rush</button>
+    {% endif %}
     {% for key, label in kit_labels %}
       {% if key in ('forsale_ad', 'auction_ad', 'saia', 'board', 'infopack') %}
       <span class="kit__chip {{ 'is-done' if k.get(key) else '' }}" title="{{ label }}{{ ' is in the folder' if k.get(key) else ' not in the folder yet' }}">{{ label }}</span>
@@ -29,12 +33,12 @@
 
 {% macro prow(r, show_date=true) -%}
   {%- set p = r.p -%}
-  <a class="studio-row" href="/studio/{{ p.ref }}" data-search="{{ (p.ref ~ ' ' ~ p.number ~ ' ' ~ p.name ~ ' ' ~ p.status)|lower }}">
-    <span class="studio-row__ref">{{ p.ref }}</span>
+  <div class="studio-row" data-search="{{ (p.ref ~ ' ' ~ p.number ~ ' ' ~ p.name ~ ' ' ~ p.status)|lower }}">
+    <a class="studio-row__ref" href="/studio/{{ p.ref }}">{{ p.ref }}</a>
     <span class="studio-row__name">{{ p.name }}<span class="muted"> · {{ p.status }}</span></span>
     {% if show_date %}<span class="studio-row__date">{% if p.auction_date %}{{ p.auction_date.strftime('%d %b %Y') }}{% if p.online is not none %} · {{ 'online' if p.online else 'on site' }}{% endif %}{% endif %}</span>{% endif %}
     {{ kitrow(r) }}
-  </a>
+  </div>
 {%- endmacro %}
 
 {% block content %}
