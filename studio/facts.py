@@ -109,6 +109,21 @@ class Features(BaseModel):
     other_features: list[str] = Field(description=OTHER_RULE)
 
 
+def movables_apart(answer: dict) -> dict:
+    """The MOVABLE ASSETS improvements group as the pack's own list (``movables``). It rides
+    in improvements because the answer form can't take another field (the API refused it:
+    "compiled grammar is too large", 25 Nov 2026)."""
+    out = dict(answer)
+    groups, movables = [], []
+    for g in answer.get("improvements") or []:
+        if "MOVABLE" in (g.get("title") or "").upper():
+            movables += [str(it.get("text") or "").strip() for it in g.get("items") or [] if it.get("text")]
+        else:
+            groups.append(g)
+    out["improvements"], out["movables"] = groups, movables
+    return out
+
+
 def placed(answer: dict) -> dict:
     """Claude's flat other_features (one list keeps the structured answer small enough
     for the API) as the groups the layouts use: extra_units and shared_features."""
@@ -177,10 +192,8 @@ class Facts(BaseModel):
     viewing: str = Field(description='e.g. "STRICTLY BY APPOINTMENT" or a date and time')
     description: list[str] = Field(description="2-4 paragraphs describing the property, factual, no hype")
     portions: list[Portion]
-    improvements: list[Group] = Field(description="Improvements grouped by theme, each with icon + short text")
-    movables: list[str] = Field(description="Every movable asset the sale includes (the OTP's schedule, else the "
-                                            "valuation's list), one per line: quantity, make, model, condition note; "
-                                            "no registration or VIN numbers. [] when only the property is sold")
+    improvements: list[Group] = Field(description="Improvements grouped by theme, each with icon + short text; "
+                                                  "see MOVABLE ASSETS for the movables")
     best_use: list[str] = Field(description="Highest and best use bullet points")
     condition: list[Row] = Field(description='e.g. label "OVERALL CONDITION", text "Fair"')
     highlights: list[Row] = Field(description="Investment highlights: short bold label + one sentence")
@@ -233,7 +246,7 @@ def balance(facts: dict) -> dict:
 
 def blank() -> dict:
     return {k: ([] if f.annotation is not str else "") for k, f in Facts.model_fields.items()} | {
-        "master_ref": "", "phone": PHONE, "email": EMAIL, "qr_link": ""}
+        "master_ref": "", "phone": PHONE, "email": EMAIL, "qr_link": "", "movables": []}
 
 
 # --- 1. what the sheets already say -------------------------------------------
@@ -311,7 +324,12 @@ name you are given. Legal descriptions, extents, municipality, zoning and title 
 Read every document in full, to the last page, schedule and annexure, before you write. The pack must carry \
 every material fact they give: everything the sale includes (each movable asset in a schedule, the business as a \
 going concern, water rights, crops, stock), every building and improvement with its size, the services, and the \
-conditions of sale. Movable assets go in movables, every one of them, not in improvements.
+conditions of sale.
+
+MOVABLE ASSETS: every movable asset the sale includes (the OTP's schedule of movables, else the valuation's \
+list) goes in ONE improvements group titled exactly "MOVABLE ASSETS", one item each in the schedule's order, \
+every one of them: quantity, make and model, and any condition note such as (non runner), never registration or \
+VIN numbers. No such group when only the property is sold. Movables appear nowhere else in improvements.
 
 Examples of the team's own adverts (Nov 2026), to match in voice and wording. headline / subline / headline2 \
 are the advert's three heading lines; the features are a selection of what the team's ads list:
@@ -447,7 +465,7 @@ def read_documents(prop: Property, items: list[Item], sheets: dict) -> tuple[dic
 
     facts = ask(SYSTEM, content, Facts,
                 refusal="Claude declined to describe this property; fill the fields in by hand.").model_dump()
-    facts = balance(tidy(placed(facts)))
+    facts = balance(tidy(movables_apart(placed(facts))))
     link = team_qr_link(items)
     if link:
         facts["qr_link"] = link

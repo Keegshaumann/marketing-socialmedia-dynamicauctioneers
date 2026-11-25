@@ -1250,6 +1250,8 @@ def test_the_answer_form_claude_fills_stays_small_enough():
     import json as _json
     size = len(_json.dumps(F.Facts.model_json_schema()))
     assert size < 10900, size
+    # The limit is in the structure: one more field (movables) was refused at 9 624 characters.
+    assert len(F.Facts.model_fields) == 37, "a new field needs a probe against the API before it ships"
     assert F.Facts.model_json_schema()["properties"]["other_features"]["items"] == {"type": "string"}
 
 
@@ -1582,3 +1584,15 @@ def test_the_pack_lists_every_movable_and_fills_spare_room_with_photos():
     assert "/img/air" not in desc["fill"] + mov["fill"]     # the aerial is the overview's
     assert "gal--big" in html and "gal--n4" in html         # mixed photo pages (5 then 4)
     assert "<small>TOTAL</small>" in html                   # a feature's second line
+
+
+
+def test_the_movable_assets_come_out_of_the_improvements():
+    from studio import facts as F
+    got = F.movables_apart({"improvements": [
+        {"title": "ORCHARDS", "items": [{"icon": "ha", "text": "±13 HA MACADAMIAS"}]},
+        {"title": "MOVABLE ASSETS", "items": [{"icon": "home", "text": "MASSEY FERGUSON 240 TRACTOR (NON RUNNER)"},
+                                              {"icon": "home", "text": "2 X STIHL MS 170 CHAINSAWS"}]}]})
+    assert got["movables"] == ["MASSEY FERGUSON 240 TRACTOR (NON RUNNER)", "2 X STIHL MS 170 CHAINSAWS"]
+    assert [g["title"] for g in got["improvements"]] == ["ORCHARDS"]
+    assert "movables" in F.blank() and "movables" not in F.Facts.model_fields
