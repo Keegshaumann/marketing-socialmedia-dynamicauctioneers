@@ -332,7 +332,7 @@ def _pack_photos(picks: dict, photo_src: Callable[[str, str], str], pages: list[
         n += k
         return got
 
-    contents = take(2)
+    contents = take(5)
     for pg in pages:
         pg["fill"] = take(FILL.get(pg["kind"], 0))
     return {"pack_pages": pages, "contents_fill": contents, "back_photo": (take(1) or [""])[0]}
