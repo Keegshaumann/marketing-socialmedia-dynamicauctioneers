@@ -15,7 +15,8 @@ Group=dauction
 WorkingDirectory=/opt/da-marketing
 Environment=PLAYWRIGHT_BROWSERS_PATH=/opt/da-marketing/.playwright
 ExecStart=/opt/da-marketing/venv/bin/python -m studio.auto
-TimeoutStartSec=3h   # a reel takes about a minute; a layout change re-makes every set
+# A reel takes about a minute on this server, and a layout change re-makes every set.
+TimeoutStartSec=3h
 Nice=10
 NoNewPrivileges=true
 PrivateTmp=true
