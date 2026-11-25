@@ -59,7 +59,7 @@ ul.dots{font-size:11.5px;line-height:1.7;padding-left:18px}
     {% if auction %}
     <div class="fit" data-fit data-min="16" style="font-weight:900;font-size:34px;border:2px solid var(--goldline);padding:8px 26px;max-width:740px">{{ auction_line | nb }}</div>
     {% else %}
-    <div class="fit" data-fit data-min="16" style="font-weight:900;font-size:34px;border:2px solid var(--goldline);padding:8px 26px;max-width:740px">{{ (f.price or 'OFFERS INVITED') | nb }}</div>
+    <div class="fit" data-fit data-min="16" style="font-weight:900;font-size:34px;border:2px solid var(--goldline);padding:8px 26px;max-width:740px">{{ (f.price or 'MAKE US AN OFFER!') | nb }}</div>
     {% endif %}
     {% if f.viewing %}<div style="font-weight:700;font-size:15px">VIEWING: {{ f.viewing | nb }}</div>{% endif %}
   </div>

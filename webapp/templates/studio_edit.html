@@ -124,13 +124,43 @@
   </div>
 
   <div class="studio-edit__right">
+    {% if team %}
+    <section class="panel studio-team">
+      <h2 class="studio-photos__title">Made by the team <span class="muted">{{ team|length }} file{{ 's' if team|length != 1 }} in the folder</span></h2>
+      <p class="muted">Already in SharePoint. The studio leaves these alone and doesn't make its own of the same kind. Click one to see it full size.</p>
+      <div class="team-grid">
+        {% for f in team %}
+        <a class="team-file" href="/studio/{{ p.ref }}/open/{{ f.item.item_id }}" target="_blank" rel="noopener" title="{{ f.item.rel }}">
+          <img src="/studio/{{ p.ref }}/thumb/{{ f.item.item_id }}" alt="{{ f.item.name }}" loading="lazy" data-thumb>
+          <span class="team-file__kind">{{ f.label }}</span><span class="muted team-file__date">{{ f.date }}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
     <section class="panel" id="studio-photos">
       {% include "partials/_studio_photos.html" %}
     </section>
 
     <div class="studio-previews">
       {% for fm in formats %}
-      <figure class="pv-card {{ 'pv-card--pack' if fm.kind == 'infopack' else '' }}">
+      {% set theirs = team_for.get(fm.kind) %}
+      <figure class="pv-card {{ 'pv-card--pack' if fm.kind == 'infopack' and not theirs else '' }} {{ 'pv-card--team' if theirs else '' }}">
+        {% if theirs %}
+        <figcaption>
+          <span class="pv-card__title">{{ fm.label }}</span><span class="badge badge--ok">Made by the team</span>
+          <a class="btn btn--ghost btn--sm" href="/studio/{{ p.ref }}/open/{{ theirs.item.item_id }}" target="_blank" rel="noopener">Open</a>
+        </figcaption>
+        <a href="/studio/{{ p.ref }}/open/{{ theirs.item.item_id }}" target="_blank" rel="noopener" class="pv-team">
+          <img src="/studio/{{ p.ref }}/thumb/{{ theirs.item.item_id }}" alt="{{ theirs.item.name }}" loading="lazy" data-thumb></a>
+        <p class="muted pv-team__note">{{ theirs.item.name }}, {{ theirs.date }}. The studio won't make its own {{ fm.label|lower }} for this property.</p>
+        <details class="pv-studio"><summary class="muted">The studio's version, for comparison</summary>
+          <div class="pv" data-w="{{ fm.width }}" data-h="{{ fm.height }}" {{ 'data-pack=1' if fm.kind == 'infopack' else '' }}>
+            <iframe src="/studio/{{ p.ref }}/preview/{{ fm.kind }}" title="{{ fm.label }} preview" loading="lazy"
+                    width="{{ fm.width }}" height="{{ fm.height }}" {{ 'scrolling=no' if fm.kind != 'infopack' else '' }}></iframe>
+          </div>
+        </details>
+        {% else %}
         <figcaption>
           <span class="pv-card__title">{{ fm.label }}</span><span class="muted pv-card__name">{{ names[fm.kind] }}</span>
           <a class="btn btn--ghost btn--sm" href="/studio/{{ p.ref }}/file/{{ fm.kind }}" data-busy="Making…">{{ ui.icon('download', 'icon--sm') }}<span>Download</span></a>
@@ -139,6 +169,7 @@
           <iframe src="/studio/{{ p.ref }}/preview/{{ fm.kind }}" title="{{ fm.label }} preview" loading="lazy"
                   width="{{ fm.width }}" height="{{ fm.height }}" {{ 'scrolling=no' if fm.kind != 'infopack' else '' }}></iframe>
         </div>
+        {% endif %}
       </figure>
       {% endfor %}
     </div>

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% import '_macros.html' as ui %}
 {% block title %}Ad Studio{% endblock %}
+{% block content_mod %}content--wide{% endblock %}
 {% block subheading %}<div class="topbar__sub muted">Ads, banners, boards and info packs, made from each property's own folder.</div>{% endblock %}
 {% block topbar_actions %}
 <label class="studio-search"><span class="sr-only">Find a property</span>
@@ -42,6 +43,8 @@
     <p class="muted">The studio reads the director platform's copy of the SharePoint folders. Try again in a minute; if it stays like this, tell Keegan.</p></div>
 {% else %}
 
+<div class="studio-home">
+<div class="studio-home__main">
 <div data-studio-groups>
 {% if waiting %}
 <section class="studio-group">
@@ -78,6 +81,9 @@
   <div class="studio-list">{% for r in everyone %}{{ prow(r) }}{% endfor %}</div>
   <p class="muted" data-studio-none hidden>No open property matches. Closed and sold files aren't listed.</p>
 </section>
+</div>
+<aside class="studio-glance" aria-label="At a glance">{% include "partials/_studio_glance.html" %}</aside>
+</div>
 {% endif %}
 <script src="/static/studio.js?v={{ static_v('studio.js') }}" defer></script>
 {% endblock %}

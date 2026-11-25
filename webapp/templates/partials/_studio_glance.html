@@ -1,0 +1,32 @@
+{% set c = glance.count %}
+<div class="glance">
+  <h2 class="glance__title">At a glance</h2>
+  <div class="glance__counts">
+    <div class="glance__count"><b>{{ c.saved }}</b><span>sets in SharePoint</span></div>
+    <div class="glance__count {{ 'is-alert' if glance.needs_total else '' }}"><b>{{ glance.needs_total }}</b><span>waiting for you</span></div>
+    <div class="glance__count"><b>{{ c.waiting }}</b><span>folders still filling</span></div>
+    <div class="glance__count"><b>{{ c.preparing }}</b><span>being read now</span></div>
+  </div>
+
+  {% if glance.needs %}
+  <h3 class="glance__h">Waiting for you</h3>
+  <ul class="glance__needs">
+    {% for n in glance.needs %}
+    <li><a href="/studio/{{ n.ref }}"><b>{{ n.ref }}</b><span>{{ n.why }}</span></a></li>
+    {% endfor %}
+  </ul>
+  {% if glance.needs_total > glance.needs|length %}<p class="muted glance__more">and {{ glance.needs_total - glance.needs|length }} more in the list</p>{% endif %}
+  {% endif %}
+
+  {% if glance.latest %}
+  <h3 class="glance__h">Latest ads</h3>
+  <div class="glance__ads">
+    {% for a in glance.latest %}
+    <a class="glance__ad" href="/studio/{{ a.ref }}" title="{{ a.name }}">
+      <img src="{{ a.thumb }}" alt="{{ a.name }}" loading="lazy" data-thumb>
+      <span class="glance__ad-meta"><b>{{ a.ref }}</b><span class="glance__who glance__who--{{ a.who|lower }}">{{ a.who }}</span><span class="muted">{{ a.label }}</span></span>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>

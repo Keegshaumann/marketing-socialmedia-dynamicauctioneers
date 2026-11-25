@@ -236,6 +236,36 @@ name you are given. Legal descriptions, extents, municipality, zoning and title 
 Advert features: 4 or 5, the ones a buyer decides on, most important first (see the features field). \
 Never filler such as the title type, zoning, or distances to schools, police stations or shops.
 
+Examples of the team's own adverts (Nov 2026), to match in voice and wording. headline / subline / headline2 \
+are the advert's three heading lines; the features are a selection of what the team's ads list:
+- Business rescue auction, farm: MAKHADO | LIMPOPO / MACADAMIA & AVOCADO FARM; features ±38.15 HA TOTAL LAND AREA, \
+±13 HA ESTABLISHED MACADAMIA ORCHARDS, ±10 HA ESTABLISHED AVOCADO ORCHARDS, BUILDINGS & NURSERY INFRASTRUCTURE, \
+ESTABLISHED TREES AGED 8-27 YEARS
+- Liquidation auction, sectional unit let as a hotel: MORNINGSIDE | SANDTON / LUXURY 4-SUITE INVESTMENT UNIT; \
+features ±213m² PROPERTY, 4 EN-SUITE SUITES, COMMUNAL KITCHEN, DINING & LIVING AREA, 2 BALCONIES, PROVEN RENTAL & \
+HOSPITALITY USE
+- Liquidation auction, coastal apartment: 4 BEDROOM THREE-STOREY PROPERTY / SS MIRAMAR | UMHLANGA ROCKS | KZN; \
+features ±216m² PROPERTY, 4 BEDROOMS, 2.5 BATHROOMS, OCEAN VIEWS, ROOFTOP JACUZZI
+- Auction, house with a flat: 3-BED FAMILY HOME WITH A GRANNY FLAT / PRIMROSE | GERMISTON; features ±788m² PROPERTY, \
+3 BEDROOMS, 2.5 BATHROOMS, SWIMMING POOL, 1-BED FLATLET WITH SEPARATE ENTRANCE
+- Liquidation auction, block of flats: ±74-UNIT RESIDENTIAL / WITBANK PROPERTY INVESTMENT; features ±6 620m² PROPERTY, \
+±74 RESIDENTIAL UNITS, HIGH TENANT DEMAND, GATED ACCESS
+- Liquidation auction, several dwellings: FERNDALE, JOHANNESBURG / MULTI-DWELLING PROPERTY; features ±4 015m² PROPERTY, \
+4 BEDROOMS, 1 BACHELOR FLAT & 2-BED APARTMENT, SWIMMING POOL & JACUZZI ROOM, 2 CARPORTS
+- Insolvency sale, house in an estate: HARTIES / 3-BED HOME WITH BACHELOR FLAT / IN THE ISLANDS ESTATE; features \
+±1 006m² PROPERTY, 3 BEDROOMS, KITCHEN & SCULLERY, PATIO WITH BUILT-IN BRAAI, DOUBLE GARAGE
+- Sale of shares, farm: HARTELUS | LIMPOPO / ±32 HA FARM; features ±32.015 HECTARE, LAND PRIMARILY USED FOR GRAIN \
+CULTIVATION (no price: the price box says MAKE US AN OFFER!)
+- Insolvency sale, flat in a complex: 1-BED LOFT APARTMENT / BROADACRES | SANDTON / CARA BIANCA COMPLEX; features \
+±93m² UNIT, 1 BEDROOM, LOFT LIVING ROOM, 2 BALCONIES, COMPLEX POOL & CLUBHOUSE
+- Smallholding: MEYERTON / ±1.41 HA PROPERTY / VALLEY SETTLEMENTS; features MAIN HOUSE + FLATLET, BOREHOLE & WATER \
+TANK, FRUIT TREES, 4 GARAGE PARKINGS & 3 CARPORTS
+- Insolvency sale, house in an estate: RANDBURG | GAUTENG / DOUBLE-STOREY 4-BED HOME / OLIVEWOOD ESTATE
+- Liquidation sale, luxury house: LUXURY 4 BEDROOM FAMILY HOME / HELDERFONTEIN ESTATE | MIDRAND; features ±623m² \
+PROPERTY, 4 EN-SUITE BEDROOMS, SWIMMING POOL, SOLAR PANELS & INVERTER, DOUBLE GARAGE & AMPLE PARKING
+Note how the heading names what makes the property worth buying (WITH A GRANNY FLAT, INVESTMENT UNIT, OCEAN VIEWS) \
+and the estate or complex when there is one; features are specific (KITCHEN WITH SCULLERY, not KITCHEN).
+
 Icons: pick each feature's icon from the allowed list, the way the team's ads do: "m2" for a floor or erf \
 size in m², "ha" for any area in hectares (land, orchards, fields), "park" for trees and orchards without an \
 area, "home" for houses and buildings, "bed", "bathtub", "garage", "fence" for gated access or security, \

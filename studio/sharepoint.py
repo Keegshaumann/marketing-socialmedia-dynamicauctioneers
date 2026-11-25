@@ -44,7 +44,7 @@ def cache_dir() -> Path:
 
 def _key(item: Item, what: str) -> Path:
     h = hashlib.sha1(f"{item.drive_id}|{item.item_id}|{item.modified}|{what}".encode()).hexdigest()[:24]
-    return cache_dir() / h[:2] / f"{h}{'.jpg' if what in SIZES else item.ext}"
+    return cache_dir() / h[:2] / f"{h}{'.jpg' if what in SIZES or what.startswith('thumb') else item.ext}"
 
 
 class Store:
@@ -82,6 +82,22 @@ class Store:
         path.write_bytes(data)
         return data
 
+    def thumb(self, item: Item, px: int = 480) -> Optional[bytes]:
+        """A JPEG preview of any file the team saved (an image, a PDF board or pack,
+        a reel), or None when there is none to be had."""
+        path = _key(item, f"thumb{px}")
+        if path.exists():
+            return path.read_bytes()
+        data = self._graph_render(item, px)
+        if data is None and item.ext in (".png", ".jpg", ".jpeg", ".webp"):
+            data = _shrink(self.content(item), px)
+        if data is None and item.ext == ".pdf":
+            data = _pdf_first_page(self.content(item), px)
+        if data:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(data)
+        return data
+
 
 def _shrink(raw: bytes, px: int) -> bytes:
     from PIL import Image, ImageOps
@@ -96,6 +112,18 @@ def _shrink(raw: bytes, px: int) -> bytes:
         out = io.BytesIO()
         im.convert("RGB").save(out, "JPEG", quality=88, optimize=True)
         return out.getvalue()
+
+
+def _pdf_first_page(raw: bytes, px: int) -> Optional[bytes]:
+    try:
+        import fitz
+
+        with fitz.open(stream=raw, filetype="pdf") as doc:
+            page = doc[0]
+            zoom = px / max(page.rect.width, page.rect.height)
+            return _shrink(page.get_pixmap(matrix=fitz.Matrix(zoom, zoom)).tobytes("png"), px)
+    except Exception:
+        return None
 
 
 class LocalStore(Store):

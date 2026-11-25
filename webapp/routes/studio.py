@@ -25,7 +25,7 @@ from __future__ import annotations
 import logging
 import re
 import threading
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -101,7 +101,47 @@ def studio_home(request: Request, user=Depends(_can)):
         "recent": [row(p) for p in recent],
         "everyone": [row(p) for p in props],
         "kit_labels": [(k, label) for k, label, _ in catalog.KIT] + [("infopack", "Info pack")],
+        "glance": _glance(_db(request), props, sets, worked),
     })
+
+
+def _glance(db: str, props: list, sets: dict, worked: dict) -> dict:
+    """The side panel on the list: what needs a person, how the studio is getting on,
+    and the newest ads, the studio's and the team's, as pictures."""
+    by_ref = {p.ref: p for p in props}
+    count = {k: sum(1 for s in sets.values() if s["status"] == k and s["ref"] in by_ref)
+             for k in ("saved", "held", "waiting", "ready", "complete")}
+    count["preparing"] = sum(1 for r in worked.values() if r["reading"] == "running")
+    needs = sorted((s for s in sets.values() if s["status"] in ("held", "failed") and s["ref"] in by_ref),
+                   key=lambda s: s["updated_at"], reverse=True)
+    ads, seen = [], set()
+    for ref in sets:
+        if ref not in by_ref:
+            continue
+        for name, f in publish.files(db, ref).items():
+            if name.endswith(" AD.png") and f["status"] == "ours" and f["saved_at"]:
+                when = datetime.fromisoformat(f["saved_at"])
+                ads.append({"ref": ref, "name": name, "when": when, "who": "Studio",
+                            "thumb": f"/studio/{quote(ref)}/saved-thumb/{quote(name)}"})
+    for p, item in (catalog.recent_artwork(props) if props else []):
+        if publish.kind_of(item.name) in ("auction_ad", "forsale_ad") and item.ext in (".png", ".jpg", ".jpeg"):
+            ads.append({"ref": p.ref, "name": item.name, "who": "Team",
+                        "when": datetime.fromtimestamp(item.modified, timezone.utc),
+                        "thumb": f"/studio/{quote(p.ref)}/thumb/{item.item_id}"})
+    latest = []
+    for a in sorted(ads, key=lambda a: a["when"], reverse=True):
+        key = (a["ref"], a["who"])
+        if key in seen:
+            continue
+        seen.add(key)
+        a["label"] = a["when"].astimezone().strftime("%d %b")
+        latest.append(a)
+        if len(latest) == 8:
+            break
+    return {"count": count, "needs": [{"ref": s["ref"], "p": by_ref[s["ref"]],
+                                       "why": s["message"].replace("Not saved yet: ", "").replace(" Press save once it's right.", "")}
+                                      for s in needs[:8]],
+            "needs_total": len(needs), "latest": latest}
 
 
 # --- one property ---------------------------------------------------------------
@@ -127,7 +167,20 @@ def studio_edit(ref: str, request: Request, user=Depends(_can)):
         "names": {f.kind: F.name_for(prop, f.kind, row["mode"]) for f in render.formats_for(row["mode"])},
         "slot_labels": SLOT_LABELS,
         **_sync_ctx(request, prop),
+        **_team_ctx(request, prop, items, row["mode"]),
     })
+
+
+def _team_ctx(request: Request, prop: catalog.Property, items: list, mode: str) -> dict:
+    """What the team already made: shown at the top of the page, and in place of the
+    studio's preview for any output they have their own file of."""
+    team = publish.team_files(_db(request), items, prop.ref)
+    newest: dict[str, dict] = {}
+    for f in team:
+        newest.setdefault(f["kind"], f)
+    by_format = {"ad": newest.get("auction_ad" if mode == "auction" else "forsale_ad"), "saia": newest.get("saia"),
+                 "icon": newest.get("icon"), "board": newest.get("board"), "infopack": newest.get("infopack")}
+    return {"team": team, "team_for": {k: v for k, v in by_format.items() if v}}
 
 
 def _sync_ctx(request: Request, prop: catalog.Property) -> dict:
@@ -348,3 +401,64 @@ def studio_publish_status(ref: str, request: Request, user=Depends(_can)):
     prop = _prop(ref)
     return _tpl(request).TemplateResponse(request, "partials/_studio_sync.html",
                                           {"p": prop, "user": user, **_sync_ctx(request, prop)})
+
+
+# --- the team's own files, and the studio's saved ones, as pictures -------------------
+
+def _jpeg(data, *, missing: str = "No preview") -> Response:
+    if not data:
+        raise HTTPException(404, missing)
+    return Response(data, media_type="image/jpeg", headers={"Cache-Control": "private, max-age=3600"})
+
+
+@router.get("/studio/{ref}/thumb/{item_id}")
+def studio_thumb(ref: str, item_id: str, request: Request, user=Depends(_can)):
+    """A preview of a file the team saved in the property's ad or info pack folders."""
+    prop = _prop(ref)
+    item = catalog.find_item(prop, item_id)
+    if item is None or item.is_folder or not item.top.startswith(("ADVERT", "INFO PACK")):
+        raise HTTPException(404)
+    try:
+        return _jpeg(store().thumb(item))
+    except HTTPException:
+        raise
+    except Exception:
+        log.exception("thumbnail %s", item.path)
+        raise HTTPException(502, "Couldn't fetch that preview from SharePoint")
+
+
+@router.get("/studio/{ref}/open/{item_id}")
+def studio_open_team_file(ref: str, item_id: str, request: Request, user=Depends(_can)):
+    """The team's file itself, to look at full size (opens in the browser)."""
+    prop = _prop(ref)
+    item = catalog.find_item(prop, item_id)
+    if item is None or item.is_folder or not item.top.startswith(("ADVERT", "INFO PACK")):
+        raise HTTPException(404)
+    media = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".pdf": "application/pdf",
+             ".mp4": "video/mp4"}.get(item.ext, "application/octet-stream")
+    try:
+        data = store().content(item)
+    except Exception:
+        log.exception("open %s", item.path)
+        raise HTTPException(502, "Couldn't fetch that file from SharePoint")
+    return Response(data, media_type=media,
+                    headers={"Content-Disposition": f'inline; filename="{_safe_name(item.name)}"',
+                             "Cache-Control": "private, max-age=600"})
+
+
+@router.get("/studio/{ref}/saved-thumb/{name}")
+def studio_saved_thumb(ref: str, name: str, request: Request, user=Depends(_can)):
+    """A preview of a file the studio saved in SharePoint (it may not be in the
+    hourly mirror yet, so it is fetched by its own id)."""
+    prop = _prop(ref)
+    f = publish.files(_db(request), prop.ref).get(name)
+    if not f or not f["item_id"] or f["status"] == "removed":
+        raise HTTPException(404)
+    item = catalog.Item(f["drive_id"], f["item_id"], name, "", name, False, 0, float(abs(hash(f["ctag"])) % 10**9))
+    try:
+        return _jpeg(store().thumb(item))
+    except HTTPException:
+        raise
+    except Exception:
+        log.exception("saved thumbnail %s %s", prop.ref, name)
+        raise HTTPException(502, "Couldn't fetch that preview from SharePoint")

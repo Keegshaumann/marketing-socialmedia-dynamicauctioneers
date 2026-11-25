@@ -277,7 +277,7 @@ KIT = (
     ("reel", "Reel", re.compile(r"REEL", re.I)),
     ("saia", "SAIA banner", re.compile(r"SAIA", re.I)),
     ("icon", "App icon", re.compile(r"ICON", re.I)),
-    ("board", "Board", re.compile(r"BOARD|BORD", re.I)),
+    ("board", "Board", re.compile(r"(?<!BILL)BOARD|BORD", re.I)),   # a billboard is not a board
 )
 
 
@@ -354,3 +354,28 @@ def newest(all_items: list[Item]) -> float:
 
 def modified_label(ts: float) -> str:
     return datetime.fromtimestamp(ts).strftime("%d %b %Y") if ts else ""
+
+
+def recent_artwork(props: list[Property], days: int = 30, limit: int = 40) -> list[tuple[Property, Item]]:
+    """The newest files in the open properties' ad folders, for the home page's glance."""
+    import time as _time
+
+    by_folder = {p.folder: p for p in props}
+    since = _time.time() - days * 86400
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT drive_id, item_id, name, path, size, modified FROM items WHERE is_folder = 0 AND modified > ? "
+            "AND (upper(path) LIKE '%/ADVERT%' OR upper(path) LIKE '%/INFO PACK/%') ORDER BY modified DESC LIMIT 2000",
+            (since,)).fetchall()
+    out = []
+    for r in rows:
+        parts = r["path"].split("/")
+        for n in range(len(parts) - 1, 1, -1):
+            folder = "/".join(parts[:n])
+            if folder in by_folder:
+                out.append((by_folder[folder], Item(r["drive_id"], r["item_id"], r["name"], r["path"],
+                                                    r["path"][len(folder) + 1:], False, r["size"] or 0, r["modified"] or 0)))
+                break
+        if len(out) >= limit * 10:
+            break
+    return out

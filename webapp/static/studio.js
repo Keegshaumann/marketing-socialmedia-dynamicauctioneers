@@ -86,3 +86,13 @@
     });
   }
 })();
+
+// Previews of the team's files and the studio's saved ones: hide one SharePoint
+// has no picture for, rather than show a broken image.
+(function () {
+  function mark(img) { img.classList.add('is-missing'); }
+  document.querySelectorAll('img[data-thumb]').forEach(function (img) {
+    if (img.complete && img.naturalWidth === 0) { mark(img); }
+    img.addEventListener('error', function () { mark(img); });
+  });
+})();

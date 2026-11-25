@@ -168,6 +168,35 @@ def team_has(name: str, items: list[catalog.Item], ours: set[str]) -> bool:
     return catalog.kit(theirs).get(kind, False)
 
 
+TEAM_KINDS = {"auction_ad": "Auction ad", "forsale_ad": "For sale ad", "saia": "SAIA banner", "icon": "App icon",
+              "board": "Board", "billboard": "Billboard", "infopack": "Info pack", "reel": "Reel", "qr": "QR code"}
+
+
+def kind_of(name: str) -> str:
+    """What a file in the ad folders is, from its name ("" when it is none of the outputs)."""
+    n = name.upper()
+    if "BILLBOARD" in n:
+        return "billboard"
+    k = _kind(name)
+    if k:
+        return k
+    return "qr" if re.match(r"^(DP)?\s*\d{3,5}(\.\d+)?(\s*\(\d+\))?\.(PNG|JPE?G)$", n) else ""
+
+
+def team_files(db: str, items: list[catalog.Item], ref: str) -> list[dict]:
+    """The outputs the team made themselves (not the studio's), newest first."""
+    ours = {f["item_id"] for f in files(db, ref).values() if f["item_id"]}
+    out = []
+    for i in items:
+        if i.is_folder or i.item_id in ours or not i.top.startswith(("ADVERT", "INFO PACK")):
+            continue
+        kind = kind_of(i.name)
+        if kind and (kind != "infopack" or i.ext == ".pdf"):
+            out.append({"item": i, "kind": kind, "label": TEAM_KINDS[kind],
+                        "date": datetime.fromtimestamp(i.modified).strftime("%d %b %Y") if i.modified else ""})
+    return sorted(out, key=lambda f: -f["item"].modified)
+
+
 def gaps(prop: catalog.Property, mode: str, items: list[catalog.Item], ours: set[str] = frozenset()) -> list[str]:
     """The set's main files (ad, banner, icon, board, pack) the folder has no file of
     its own for. Empty: the team already made the whole set, nothing to add."""

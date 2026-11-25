@@ -1025,3 +1025,33 @@ def test_an_ad_without_enough_photos_waits(auto, mirror):
                mode="auction", reading="done")
     s = publish.publish(auto.app.db, catalog.get("DP9001"), auto.sp)
     assert s["status"] == "held" and "more photos" in s["message"]
+
+
+# --- the team's own files and the glance panel (25 Nov) ---------------------------------
+
+def test_the_property_page_shows_what_the_team_made_and_keeps_the_studios_out_of_the_way(app):
+    c = app.login()
+    page = c.get("/studio/DP9001").text
+    assert "Made by the team" in page and "SAIA banner" in page
+    assert "The studio won't make its own saia banner" in page          # her banner stands in for the studio's
+    r = c.get("/studio/DP9001/open/id4")                                  # DP9001 SAIA BANNER.png
+    assert r.status_code == 200 and r.headers["content-type"] == "image/png"
+    assert c.get("/studio/DP9001/thumb/id4").status_code == 200
+    assert c.get("/studio/DP9001/open/id1").status_code == 404            # a photo, not one of the team's outputs
+
+
+def test_a_billboard_is_not_a_board():
+    from studio import catalog, publish
+    assert publish.kind_of("DP3107 BILLBOARD.pdf") == "billboard"
+    assert publish.kind_of("DP3107 AUCTION BOARD.pdf") == "board"
+    assert publish.kind_of("DP2924.png") == "qr"
+    item = catalog.Item("d", "b", "DP3107 BILLBOARD.pdf", "X/Advertisements/DP3107 BILLBOARD.pdf",
+                        "Advertisements/DP3107 BILLBOARD.pdf", False, 1, 1.0)
+    assert catalog.kit([item])["board"] is False
+
+
+def test_the_home_page_has_the_glance_panel(auto):
+    auto.run()
+    page = auto.app.login().get("/studio").text
+    assert "At a glance" in page and "sets in SharePoint" in page and "Latest ads" in page
+    assert "/studio/DP9001/saved-thumb/DP9001%20AUCTION%20AD.png" in page
