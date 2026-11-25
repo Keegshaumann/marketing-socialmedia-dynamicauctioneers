@@ -82,7 +82,7 @@ p.body{font-size:11.5px;line-height:1.62;text-align:justify}
 {% set auction_word = 'ON AUCTION' if auction else 'FOR SALE' %}
 {% macro filler(photos) -%}
   {%- if photos -%}
-  <div class="filler" data-filler style="grid-template-columns:repeat({{ photos|length }},1fr)">
+  <div class="filler" data-filler data-rows style="grid-template-columns:repeat({{ [photos|length, 2]|min }},1fr)">
     {%- for p in photos %}<div class="photo"><img src="{{ p }}"></div>{% endfor -%}
   </div>
   {%- endif -%}
@@ -236,8 +236,8 @@ p.body{font-size:11.5px;line-height:1.62;text-align:justify}
 {# ---------------------------------- back cover ---------------------------------- #}
 <div class="page" style="background:#000">
   {% set back = back_photo or hero or aerial %}
-  {% if back %}<img src="{{ back }}" style="position:absolute;inset:0;width:794px;height:1123px;object-fit:cover;filter:brightness(.42)">{% endif %}
-  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.85) 100%)"></div>
+  {% if back %}<img src="{{ back }}" style="position:absolute;inset:0;width:794px;height:1123px;object-fit:cover;filter:brightness(.78)">{% endif %}
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.25) 22%,rgba(0,0,0,.55) 48%,rgba(0,0,0,.25) 70%,rgba(0,0,0,.8) 100%)"></div>
   <div style="position:absolute;right:46px;top:0;width:180px;height:214px;background:#fff;clip-path:polygon(0 0,100% 0,100% 84%,50% 100%,0 84%);display:flex;justify-content:center"><img src="{{ logo('auctioneers-on-light' if auction else 'realestate-on-light') }}" style="width:134px;height:134px;margin-top:18px"></div>
   <div style="position:absolute;left:56px;right:56px;top:300px;color:#fff">
     <div class="fit" data-fit data-min="18" style="font-weight:900;font-size:40px;line-height:1.1">{{ (f.pack_title or f.short_title) | nb }}</div>
@@ -264,10 +264,24 @@ p.body{font-size:11.5px;line-height:1.62;text-align:justify}
       while (over() && s > min && i < 300) { s -= 1; el.style.fontSize = s + 'px'; i++; }
     });
   }
-  // A row of photos squeezed under 150px by the words looks like a mistake: leave it out.
+  // The room the words leave: under 150px is left empty rather than squeezed; otherwise as
+  // many rows of photos as keep them about landscape-shaped (~270px a row): one row is a
+  // pair, more rows put one wide photo over pairs.
   function fillers() {
     document.querySelectorAll('[data-filler]').forEach(function (el) {
-      if (el.getBoundingClientRect().height < 150) el.remove();
+      var h = el.getBoundingClientRect().height;
+      if (h < 150) { el.remove(); return; }
+      if (!el.hasAttribute('data-rows')) return;
+      var photos = [].slice.call(el.children), cols = Math.min(2, photos.length);
+      var rows = Math.max(1, Math.min(Math.round(h / 270), Math.ceil(photos.length / 2) || 1));
+      var show = rows === 1 ? cols : Math.min(photos.length, 1 + 2 * (rows - 1));
+      while (rows > 1 && 1 + 2 * (rows - 1) > photos.length) rows--;
+      show = rows === 1 ? cols : 1 + 2 * (rows - 1);
+      el.style.gridTemplateRows = 'repeat(' + rows + ',1fr)';
+      photos.forEach(function (p, i) {
+        if (i >= show) { p.remove(); return; }
+        if (rows > 1 && i === 0 && cols === 2) p.style.gridColumn = '1 / span 2';
+      });
     });
   }
   function done() { fit(); fillers(); document.body.dataset.ready = '1'; }

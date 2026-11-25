@@ -73,7 +73,7 @@ def _make_mirror(tmp_path):
         f.parent.mkdir(parents=True, exist_ok=True)
         f.write_bytes(data)
         conn.execute("INSERT INTO items VALUES ('drv', ?, ?, 0, 1.0, ?, NULL, ?)",
-                     (f"id{n}", rel.rsplit("/", 1)[-1], len(data), path))
+                     (f"id{n}", rel.rsplit("/", 1)[-1], len(data) + n, path))   # real photos never share a size
     conn.commit()
     conn.close()
     return db, root
@@ -481,7 +481,7 @@ def test_the_photos_sent_to_claude_are_capped_with_the_teams_picks_first():
     from studio import catalog, photopick
 
     def item(n, rel):
-        return catalog.Item("d", str(n), rel.rsplit("/", 1)[-1], "x/" + rel, rel, False, 90_000, 0.0)
+        return catalog.Item("d", str(n), rel.rsplit("/", 1)[-1], "x/" + rel, rel, False, 90_000 + __import__("zlib").crc32(n.encode()), 0.0)
 
     team = [item(f"t{i}", f"Media/Photos/TO BE USED/{i:03}.jpg") for i in range(10)]
     rest = [item(f"o{i}", f"Media/Photos/Overall/{i:03}.jpg") for i in range(300)]
@@ -1596,3 +1596,17 @@ def test_the_movable_assets_come_out_of_the_improvements():
     assert got["movables"] == ["MASSEY FERGUSON 240 TRACTOR (NON RUNNER)", "2 X STIHL MS 170 CHAINSAWS"]
     assert [g["title"] for g in got["improvements"]] == ["ORCHARDS"]
     assert "movables" in F.blank() and "movables" not in F.Facts.model_fields
+
+
+
+def test_a_photo_copied_into_to_be_used_is_sent_once():
+    from studio import catalog, photopick
+
+    def item(n, rel, size):
+        return catalog.Item("d", n, rel.rsplit("/", 1)[-1], "x/" + rel, rel, False, size, 0.0)
+
+    photos = sorted([item("o1", "Media/Photos/Overall/WhatsApp Image 1.jpeg", 210_311),
+                     item("o2", "Media/Photos/Overall/WhatsApp Image 2.jpeg", 198_004),
+                     item("t1", "Media/Photos/To be used/1-01.jpeg", 210_311)], key=catalog.photo_rank)
+    got = [p.item_id for p in photopick.candidates(photos)]
+    assert got == ["t1", "o2"]                      # the team's copy, once; the other Overall photo too

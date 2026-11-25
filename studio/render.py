@@ -307,9 +307,10 @@ def context(prop: Property, facts: dict, picks: dict, mode: str, photo_src: Call
     }
 
 
-# How many photos fill the room a pack page has left (the template drops the row when the
-# words leave less than a usable height). The overview page shows the aerial instead.
-FILL = {"description": 2, "details": 2, "improvements": 2, "movables": 3, "use": 2, "highlights": 2}
+# Photos offered to fill the room a pack page has left; the template's script shows as many
+# rows as the room takes (a pair, or one wide over pairs) and drops the lot when it is too
+# little. The overview page shows the aerial instead.
+FILL = {"description": 5, "details": 5, "improvements": 5, "movables": 5, "use": 5, "highlights": 5}
 
 
 def _pack_photos(picks: dict, photo_src: Callable[[str, str], str], pages: list[dict]) -> dict:

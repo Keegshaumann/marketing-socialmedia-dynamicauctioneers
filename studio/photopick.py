@@ -79,8 +79,16 @@ Answer with labels only, exactly as given (e.g. "P7")."""
 
 def candidates(photos: list[Item]) -> list[Item]:
     """At most MAX_PHOTOS: aerials and the team's picks first, then an even spread
-    of everything else (a farm can have 500 inspection photos)."""
-    usable = [p for p in photos if not catalog.is_asset_photo(p)] or list(photos)
+    of everything else (a farm can have 500 inspection photos). One copy of each photo:
+    the team copy their picks from Overall into TO BE USED under new names (DP3107: all
+    29 were), so a photo of the same size and kind is the same photo, kept where it
+    ranks first."""
+    usable, seen = [], set()
+    for p in [p for p in photos if not catalog.is_asset_photo(p)] or list(photos):
+        key = (p.size, p.ext) if p.size else p.item_id
+        if key not in seen:
+            seen.add(key)
+            usable.append(p)
     if len(usable) <= MAX_PHOTOS:
         return usable
     first = [p for p in usable if catalog.photo_rank(p)[0] <= 2]
