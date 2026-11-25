@@ -9,6 +9,10 @@ For every property the studio has read (or the ones named):
   tracking link to the property's page), when there is one;
 - the office number written the one way in the words.
 
+With --read-when-thin, a property that comes back with fewer than 4 real
+features is read again in full (documents and photos, about R10), since the
+summary of the first read may have left out what the documents say.
+
 A field a person typed is never touched. The studio's job then files the changed
 sets again by itself (the layout version moved to 2, so every filed set is made
 again with the new layout).
@@ -27,11 +31,11 @@ from dotenv import load_dotenv  # noqa: E402
 
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
 
-from studio import catalog, facts as F, state  # noqa: E402
+from studio import catalog, facts as F, prepare, state  # noqa: E402
 from webapp import models  # noqa: E402
 
 
-def refresh(db: str, ref: str, dry_run: bool) -> str:
+def refresh(db: str, ref: str, dry_run: bool, read_when_thin: bool = False) -> str:
     prop = catalog.get(ref)
     row = state.load(db, ref)
     if prop is None or row is None or row["reading"] != "done":
@@ -57,6 +61,12 @@ def refresh(db: str, ref: str, dry_run: bool) -> str:
             notes.append(f"QR link {link}")
     if facts != row["facts"] and not dry_run:
         state.save(db, ref, facts=facts)
+    real = [x for x in facts.get("features") or [] if (x.get("text") or "").strip()]
+    if read_when_thin and len(real) < 4 and "features" not in row["edited"] and not dry_run:
+        prepare.read(db, ref, prepare.STUDIO)
+        again = state.load(db, ref)
+        feats = again["facts"].get("features") or []
+        notes.append(f"read again in full ({again['reading']}): " + " / ".join(x["text"] for x in feats))
     return f"{ref}: " + ("; ".join(notes) or "nothing to change")
 
 
@@ -64,11 +74,12 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("refs", nargs="*")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--read-when-thin", action="store_true")
     args = ap.parse_args()
     db = models.resolve_db_path()
     refs = args.refs or sorted(ref for ref, r in state.all_rows(db).items() if r["reading"] == "done")
     with ThreadPoolExecutor(4) as ex:
-        for line in ex.map(lambda r: refresh(db, r, args.dry_run), refs):
+        for line in ex.map(lambda r: refresh(db, r, args.dry_run, args.read_when_thin), refs):
             print(line, flush=True)
     return 0
 
