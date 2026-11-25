@@ -72,8 +72,13 @@ FEATURES_RULE = (
     "decides on, most important first: the size (floor or land), then bedrooms and bathrooms for a home, "
     "then the strongest selling points the documents support, such as an income or tenant in place, a second "
     "dwelling, garages or parking, a pool, security or a gated estate, a borehole or water rights, orchards, "
-    "sheds or a packhouse, a view. Never filler that every property has or that a buyer doesn't choose on: "
-    "freehold or sectional title, zoning, distances to schools, police stations or shops, \"good condition\"."
+    "sheds or a packhouse, a view. Never what the advert already says elsewhere (the price, the town or "
+    "suburb, the sale type) and never filler a buyer doesn't choose on: \"residential property\" or "
+    "\"residential stand\", freehold or sectional title, zoning, distances to schools, police stations or "
+    "shops, \"established area\", \"good condition\", \"low rates\". Each feature is a concrete fact about "
+    "this property from the documents. When the documents are thin, use concrete things they do give, such as "
+    "the building's size, a boundary wall, a carport, municipal water and electricity, or the monthly rates "
+    "as an amount (\"RATES ± R350 PM\")."
 )
 
 
