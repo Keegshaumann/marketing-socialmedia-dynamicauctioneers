@@ -120,6 +120,13 @@
           {{ text('pack_region', 'Cover region', '', true) }}
           {{ text('pack_strapline', 'Cover strap', 'Highlights split by |', true) }}
           {{ text('pack_footer', 'Cover footer', '', true) }}
+          {{ area('sale_info', 'Auction / sale information', 'One row per line: LABEL | value (format, date, registration fee, deposit, commission, confirmation, guarantee)', 6) }}
+          {{ area('particulars', 'Property particulars & location', 'One row per line: LABEL | value', 6) }}
+          {{ text('map_pin', 'Map pin', 'latitude, longitude, e.g. -22.970700, 30.015379', true) }}
+          {{ area('tables', 'Breakdown tables', 'A heading ending in ":", then the column headings (a | b | c), then one row per line', 8) }}
+          {{ area('sections', 'Extra sections', 'A heading ending in ":" (WATER & IRRIGATION:), then one line each', 6) }}
+          {{ area('conditions', 'Summary of sale conditions', 'One topic per line: TOPIC | summary (from the OTP)', 8) }}
+          {{ area('fica', 'Registration & FICA requirements', 'One per line: LABEL | what is required', 4) }}
           {{ text('viewing', 'Viewing', '', true) }}
           {{ area('overview', 'Property overview', 'One row per line: LABEL | text', 6) }}
           {{ area('rates', 'Rates & taxes', 'One per line: Portion 27 | ± R1 645', 2) }}

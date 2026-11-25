@@ -22,6 +22,7 @@ import os
 import re
 import warnings
 from datetime import date
+from typing import Optional
 
 
 from pydantic import BaseModel, Field
@@ -246,7 +247,8 @@ def balance(facts: dict) -> dict:
 
 def blank() -> dict:
     return {k: ([] if f.annotation is not str else "") for k, f in Facts.model_fields.items()} | {
-        "master_ref": "", "phone": PHONE, "email": EMAIL, "qr_link": "", "movables": []}
+        "master_ref": "", "phone": PHONE, "email": EMAIL, "qr_link": "", "movables": [],
+        "sale_info": [], "particulars": [], "map_pin": "", "tables": [], "sections": [], "conditions": [], "fica": []}
 
 
 # --- 1. what the sheets already say -------------------------------------------
@@ -328,8 +330,8 @@ conditions of sale.
 
 MOVABLE ASSETS: every movable asset the sale includes (the OTP's schedule of movables, else the valuation's \
 list) goes in ONE improvements group titled exactly "MOVABLE ASSETS", one item each in the schedule's order, \
-every one of them: quantity, make and model, and any condition note such as (non runner), never registration or \
-VIN numbers. No such group when only the property is sold. Movables appear nowhere else in improvements.
+every one of them: quantity, make and model, a vehicle's registration number, and any condition note such as (non \
+runner); never VIN numbers. No such group when only the property is sold. Movables appear nowhere else in improvements.
 
 Examples of the team's own adverts (Nov 2026), to match in voice and wording. headline / subline / headline2 \
 are the advert's three heading lines; the features are a selection of what the team's ads list:
@@ -380,6 +382,106 @@ area, "home" for houses and buildings, "bed", "bathtub", "garage", "fence" for g
 
 
 SYSTEM += "\n\nFEATURES RULES (the advert's features field): " + FEATURES_RULE
+SYSTEM += ("\n\nINVESTMENT HIGHLIGHTS are compulsory: the 5 to 8 strongest points the documents support, each a "
+           "short bold label and one factual sentence. Never \"guaranteed returns\", \"risk-free\", \"fully "
+           "operational\" or \"secure water supply\" without evidence; fewer is better than padding.")
+
+
+# --- the information pack's detail sections: a second question on the same documents ---
+# (docs/info-pack-guide.md). The main answer form is at the API's size limit, so these
+# come from their own form, asked side by side with it.
+
+class Table(BaseModel):
+    title: str
+    columns: list[str]
+    rows: list[list[str]]
+
+
+class Section(BaseModel):
+    title: str
+    lines: list[str]
+
+
+class Details(BaseModel):
+    sale_info: list[Row]
+    particulars: list[Row]
+    coordinates: str
+    tables: list[Table]
+    sections: list[Section]
+    conditions: list[Row]
+    fica: list[Row]
+
+
+DETAILS_RULES = """Now fill in the information pack's detail sections from the same documents, following the house's \
+info pack guide exactly:
+- Never invent a fact, date, price, registration fee, commission, deadline, approval, capacity, income, link or \
+contact. Leave a row out rather than guess. "Not specified" is not "does not exist".
+- Read the whole OTP: every clause, special condition, schedule and annexure. A summary must never change its \
+meaning: keep the scope, deadlines, calendar or business days, exceptions and every named approving party (e.g. \
+"confirmed in writing by the seller and FNB within 14 days").
+- Keep separate properties, portions, units and lots distinct, and label totals as totals. Registered extent and \
+cadastral extent are different: label each. A municipal usage category is not zoning: label it as such. When a \
+valuation's land-use areas don't add up to the registered extent, never invent an allocation for the difference.
+- Never print a person's name, an ID number, a company, VAT or vehicle identification number, an account number or \
+bank details, or the registered owner, seller, debtor or practitioner.
+- Plain, professional wording. Dates as "28 January 2027", money as "R100 000", areas as "±38.15 ha" or "±620 m²".
+
+sale_info: the AUCTION INFORMATION table (SALE INFORMATION for a private sale), label then value: Sale type, \
+Auction format (online, or on site with the venue), Auction date, Auction time, Viewing, Registration fee (refundable \
+or not, and whether it counts towards the deposit, only as the documents say; it is not the deposit), Deposit, \
+Buyer's commission (and VAT), Confirmation period (who confirms), Guarantee. Only the rows the documents support.
+particulars: the PROPERTY PARTICULARS & LOCATION table, label then value: Property (legal description), Farm or erf \
+number, Portion or unit, Scheme, Registration division, Locality, Local municipality, Province, Registered extent, \
+Cadastral extent, Title deed, Municipal usage category, Zoning (only when a zoning document confirms it), GPS \
+coordinates. With several portions, start each label with the portion ("PT 27: Registered extent").
+coordinates: "latitude, longitude" in decimal degrees for the map pin, from the Lightstone or deeds report; "" if none.
+tables: what reads best as a table, each with a title, its column headings and rows, e.g. LAND-USE BREAKDOWN \
+(land use, approximate area), MACADAMIA ORCHARDS (tree age, cultivation, area, with a Total row), an accommodation \
+schedule, a unit, tenancy or building-area schedule. Put the valuation's date in the heading of tree ages ("tree age \
+as at May 2026"), never move ages to today. Never count an irrigated subset twice; keep dryland and irrigated apart. \
+An area for "buildings and nursery" is a land allocation, not floor area.
+sections: short sections of bullet lines the pack needs beyond the tables, only where the documents support them, \
+e.g. WATER & IRRIGATION (pumps, tanks, dams, boreholes with tested yield, water-use entitlements "to the extent \
+transferable"; a pump or an irrigated orchard doesn't prove a borehole or a water right; "liquid storage tank" is not \
+a water tank), ELECTRICITY & INFRASTRUCTURE, GOING-CONCERN SALE, CROPS & EMPLOYEES (the exact scope and transfer \
+provisions from the OTP), TENANCY & INCOME (current leases only, gross or net said). No section for the movable \
+assets, the sale conditions or FICA: they have their own.
+conditions: the SUMMARY OF SALE CONDITIONS, one row per topic that applies, topic then a concise faithful summary, \
+in this order: Sale scope, Confirmation, Higher offers during confirmation, Deposit, Buyer's commission, Balance & \
+guarantees, VAT (keep a going concern's conditions and the alternative treatment), Transfer (the conveyancer, who \
+pays), Occupation & risk, Occupational interest, Rates, taxes & levies (the actual allocation and dates; never \
+"all outstanding fees are paid by the seller" unless the OTP says so), Property condition (voetstoots, plans, \
+services), Certificates, Title & land claims, Crops, Employees, Special conditions (creditor consent, suspensive \
+conditions, refunds).
+fica: REGISTRATION & FICA REQUIREMENTS from the OTP or the registration documents, label (Individuals, Entities, \
+Representatives, Registration) then what is required. Never invent a requirement or bank details."""
+
+_COORDS = re.compile(r"^\s*(-?\d{1,2}\.\d{3,})\s*,\s*(-?\d{1,3}\.\d{3,})\s*$")
+
+
+def details_clean(d: dict) -> dict:
+    """The detail sections as the pack keeps them: tidy rows, tables squared to their
+    columns, empty ones dropped, the map pin only when it is a real coordinate pair."""
+    def rows(v):
+        return [{"label": str(r.get("label") or "").strip(), "text": str(r.get("text") or "").strip()}
+                for r in v or [] if (r.get("text") or "").strip()]
+    tables = []
+    for t in d.get("tables") or []:
+        cols = [str(c).strip() for c in t.get("columns") or []]
+        body = [[str(c).strip() for c in (r + [""] * len(cols))[:len(cols)]] for r in t.get("rows") or []
+                if any(str(c).strip() for c in r)]
+        if cols and body:
+            tables.append({"title": str(t.get("title") or "").strip(), "columns": cols, "rows": body})
+    sections = [{"title": str(s.get("title") or "").strip(), "lines": [str(x).strip() for x in s.get("lines") or [] if str(x).strip()]}
+                for s in d.get("sections") or []]
+    m = _COORDS.match(d.get("coordinates") or "")
+    return tidy({"sale_info": rows(d.get("sale_info")), "particulars": rows(d.get("particulars")),
+                 "map_pin": f"{m.group(1)}, {m.group(2)}" if m else "", "tables": tables,
+                 "sections": [s for s in sections if s["lines"]], "conditions": rows(d.get("conditions")),
+                 "fica": rows(d.get("fica"))})
+
+
+DETAIL_KEYS = ("sale_info", "particulars", "map_pin", "tables", "sections", "conditions", "fica")
 
 
 def _text_pdf(raw: bytes, max_pages: int, cap: int) -> str:
@@ -436,10 +538,7 @@ def gather(items: list[Item]) -> list[tuple[str, str, str]]:
     return out
 
 
-def read_documents(prop: Property, items: list[Item], sheets: dict) -> tuple[dict, list[str]]:
-    """Ask Claude for every field. Returns (facts, warnings)."""
-    import anthropic
-
+def _documents_content(prop: Property, items: list[Item], sheets: dict) -> list[dict]:
     docs = gather(items)
     if not docs:
         raise StoreError("There are no Lightstone, property report, valuation or OTP files in the folder to read.")
@@ -461,13 +560,41 @@ def read_documents(prop: Property, items: list[Item], sheets: dict) -> tuple[dic
     content: list[dict] = [{"type": "text", "text": head}]
     for label, name, text in docs:
         content.append({"type": "text", "text": f"=== {label}: {name} ===\n{text}"})
-    content.append({"type": "text", "text": "Fill in every field for this property's ads and information pack."})
+    return content
+
+
+def read_details(prop: Property, items: list[Item], sheets: dict, content: Optional[list[dict]] = None) -> dict:
+    """The information pack's detail sections (sale information, particulars, tables,
+    sections, sale conditions, FICA) from the documents."""
+    from studio import lessons
+
+    content = content or _documents_content(prop, items, sheets)
+    got = ask(SYSTEM + lessons.block("words") + "\n\n" + DETAILS_RULES,
+              content + [{"type": "text", "text": "Fill in the information pack's detail sections."}], Details,
+              refusal="Claude declined the pack's detail sections; fill them in by hand.")
+    return details_clean(got.model_dump())
+
+
+def read_documents(prop: Property, items: list[Item], sheets: dict) -> tuple[dict, list[str]]:
+    """Ask Claude for every field, and the pack's detail sections side by side.
+    Returns (facts, warnings)."""
+    from concurrent.futures import ThreadPoolExecutor
 
     from studio import lessons
 
-    facts = ask(SYSTEM + lessons.block("words"), content, Facts,
-                refusal="Claude declined to describe this property; fill the fields in by hand.").model_dump()
+    content = _documents_content(prop, items, sheets)
+    with ThreadPoolExecutor(1) as ex:
+        later = ex.submit(read_details, prop, items, sheets, content)
+        facts = ask(SYSTEM + lessons.block("words"),
+                    content + [{"type": "text", "text": "Fill in every field for this property's ads and information pack."}],
+                    Facts, refusal="Claude declined to describe this property; fill the fields in by hand.").model_dump()
+        try:
+            details = later.result()
+        except Exception:  # the ads and the rest of the pack stand without them
+            log.exception("the pack's detail sections failed for %s", prop.ref)
+            details = {}
     facts = balance(tidy(movables_apart(placed(facts))))
+    facts.update(details)
     link = team_qr_link(items)
     if link:
         facts["qr_link"] = link

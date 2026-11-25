@@ -304,7 +304,7 @@ def context(prop: Property, facts: dict, picks: dict, mode: str, photo_src: Call
         "extras": [photo_src(i, "view") for i in extra_ids],
         "auction_line": " | ".join(x for x in (f"{f.get('auction_kind') or 'ONLINE'} AUCTION", when) if x),
         **pack_photos(picks, photo_src),
-        "sections": list(enumerate(pack_sections(f, gallery), 1)),
+        "sections": list(enumerate(pack_sections(f, gallery, auction), 1)),
     }
 
 
@@ -322,16 +322,23 @@ def pack_photos(picks: dict, photo_src: Callable[[str, str], str]) -> dict:
     return {"pack_photos": [photo_src(i, "gallery") for i in ids], "contents_photos": contents}
 
 
-def pack_sections(f: dict, gallery: list[str]) -> list[str]:
-    """The pack's sections in order, as the contents page lists them. They run on from
-    one page to the next; the pack's script finds their page numbers."""
-    out = ["Property & Sale Overview"]
-    for key, title in (("description", "Property Description"), ("portions", "Property Details"),
-                       ("improvements", "Main Improvements"), ("movables", "Movable Assets Included")):
+def pack_sections(f: dict, gallery: list[str], auction: bool = True) -> list[str]:
+    """The pack's sections in order (docs/info-pack-guide.md), as the contents page lists
+    them. They run on from one page to the next; the pack's script finds their pages."""
+    out = ["Auction Information" if auction else "Sale Information"]
+    if f.get("description") or f.get("features"):
+        out.append("Property Overview")
+    out.append("Property Particulars & Location")
+    if f.get("improvements") or f.get("tables"):
+        out.append("Property Features")
+    for s in f.get("sections") or []:
+        title = (s.get("title") or "").title()
+        if title and title not in out:
+            out.append(title)
+    for key, title in (("movables", "Movable Assets"), ("conditions", "Summary of Sale Conditions"),
+                       ("fica", "Registration & FICA Requirements")):
         if f.get(key):
             out.append(title)
-    if f.get("best_use") or f.get("condition"):
-        out.append("Highest & Best Use")
     if gallery:
         out.append("Photographic Overview")
     if f.get("highlights"):

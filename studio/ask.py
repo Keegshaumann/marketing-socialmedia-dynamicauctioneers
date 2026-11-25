@@ -182,6 +182,11 @@ def clean(field: str, raw: str) -> Any:
                 for x in value if isinstance(x, dict)]
     if field == "portions":
         return [{k: str(x.get(k, "")).strip() for k in FORM.PORTION_KEYS} for x in value if isinstance(x, dict)]
+    if field in FORM.SECTIONS:
+        return [{"title": str(x.get("title", "")).strip(), "lines": [str(l).strip() for l in x.get("lines") or [] if str(l).strip()]}
+                for x in value if isinstance(x, dict)]
+    if field in FORM.TABLES:
+        return F.details_clean({"tables": value})["tables"]
     if field in FORM.FEATURE_SLOTS:
         return [f for f in (_feature(x) for x in value) if f["text"]]
     if field in FORM.GROUPS:

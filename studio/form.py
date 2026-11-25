@@ -14,14 +14,18 @@ from studio.facts import ICONS
 STRINGS = ("headline", "subline", "headline2", "badge", "address", "disclaimer", "price", "main_title",
            "auction_kind", "auction_date", "auction_time", "short_title", "short_place", "sale_kind",
            "location_line", "pack_title", "pack_region", "pack_strapline", "pack_footer", "confirmation",
-           "viewing", "caption", "listing", "master_ref", "phone", "email", "qr_link")
+           "viewing", "caption", "listing", "master_ref", "phone", "email", "qr_link", "map_pin")
 LINES = ("board_lines", "board_place", "terms", "best_use", "movables")
 PARAGRAPHS = ("description",)
-ROWS = ("overview", "rates", "condition", "highlights")
+ROWS = ("overview", "rates", "condition", "highlights", "sale_info", "particulars", "conditions", "fica")
 PORTION_KEYS = ("label", "legal_description", "extent", "municipality", "zoning", "title_deed")
 FEATURE_SLOTS = {"features": 6, "shared_features": 2}
 # Grouped lists: a heading line ending in ":" then one "icon | text | note" per line (note optional).
 GROUPS = ("improvements", "extra_units")
+# The pack's own sections and tables (docs/info-pack-guide.md): a heading ending in ":" then
+# one line each; in a table the first line after the heading is the column headings.
+SECTIONS = ("sections",)
+TABLES = ("tables",)
 
 
 # What each field is called on the studio's page (studio_edit.html), so a request in her
@@ -47,6 +51,10 @@ LABELS = {
     "movables": "Info pack: movable assets in the sale",
     "best_use": "Info pack: highest & best use", "condition": "Info pack: property condition",
     "highlights": "Info pack: investment highlights", "caption": "Social caption",
+    "sale_info": "Info pack: auction / sale information table", "particulars": "Info pack: property particulars & location",
+    "map_pin": "Info pack: map pin (latitude, longitude)", "tables": "Info pack: breakdown tables (land use, orchards, units)",
+    "sections": "Info pack: extra sections (water, infrastructure, going concern)",
+    "conditions": "Info pack: summary of sale conditions", "fica": "Info pack: registration & FICA requirements",
     "listing": "Portal listing (Propdata, Property24)",
 }
 
@@ -82,6 +90,13 @@ def to_form(facts: dict) -> dict[str, Any]:
             lines += [f"{it.get('icon', '')} | {it.get('text', '')}" for it in g.get("items") or []]
             lines.append("")
         v[k] = "\n".join(lines).strip()
+    for k in SECTIONS:
+        v[k] = "\n\n".join("\n".join([f"{s.get('title', '')}:"] + list(s.get("lines") or []))
+                             for s in facts.get(k) or []).strip()
+    for k in TABLES:
+        v[k] = "\n\n".join("\n".join([f"{t.get('title', '')}:", " | ".join(t.get("columns") or [])]
+                                       + [" | ".join(r) for r in t.get("rows") or []])
+                             for t in facts.get(k) or []).strip()
     for k, n in FEATURE_SLOTS.items():
         items = []
         for it in facts.get(k) or []:            # "TEXT | small note" shows as two boxes
@@ -117,6 +132,18 @@ def from_form(form: dict[str, str]) -> dict:
     for k in GROUPS:
         if k in form:
             out[k] = _parse_groups(form.get(k) or "", "IMPROVEMENTS" if k == "improvements" else "FLAT")
+    for k in SECTIONS:
+        if k in form:
+            out[k] = [{"title": t, "lines": body} for t, body in _blocks(form.get(k) or "") if body]
+    for k in TABLES:
+        if k in form:
+            tables = []
+            for t, body in _blocks(form.get(k) or ""):
+                if len(body) >= 2:
+                    cols = [c.strip() for c in body[0].split("|")]
+                    rows = [([c.strip() for c in line.split("|")] + [""] * len(cols))[:len(cols)] for line in body[1:]]
+                    tables.append({"title": t, "columns": cols, "rows": rows})
+            out[k] = tables
     for k, n in FEATURE_SLOTS.items():
         if f"{k}_text_0" in form:
             items = []
@@ -128,6 +155,22 @@ def from_form(form: dict[str, str]) -> dict:
                     items.append({"icon": icon if icon in ICONS else "home",
                                   "text": f"{text} | {note}" if note else text})
             out[k] = items
+    return out
+
+
+def _blocks(text: str) -> list[tuple[str, list[str]]]:
+    """A heading line ending in ":" (no "|") then the lines under it."""
+    out: list[tuple[str, list[str]]] = []
+    for line in (text or "").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        if line.endswith(":") and "|" not in line:
+            out.append((line[:-1].strip(), []))
+        elif out:
+            out[-1][1].append(line)
+        else:
+            out.append(("", [line]))
     return out
 
 

@@ -67,6 +67,13 @@ p.body{font-size:11.5px;line-height:1.62;text-align:justify}
 .rates{display:flex;gap:12px}
 .rate{flex:1;border:2px solid var(--goldline);border-radius:10px;padding:9px 12px;display:flex;gap:10px;align-items:center;font-size:10.5px;background:#fff}
 .rate .ic{color:var(--golddeep)}
+.bid{font-size:12px;margin-bottom:10px;text-align:center}
+.bid b{color:var(--golddeep)}
+.pin{display:flex;align-items:center;gap:12px;border:2px solid var(--goldline);border-radius:10px;padding:8px 12px;background:#fff;font-size:11px}
+.pin__t{background:#111;color:#fff;font-weight:800;font-size:10px;letter-spacing:.07em;padding:4px 10px;border-radius:6px}
+.pin a{color:var(--golddeep);font-weight:700;text-decoration:none;word-break:break-all}
+table.list tr.total td{font-weight:800;background:#efe7d4}
+p.note{font-size:9.5px;color:#555;font-style:italic;text-align:center}
 .toc{display:grid;gap:12px}
 .toc .row{display:flex;align-items:center;gap:14px;font-size:14px;font-weight:700}
 .toc .n{width:34px;height:34px;flex:none;border-radius:8px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900}
@@ -113,29 +120,23 @@ p.body{font-size:11.5px;line-height:1.62;text-align:justify}
 
 {# ---------------------------------- the sections, as blocks ---------------------------------- #}
 <div id="flow">
-  {{ head("Property & Sale Overview", "PROPERTY OVERVIEW") }}
-  {% if f.overview %}<table class="kv">{% for r in f.overview %}<tr><td class="k">{{ r.label }}</td><td>{{ r.text | nb }}</td></tr>{% endfor %}</table>{% endif %}
-  {% if f.rates %}
-  <div class="rates">
-    {% for r in f.rates[:4] %}<div class="rate">{{ icon('home', 28) }}<div><div style="font-weight:800;text-transform:uppercase;font-size:9.5px">{{ r.label }}</div><div>Rates &amp; Taxes: {{ r.text | nb }}</div></div></div>{% endfor %}
-  </div>
-  {% endif %}
-  <div style="display:flex;justify-content:center"><div class="goldbar" style="width:72%;border-radius:16px;padding:6px 10px;text-align:center;font-weight:800;font-size:11px">All Outstanding Fees, if any, to be Settled by the Seller.</div></div>
-  {% if f.terms or f.confirmation %}{# from the OTP; no box at all rather than an empty one #}
-  <div class="divider" data-keep>SALE OVERVIEW</div>
+  {% set t_sale = "Auction Information" if auction else "Sale Information" %}
+  {{ head(t_sale, t_sale|upper) }}
+  {% if f.sale_info %}<table class="kv">{% for r in f.sale_info %}<tr><td class="k">{{ r.label }}</td><td>{{ r.text | nb }}</td></tr>{% endfor %}</table>
+  {% elif f.overview %}<table class="kv">{% for r in f.overview %}<tr><td class="k">{{ r.label }}</td><td>{{ r.text | nb }}</td></tr>{% endfor %}</table>{% endif %}
+  {% if f.terms or f.confirmation %}
+  <div class="divider" data-keep>{{ 'REGISTRATION & BIDDING' if auction else 'MAIN PAYMENT TERMS' }}</div>
   <div class="card">
+    {% if auction and (f.auction_kind or 'ONLINE')|upper != 'ON-SITE' %}<div class="bid">Register and bid online at <b>online.dynamicauctioneers.co.za</b></div>{% endif %}
     <ul class="bullets">{% for t in f.terms %}<li>{{ t | nb }}</li>{% endfor %}</ul>
     {% if f.confirmation %}<div style="text-align:center;margin-top:10px"><span class="pill">{{ f.confirmation | nb }}</span></div>{% endif %}
   </div>
   {% endif %}
   {% if f.viewing %}<div class="viewing">VIEWING: {{ f.viewing | nb }}</div>{% endif %}
-  {% if aerial %}<div class="prow prow--wide" data-fixed><div class="photo"><img src="{{ aerial }}"></div></div>{% endif %}
 
-  {% if f.description %}
-  {{ head("Property Description", "PROPERTY DESCRIPTION") }}
+  {% if f.description or f.features %}
+  {{ head("Property Overview", "PROPERTY OVERVIEW") }}
   {% for para in f.description %}<p class="body">{{ para | nb }}</p>{% endfor %}
-  <div data-photos="2"></div>
-  {% endif %}
   {% if f.features %}
   <div class="divider" data-keep>KEY FEATURES</div>
   <div class="feats">
@@ -144,9 +145,13 @@ p.body{font-size:11.5px;line-height:1.62;text-align:justify}
     {% endfor %}
   </div>
   {% endif %}
+  <div data-photos="2"></div>
+  {% endif %}
 
-  {% if f.portions %}
-  {{ head("Property Details", "PROPERTY DETAILS") }}
+  {{ head("Property Particulars & Location", "PROPERTY PARTICULARS & LOCATION") }}
+  {% if f.particulars %}
+  <table class="kv">{% for r in f.particulars %}<tr><td class="k">{{ r.label }}</td><td>{{ r.text | nb }}</td></tr>{% endfor %}</table>
+  {% else %}
   {% for p in f.portions[:3] %}
   <div class="divider" style="font-size:13px" data-keep>{{ p.label | nb }}</div>
   <table class="kv">
@@ -156,9 +161,16 @@ p.body{font-size:11.5px;line-height:1.62;text-align:justify}
   </table>
   {% endfor %}
   {% endif %}
+  {% if f.rates %}
+  <div class="rates">
+    {% for r in f.rates[:4] %}<div class="rate">{{ icon('home', 28) }}<div><div style="font-weight:800;text-transform:uppercase;font-size:9.5px">{{ r.label }}</div><div>Rates &amp; Taxes: {{ r.text | nb }}</div></div></div>{% endfor %}
+  </div>
+  {% endif %}
+  {% if f.map_pin %}<div class="pin" data-keep><span class="pin__t">MAP PIN</span><a href="https://www.google.com/maps?q={{ f.map_pin|replace(' ', '') }}">google.com/maps?q={{ f.map_pin|replace(' ', '') }}</a></div>{% endif %}
+  {% if aerial %}<div class="prow prow--wide" data-fixed><div class="photo"><img src="{{ aerial }}"></div></div>{% endif %}
 
-  {% if f.improvements %}
-  {{ head("Main Improvements", "MAIN IMPROVEMENTS") }}
+  {% if f.improvements or f.tables %}
+  {{ head("Property Features", "PROPERTY FEATURES") }}
   {% for pair in f.improvements | batch(2) %}
   <div class="cards">
     {% for g in pair %}
@@ -168,10 +180,22 @@ p.body{font-size:11.5px;line-height:1.62;text-align:justify}
     {% endfor %}
   </div>
   {% endfor %}
+  {% for t in f.tables %}
+  <div class="divider" style="font-size:13px" data-keep>{{ t.title | nb }}</div>
+  <table class="list">
+    <tr>{% for c in t.columns %}<th>{{ c }}</th>{% endfor %}</tr>
+    {% for r in t.rows %}<tr class="{{ 'total' if (r[0] or '')|lower in ('total', 'totals') else '' }}">{% for c in r %}<td>{{ c | nb }}</td>{% endfor %}</tr>{% endfor %}
+  </table>
+  {% endfor %}
   {% endif %}
 
+  {% for sec in f.sections %}
+  {{ head(sec.title|title, sec.title|upper) }}
+  <div class="card"><ul class="bullets">{% for l in sec.lines %}<li>{{ l | nb }}</li>{% endfor %}</ul></div>
+  {% endfor %}
+
   {% if f.movables %}
-  {{ head("Movable Assets Included", "MOVABLE ASSETS INCLUDED") }}
+  {{ head("Movable Assets", "MOVABLE ASSETS") }}
   <p class="body" style="text-align:center" data-keep>Sold together with the property{{ ' as one lot' if auction else '' }}, voetstoots, as listed in the conditions of sale.</p>
   {% for chunk in f.movables | batch(24) %}
   {% set base = loop.index0 * 24 %}
@@ -188,16 +212,17 @@ p.body{font-size:11.5px;line-height:1.62;text-align:justify}
   {% endfor %}
   {% endif %}
 
-  {% if f.best_use or f.condition %}
-  {{ head("Highest & Best Use", "HIGHEST & BEST USE") }}
-  {% if f.best_use %}
-  <div class="card"><div class="card__t">The highest and best use is considered to be</div>
-    <ul class="bullets">{% for b in f.best_use %}<li>{{ b | nb }}</li>{% endfor %}</ul></div>
+  {% if f.conditions %}
+  {{ head("Summary of Sale Conditions", "SUMMARY OF SALE CONDITIONS") }}
+  {% for chunk in f.conditions | batch(6) %}
+  <table class="kv">{% for r in chunk %}<tr><td class="k">{{ r.label | nb }}</td><td>{{ r.text | nb }}</td></tr>{% endfor %}</table>
+  {% endfor %}
+  <p class="note">This summary does not replace the full Agreement and Conditions of Sale, the Rules of Auction and any amendments, which govern the sale.</p>
   {% endif %}
-  {% if f.condition %}
-  <div class="divider" data-keep>PROPERTY CONDITION</div>
-  <table class="kv">{% for r in f.condition %}<tr><td class="k">{{ r.label }}</td><td>{{ r.text | nb }}</td></tr>{% endfor %}</table>
-  {% endif %}
+
+  {% if f.fica %}
+  {{ head("Registration & FICA Requirements", "REGISTRATION & FICA REQUIREMENTS") }}
+  <table class="kv">{% for r in f.fica %}<tr><td class="k">{{ r.label | nb }}</td><td>{{ r.text | nb }}</td></tr>{% endfor %}</table>
   {% endif %}
 
   {% if gallery %}
@@ -227,11 +252,16 @@ p.body{font-size:11.5px;line-height:1.62;text-align:justify}
     <div style="width:120px;height:4px;background:var(--gold);margin:28px 0"></div>
     <div style="font-weight:900;font-size:20px;line-height:1.45">DISCOVER THE POTENTIAL.<br>SECURE THE OPPORTUNITY.<br>{{ "DON'T MISS THIS AUCTION." if auction else "MAKE YOUR OFFER TODAY." }}</div>
   </div>
-  <div style="position:absolute;left:56px;right:56px;bottom:70px;color:#fff;font-size:17px;font-weight:600;line-height:2.2">
+  <div style="position:absolute;left:56px;right:56px;bottom:200px;color:#fff;font-size:17px;font-weight:600;line-height:2.2">
     <div style="display:flex;align-items:center;gap:14px"><span class="goldtext">{{ icon('location_on', 24) }}</span>187 Gouws Avenue, Raslouw AH, Centurion</div>
     <div style="display:flex;align-items:center;gap:14px"><span class="goldtext">{{ icon('home', 24) }}</span>dynamicauctioneers.co.za</div>
     <div style="display:flex;align-items:center;gap:14px"><span class="goldtext">{{ icon('mail', 24) }}</span>{{ f.email }}</div>
     <div style="display:flex;align-items:center;gap:14px"><span class="goldtext">{{ icon('call', 24) }}</span>{{ f.phone | nb }}</div>
+  </div>
+  <div style="position:absolute;left:56px;right:56px;bottom:40px;color:#fff;font-size:9.5px;line-height:1.5;opacity:.92">
+    <div style="font-weight:800;font-size:12px;letter-spacing:.06em;margin-bottom:8px" class="goldtext">PROPERTY REF: {{ ref }}</div>
+    <div>All prices indicated exclude VAT. VAT will be added where applicable. Information provided as received from available records and the Seller. Neither the Agent nor the Seller warrants or guarantees the correctness of any information provided. T's &amp; C's apply.</div>
+    <div style="margin-top:4px">Dynamic Solutions 1068 (Pty) Ltd t/a Dynamic Auctioneers</div>
   </div>
   <div class="goldbar" style="position:absolute;left:0;right:0;bottom:0;height:16px"></div>
 </div>

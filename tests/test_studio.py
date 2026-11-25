@@ -241,11 +241,14 @@ def test_pack_sections_in_order():
     from studio import render
 
     f = {"description": ["x"], "portions": [{}], "improvements": [{"title": "A", "items": []}],
-         "movables": ["TRACTOR"], "best_use": ["y"], "highlights": [{"label": "a", "text": "b"}]}
+         "sections": [{"title": "WATER & IRRIGATION", "lines": ["Pump"]}], "movables": ["TRACTOR"],
+         "conditions": [{"label": "Deposit", "text": "10%"}], "fica": [{"label": "Entities", "text": "CIPC"}],
+         "highlights": [{"label": "a", "text": "b"}]}
     assert render.pack_sections(f, ["p"]) == [
-        "Property & Sale Overview", "Property Description", "Property Details", "Main Improvements",
-        "Movable Assets Included", "Highest & Best Use", "Photographic Overview", "Investment Highlights"]
-    assert render.pack_sections({}, []) == ["Property & Sale Overview"]
+        "Auction Information", "Property Overview", "Property Particulars & Location", "Property Features",
+        "Water & Irrigation", "Movable Assets", "Summary of Sale Conditions", "Registration & FICA Requirements",
+        "Photographic Overview", "Investment Highlights"]
+    assert render.pack_sections({}, [], auction=False) == ["Sale Information", "Property Particulars & Location"]
 
 
 def test_default_photo_picks(mirror):
@@ -1569,12 +1572,14 @@ def test_the_pack_lists_every_movable_and_lays_its_photos_out_landscape():
     picks = {"aerial": "air", "hero": "front", "photo1": "p1", "photo2": "p2", "gallery": [f"g{n}" for n in range(9)]}
     ctx = render.context(p, f, picks, "auction", lambda i, s: f"/img/{i}")
     html = render.html("infopack", ctx)
-    assert "MOVABLE ASSETS INCLUDED" in html and all(m in html for m in movables)
+    assert 'data-sec="Movable Assets"' in html and "All Outstanding Fees" not in html   # the OTP's rates rule, not a stock line
+    assert "Dynamic Solutions 1068 (Pty) Ltd t/a Dynamic Auctioneers" in html and "PROPERTY REF: DP9001" in html
+    assert all(m in html for m in movables)
     assert ">17<" in html                                   # numbered, in two columns
     assert ctx["pack_photos"][:9] == [f"/img/g{n}" for n in range(9)]   # each photo once, aerial apart
     assert "/img/air" not in ctx["pack_photos"] and len(set(ctx["pack_photos"])) == len(ctx["pack_photos"])
     assert ctx["contents_photos"] == ["/img/front", "/img/p1", "/img/p2"]
-    assert 'data-sec="Movable Assets Included"' in html and 'data-toc="Highest &amp; Best Use"' in html
+    assert 'data-sec="Movable Assets"' in html and 'data-toc="Property Particulars &amp; Location"' in html
     assert "aspect-ratio:4/3" in html and "prow--trio" in html            # landscape rows only
     assert "<small>TOTAL</small>" in html                   # a feature's second line
 
@@ -1678,3 +1683,44 @@ def test_the_property_page_offers_to_teach_the_studio_under_each_output(app):
     assert page.count("Something wrong? Teach the studio") >= 4
     assert 'name="kind" value="infopack"' in page
     assert 'href="/studio/lessons"' in app.login().get("/studio").text
+
+
+
+def test_the_pack_detail_sections_come_out_tidy_and_render_in_the_guides_order():
+    from studio import catalog, facts as F, render
+
+    d = F.details_clean({
+        "sale_info": [{"label": "Registration fee", "text": "R100 000 (refundable)"}, {"label": "Venue", "text": ""}],
+        "particulars": [{"label": "Registered extent", "text": "38.1515 ha"}],
+        "coordinates": "-22.970700, 30.015379",
+        "tables": [{"title": "MACADAMIA ORCHARDS (TREE AGE AS AT MAY 2026)", "columns": ["Tree age", "Cultivation", "Area"],
+                    "rows": [["8-9 years", "Dryland", "3.6 ha"], ["Total", "", "13.0 ha", "extra"], ["", "", ""]]}],
+        "sections": [{"title": "WATER & IRRIGATION", "lines": ["An industrial electric water pump assembly", " "]}],
+        "conditions": [{"label": "Confirmation", "text": "By the seller and FNB within 14 days"}],
+        "fica": [{"label": "Entities", "text": "CIPC documents and a resolution"}]})
+    assert d["sale_info"] == [{"label": "Registration fee", "text": "R100 000 (refundable)"}]
+    assert d["map_pin"] == "-22.970700, 30.015379"
+    assert d["tables"][0]["rows"] == [["8-9 years", "Dryland", "3.6 ha"], ["Total", "", "13.0 ha"]]
+    assert F.details_clean({"coordinates": "near Levubu"})["map_pin"] == ""
+    p = catalog.Property(ref="DP3107", name="X", folder="x", status="")
+    f = F.blank() | d | {"highlights": [{"label": "A", "text": "B"}]}
+    html = render.html("infopack", render.context(p, f, {"gallery": ["g"]}, "auction", lambda i, s: f"/img/{i}"))
+    order = [html.index('data-sec="%s"' % t.replace("&", "&amp;")) for t in ("Auction Information", "Property Particulars & Location",
+             "Property Features", "Water & Irrigation", "Summary of Sale Conditions",
+             "Registration & FICA Requirements", "Photographic Overview", "Investment Highlights")]
+    assert order == sorted(order)
+    assert "(refundable)" in html and "google.com/maps?q=-22.970700,30.015379" in html
+    assert "By the seller and FNB within 14 days" in html and "does not replace the full Agreement" in html
+    assert 'class="total"' in html and "online.dynamicauctioneers.co.za" not in html   # no terms, so no bidding card
+
+
+def test_the_form_edits_the_pack_tables_and_sections():
+    from studio import form as FORM
+    facts = {"tables": [{"title": "LAND USE", "columns": ["Use", "Area"], "rows": [["Orchards", "23 ha"]]}],
+             "sections": [{"title": "WATER & IRRIGATION", "lines": ["Pump", "Two tanks"]}],
+             "conditions": [{"label": "Deposit", "text": "10%"}], "map_pin": "-22.9, 30.0"}
+    v = FORM.to_form(facts)
+    assert v["tables"] == "LAND USE:\nUse | Area\nOrchards | 23 ha"
+    back = FORM.from_form({"tables": v["tables"], "sections": v["sections"], "conditions": v["conditions"], "map_pin": v["map_pin"]})
+    assert back["tables"] == facts["tables"] and back["sections"] == facts["sections"]
+    assert back["conditions"] == facts["conditions"] and back["map_pin"] == "-22.9, 30.0"

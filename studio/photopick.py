@@ -59,7 +59,8 @@ adverts, all different from hero and aerial and from each other, and varied: wha
 most (the front or street view, the main living area, the kitchen, a pool, garden or view, a second \
 dwelling, sheds, orchards). Pick the most attractive, bright and well-composed ones.
 - gallery: {GALLERY} photos (fewer only when the folder has fewer good ones) for the information pack's \
-photo pages and the photos it fills spare room with, in walk-through order: \
+photo pages and the photos it fills spare room with, in walk-through order, then clear photos of any \
+equipment the sale may include (vehicles, tractors, trailers, sprayers, machinery, tools) at the end: \
 outside first, then living areas, kitchen, bedrooms, bathrooms, outbuildings, garden and extras. \
 No near-duplicates.
 
