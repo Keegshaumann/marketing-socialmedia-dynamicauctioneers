@@ -158,6 +158,28 @@ def siblings(prop: Property) -> list[str]:
     return sorted(r["id"] for r in rows if r["id"] != prop.ref and json.loads(r["data"]).get("folder") == prop.folder)
 
 
+def sold_together(prop: Property, all_items: list[Item], sibs: list[str]) -> bool:
+    """Whether the files sharing this folder are marketed as one property (DP2956.1 and .2:
+    one ad, "REF: DP2956") or one by one (DP2655.2/.3/.4: an ad each). The team's own
+    ads say it best: named for a sub-file means one by one, named for the main number
+    only means together. Without ads, the sheets carrying the same price on every file
+    (the lot's price) means together."""
+    if not sibs:
+        return False
+    base = prop.ref.split(".")[0][2:]
+    ads = [i.name.upper() for i in all_items if not i.is_folder and i.top.startswith("ADVERT")
+           and re.search(r"\bAD\b|\bADS?\s*\d|REEL", i.name.upper())]
+    if any(re.search(rf"{base}\.\d", n) for n in ads):
+        return False
+    if any(re.search(rf"{base}(?![\d.])", n) for n in ads):
+        return True
+    with _connect() as conn:
+        rows = conn.execute("SELECT data FROM files WHERE id IN (%s)" % ",".join("?" * (len(sibs) + 1)),
+                            (*sibs, prop.ref)).fetchall()
+    prices = {json.loads(r["data"]).get("listed") for r in rows}
+    return len(prices) == 1 and None not in prices
+
+
 def get(ref: str) -> Optional[Property]:
     ref = normalise_ref(ref)
     with _connect() as conn:

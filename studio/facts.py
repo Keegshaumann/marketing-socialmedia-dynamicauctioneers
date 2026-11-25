@@ -421,9 +421,12 @@ def read_documents(prop: Property, items: list[Item], sheets: dict) -> tuple[dic
     known = "\n".join(f"- {k}: {v}" for k, v in sheets.items() if v)
     sale = "It is going to AUCTION." if prop.is_auction else "It is FOR SALE by offers (not an auction) unless the documents say otherwise."
     shared = catalog.siblings(prop)
-    if shared:
-        sale += (f"\nThis folder is shared by {', '.join(shared + [prop.ref])}: separate portions or units sold "
-                 f"as separate files. Write only about {prop.ref}: use the documents, portion, erf and extent that "
+    if shared and catalog.sold_together(prop, items, shared):
+        sale += (f"\nThis folder holds {', '.join(sorted(shared + [prop.ref]))}, marketed together as one "
+                 f"property: describe them together (the whole extent, every dwelling on them).")
+    elif shared:
+        sale += (f"\nThis folder is shared by {', '.join(sorted(shared + [prop.ref]))}: separate portions or units "
+                 f"marketed one by one. Write only about {prop.ref}: use the documents, portion, erf and extent that "
                  f"are its own (file names often carry its number, e.g. '.{prop.ref.rsplit('.', 1)[-1]}'), never "
                  f"the others' or a total of them. If you cannot tell which are its own, leave those fields empty.")
     head = (f"Property reference: {prop.ref}. Internal file name (never print it): {prop.name}.\n{sale}\n"

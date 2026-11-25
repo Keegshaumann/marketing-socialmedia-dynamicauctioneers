@@ -1215,3 +1215,24 @@ def test_the_answer_form_claude_fills_stays_small_enough():
     size = len(_json.dumps(F.Facts.model_json_schema()))
     assert size < 10900, size
     assert F.Facts.model_json_schema()["properties"]["other_features"]["items"] == {"type": "string"}
+
+
+def test_files_sharing_a_folder_are_together_or_apart_as_the_teams_ads_say(mirror):
+    from studio import catalog
+    conn = sqlite3.connect(mirror.db)
+    d = json.loads(conn.execute("SELECT data FROM files WHERE id = 'DP9001'").fetchone()[0])
+    conn.execute("INSERT INTO files VALUES ('DP9001.2', 'property', 'open', ?)", (json.dumps({**d, "name": d["name"]}),))
+    conn.commit()
+    p = catalog.get("DP9001")
+    assert catalog.siblings(p) == ["DP9001.2"]
+    assert not catalog.sold_together(p, catalog.items(p), ["DP9001.2"])          # no ads, no price: apart
+    folder = f"{AAA}/9001 - RHEDE BOERDERY BK_BR_"
+    conn.execute("INSERT INTO items VALUES ('drv', 'ad1', 'DP9001 - FOR SALE AD.png', 0, 3.0, 50000, NULL, ?)",
+                 (f"{folder}/Advertisements/DP9001 - FOR SALE AD.png",))
+    conn.commit()
+    assert catalog.sold_together(p, catalog.items(p), ["DP9001.2"])              # one ad for the main number
+    conn.execute("INSERT INTO items VALUES ('drv', 'ad2', 'DP9001.2 FOR SALE AD.png', 0, 4.0, 50000, NULL, ?)",
+                 (f"{folder}/Advertisements/DP9001.2 FOR SALE AD.png",))
+    conn.commit()
+    conn.close()
+    assert not catalog.sold_together(p, catalog.items(p), ["DP9001.2"])          # an ad per sub-file

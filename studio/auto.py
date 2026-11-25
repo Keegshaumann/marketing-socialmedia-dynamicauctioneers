@@ -145,6 +145,13 @@ def run(db: str, w: Optional[Writer] = None, *, reads: int = 4, dry_run: bool = 
         group = needs_ad(p, kits.get(p.folder, {}), today)
         if group:
             wanted[p.ref] = (p, group)
+    # Files marketed together (DP2956.1 and .2) get one set, from the first of them.
+    for ref in list(wanted):
+        p = wanted[ref][0]
+        sibs = catalog.siblings(p)
+        if sibs and min(sibs + [ref], key=lambda r: catalog._ref_key(open_refs[r]) if r in open_refs else (0,)) != ref \
+                and catalog.sold_together(p, catalog.items(p), sibs):
+            del wanted[ref]
 
     # 0. what each folder holds now, and whether files are still arriving
     settled: dict[str, bool] = {}
