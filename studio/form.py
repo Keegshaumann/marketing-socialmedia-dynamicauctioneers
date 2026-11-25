@@ -11,7 +11,7 @@ from typing import Any
 
 from studio.facts import ICONS
 
-STRINGS = ("headline", "subline", "headline2", "badge", "address", "panel_title", "disclaimer", "price",
+STRINGS = ("headline", "subline", "headline2", "badge", "address", "disclaimer", "price",
            "auction_kind", "auction_date", "auction_time", "short_title", "short_place", "sale_kind",
            "location_line", "pack_title", "pack_region", "pack_strapline", "pack_footer", "confirmation",
            "viewing", "caption", "listing", "master_ref", "phone", "email", "qr_link")
@@ -19,7 +19,7 @@ LINES = ("board_lines", "board_place", "terms", "best_use")
 PARAGRAPHS = ("description",)
 ROWS = ("overview", "rates", "condition", "highlights")
 PORTION_KEYS = ("label", "legal_description", "extent", "municipality", "zoning", "title_deed")
-FEATURE_SLOTS = {"features": 4, "panel": 3}
+FEATURE_SLOTS = {"features": 5}
 
 
 def _rows_text(rows: list[dict]) -> str:

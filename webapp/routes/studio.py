@@ -66,6 +66,9 @@ def _load(request: Request, prop: catalog.Property, items: list[catalog.Item]) -
 
 _stale = prepare.stale
 
+SLOT_LABELS = {"hero": "Background", "aerial": "Auction background", "photo1": "Photo 1", "photo2": "Photo 2",
+               "photo3": "Photo 3"}
+
 
 # --- the list -----------------------------------------------------------------
 
@@ -122,7 +125,7 @@ def studio_edit(ref: str, request: Request, user=Depends(_can)):
         "formats": render.formats_for(row["mode"]),
         "docs": [(k, i) for k in ("report", "lightstone", "valuation", "otp", "infopack", "proposal") for i in docs[k][:2]],
         "names": {f.kind: F.name_for(prop, f.kind, row["mode"]) for f in render.formats_for(row["mode"])},
-        "slot_labels": {"hero": "Background", "photo1": "Photo 1", "photo2": "Photo 2", "aerial": "Aerial"},
+        "slot_labels": SLOT_LABELS,
         **_sync_ctx(request, prop),
     })
 
@@ -226,7 +229,7 @@ async def studio_pick(ref: str, request: Request, user=Depends(_can)):
     picks = render.photo_picks(saved, photos)
     return _tpl(request).TemplateResponse(request, "partials/_studio_photos.html", {
         "p": prop, "photos": photos, "picks": picks, "keep_open": True,
-        "slot_labels": {"hero": "Background", "photo1": "Photo 1", "photo2": "Photo 2", "aerial": "Aerial"},
+        "slot_labels": SLOT_LABELS,
     }, headers={"HX-Trigger": "studio-refresh"})
 
 

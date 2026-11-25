@@ -207,11 +207,11 @@ def test_form_round_trip():
         "improvements": [{"title": "RESIDENTIAL", "items": [{"icon": "home", "text": "Main house"},
                                                              {"icon": "pool", "text": "Swimming pool"}]}],
         "features": [{"icon": "m2", "text": "±74m² UNIT"}, {"icon": "bed", "text": "3 BEDROOM"}],
-        "panel": [],
     }
     v = FORM.to_form(facts)
-    submitted = {k: val for k, val in v.items() if k not in ("features", "panel")}
-    for key in ("features", "panel"):
+    assert len(v["features"]) == 5                       # room for a fifth feature
+    submitted = {k: val for k, val in v.items() if k != "features"}
+    for key in ("features",):
         for i, ft in enumerate(v[key]):
             submitted[f"{key}_icon_{i}"] = ft["icon"]
             submitted[f"{key}_text_{i}"] = ft["text"]
@@ -497,7 +497,7 @@ def test_claudes_labels_become_photo_ids(mirror, monkeypatch):
     def fake_ask(system, content, schema, **kw):
         sent["images"] = sum(1 for c in content if c["type"] == "image")
         sent["text"] = " ".join(c.get("text", "") for c in content)
-        return photopick.Picks(aerial="P1", hero=" p2 ", photo1="P2", photo2="P99", gallery=["P2", "P2", "P1", "x"])
+        return photopick.Picks(aerial="P1", hero=" p2 ", photo1="P2", photo2="P99", photo3="", gallery=["P2", "P2", "P1", "x"])
     monkeypatch.setattr(F, "ask", fake_ask)
 
     got = photopick.choose(prop, photos, auction=True, about="MACADAMIA & AVOCADO FARM")
@@ -931,3 +931,59 @@ def test_a_new_document_means_the_documents_are_read_again(auto, mirror):
     _quiet_since_yesterday(auto.app.db)
     log = auto.run()
     assert auto.reads == ["DP9001", "DP9001"] and any("new documents" in line for line in log)
+
+
+
+# --- 25 Nov: logos, features, photos, QR codes ---------------------------------------
+
+def test_the_office_number_is_written_one_way():
+    from studio import facts as F
+    got = F.tidy({"caption": "Call 086 1552 288 or 0861552288.", "listing": ["Phone 086-155-2288", "0861 55 22 88"]})
+    assert got == {"caption": "Call 086 155 2288 or 086 155 2288.", "listing": ["Phone 086 155 2288", "086 155 2288"]}
+
+
+def test_the_ad_has_a_background_and_three_more_photos(mirror):
+    from studio import catalog, render
+    _add_item(mirror.db, "Media/Photos/Overall/garden.jpg", "garden1")
+    items = catalog.items(catalog.get("DP9001"))
+    photos = catalog.photos(items)
+    picks = render.photo_picks({}, photos)
+    assert "photo3" in picks
+    for mode in ("auction", "forsale"):
+        ctx = render.context(catalog.get("DP9001"), {}, picks, mode, lambda i, size: f"src:{i}")
+        background = picks.get("aerial") if mode == "auction" else picks.get("hero")
+        assert len(ctx["extras"]) == 3 and f"src:{background}" not in ctx["extras"]
+        assert len(set(ctx["extras"])) == 3
+
+
+def test_the_ad_shows_up_to_five_features():
+    from studio import render
+    from studio.catalog import Property
+    prop = Property(ref="DP9001", name="X", folder="F", status="")
+    feats = [{"icon": "home", "text": f"FEATURE {n}"} for n in range(1, 7)]
+    for mode in ("auction", "forsale"):
+        out = render.html("ad", render.context(prop, {"features": feats}, {}, mode, lambda i, s: ""))
+        assert "FEATURE 5" in out and "FEATURE 6" not in out and "PROPERTY FEATURES" in out
+
+
+def test_the_studios_qr_codes_scan_and_reuse_the_teams_link(mirror):
+    zxingcpp = pytest.importorskip("zxingcpp")
+    from PIL import Image
+    from studio import catalog, facts as F, render
+    link = "https://links.vanxfunnels.co.za/qr/TEST123"
+    for white in (False, True):
+        im = Image.open(io.BytesIO(render.qr_png(link, white)))
+        ground = Image.new("RGB", im.size, (30, 30, 30) if white else (255, 255, 255))
+        ground.paste(im, mask=im.split()[-1])
+        assert [b.text for b in zxingcpp.read_barcodes(ground)] == [link]
+    # the team's QR code in the folder gives the link
+    folder = f"{AAA}/9001 - RHEDE BOERDERY BK_BR_"
+    f = mirror.root / "Marketing - Documents" / folder / "Advertisements/DP9001 - QR CODE.png"
+    data = render.qr_png(link, False)
+    f.write_bytes(data)
+    conn = sqlite3.connect(mirror.db)
+    conn.execute("INSERT INTO items VALUES ('drv', 'qr1', 'DP9001 - QR CODE.png', 0, 5.0, ?, NULL, ?)",
+                 (len(data), f"{folder}/Advertisements/DP9001 - QR CODE.png"))
+    conn.commit()
+    conn.close()
+    assert F.team_qr_link(catalog.items(catalog.get("DP9001"))) == link

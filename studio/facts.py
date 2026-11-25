@@ -67,6 +67,20 @@ class Group(BaseModel):
     items: list[Feature]
 
 
+FEATURES_RULE = (
+    "4 or 5 headline features for the adverts (never fewer than 4, never more than 5), the ones a buyer "
+    "decides on, most important first: the size (floor or land), then bedrooms and bathrooms for a home, "
+    "then the strongest selling points the documents support, such as an income or tenant in place, a second "
+    "dwelling, garages or parking, a pool, security or a gated estate, a borehole or water rights, orchards, "
+    "sheds or a packhouse, a view. Never filler that every property has or that a buyer doesn't choose on: "
+    "freehold or sectional title, zoning, distances to schools, police stations or shops, \"good condition\"."
+)
+
+
+class Features(BaseModel):
+    features: list[Feature] = Field(description=FEATURES_RULE)
+
+
 class Facts(BaseModel):
     # --- the advert (1080x1350) ---
     headline: str = Field(description='Gold line 1. For a home in a sectional scheme the scheme name '
@@ -76,9 +90,7 @@ class Facts(BaseModel):
     badge: str = Field(description='Sale badge: "INSOLVENCY SALE!", "LIQUIDATION SALE!", "BUSINESS RESCUE SALE!", '
                                    '"DECEASED ESTATE SALE!", or the same with AUCTION! for an auction')
     address: str = Field(description="Street address as the public would search it, upper case, no erf numbers")
-    features: list[Feature] = Field(description="Exactly 4 headline features for the ad grid, size first")
-    panel_title: str = Field(description='Optional side panel heading on the auction ad, e.g. "ORCHARDS:"; else ""')
-    panel: list[Feature] = Field(description="Up to 3 side-panel lines (farms: orchards, irrigation); else empty")
+    features: list[Feature] = Field(description=FEATURES_RULE)
     disclaimer: str = Field(description='Occupation line when occupied, e.g. "PURCHASER TO DO EVICTION | VACANT '
                                         'OCCUPATION CANNOT BE GUARANTEED"; else ""')
     price: str = Field(description='e.g. "OFFERS FROM R380 000"; "" if no price is known')
@@ -121,6 +133,20 @@ class Facts(BaseModel):
 
 
 EDITABLE = list(Facts.model_fields)
+
+
+_PHONE_ANYHOW = re.compile(r"\b0\s*8\s*6\s*[-. ]?\s*1\s*5\s*5\s*[-. ]?\s*2\s*2\s*8\s*8\b|\b086\s?1552\s?288\b")
+
+
+def tidy(value):
+    """The office number written the one way (086 155 2288), however it came back."""
+    if isinstance(value, str):
+        return _PHONE_ANYHOW.sub(PHONE, value)
+    if isinstance(value, list):
+        return [tidy(v) for v in value]
+    if isinstance(value, dict):
+        return {k: tidy(v) for k, v in value.items()}
+    return value
 
 
 def blank() -> dict:
@@ -199,6 +225,9 @@ or deeds data for legal description, extent and title deed.
 Privacy (strict): the ads and pack are public. Never write the owner's, debtor's, seller's or estate's name, \
 any person's name, ID or registration numbers, bond holders, account numbers, arrears, or the internal file \
 name you are given. Legal descriptions, extents, municipality, zoning and title deed numbers are fine.
+
+Advert features: 4 or 5, the ones a buyer decides on, most important first (see the features field). \
+Never filler such as the title type, zoning, or distances to schools, police stations or shops.
 
 Icons: pick each feature's icon from the allowed list, the way the team's ads do: "m2" for a floor or erf \
 size in m², "ha" for any area in hectares (land, orchards, fields), "park" for trees and orchards without an \
@@ -280,7 +309,57 @@ def read_documents(prop: Property, items: list[Item], sheets: dict) -> tuple[dic
 
     facts = ask(SYSTEM, content, Facts,
                 refusal="Claude declined to describe this property; fill the fields in by hand.").model_dump()
+    facts = tidy(facts)
+    facts["features"] = facts.get("features", [])[:5]
+    link = team_qr_link(items)
+    if link:
+        facts["qr_link"] = link
     return facts, privacy_warnings(prop, facts)
+
+
+def pick_features(prop: Property, facts: dict) -> list[dict]:
+    """The 4-5 features again, chosen from what an earlier read already found
+    (no documents: a small, cheap question)."""
+    import json as _json
+
+    known = {k: facts.get(k) for k in ("headline", "subline", "short_title", "description", "overview",
+                                        "improvements", "highlights", "condition", "best_use", "features")}
+    content = [{"type": "text", "text": f"Property {prop.ref}. What the documents said, as already written up:\n"
+                + _json.dumps(known, ensure_ascii=False, indent=1)
+                + "\n\nChoose the advert's headline features from this. Keep the house style of the existing features."}]
+    got = ask(SYSTEM, content, Features, max_tokens=3000, effort="low",
+              refusal="Claude declined; the features stay as they were.")
+    return tidy([f.model_dump() for f in got.features])[:5]
+
+
+def team_qr_link(items: list[Item]) -> str:
+    """The link in the team's own QR code (a GoHighLevel tracking link to the
+    property's page), so the studio's board and QR files send people to the same
+    place and the scans are still counted. "" when the folder has none."""
+    qrs = sorted((i for i in items if not i.is_folder and i.is_image and i.top.startswith("ADVERT")
+                  and "QR" in i.name.upper()), key=lambda i: -i.modified)
+    for item in qrs[:3]:
+        try:
+            import zxingcpp
+            from PIL import Image
+
+            found = []
+            with Image.open(io.BytesIO(store().content(item))) as im:
+                rgba = im.convert("RGBA")
+                # black on clear needs a white ground, white on clear a dark one
+                for ground in ((255, 255, 255), (40, 40, 40)):
+                    bg = Image.new("RGB", rgba.size, ground)
+                    bg.paste(rgba, mask=rgba.split()[-1])
+                    found = zxingcpp.read_barcodes(bg)
+                    if found:
+                        break
+        except Exception as exc:  # an unreadable image just means no link from it
+            log.warning("could not read the QR code %s: %s", item.rel, exc)
+            continue
+        for code in found:
+            if code.text.startswith(("http://", "https://")):
+                return code.text
+    return ""
 
 
 def ask(system: str, content: list[dict], schema: type[BaseModel], *, max_tokens: int = 16000,

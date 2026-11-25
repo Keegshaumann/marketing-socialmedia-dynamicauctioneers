@@ -136,29 +136,72 @@ def font_css() -> Markup:
     return Markup(_FONT_CSS)
 
 
-def qr_svg(link: str, dark: str = "#000") -> Markup:
+QR_DEFAULT = "https://dynamicauctioneers.co.za/"
+
+
+def _qr(link: str) -> tuple[int, list[tuple[int, int]]]:
+    """The code's size in modules and its dark modules, the three corner squares
+    left out (they are drawn rounded, the way the team's GoHighLevel codes look)."""
     import segno
 
-    q = segno.make(link or "https://dynamicauctioneers.co.za/", error="h")
-    svg = q.svg_inline(border=0, dark=dark, light=None, omitsize=True)
-    return Markup(svg.replace("<svg ", '<svg style="width:100%;height:100%;display:block" ', 1))
+    q = segno.make(link or QR_DEFAULT, error="h")
+    rows = [list(r) for r in q.matrix]
+    n = len(rows)
+    corners = ((0, 0), (n - 7, 0), (0, n - 7))
+
+    def in_corner(x: int, y: int) -> bool:
+        return any(cx <= x < cx + 7 and cy <= y < cy + 7 for cx, cy in corners)
+
+    dots = [(x, y) for y, row in enumerate(rows) for x, v in enumerate(row) if v & 1 and not in_corner(x, y)]
+    return n, dots
+
+
+def _corners(n: int) -> tuple[tuple[int, int], ...]:
+    return ((0, 0), (n - 7, 0), (0, n - 7))
+
+
+def qr_svg(link: str, dark: str = "#000") -> Markup:
+    n, dots = _qr(link)
+    path = "".join(f"M{x},{y}h1v1h-1z" for x, y in dots)
+    eyes = "".join(
+        f'<path fill="{dark}" fill-rule="evenodd" d="M{cx + 2},{cy}h3a2,2 0 0 1 2,2v3a2,2 0 0 1 -2,2h-3a2,2 0 0 1 -2,-2v-3a2,2 0 0 1 2,-2z'
+        f'M{cx + 2.3},{cy + 1}h2.4a1.3,1.3 0 0 1 1.3,1.3v2.4a1.3,1.3 0 0 1 -1.3,1.3h-2.4a1.3,1.3 0 0 1 -1.3,-1.3v-2.4a1.3,1.3 0 0 1 1.3,-1.3z"/>'
+        f'<rect x="{cx + 2}" y="{cy + 2}" width="3" height="3" rx=".9" fill="{dark}"/>'
+        for cx, cy in _corners(n))
+    return Markup(f'<svg viewBox="0 0 {n} {n}" xmlns="http://www.w3.org/2000/svg" '
+                  f'style="width:100%;height:100%;display:block">'
+                  f'<path d="{path}" fill="{dark}" shape-rendering="crispEdges"/>{eyes}</svg>')
 
 
 def qr_png(link: str, white: bool) -> bytes:
-    """The QR code files the team keeps beside the ads, the DS mark in the middle."""
-    import segno
-    from PIL import Image
+    """The QR code files the team keeps beside the ads: rounded corner squares and
+    the DS mark on a rounded plate in the middle, black on clear or white on clear."""
+    from PIL import Image, ImageDraw
 
-    q = segno.make(link or "https://dynamicauctioneers.co.za/", error="h")
-    buf = io.BytesIO()
-    q.save(buf, kind="png", scale=24, border=2, dark="#ffffff" if white else "#000000", light=None)
-    im = Image.open(io.BytesIO(buf.getvalue())).convert("RGBA")
+    n, dots = _qr(link)
+    big, border = 96, 2                       # drawn 4x, then scaled down smooth
+    side = (n + 2 * border) * big
+    ink = (255, 255, 255, 255) if white else (0, 0, 0, 255)
+    clear = (0, 0, 0, 0)
+    im = Image.new("RGBA", (side, side), clear)
+    d = ImageDraw.Draw(im)
+    o = border * big
+    for x, y in dots:
+        d.rectangle((o + x * big, o + y * big, o + (x + 1) * big - 1, o + (y + 1) * big - 1), fill=ink)
+    for cx, cy in _corners(n):
+        x0, y0 = o + cx * big, o + cy * big
+        d.rounded_rectangle((x0, y0, x0 + 7 * big - 1, y0 + 7 * big - 1), radius=int(2 * big), fill=ink)
+        d.rounded_rectangle((x0 + big, y0 + big, x0 + 6 * big - 1, y0 + 6 * big - 1), radius=int(1.3 * big), fill=clear)
+        d.rounded_rectangle((x0 + 2 * big, y0 + 2 * big, x0 + 5 * big - 1, y0 + 5 * big - 1), radius=int(.9 * big), fill=ink)
+    im = im.resize((side // 4, side // 4), Image.LANCZOS)
     mark = Image.open(ASSETS / "logos" / ("logo-auctioneers-on-dark.png" if white else "logo-auctioneers-on-light.png")).convert("RGBA")
-    side = int(im.width * 0.26)
-    plate = Image.new("RGBA", (side, side), (0, 0, 0, 255) if white else (255, 255, 255, 255))
-    mark.thumbnail((int(side * 0.9), int(side * 0.9)))
-    plate.alpha_composite(mark, ((side - mark.width) // 2, (side - mark.height) // 2))
-    im.alpha_composite(plate, ((im.width - side) // 2, (im.height - side) // 2))
+    plate_side = int(im.width * 0.24)
+    plate = Image.new("RGBA", (plate_side, plate_side), clear)
+    ImageDraw.Draw(plate).rounded_rectangle((0, 0, plate_side - 1, plate_side - 1), radius=plate_side // 6,
+                                            fill=(0, 0, 0, 255) if white else (255, 255, 255, 255))
+    mark.thumbnail((int(plate_side * 0.84), int(plate_side * 0.84)))
+    plate.alpha_composite(mark, ((plate_side - mark.width) // 2, (plate_side - mark.height) // 2))
+    im.alpha_composite(plate, ((im.width - plate_side) // 2, (im.height - plate_side) // 2))
     out = io.BytesIO()
     im.save(out, "PNG")
     return out.getvalue()
@@ -203,10 +246,13 @@ def photo_picks(photos: dict, all_photos: list[Item]) -> dict:
     if "aerial" not in picks and (aerials or all_photos):
         picks["aerial"] = (aerials or all_photos)[0].item_id
     taken = set(picks.values())
-    for slot in ("hero", "photo1", "photo2"):
+    # Claude's walk-through order (its gallery) is a better source of "the next
+    # good photo" than folder order, which can put a cracked wall first.
+    curated = [by_id[g] for g in claude.get("gallery", []) if g in by_id]
+    for slot in ("hero", "photo1", "photo2", "photo3"):
         if slot not in picks:
-            nxt = next((p for p in pool if p.item_id not in taken), None)
-            if slot == "photo1" and aerials:
+            nxt = next((p for p in curated + pool if p.item_id not in taken), None)
+            if slot == "photo1" and aerials and not curated:
                 nxt = aerials[0]
             if nxt:
                 picks[slot] = nxt.item_id
@@ -233,10 +279,18 @@ def context(prop: Property, facts: dict, picks: dict, mode: str, photo_src: Call
     gallery = [photo_src(i, "gallery") for i in picks.get("gallery", [])]
     auction = mode == "auction"
     when = " | ".join(x for x in (f.get("auction_date"), f.get("auction_time")) if x)
+    # The ad: one photo as the background, three more in a block beside the features.
+    background = picks.get("aerial") or picks.get("hero") if auction else picks.get("hero") or picks.get("aerial")
+    extra_ids: list[str] = []
+    for item_id in [picks.get("photo1"), picks.get("photo2"), picks.get("photo3"),
+                    *picks.get("gallery", []), picks.get("hero"), picks.get("aerial")]:
+        if item_id and item_id != background and item_id not in extra_ids:
+            extra_ids.append(item_id)
     return {
         "ref": f"DP{prop.number}", "f": f, "mode": mode, "auction": auction,
-        "hero": src("hero"), "photo1": src("photo1"), "photo2": src("photo2"),
+        "hero": src("hero"), "photo1": src("photo1"), "photo2": src("photo2"), "photo3": src("photo3"),
         "aerial": src("aerial") or src("hero"), "gallery": gallery,
+        "extras": [photo_src(i, "view") for i in extra_ids[:3]],
         "auction_line": " | ".join(x for x in (f"{f.get('auction_kind') or 'ONLINE'} AUCTION", when) if x),
         "pack_pages": pack_pages(f, gallery, auction),
     }

@@ -1,6 +1,7 @@
 {% extends "_canvas.html.j2" %}
-{# The team's 1080x1350 property ad. For sale: DP3098 (Canva, Oct 2026).
-   Auction: DP3107 (Canva, Nov 2026). #}
+{# The team's 1080x1350 property ad. Header from DP3098 (for sale, Canva, Oct 2026) and
+   DP3107 (auction, Nov 2026); the body as the team's DP2988 auction ad of 20 Nov 2026:
+   one photo as the background, 4-5 features beside a block of three more photos. #}
 {% block css %}
 .topbar{left:0;top:0;width:1080px;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font-weight:800;font-size:20px;letter-spacing:.01em}
 .bottombar{left:0;bottom:0;width:1080px;height:74px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-weight:800;font-size:25px}
@@ -22,6 +23,7 @@
 {% block body %}
 {% set bgsrc = aerial if auction else (hero or aerial) %}
 {% if bgsrc %}<img class="bg bgimg" src="{{ bgsrc }}">{% endif %}
+{% if auction %}<div class="abs" style="left:0;top:330px;width:1080px;height:1020px;background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.55) 18%,rgba(0,0,0,.72) 100%)"></div>{% endif %}
 
 <div class="abs topbar goldbar">
   <span>{% if f.master_ref %}MASTER REF: {{ f.master_ref }}{% endif %}</span>
@@ -39,25 +41,24 @@
 </div>
 {% if f.badge %}<div class="abs badge fit" data-fit data-min="22" style="right:38px;top:262px;height:62px;max-width:560px;font-size:40px">{{ f.badge | nb }}</div>{% endif %}
 
-<div class="abs" style="left:54px;top:348px;width:972px;height:514px;display:flex;gap:16px">
-  {% for p in [photo1 or aerial, photo2 or hero] %}
-  <div style="flex:1;border-radius:14px;overflow:hidden;border:3px solid rgba(255,255,255,.85);box-shadow:0 10px 22px rgba(0,0,0,.6);background:#222">
-    {% if p %}<img src="{{ p }}" style="width:100%;height:100%;object-fit:cover;display:block">{% endif %}
-  </div>
+<div class="abs box" style="left:54px;top:344px;width:552px;height:756px;padding:22px 28px 24px;display:flex;flex-direction:column">
+  <div class="goldtext glow" style="font-weight:900;font-size:38px;text-align:center;height:48px">PROPERTY FEATURES:</div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly">
+  {% for ft in f.features[:5] %}
+    <div class="feat" style="gap:20px"><span style="width:76px;height:68px;display:flex;align-items:center;justify-content:center">{{ icon(ft.icon, 74, 64) }}</span>
+      <span class="t" data-fit data-min="16" style="font-size:32px;font-weight:800;height:84px;width:384px;display:flex;align-items:center">{{ ft.text | nb }}</span></div>
   {% endfor %}
+  </div>
+  {% if f.address %}
+  <div style="height:46px;background:#fff;border-radius:23px;display:flex;align-items:center;justify-content:center;gap:8px;color:#111;padding:0 16px">
+    {{ icon('location_on', 24) }}<span class="fit" data-fit data-min="11" style="font-weight:800;font-size:18px;max-width:440px">{{ f.address | nb }}</span>
+  </div>
+  {% endif %}
 </div>
 
-{% if f.address %}
-<div class="abs" style="left:90px;top:878px;width:900px;height:40px;background:#fff;border-radius:20px;display:flex;align-items:center;justify-content:center;gap:10px;color:#111;padding:0 22px">
-  {{ icon('location_on', 26) }}
-  <span class="fit" data-fit data-min="13" style="font-weight:800;font-size:21px;max-width:830px">{{ f.address | nb }}</span>
-</div>
-{% endif %}
-
-<div class="abs" style="left:110px;top:938px;width:880px;height:162px;display:grid;grid-template-columns:1fr 1fr;row-gap:16px;column-gap:40px">
-  {% for ft in f.features[:4] %}
-  <div class="feat"><span style="width:84px;height:70px;display:flex;align-items:center;justify-content:center">{{ icon(ft.icon, 78, 66) }}</span>
-    <span class="t fit" data-fit data-min="18" style="font-size:34px;width:330px">{{ ft.text | nb }}</span></div>
+<div class="abs" style="left:624px;top:344px;width:402px;height:756px;display:flex;flex-direction:column;gap:14px">
+  {% for p in extras %}
+  <div style="flex:1;border-radius:12px;overflow:hidden;border:3px solid rgba(255,255,255,.85);box-shadow:0 10px 22px rgba(0,0,0,.6);background:#222"><img src="{{ p }}" style="width:100%;height:100%;object-fit:cover;display:block"></div>
   {% endfor %}
 </div>
 
@@ -78,26 +79,20 @@
 </div>
 {% if f.badge %}<div class="abs badge fit" data-fit data-min="22" style="right:40px;top:356px;height:68px;max-width:600px;font-size:40px">{{ f.badge | nb }}</div>{% endif %}
 
-{% if f.panel %}
-<div class="abs box" style="left:572px;top:448px;width:468px;height:370px;padding:18px 26px">
-  {% if f.panel_title %}<div class="goldtext glow fit" data-fit data-min="22" style="font-weight:900;font-size:40px;text-align:center;height:50px">{{ f.panel_title | nb }}</div>{% endif %}
-  <div style="display:flex;flex-direction:column;gap:18px;margin-top:14px">
-  {% for ft in f.panel[:3] %}
-    <div class="feat" style="gap:16px"><span style="width:58px;height:54px;display:flex;align-items:center;justify-content:center">{{ icon(ft.icon, 58, 54) }}</span>
-      <span class="t" data-fit data-min="14" style="font-size:25px;font-weight:800;height:62px;width:340px;display:flex;align-items:center">{{ ft.text | nb }}</span></div>
+<div class="abs box" style="left:56px;top:444px;width:560px;height:716px;padding:20px 28px 24px;display:flex;flex-direction:column">
+  <div class="goldtext glow" style="font-weight:900;font-size:38px;text-align:center;height:48px">PROPERTY FEATURES:</div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly">
+  {% for ft in f.features[:5] %}
+    <div class="feat" style="gap:20px"><span style="width:76px;height:68px;display:flex;align-items:center;justify-content:center">{{ icon(ft.icon, 74, 64) }}</span>
+      <span class="t" data-fit data-min="16" style="font-size:30px;font-weight:800;height:84px;width:394px;display:flex;align-items:center">{{ ft.text | nb }}</span></div>
   {% endfor %}
   </div>
 </div>
-{% endif %}
 
-<div class="abs box" style="left:56px;top:842px;width:968px;height:318px;padding:16px 34px">
-  <div class="goldtext glow" style="font-weight:900;font-size:40px;text-align:center;height:50px">PROPERTY FEATURES:</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;row-gap:22px;column-gap:28px;margin-top:20px">
-  {% for ft in f.features[:4] %}
-    <div class="feat" style="gap:18px"><span style="width:76px;height:72px;display:flex;align-items:center;justify-content:center">{{ icon(ft.icon, 80, 70) }}</span>
-      <span class="t" data-fit data-min="14" style="font-size:28px;font-weight:800;height:78px;width:330px;display:flex;align-items:center">{{ ft.text | nb }}</span></div>
+<div class="abs" style="left:634px;top:444px;width:390px;height:716px;display:flex;flex-direction:column;gap:14px">
+  {% for p in extras %}
+  <div style="flex:1;border-radius:12px;overflow:hidden;border:3px solid rgba(255,255,255,.85);box-shadow:0 10px 22px rgba(0,0,0,.6);background:#222"><img src="{{ p }}" style="width:100%;height:100%;object-fit:cover;display:block"></div>
   {% endfor %}
-  </div>
 </div>
 
 <div class="abs box fit" data-fit data-min="24" style="left:56px;top:1176px;width:968px;height:82px;border-radius:6px;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:46px">{{ auction_line | nb }}</div>

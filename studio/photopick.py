@@ -7,7 +7,7 @@ open property in eight has an aerial, so on the rest the auction ad's background
 simply the first photo by name: on DP2989, a close-up of a cracked wall.
 
 So "Read the documents" also sends Claude small copies of the photos (at most
-``MAX_PHOTOS``, the team's picks first) and asks for the four ad slots and the info
+``MAX_PHOTOS``, the team's picks first) and asks for the five ad slots and the info
 pack's photo pages. Its choice is stored beside hers (``photos["claude"]``) and never
 replaces a photo she placed herself (``render.photo_picks``).
 """
@@ -36,6 +36,7 @@ class Picks(BaseModel):
     hero: str = Field(description="Label of the for-sale advert's full-bleed background")
     photo1: str = Field(description="Label of the first supporting photo")
     photo2: str = Field(description="Label of the second supporting photo")
+    photo3: str = Field(description="Label of the third supporting photo")
     gallery: list[str] = Field(description=f"Up to {GALLERY} labels for the information pack, in walk-through order")
 
 
@@ -49,14 +50,15 @@ Choose, by label:
 capture with the boundary) if there is one; otherwise the best wide exterior showing the whole property.
 - hero: the FOR SALE advert's full-bleed background. The best exterior: the front of the house or \
 building, the street view, or the farm's landscape. An aerial only when there is no good exterior.
-- photo1 and photo2: two supporting photos shown as cards on the advert, different from hero and from \
-each other: what a buyer cares about most (main living area, kitchen, pool, garden, second dwelling, \
-sheds, orchards). When there is a true aerial, photo1 is that aerial.
+- photo1, photo2 and photo3: the three supporting photos shown in a block beside the features on both \
+adverts, all different from hero and aerial and from each other, and varied: what a buyer cares about \
+most (the front or street view, the main living area, the kitchen, a pool, garden or view, a second \
+dwelling, sheds, orchards). Pick the most attractive, bright and well-composed ones.
 - gallery: up to {GALLERY} photos for the information pack's photo pages, in walk-through order: \
 outside first, then living areas, kitchen, bedrooms, bathrooms, outbuildings, garden and extras. \
 No near-duplicates.
 
-Never choose for aerial, hero, photo1 or photo2: close-ups of damage or defects (cracks, damp, broken \
+Never choose for aerial, hero, photo1, photo2 or photo3: close-ups of damage or defects (cracks, damp, broken \
 fittings), clutter or rubbish, dark, blurred or badly tilted shots, people, vehicles with readable \
 number plates, documents, screenshots, meters, or bare walls, floors and ceilings. Leave damage out of \
 the gallery too unless the folder has nothing else. A folder named TO BE USED holds the team's own \
@@ -90,7 +92,7 @@ def _tile(item: Item) -> Optional[bytes]:
 
 
 def choose(prop: Property, photos: list[Item], *, auction: bool, about: str = "") -> dict:
-    """Claude's picks as item ids: {"aerial", "hero", "photo1", "photo2", "gallery"}.
+    """Claude's picks as item ids: {"aerial", "hero", "photo1", "photo2", "photo3", "gallery"}.
     Slots it left empty or answered with an unknown label are left out."""
     from studio import facts as F
 
@@ -123,7 +125,7 @@ def choose(prop: Property, photos: list[Item], *, auction: bool, about: str = ""
         return labels.get((label or "").strip().upper())
 
     out: dict = {}
-    for slot in ("aerial", "hero", "photo1", "photo2"):
+    for slot in ("aerial", "hero", "photo1", "photo2", "photo3"):
         got = item_id(getattr(answer, slot))
         if got:
             out[slot] = got

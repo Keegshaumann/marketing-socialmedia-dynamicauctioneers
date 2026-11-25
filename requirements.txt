@@ -27,3 +27,5 @@ docxcompose==2.2.0
 segno==1.6.6
 # Signing in to Microsoft with the studio's certificate, to save sets to SharePoint (D129)
 cryptography==50.0.2
+# Reading the team's own QR codes (GoHighLevel tracking links) from the folder (D129)
+zxing-cpp==3.2.0

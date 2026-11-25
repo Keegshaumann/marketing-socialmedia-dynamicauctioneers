@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS studio (
 );
 """
 
-SLOTS = ("hero", "photo1", "photo2", "aerial")
+SLOTS = ("hero", "photo1", "photo2", "photo3", "aerial")
 
 # Each property's set as the studio's own job sees it (D129): whether it is filed
 # in SharePoint, and what the folder held when it was last read (photos_sig /

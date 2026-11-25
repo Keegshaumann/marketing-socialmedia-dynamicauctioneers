@@ -65,11 +65,7 @@
           {{ text('headline2', 'Second gold line', 'Optional, e.g. SUNNYSIDE | PRETORIA', true) }}
           {{ text('badge', 'Badge', '', true) }}
           {% if row.mode == 'forsale' %}{{ text('address', 'Address strip', '', true) }}{% endif %}
-          {{ feats('features', 'Features (size first)', 4) }}
-          {% if row.mode == 'auction' %}
-            {{ text('panel_title', 'Side panel heading', 'Optional, e.g. ORCHARDS:', true) }}
-            {{ feats('panel', 'Side panel lines', 3) }}
-          {% endif %}
+          {{ feats('features', 'Features: 4 or 5, most important first', 5) }}
           {{ text('disclaimer', 'Occupation line', 'Leave empty when it is vacant', true) }}
           {% if row.mode == 'forsale' %}
             {{ text('price', 'Price box', 'e.g. OFFERS FROM R380 000', true) }}

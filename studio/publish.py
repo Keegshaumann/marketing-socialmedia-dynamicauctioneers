@@ -37,7 +37,7 @@ from studio.writer import Writer, WriteError, sha
 log = logging.getLogger("studio.publish")
 
 # Bump when a layout changes so every filed set is made again with it.
-RENDER_VERSION = "1"
+RENDER_VERSION = "2"   # 25 Nov 2026: logo room, 4-5 features, background + 3 photos, rounded QR
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS studio_files (
