@@ -1053,7 +1053,7 @@ def test_a_billboard_is_not_a_board():
 def test_the_home_page_has_the_glance_panel(auto):
     auto.run()
     page = auto.app.login().get("/studio").text
-    assert "At a glance" in page and "sets in SharePoint" in page and "Latest ads" in page
+    assert "At a glance" in page and "sets in SharePoint" in page and "Latest by the studio" in page
     assert "/studio/DP9001/saved-thumb/DP9001%20AUCTION%20AD.png" in page
 
 
@@ -1067,5 +1067,5 @@ def test_the_glance_never_shows_the_studios_ad_as_the_teams(auto, mirror):
                  (f["item_id"], _t.time(), f"{AAA}/9001 - RHEDE BOERDERY BK_BR_/Advertisements/DP9001 AUCTION AD.png"))
     conn.commit()
     conn.close()
-    page = auto.app.login().get("/studio").text.split("Latest ads", 1)[1]
-    assert page.count("glance__who--team") == 0 and page.count("glance__who--studio") == 1
+    page = auto.app.login().get("/studio").text
+    assert "Latest by the studio" in page and "Latest by the team" not in page

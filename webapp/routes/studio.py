@@ -131,16 +131,14 @@ def _glance(db: str, props: list, sets: dict, worked: dict) -> dict:
             ads.append({"ref": p.ref, "name": item.name, "who": "Team",
                         "when": datetime.fromtimestamp(item.modified, timezone.utc),
                         "thumb": f"/studio/{quote(p.ref)}/thumb/{item.item_id}"})
-    latest = []
+    latest: dict[str, list] = {"Studio": [], "Team": []}
     for a in sorted(ads, key=lambda a: a["when"], reverse=True):
         key = (a["ref"], a["who"])
-        if key in seen:
+        if key in seen or len(latest[a["who"]]) == 4:
             continue
         seen.add(key)
         a["label"] = a["when"].astimezone().strftime("%d %b")
-        latest.append(a)
-        if len(latest) == 8:
-            break
+        latest[a["who"]].append(a)
     return {"count": count, "needs": [{"ref": s["ref"], "p": by_ref[s["ref"]],
                                        "why": s["message"].replace("Not saved yet: ", "").replace(" Press save once it's right.", "")}
                                       for s in needs[:8]],

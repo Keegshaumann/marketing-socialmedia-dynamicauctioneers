@@ -18,15 +18,17 @@
   {% if glance.needs_total > glance.needs|length %}<p class="muted glance__more">and {{ glance.needs_total - glance.needs|length }} more in the list</p>{% endif %}
   {% endif %}
 
-  {% if glance.latest %}
-  <h3 class="glance__h">Latest ads</h3>
+  {% for who, title in (("Studio", "Latest by the studio"), ("Team", "Latest by the team")) %}
+  {% if glance.latest[who] %}
+  <h3 class="glance__h">{{ title }}</h3>
   <div class="glance__ads">
-    {% for a in glance.latest %}
+    {% for a in glance.latest[who] %}
     <a class="glance__ad" href="/studio/{{ a.ref }}" title="{{ a.name }}">
       <img src="{{ a.thumb }}" alt="{{ a.name }}" loading="lazy" data-thumb>
-      <span class="glance__ad-meta"><b>{{ a.ref }}</b><span class="glance__who glance__who--{{ a.who|lower }}">{{ a.who }}</span><span class="muted">{{ a.label }}</span></span>
+      <span class="glance__ad-meta"><b>{{ a.ref }}</b><span class="muted">{{ a.label }}</span></span>
     </a>
     {% endfor %}
   </div>
   {% endif %}
+  {% endfor %}
 </div>
