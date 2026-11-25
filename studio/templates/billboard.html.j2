@@ -8,8 +8,8 @@
 html,body{background:#0b0b0b}
 .big{font-weight:900;line-height:1;white-space:nowrap}
 .lockup{display:flex;align-items:center;gap:22px}
-.lockup .mark{width:300px;height:198px;overflow:hidden;position:relative}
-.lockup .mark img{position:absolute;left:-8px;top:-12px;width:316px}
+.lockup .mark{width:390px;height:258px;overflow:hidden;position:relative}
+.lockup .mark img{position:absolute;left:-10px;top:-16px;width:410px}
 .lockup .words{display:flex;flex-direction:column;line-height:1}
 .shadow-dark{text-shadow:0 8px 0 rgba(0,0,0,.55)}
 .shadow-soft{text-shadow:0 5px 0 rgba(0,0,0,.18)}
@@ -22,10 +22,10 @@ html,body{background:#0b0b0b}
 
 {# 1. the logo band #}
 <div class="abs" style="left:0;top:0;width:3000px;height:400px;background:#0b0b0b"></div>
-<div class="abs lockup" style="left:0;top:100px;width:3000px;justify-content:center">
+<div class="abs lockup" style="left:0;top:72px;width:3000px;justify-content:center">
   <div class="mark"><img src="{{ logo('auctioneers-on-dark') }}"></div>
-  <div class="words"><span style="font-weight:800;font-size:168px;letter-spacing:.03em">DYNAMIC</span>
-    <span class="goldtext" style="font-weight:600;font-size:74px;letter-spacing:.27em;margin-top:12px">AUCTIONEERS</span></div>
+  <div class="words"><span style="font-weight:800;font-size:200px;letter-spacing:.03em">DYNAMIC</span>
+    <span class="goldtext" style="font-weight:600;font-size:88px;letter-spacing:.27em;margin-top:14px">AUCTIONEERS</span></div>
 </div>
 <div class="abs" style="right:60px;top:44px;border:6px solid #fff;border-radius:64px;padding:14px 48px;font-weight:800;font-size:{{ 46 if f.master_ref else 56 }}px;line-height:1.15;text-align:center;white-space:nowrap">
   {% if f.master_ref %}MASTER REF:<br>{{ f.master_ref }}{% else %}REF: {{ ref }}{% endif %}
