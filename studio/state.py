@@ -32,10 +32,35 @@ CREATE TABLE IF NOT EXISTS studio (
 
 SLOTS = ("hero", "photo1", "photo2", "aerial")
 
+# Each property's set as the studio's own job sees it (D129): whether it is filed
+# in SharePoint, and what the folder held when it was last read (photos_sig /
+# docs_sig now, read_* when the words and photos were made), so the studio waits
+# while files are still arriving and catches up when more arrive later.
+SETS = """
+CREATE TABLE IF NOT EXISTS studio_sets (
+    ref         TEXT PRIMARY KEY,
+    status      TEXT NOT NULL DEFAULT '',     -- waiting | saving | saved | held | ready | failed | complete
+    message     TEXT NOT NULL DEFAULT '',
+    fingerprint TEXT NOT NULL DEFAULT '',     -- of what is in SharePoint now
+    mode        TEXT NOT NULL DEFAULT '',
+    cleared     TEXT NOT NULL DEFAULT '[]',   -- privacy warnings a person looked at
+    folder_url  TEXT NOT NULL DEFAULT '',
+    saved_at    TEXT NOT NULL DEFAULT '',
+    read_at     TEXT NOT NULL DEFAULT '',     -- when the studio last read it by itself
+    updated_at  TEXT NOT NULL DEFAULT ''
+);
+"""
+_SET_COLUMNS = ("photos_sig", "docs_sig", "changed_at", "read_photos_sig", "read_docs_sig")
+
 
 def _conn(db_path: Optional[str]) -> sqlite3.Connection:
     conn = models._connect(db_path)
     conn.executescript(SCHEMA)
+    conn.executescript(SETS)
+    have = {r["name"] for r in conn.execute("PRAGMA table_info(studio_sets)")}
+    for col in _SET_COLUMNS:
+        if col not in have:
+            conn.execute(f"ALTER TABLE studio_sets ADD COLUMN {col} TEXT NOT NULL DEFAULT ''")
     return conn
 
 
@@ -87,3 +112,29 @@ def all_rows(db_path: Optional[str]) -> dict[str, dict]:
     with _conn(db_path) as conn:
         rows = conn.execute("SELECT ref, mode, reading, updated_at, updated_by FROM studio").fetchall()
     return {r["ref"]: dict(r) for r in rows}
+
+
+# --- the set (studio_sets) ----------------------------------------------------------
+
+def get_set(db_path: Optional[str], ref: str) -> Optional[dict[str, Any]]:
+    with _conn(db_path) as conn:
+        r = conn.execute("SELECT * FROM studio_sets WHERE ref = ?", (ref,)).fetchone()
+    if not r:
+        return None
+    return {**dict(r), "cleared": json.loads(r["cleared"])}
+
+
+def all_sets(db_path: Optional[str]) -> dict[str, dict]:
+    with _conn(db_path) as conn:
+        rows = conn.execute("SELECT * FROM studio_sets").fetchall()
+    return {r["ref"]: {**dict(r), "cleared": json.loads(r["cleared"])} for r in rows}
+
+
+def set_status(db_path: Optional[str], ref: str, **cols: Any) -> None:
+    if "cleared" in cols:
+        cols["cleared"] = json.dumps(cols["cleared"])
+    cols["updated_at"] = _now()
+    with _conn(db_path) as conn:
+        conn.execute("INSERT OR IGNORE INTO studio_sets (ref) VALUES (?)", (ref,))
+        conn.execute(f"UPDATE studio_sets SET {', '.join(f'{k} = ?' for k in cols)} WHERE ref = ?",
+                     (*cols.values(), ref))

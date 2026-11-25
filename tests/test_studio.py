@@ -603,7 +603,7 @@ class FakeSharePoint:
 
 def _fake_build(prop, facts, picks, mode, items_by_id, kinds=None):
     from studio import facts as F
-    out = {F.name_for(prop, "ad", mode): f"AD {facts.get('headline')} {facts.get('price')} {facts.get('auction_date')}".encode(),
+    out = {F.name_for(prop, "ad", mode): f"AD {facts.get('headline')} {facts.get('price')} {facts.get('auction_date')} {picks.get('hero')}".encode(),
            F.name_for(prop, "board", mode): f"BOARD {facts.get('headline')}".encode(),
            F.name_for(prop, "infopack", mode): f"PACK {facts.get('headline')}".encode()}
     if mode == "auction":
@@ -856,3 +856,78 @@ def test_a_folder_with_the_teams_whole_set_is_not_read_or_filed(auto, mirror):
     assert auto.reads == [] and auto.sp.calls == []      # "await ad" on the sheet, but nothing missing
     s = publish.publish(auto.app.db, catalog.get("DP9001"), auto.sp, force=True)
     assert s["status"] == "complete" and auto.sp.calls == []
+
+
+
+def _add_item(mirror_db, rel, item_id, *, modified=1.0, size=50_000):
+    import time as _t
+    conn = sqlite3.connect(mirror_db)
+    path = f"{AAA}/9001 - RHEDE BOERDERY BK_BR_/{rel}"
+    conn.execute("INSERT INTO items VALUES ('drv', ?, ?, 0, ?, ?, NULL, ?)",
+                 (item_id, rel.rsplit("/", 1)[-1], _t.time() if modified == "now" else modified, size, path))
+    conn.commit()
+    conn.close()
+
+
+def _quiet_since_yesterday(db, ref="DP9001"):
+    from studio import state
+    state.set_status(db, ref, changed_at="2026-01-01T00:00:00+00:00")
+
+
+def test_a_folder_still_filling_up_waits_a_day(auto, mirror):
+    from studio import state
+    _add_item(mirror.db, "Media/Photos/Overall/kitchen.jpg", "fresh1", modified="now")   # uploaded just now
+    log = auto.run()
+    assert auto.reads == [] and any("still arriving" in line for line in log)
+    s = state.get_set(auto.app.db, "DP9001")
+    assert s["status"] == "waiting" and "nothing new has arrived for 24 hours" in s["message"]
+    assert "Read the documents" in s["message"]
+    _quiet_since_yesterday(auto.app.db)
+    auto.run()
+    assert auto.reads == ["DP9001"] and state.get_set(auto.app.db, "DP9001")["status"] == "saved"
+
+
+def test_photos_that_arrive_later_are_chosen_again_and_filed(auto, mirror, monkeypatch):
+    from studio import photopick, state
+    auto.run()
+    _add_item(mirror.db, "Media/Photos/Inspection/front.jpg", "front1")
+    auto.sp.calls.clear()
+    auto.run()                                          # just arrived: wait, and the set stays filed
+    assert auto.sp.calls == [] and state.get_set(auto.app.db, "DP9001")["status"] == "saved"
+    asked = []
+    monkeypatch.setattr(photopick, "choose", lambda prop, photos, auction, about="": asked.append(1) or {"hero": "front1"})
+    _quiet_since_yesterday(auto.app.db)
+    log = auto.run()
+    assert asked and any("chose the photos again for DP9001" in line for line in log)
+    assert auto.reads == ["DP9001"]                     # the documents were not read again
+    assert ("replace", "DP9001 AUCTION AD.png") in auto.sp.calls
+    auto.sp.calls.clear()
+    auto.run()
+    assert auto.sp.calls == [] and len(asked) == 1      # caught up: nothing more to do
+
+
+def test_her_own_photo_choice_is_not_redone(auto, mirror, monkeypatch):
+    from studio import photopick
+    auto.run()
+    c = auto.app.login()
+    c.post("/studio/DP9001/pick", data={"slot": "hero", "item": "id1"})
+    _add_item(mirror.db, "Media/Photos/Inspection/front.jpg", "front1")
+    auto.run()
+    asked = []
+    monkeypatch.setattr(photopick, "choose", lambda *a, **k: asked.append(1) or {"hero": "front1"})
+    _quiet_since_yesterday(auto.app.db)
+    from webapp import models
+    with models._connect(auto.app.db) as conn:          # her pick was over ten minutes ago
+        conn.execute("UPDATE studio SET updated_at = '2026-01-01T00:00:00+00:00' WHERE ref = 'DP9001'")
+    auto.run()
+    assert asked == []
+
+
+def test_a_new_document_means_the_documents_are_read_again(auto, mirror):
+    auto.run()
+    _add_item(mirror.db, "OTP & ROA/9001 - OTP v2.docx", "otp2", size=20_000)
+    auto.run()
+    assert auto.reads == ["DP9001"]
+    _quiet_since_yesterday(auto.app.db)
+    log = auto.run()
+    assert auto.reads == ["DP9001", "DP9001"] and any("new documents" in line for line in log)

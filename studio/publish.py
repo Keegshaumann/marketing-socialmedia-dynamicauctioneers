@@ -40,18 +40,6 @@ log = logging.getLogger("studio.publish")
 RENDER_VERSION = "1"
 
 SCHEMA = """
-CREATE TABLE IF NOT EXISTS studio_sets (
-    ref         TEXT PRIMARY KEY,
-    status      TEXT NOT NULL DEFAULT '',     -- saving | saved | held | ready | failed | complete
-    message     TEXT NOT NULL DEFAULT '',
-    fingerprint TEXT NOT NULL DEFAULT '',     -- of what is in SharePoint now
-    mode        TEXT NOT NULL DEFAULT '',
-    cleared     TEXT NOT NULL DEFAULT '[]',   -- privacy warnings a person looked at
-    folder_url  TEXT NOT NULL DEFAULT '',
-    saved_at    TEXT NOT NULL DEFAULT '',
-    read_at     TEXT NOT NULL DEFAULT '',     -- when the studio last read it by itself
-    updated_at  TEXT NOT NULL DEFAULT ''
-);
 CREATE TABLE IF NOT EXISTS studio_files (
     ref       TEXT NOT NULL,
     name      TEXT NOT NULL,
@@ -79,28 +67,8 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
-def get_set(db: str, ref: str) -> Optional[dict]:
-    with _conn(db) as conn:
-        r = conn.execute("SELECT * FROM studio_sets WHERE ref = ?", (ref,)).fetchone()
-    if not r:
-        return None
-    return {**dict(r), "cleared": json.loads(r["cleared"])}
-
-
-def all_sets(db: str) -> dict[str, dict]:
-    with _conn(db) as conn:
-        rows = conn.execute("SELECT ref, status, message, saved_at, read_at, updated_at FROM studio_sets").fetchall()
-    return {r["ref"]: dict(r) for r in rows}
-
-
-def set_status(db: str, ref: str, **cols: Any) -> None:
-    if "cleared" in cols:
-        cols["cleared"] = json.dumps(cols["cleared"])
-    cols["updated_at"] = _now()
-    with _conn(db) as conn:
-        conn.execute("INSERT OR IGNORE INTO studio_sets (ref) VALUES (?)", (ref,))
-        conn.execute(f"UPDATE studio_sets SET {', '.join(f'{k} = ?' for k in cols)} WHERE ref = ?",
-                     (*cols.values(), ref))
+# The set's state lives with the property's other state (studio.state).
+get_set, all_sets, set_status = state.get_set, state.all_sets, state.set_status
 
 
 def files(db: str, ref: str) -> dict[str, dict]:

@@ -11,6 +11,8 @@
         {% if st == 'saved' %}
           <strong>In SharePoint.</strong> <span class="muted">{{ set.message }}</span><br>
           <span class="muted">When the price or auction date changes on the sheets, or you change something here, the studio saves it again by itself within 15 minutes.</span>
+        {% elif st == 'waiting' %}
+          <strong>Waiting for the folder.</strong> <span class="muted">{{ set.message }}</span>
         {% elif st == 'complete' %}
           <strong>Nothing to save.</strong> <span class="muted">{{ set.message }}</span>
         {% elif st == 'held' %}

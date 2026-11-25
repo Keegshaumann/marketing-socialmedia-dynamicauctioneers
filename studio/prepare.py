@@ -90,7 +90,14 @@ def choose_photos(db: str, prop: catalog.Property, items: list, row: dict, mode:
         return False
     fresh = state.load(db, prop.ref)               # she may have placed a photo meanwhile
     state.save(db, prop.ref, photos={**((fresh and fresh["photos"]) or {}), "claude": chosen})
+    state.set_status(db, prop.ref, read_photos_sig=catalog.signatures(items)[0])
     return True
+
+
+def placed_by_a_person(row: dict) -> bool:
+    """She put a photo in a slot or changed the pack's photos herself."""
+    p = row.get("photos") or {}
+    return any(p.get(k) for k in state.SLOTS) or "gallery" in p
 
 
 def read(db: str, ref: str, by: str) -> None:
@@ -121,6 +128,8 @@ def read(db: str, ref: str, by: str) -> None:
         # The studio's own read leaves updated_by alone: "You worked on" is for people.
         state.save(db, ref, facts=merged, reading="done", warnings=warnings, message=note,
                    by="" if by == STUDIO else by)
+        ph, dc = catalog.signatures(items)
+        state.set_status(db, ref, read_docs_sig=dc, read_photos_sig=ph)
     except Exception as exc:  # shown to her; the details go to the log
         log.exception("studio read failed for %s", ref)
         msg = str(exc) if isinstance(exc, StoreError) else "Reading the documents failed. Try again, or type the details in."

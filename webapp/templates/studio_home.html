@@ -15,6 +15,7 @@
     {% if r.worked and r.worked.reading == 'running' %}<span class="badge badge--note" title="Claude is reading the folder">Preparing</span>
     {% elif st == 'saved' %}<span class="badge badge--ok" title="{{ r.set.message }}">In SharePoint</span>
     {% elif st == 'held' %}<span class="badge badge--block" title="{{ r.set.message }}">Check</span>
+    {% elif st == 'waiting' %}<span class="badge badge--neutral" title="{{ r.set.message }}">Waiting</span>
     {% elif st == 'ready' %}<span class="badge badge--neutral" title="{{ r.set.message }}">Ready</span>
     {% elif st == 'failed' %}<span class="badge badge--block" title="{{ r.set.message }}">Didn't save</span>{% endif %}
     {% for key, label in kit_labels %}
