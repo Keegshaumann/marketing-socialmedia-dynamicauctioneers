@@ -142,6 +142,11 @@ director's) stays read-only:
 
 The certificate is valid two years (renewal steps are in the script's header).
 
+Done on 25 Nov 2026: app "Dynamic Ad Studio", client `e0f0469c-a382-447b-8cd1-6a8dbee29bb0`,
+certificate thumbprint `3F5467C2E74493CEE15BDF6ADAE66CE8E7593AFF` (expires 23 Nov 2028),
+write on the Marketing site only (CompanyShare answers 403). The `.env` from
+before is in `/var/backups/da-marketing/env.before-studio-write.*`.
+
 ## First-time provisioning (how this box was built)
 
 For rebuilding from scratch: install `python3-venv python3-pip nginx certbot
