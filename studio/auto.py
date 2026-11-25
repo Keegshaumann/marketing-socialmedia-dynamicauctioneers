@@ -277,7 +277,7 @@ def run(db: str, w: Optional[Writer] = None, *, reads: int = 4, dry_run: bool = 
     jobs.sort(key=lambda j: j[0])
     for _, kind, p, why in jobs[:reads]:
         if dry_run:
-            say(f"{'read' if kind == 'read' else 'choose photos for'} {p.ref} ({why})")
+            say({"read": f"read {p.ref} ({why})", "details": f"read {why} for {p.ref}"}.get(kind, f"choose photos for {p.ref} ({why})"))
             continue
         if kind == "read":
             state.set_status(db, p.ref, read_at=datetime.now(timezone.utc).isoformat(timespec="seconds"))
