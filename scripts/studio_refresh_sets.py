@@ -9,6 +9,9 @@ For every property the studio has read (or the ones named):
   tracking link to the property's page), when there is one;
 - the office number written the one way in the words.
 
+With --full, every set is read again in full instead (documents and photos, about
+R10 each): the way to bring prepared sets onto new reading rules.
+
 With --choose-photos, Claude chooses the photos again (the ads now use three
 beside the background; about R2 each, no documents), unless a person placed photos.
 
@@ -36,6 +39,23 @@ load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 
 from studio import catalog, facts as F, prepare, state  # noqa: E402
 from webapp import models  # noqa: E402
+
+
+def full_read(db: str, ref: str, dry_run: bool) -> str:
+    prop = catalog.get(ref)
+    row = state.load(db, ref)
+    if prop is None or row is None or row["reading"] != "done":
+        return f"{ref}: skipped (not read)"
+    if dry_run:
+        return f"{ref}: would read again"
+    prepare.read(db, ref, prepare.STUDIO)
+    f = state.load(db, ref)
+    facts = f["facts"]
+    units = "".join(f" | {u.get('title')}: " + " / ".join(i["text"] for i in u.get("items", []))
+                    for u in facts.get("extra_units") or [])
+    return (f"{ref}: {f['reading']} | " + " / ".join(x["text"] for x in facts.get("features") or []) + units
+            + (" | whole property: " + " / ".join(x["text"] for x in facts.get("shared_features") or [])
+               if facts.get("shared_features") else ""))
 
 
 def refresh(db: str, ref: str, dry_run: bool, read_when_thin: bool = False, choose_photos: bool = False) -> str:
@@ -92,9 +112,15 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--read-when-thin", action="store_true")
     ap.add_argument("--choose-photos", action="store_true")
+    ap.add_argument("--full", action="store_true")
     args = ap.parse_args()
     db = models.resolve_db_path()
     refs = args.refs or sorted(ref for ref, r in state.all_rows(db).items() if r["reading"] == "done")
+    if args.full:
+        with ThreadPoolExecutor(3) as ex:
+            for line in ex.map(lambda r: full_read(db, r, args.dry_run), refs):
+                print(line, flush=True)
+        return 0
     with ThreadPoolExecutor(4) as ex:
         for line in ex.map(lambda r: refresh(db, r, args.dry_run, args.read_when_thin, args.choose_photos), refs):
             print(line, flush=True)
