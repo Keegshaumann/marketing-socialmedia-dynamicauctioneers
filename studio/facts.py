@@ -76,9 +76,11 @@ FEATURES_RULE = (
     "suburb, the sale type) and never filler a buyer doesn't choose on: \"residential property\" or "
     "\"residential stand\", freehold or sectional title, zoning, distances to schools, police stations or "
     "shops, \"established area\", \"good condition\", \"low rates\". Each feature is a concrete fact about "
-    "this property from the documents. When the documents are thin, use concrete things they do give, such as "
-    "the building's size, a boundary wall, a carport, municipal water and electricity, or the monthly rates "
-    "as an amount (\"RATES ± R350 PM\")."
+    "this property from the documents, never the street address, erf or title deed number (they are printed "
+    "elsewhere) and never a negative (\"no improvements\"). Zoning counts only for vacant land, where it "
+    "says what may be built. When the documents are thin, use concrete things they do give (the building's "
+    "size, a boundary wall, a carport, the monthly rates as an amount). If they don't give 4 real features, "
+    "give only the real ones and stop: a person adds the rest. Never pad."
 )
 
 

@@ -620,7 +620,9 @@ def auto(app, monkeypatch):
 
     def fake_read(prop, items, sheets):
         reads.append(prop.ref)
-        return {"headline": "MAKHADO | LIMPOPO", "subline": "MACADAMIA FARM", "caption": "Farm for sale."}, []
+        return {"headline": "MAKHADO | LIMPOPO", "subline": "MACADAMIA FARM", "caption": "Farm for sale.",
+                "features": [{"icon": "ha", "text": "±38.15 ha"}, {"icon": "park", "text": "MACADAMIAS"},
+                             {"icon": "water_drop", "text": "BOREHOLE"}, {"icon": "home", "text": "FARMHOUSE"}]}, []
 
     monkeypatch.setattr(F, "read_documents", fake_read)
     monkeypatch.setattr(photopick, "choose", lambda prop, photos, auction, about="": {})
@@ -713,7 +715,8 @@ def test_a_privacy_warning_waits_for_a_person(auto, monkeypatch):
     from studio import facts as F, publish
     from webapp.routes import studio as routes
     monkeypatch.setattr(F, "read_documents", lambda prop, items, sheets: (
-        {"headline": "RHEDE | LIMPOPO"}, ["Mentions RHEDE from the file name: check before it goes out."]))
+        {"headline": "RHEDE | LIMPOPO", "features": [{"icon": "ha", "text": f"FEATURE {n}"} for n in range(4)]},
+        ["Mentions RHEDE from the file name: check before it goes out."]))
     auto.run()
     s = publish.get_set(auto.app.db, "DP9001")
     assert s["status"] == "held" and "RHEDE" in s["message"] and auto.sp.calls == []
@@ -987,3 +990,14 @@ def test_the_studios_qr_codes_scan_and_reuse_the_teams_link(mirror):
     conn.commit()
     conn.close()
     assert F.team_qr_link(catalog.items(catalog.get("DP9001"))) == link
+
+
+def test_a_set_with_fewer_than_four_real_features_waits_for_a_person(auto, monkeypatch):
+    from studio import facts as F, publish
+    monkeypatch.setattr(F, "read_documents", lambda prop, items, sheets: (
+        {"headline": "RENOVAAL | FREE STATE", "features": [{"icon": "m2", "text": "±1250m² ERF"},
+                                                          {"icon": "bolt", "text": "MUNICIPAL SERVICES"},
+                                                          {"icon": "home", "text": "VACANT STAND"}]}, []))
+    auto.run()
+    s = publish.get_set(auto.app.db, "DP9001")
+    assert s["status"] == "held" and "a fourth feature" in s["message"] and auto.sp.calls == []

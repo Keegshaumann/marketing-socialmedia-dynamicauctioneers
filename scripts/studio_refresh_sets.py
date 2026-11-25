@@ -46,9 +46,10 @@ def refresh(db: str, ref: str, dry_run: bool) -> str:
         except Exception as exc:  # keep the old ones; say why
             new = []
             notes.append(f"features kept ({exc})")
-        if 4 <= len(new) <= 5:
+        if new:   # fewer than 4 holds the set for a person to add one (publish.missing)
             facts["features"] = new
-            notes.append("features: " + " / ".join(f["text"] for f in new))
+            notes.append(("features: " if len(new) >= 4 else f"only {len(new)} real features: ")
+                         + " / ".join(f["text"] for f in new))
     if "qr_link" not in row["edited"]:
         link = F.team_qr_link(catalog.items(prop))
         if link and link != facts.get("qr_link"):

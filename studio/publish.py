@@ -119,6 +119,9 @@ def missing(row: dict, pk: dict) -> list[str]:
         out.append("a background photo")
     if row["mode"] == "auction" and not (f.get("auction_date") or "").strip():
         out.append("the auction date")
+    real = [x for x in f.get("features") or [] if (x.get("text") or "").strip()]
+    if len(real) < 4:
+        out.append("a fourth feature" if len(real) == 3 else f"{4 - len(real)} more features (4 or 5 in all)")
     return out
 
 
