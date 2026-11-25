@@ -24,7 +24,10 @@ MARKETING = "Marketing - Documents"
 IMAGE_EXT = (".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif")
 # Files in the folders that are the team's finished artwork, not photos.
 _ARTWORK = re.compile(r"\b(AD|ADS|REEL|BANNER|ICON|QR|BOARD|BORD|BILLBOARD|LOGO|DISCOVERY|RESPONSIVE|"
-                      r"SOLD|POSTER|FLYER|MAILER)\b|\bAD\s*\d|\d+\s*X\s*\d+", re.I)
+                      r"SOLD|POSTER|FLYER|MAILER|COVER)\b|\bAD\s*\d|\d+\s*X\s*\d+", re.I)
+# In the ad folders the team saves its GoHighLevel QR codes under the bare property
+# number ("DP2924.png", "DP2962.4.png"): artwork, never a photo.
+_BARE_REF = re.compile(r"^(DP)?\s*\d{3,5}(\.\d+)?(\s*\(\d+\))?$", re.I)
 
 
 def director_db() -> str:
@@ -230,7 +233,8 @@ def _photo_items(all_items: list[Item]) -> list[Item]:
         if top in ("PROOF OF MARKETING", "INSTRUCTION", "CORRESPONDENCE", "INVOICES", "LEADS", "OFFERS",
                    "RATES AND TAXES", "VAT", "QUOTES", "OTP & ROA", "BODY CORPORATE DETAILS"):
             continue
-        if top.startswith("ADVERTISEMENT") and _ARTWORK.search(os.path.splitext(i.name)[0]) and "IMAGES" not in i.rel.upper():
+        stem = os.path.splitext(i.name)[0].strip()
+        if top.startswith("ADVERT") and (_ARTWORK.search(stem) or _BARE_REF.match(stem)) and "IMAGES" not in i.rel.upper():
             continue
         out.append(i)
     return out

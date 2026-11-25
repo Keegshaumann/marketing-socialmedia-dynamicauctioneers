@@ -58,7 +58,11 @@ dwelling, sheds, orchards). Pick the most attractive, bright and well-composed o
 outside first, then living areas, kitchen, bedrooms, bathrooms, outbuildings, garden and extras. \
 No near-duplicates.
 
-Never choose for aerial, hero, photo1, photo2 or photo3: close-ups of damage or defects (cracks, damp, broken \
+Only satellite or drone imagery counts as an aerial: a street map or a screenshot of a map app (street \
+names on grey or white roads) is never the aerial, the hero or a supporting photo.
+
+Never choose for aerial, hero, photo1, photo2 or photo3: QR codes, logos, adverts or other artwork, \
+close-ups of damage or defects (cracks, damp, broken \
 fittings), clutter or rubbish, dark, blurred or badly tilted shots, people, vehicles with readable \
 number plates, documents, screenshots, meters, or bare walls, floors and ceilings. Leave damage out of \
 the gallery too unless the folder has nothing else. A folder named TO BE USED holds the team's own \

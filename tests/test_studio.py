@@ -1001,3 +1001,13 @@ def test_a_set_with_fewer_than_four_real_features_waits_for_a_person(auto, monke
     auto.run()
     s = publish.get_set(auto.app.db, "DP9001")
     assert s["status"] == "held" and "a fourth feature" in s["message"] and auto.sp.calls == []
+
+
+def test_the_teams_qr_codes_and_covers_are_not_photos(mirror):
+    from studio import catalog
+    for n, rel in enumerate(["Advertisements/DP9001.png", "Advertisements/AUCTION/9001 (1).png",
+                             "Advertisements/Cover Image.png", "Advertisements/IMAGES/aerial view.png"]):
+        _add_item(mirror.db, rel, f"art{n}")
+    names = {p.rel for p in catalog.photos(catalog.items(catalog.get("DP9001")))}
+    assert "Advertisements/IMAGES/aerial view.png" in names
+    assert not names & {"Advertisements/DP9001.png", "Advertisements/AUCTION/9001 (1).png", "Advertisements/Cover Image.png"}
