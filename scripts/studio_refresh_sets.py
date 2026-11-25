@@ -9,6 +9,9 @@ For every property the studio has read (or the ones named):
   tracking link to the property's page), when there is one;
 - the office number written the one way in the words.
 
+With --choose-photos, Claude chooses the photos again (the ads now use three
+beside the background; about R2 each, no documents), unless a person placed photos.
+
 With --read-when-thin, a property that comes back with fewer than 4 real
 features is read again in full (documents and photos, about R10), since the
 summary of the first read may have left out what the documents say.
@@ -35,7 +38,7 @@ from studio import catalog, facts as F, prepare, state  # noqa: E402
 from webapp import models  # noqa: E402
 
 
-def refresh(db: str, ref: str, dry_run: bool, read_when_thin: bool = False) -> str:
+def refresh(db: str, ref: str, dry_run: bool, read_when_thin: bool = False, choose_photos: bool = False) -> str:
     prop = catalog.get(ref)
     row = state.load(db, ref)
     if prop is None or row is None or row["reading"] != "done":
@@ -67,6 +70,14 @@ def refresh(db: str, ref: str, dry_run: bool, read_when_thin: bool = False) -> s
         again = state.load(db, ref)
         feats = again["facts"].get("features") or []
         notes.append(f"read again in full ({again['reading']}): " + " / ".join(x["text"] for x in feats))
+    if choose_photos and not dry_run and not any("read again" in n for n in notes):
+        row = state.load(db, ref)
+        if prepare.placed_by_a_person(row):
+            notes.append("photos left as she placed them")
+        else:
+            items = catalog.items(prop)
+            ok = prepare.choose_photos(db, prop, items, row, row["mode"] or prepare.auto_mode(prop))
+            notes.append("photos chosen again" if ok else "photo choice failed; kept")
     return f"{ref}: " + ("; ".join(notes) or "nothing to change")
 
 
@@ -75,11 +86,12 @@ def main() -> int:
     ap.add_argument("refs", nargs="*")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--read-when-thin", action="store_true")
+    ap.add_argument("--choose-photos", action="store_true")
     args = ap.parse_args()
     db = models.resolve_db_path()
     refs = args.refs or sorted(ref for ref, r in state.all_rows(db).items() if r["reading"] == "done")
     with ThreadPoolExecutor(4) as ex:
-        for line in ex.map(lambda r: refresh(db, r, args.dry_run, args.read_when_thin), refs):
+        for line in ex.map(lambda r: refresh(db, r, args.dry_run, args.read_when_thin, args.choose_photos), refs):
             print(line, flush=True)
     return 0
 
