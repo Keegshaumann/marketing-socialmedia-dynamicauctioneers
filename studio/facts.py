@@ -385,7 +385,7 @@ _READ = (
     ("report", "PROPERTY REPORT (inspection)", 2, 40, 60_000),
     ("lightstone", "LIGHTSTONE / DEEDS REPORT", 4, 20, 40_000),
     ("valuation", "VALUATION", 1, 25, 40_000),
-    ("otp", "OFFER TO PURCHASE / CONDITIONS OF SALE", 1, 0, 60_000),
+    ("otp", "OFFER TO PURCHASE / CONDITIONS OF SALE", 1, 30, 60_000),     # 30 pages when it is a PDF
     ("infopack", "AN EARLIER INFO PACK FOR THIS PROPERTY", 1, 20, 30_000),
     ("proposal", "AUCTION PROPOSAL", 1, 0, 20_000),
 )

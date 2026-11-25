@@ -3,7 +3,8 @@
     python -m studio.auto [--reads N] [--dry-run]
 
 1. **Prepares** each open property that needs an ad (the list's "Waiting on an
-   ad" and "Being marketed, no ad" groups) once its folder is ready, meaning at
+   ad" and "Being marketed, no ad" groups), and each auction coming up whose ad the
+   team made but which has no info pack yet (DP3107), once its folder is ready, meaning at
    least one Lightstone, property report, valuation or OTP and four photos, and
    still missing part of the set (an "await ad" note can outlive the ad):
    Claude reads the documents and chooses the photos, exactly as the "Read the
@@ -50,13 +51,30 @@ RETRY_READ = timedelta(hours=20)
 
 
 def needs_ad(p: catalog.Property, kit: dict, today: date) -> str:
-    """'waiting' | 'no_ad' | '' : the same groups as the studio's list."""
+    """'waiting' | 'no_ad' | 'no_pack' | '' : the list's groups, and 'no_pack' for a
+    property being marketed or going to auction whose ad the team made but which has no
+    info pack in the folder."""
     upcoming = bool(p.auction_date and p.auction_date >= today)
     if p.waiting_on_ad or (upcoming and not kit.get("auction_ad")):
         return "waiting"
-    if p.status == "Being marketed" and not upcoming and not (kit.get("forsale_ad") or kit.get("auction_ad")):
+    marketed = p.status == "Being marketed"
+    if marketed and not upcoming and not (kit.get("forsale_ad") or kit.get("auction_ad")):
         return "no_ad"
+    if (upcoming or marketed) and not kit.get("infopack"):
+        return "no_pack"
     return ""
+
+
+def reads_by_itself(db: str, p: catalog.Property, group: str, today: date) -> bool:
+    """Whether the studio prepares this property without being asked. A missing info
+    pack alone counts only for an auction coming up, unless the setting
+    ``studio_marketed_packs`` is on (on 25 Nov 2026 that was 69 properties, about R700
+    of reads); the rest can be rushed one by one."""
+    from webapp import models
+
+    if group != "no_pack" or (p.auction_date and p.auction_date >= today):
+        return bool(group)
+    return (models.get_setting(db, "studio_marketed_packs", "off") or "off").lower() == "on"
 
 
 def folder_ready(items: list[catalog.Item]) -> bool:
@@ -196,7 +214,7 @@ def run(db: str, w: Optional[Writer] = None, *, reads: int = 4, dry_run: bool = 
     wanted = {}
     for p in props:
         group = needs_ad(p, kits.get(p.folder, {}), today)
-        if group:
+        if group and reads_by_itself(db, p, group, today):
             wanted[p.ref] = (p, group)
     # Files marketed together (DP2956.1 and .2) get one set, from the first of them.
     for ref in list(wanted):

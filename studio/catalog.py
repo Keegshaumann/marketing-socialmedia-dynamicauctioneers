@@ -269,6 +269,33 @@ def _photo_items(all_items: list[Item]) -> list[Item]:
     return out
 
 
+# The offer to purchase or conditions of sale (the pack's Sale overview comes from it). Teams
+# file it many ways: "OTP & ROA/3107 - OTP.docx", "3.OTP-signed/...", "Nedbank conditions of
+# sale.pdf" loose in the folder, "Property Info Mailer/Documents/OTP.pdf" (25 Nov 2026: 22 open
+# properties had theirs where the first rule, a .docx under a top folder named OTP, missed it).
+_OTP_NAME = re.compile(r"(?<![A-Z])OTP(?![A-Z])|OFFER\s*TO\s*PURCHASE|CONDITIONS?\s*OF\s*SALE|SALE\s*AGREEMENT|"
+                       r"AGREEMENT\s*OF\s*SALE|DEED\s*OF\s*SALE", re.I)
+_OTP_FOLDER = re.compile(r"^(\d+\s*[.)-]?\s*)?(OTP|OFFERS?\s*TO\s*PURCHASE)(?![A-Z])", re.I)
+_NOT_OTP = re.compile(r"RULES|(?<![A-Z])ROA(?![A-Z])", re.I)
+
+
+def otp_rank(i: Item) -> Optional[tuple]:
+    """How good a candidate for the OTP this file is (lower is better), or None when it
+    isn't one. Never the offers buyers signed (an "Offers" folder: names and amounts),
+    the rules of auction, or anything in the ad or info pack folders."""
+    if i.is_folder or i.ext not in (".docx", ".pdf"):
+        return None
+    folders = [f.upper() for f in i.rel.split("/")[:-1]]
+    if any("OFFERS" in f and not _OTP_FOLDER.match(f) for f in folders) or _NOT_OTP.search(i.name):
+        return None
+    if folders and folders[0].startswith(("ADVERT", "INFO PACK", "MEDIA")):
+        return None
+    named = bool(_OTP_NAME.search(i.name))
+    if not named and not any(_OTP_FOLDER.match(f) for f in folders):
+        return None
+    return (not named, i.ext != ".docx", -i.modified)
+
+
 def documents(all_items: list[Item]) -> dict[str, list[Item]]:
     """The documents worth reading for the facts, newest first per kind."""
     kinds: dict[str, list[Item]] = {"lightstone": [], "report": [], "otp": [], "valuation": [],
@@ -281,7 +308,7 @@ def documents(all_items: list[Item]) -> dict[str, list[Item]]:
             kinds["lightstone"].append(i)
         elif top.startswith("PROPERTY REPORT") and ext in (".docx", ".pdf"):
             kinds["report"].append(i)
-        elif top.startswith(("OTP", "OFFER TO PURCHASE")) and ext == ".docx" and "RULES" not in name:
+        elif otp_rank(i) is not None:
             kinds["otp"].append(i)
         elif top.startswith("VALUATION") and ext == ".pdf":
             kinds["valuation"].append(i)
@@ -294,6 +321,7 @@ def documents(all_items: list[Item]) -> dict[str, list[Item]]:
     for k in kinds:
         # A Word property report beats its PDF twin (cleaner text); then newest first.
         kinds[k].sort(key=lambda i: (i.ext != ".docx", -i.modified))
+    kinds["otp"].sort(key=otp_rank)          # named as one first, then Word, then newest
     # The property's valuation, not the one for the movables kept beside it.
     kinds["valuation"].sort(key=lambda i: (bool(re.search(r"MOVE?ABLE", i.name.upper())),
                                            "PROPERT" not in i.name.upper(), -i.modified))

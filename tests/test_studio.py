@@ -1492,3 +1492,58 @@ def test_rechoosing_photos_changes_only_the_slots_she_asked_about(mirror, monkey
     got = photopick.rechoose(prop, photos, auction=True, wish="the orchard as the background", current=current)
     assert "aerial: P1" in sent["text"] and "Her request: the orchard as the background" in sent["text"]
     assert got == {"aerial": pool[2].item_id, "photo1": pool[0].item_id}   # hero was not asked about
+
+
+# --- the OTP wherever the team keeps it, and the pack the team didn't make -----------------
+
+def test_the_otp_is_found_wherever_the_team_keeps_it():
+    from studio import catalog
+
+    def item(rel, modified=1.0):
+        return catalog.Item("d", rel, rel.rsplit("/", 1)[-1], "P/" + rel, rel, False, 10, modified)
+
+    def otps(*rels):
+        return [i.rel for i in catalog.documents([item(r, n) for n, r in enumerate(rels)])["otp"]]
+
+    assert otps("OTP & ROA/3107 - OTP.docx", "OTP & ROA/3107 - RULES OF AUCTION.docx") == ["OTP & ROA/3107 - OTP.docx"]
+    assert otps("Nedbank conditions of sale.pdf") == ["Nedbank conditions of sale.pdf"]           # loose, a PDF
+    assert otps("3.OTP-signed/Seller draft.docx") == ["3.OTP-signed/Seller draft.docx"]            # numbered folder
+    assert otps("2383(1) Erf 12/OTP & ROA/OTP.pdf") == ["2383(1) Erf 12/OTP & ROA/OTP.pdf"]        # one level down
+    assert otps("Property Info Mailer/Documents/Offer to Purchase.pdf") != []
+    assert otps("Offers/OTP - J Smith R450k.pdf", "Signed offers/Offer to purchase.pdf") == []     # buyers' offers
+    assert otps("OTP & ROA/ROA.docx", "Advertisements/DP1 OTP QR.png", "Media/OTP scan.pdf") == []
+    # named as an OTP beats any other file in the folder, and Word beats PDF
+    assert otps("OTP & ROA/Annexure A plan.pdf", "OTP & ROA/OTP.pdf", "OTP & ROA/OTP.docx")[:2] == [
+        "OTP & ROA/OTP.docx", "OTP & ROA/OTP.pdf"]
+
+
+def test_a_pdf_otp_is_read_for_its_pages():
+    from studio import facts as F
+    assert next(r for r in F._READ if r[0] == "otp")[3] >= 20
+
+
+def test_an_auction_whose_ad_the_team_made_still_gets_its_pack(auto, mirror):
+    from studio import auto as A, catalog, publish
+    _add_item(mirror.db, "Advertisements/DP9001 AUCTION AD.png", "teamad")
+    p = catalog.get("DP9001")
+    kit = catalog.kit(catalog.items(p))
+    assert A.needs_ad(p, kit, date.today()) == "no_pack"
+    auto.run()
+    assert auto.reads == ["DP9001"]
+    added = sorted(path for op, path in auto.sp.calls if op == "add")
+    assert "Info Pack/DP9001 AUCTION INFO PACK.pdf" in added
+    assert not any(path.endswith("AUCTION AD.png") or path.endswith("AD 2.png") for path in added)   # theirs stands
+    assert publish.get_set(auto.app.db, "DP9001")["status"] == "saved"
+
+
+def test_a_marketed_property_missing_only_its_pack_waits_for_the_setting(app):
+    from studio import auto as A
+    from webapp import models
+    p = SimpleNamespace(auction_date=None, status="Being marketed", waiting_on_ad=False)
+    kit = {"forsale_ad": True, "infopack": False}
+    assert A.needs_ad(p, kit, date.today()) == "no_pack"
+    assert not A.reads_by_itself(app.db, p, "no_pack", date.today())
+    models.set_setting(app.db, "studio_marketed_packs", "on")
+    assert A.reads_by_itself(app.db, p, "no_pack", date.today())
+    assert A.needs_ad(p, {**kit, "infopack": True}, date.today()) == ""
+    assert A.reads_by_itself(app.db, p, "no_ad", date.today())
