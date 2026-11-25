@@ -151,6 +151,13 @@ def open_properties() -> list[Property]:
     return sorted(out, key=_ref_key, reverse=True)
 
 
+def siblings(prop: Property) -> list[str]:
+    """The other open files kept in the same folder (DP2655.2, .3 and .4 share one)."""
+    with _connect() as conn:
+        rows = conn.execute("SELECT id, data FROM files WHERE dept = 'property' AND state = 'open'").fetchall()
+    return sorted(r["id"] for r in rows if r["id"] != prop.ref and json.loads(r["data"]).get("folder") == prop.folder)
+
+
 def get(ref: str) -> Optional[Property]:
     ref = normalise_ref(ref)
     with _connect() as conn:
