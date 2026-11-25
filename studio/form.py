@@ -52,12 +52,14 @@ def to_form(facts: dict) -> dict[str, Any]:
         lines = []
         for g in facts.get(k) or []:
             lines.append(f"{g.get('title', '')}:")
-            lines += [" | ".join(x for x in (it.get("icon", ""), it.get("text", ""), it.get("note", "")) if x)
-                      if it.get("note") else f"{it.get('icon', '')} | {it.get('text', '')}" for it in g.get("items") or []]
+            lines += [f"{it.get('icon', '')} | {it.get('text', '')}" for it in g.get("items") or []]
             lines.append("")
         v[k] = "\n".join(lines).strip()
     for k, n in FEATURE_SLOTS.items():
-        items = [dict({"note": ""}, **it) for it in (facts.get(k) or [])]
+        items = []
+        for it in facts.get(k) or []:            # "TEXT | small note" shows as two boxes
+            text, _, note = (it.get("text") or "").partition(" | ")
+            items.append({"icon": it.get("icon", ""), "text": text, "note": note})
         items += [{"icon": "", "text": "", "note": ""}] * (n - len(items))
         v[k] = items[:n]
     return v
@@ -96,10 +98,8 @@ def from_form(form: dict[str, str]) -> dict:
                 icon = (form.get(f"{k}_icon_{i}") or "home").strip()
                 note = (form.get(f"{k}_note_{i}") or "").strip()
                 if text:
-                    item = {"icon": icon if icon in ICONS else "home", "text": text}
-                    if note:
-                        item["note"] = note
-                    items.append(item)
+                    items.append({"icon": icon if icon in ICONS else "home",
+                                  "text": f"{text} | {note}" if note else text})
             out[k] = items
     return out
 
@@ -118,11 +118,8 @@ def _parse_groups(text: str, first: str) -> list[dict]:
         cells = [c.strip() for c in line.split("|")]
         if len(cells) == 1:
             cells = ["home"] + cells
-        icon, item_text, note = (cells + ["", ""])[:3]
-        item = {"icon": icon.lower() if icon.lower() in ICONS else "home", "text": item_text}
-        if note:
-            item["note"] = note
-        groups[-1]["items"].append(item)
+        icon, item_text = cells[0], " | ".join(c for c in cells[1:] if c)
+        groups[-1]["items"].append({"icon": icon.lower() if icon.lower() in ICONS else "home", "text": item_text})
     return groups
 
 

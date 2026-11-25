@@ -7,16 +7,17 @@
 {% macro row(ft, fs, ic, tw) -%}
 <div class="feat" style="gap:{{ (fs * 0.6)|round|int }}px">
   <span style="width:{{ ic }}px;height:{{ (ic * 0.88)|round|int }}px;display:flex;align-items:center;justify-content:center;flex:none">{{ icon(ft.icon, ic, (ic * 0.86)|round|int) }}</span>
+  {%- set parts = (ft.text or '').split(' | ', 1) -%}
   <span class="t" style="font-size:{{ fs }}px;width:{{ tw }}px;display:flex;flex-direction:column;justify-content:center;line-height:1.1">
-    <span>{{ ft.text | nb }}</span>{% if ft.note %}<span style="font-size:{{ (fs * 0.55)|round|int }}px;font-weight:700;opacity:.9;margin-top:2px">{{ ft.note | nb }}</span>{% endif %}
+    <span>{{ parts[0] | nb }}</span>{% if parts|length > 1 and parts[1] %}<span style="font-size:{{ (fs * 0.55)|round|int }}px;font-weight:700;opacity:.9;margin-top:2px">{{ parts[1] | nb }}</span>{% endif %}
   </span>
 </div>
 {%- endmacro %}
 
 {% macro lines(f) -%}
-{%- set n = (f.features or [])[:6]|length + (f.shared_features or [])|length -%}
-{%- for u in f.extra_units or [] %}{% set n = n + (u['items'] or [])|length %}{% endfor -%}
-{{ n + (f.extra_units or [])|length + (1 if f.extra_units else 0) }}
+{%- set ns = namespace(n=(f.features or [])[:6]|length + (f.shared_features or [])|length) -%}
+{%- for u in f.extra_units or [] %}{% set ns.n = ns.n + (u['items'] or [])|length %}{% endfor -%}
+{{ ns.n + (f.extra_units or [])|length + (1 if f.extra_units else 0) }}
 {%- endmacro %}
 
 {% macro sizes(f, roomy) -%}

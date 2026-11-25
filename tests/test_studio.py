@@ -1155,7 +1155,7 @@ def test_a_house_with_a_flat_lists_each_dwelling_separately():
     from studio.catalog import Property
     prop = Property(ref="DP2933", name="X", folder="F", status="")
     f = {"headline": "HARTIES", "main_title": "MAIN HOUSE",
-         "features": [{"icon": "bed", "text": "3 BEDROOMS", "note": "MAIN EN-SUITE"}, {"icon": "bathtub", "text": "3 BATHROOMS"},
+         "features": [{"icon": "bed", "text": "3 BEDROOMS | MAIN EN-SUITE"}, {"icon": "bathtub", "text": "3 BATHROOMS"},
                       {"icon": "kitchen", "text": "KITCHEN & SCULLERY"}, {"icon": "garage", "text": "DOUBLE GARAGE"}],
          "extra_units": [{"title": "FLAT", "items": [{"icon": "home", "text": "SEPARATE ENTRANCE"},
                                                      {"icon": "bathtub", "text": "EN-SUITE BATHROOM"}]}],
@@ -1177,8 +1177,8 @@ def test_a_flat_with_one_feature_waits_for_a_second():
 def test_the_extra_units_survive_the_form():
     from studio import form as FORM
     facts = {"extra_units": [{"title": "COTTAGES", "items": [{"icon": "bed", "text": "2 BACHELOR COTTAGES"},
-                                                             {"icon": "home", "text": "COMMUNAL LAUNDRY ROOM", "note": "SHARED"}]}],
-             "main_title": "MAIN HOUSE", "features": [{"icon": "bed", "text": "3 BEDROOMS", "note": "MAIN HAS DRESSING ROOM"}],
+                                                             {"icon": "home", "text": "COMMUNAL LAUNDRY ROOM | SHARED"}]}],
+             "main_title": "MAIN HOUSE", "features": [{"icon": "bed", "text": "3 BEDROOMS | MAIN HAS DRESSING ROOM"}],
              "shared_features": [{"icon": "m2", "text": "±923m² PROPERTY"}]}
     v = FORM.to_form(facts)
     submitted = {k: val for k, val in v.items() if k not in ("features", "shared_features")}
@@ -1202,3 +1202,13 @@ def test_photos_are_graded_but_never_changed(tmp_path):
     before, after = ImageStat.Stat(grey.convert("L")), ImageStat.Stat(out.convert("L"))
     assert out.size == grey.size                           # same picture, same frame
     assert after.stddev[0] > before.stddev[0]              # more contrast
+
+
+
+def test_the_answer_form_claude_fills_stays_small_enough():
+    """The API refuses a structured answer whose grammar is too large (25 Nov 2026,
+    when every feature carried its own note field). Keep the schema near its old size."""
+    from studio import facts as F
+    import json as _json
+    size = len(_json.dumps(F.Facts.model_json_schema()))
+    assert size < 16000, size

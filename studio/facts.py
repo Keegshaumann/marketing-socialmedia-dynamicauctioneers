@@ -45,9 +45,10 @@ ICONS = ["m2", "ha", "bed", "bathtub", "garage", "local_parking", "pool", "kitch
 
 class Feature(BaseModel):
     icon: str = Field(description=f"One of: {', '.join(ICONS)}")
-    text: str
-    note: str = Field(description='Optional small second line under the feature, e.g. "MAIN EN-SUITE", '
-                                  '"2 BATHROOMS ARE EN-SUITE", "6 BEDROOMS & 3 BATHROOMS IN TOTAL"; else ""')
+    # A small second line rides in the text after " | " (a separate field made the
+    # structured answer too large for the API to enforce).
+    text: str = Field(description='Short text; optionally " | " then a small second line, e.g. '
+                                  '"3 BEDROOMS | MAIN HAS DRESSING ROOM", "3 BATHROOMS | 2 ARE EN-SUITE"')
 
 
 class Row(BaseModel):
@@ -316,12 +317,12 @@ TANK, FRUIT TREES, 4 GARAGE PARKINGS & 3 CARPORTS
 PROPERTY, 4 EN-SUITE BEDROOMS, SWIMMING POOL, SOLAR PANELS & INVERTER, DOUBLE GARAGE & AMPLE PARKING
 Properties with more than one dwelling (the team lists each dwelling's features separately, for a home \
 buyer or an investor wanting rental income):
-- Harties, house with a flat: features (main house) 3 BEDROOMS (note MAIN EN-SUITE), 3 BATHROOMS, OPEN PLAN \
+- Harties, house with a flat: features (main house) 3 BEDROOMS | MAIN EN-SUITE, 3 BATHROOMS, OPEN PLAN \
 LIVING WITH BUILT-IN FIRE PLACE, KITCHEN & SCULLERY, PATIO WITH BUILT-IN BRAAI, DOUBLE GARAGE; main_title MAIN \
 HOUSE; extra_units FLAT: SEPARATE ENTRANCE, OPEN PLAN LIVING & BEDROOM, EN-SUITE BATHROOM, KITCHENETTE; \
 shared_features ±1 006m² PROPERTY
 - Parktown North, house and two cottages: subline 3-BED HOME & 2 COTTAGES; features ±284m² HOME, 3 BEDROOMS \
-(note MAIN HAS DRESSING ROOM), 3 BATHROOMS (note 2 BATHROOMS ARE EN-SUITE), KITCHEN & SCULLERY; main_title MAIN \
+| MAIN HAS DRESSING ROOM, 3 BATHROOMS | 2 BATHROOMS ARE EN-SUITE, KITCHEN & SCULLERY; main_title MAIN \
 HOUSE; extra_units COTTAGES: 2 BACHELOR COTTAGES, COMMUNAL LAUNDRY ROOM; shared_features ±923m² PROPERTY, \
 DOUBLE GARAGE
 Feature counts are even so the layout stays symmetrical: 4 or 6 for the main dwelling, 2 or 4 per extra unit.
