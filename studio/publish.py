@@ -37,7 +37,7 @@ from studio.writer import Writer, WriteError, sha
 log = logging.getLogger("studio.publish")
 
 # Bump when a layout changes so every filed set is made again with it.
-RENDER_VERSION = "4"   # 25 Nov 2026: + AD 2 (big photo) and the billboard
+RENDER_VERSION = "5"   # 25 Nov 2026: + AD 2 (big photo), the billboard and the reel
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS studio_files (
@@ -90,10 +90,12 @@ def posting_copy(facts: dict) -> str:
     return "\n\n".join(x for x in (facts.get("caption"), facts.get("listing")) if x)
 
 
-def build(prop: catalog.Property, row: dict, items: list[catalog.Item]) -> dict[str, bytes]:
-    """Every file of the set, named the team's way (the same files as the download)."""
+def build(prop: catalog.Property, row: dict, items: list[catalog.Item],
+          kinds: Optional[list[str]] = None) -> dict[str, bytes]:
+    """Every file of the set (or of ``kinds``), named the team's way."""
     pk = prepare.picks(row, items)
-    out = render.build(prop, row["facts"], pk, row["mode"], {i.item_id: i for i in items})
+    out = render.build(prop, row["facts"], pk, row["mode"], {i.item_id: i for i in items},
+                       kinds=kinds, with_qr=row["mode"] == "auction")
     copy = posting_copy(row["facts"])
     if copy:
         out[f"DP{prop.number} POSTING COPY.txt"] = copy.encode("utf-8")
@@ -213,6 +215,28 @@ def gaps(prop: catalog.Property, mode: str, items: list[catalog.Item], ours: set
 CORE = ("ad", "saia", "icon", "board", "infopack")
 
 
+def _to_make(prop: catalog.Property, mode: str, items: list[catalog.Item], known: dict, ours: set,
+             force: bool) -> list[str]:
+    """The outputs worth making: not ones the team has their own of, nor ones the studio
+    may not touch (changed in SharePoint, or deleted unless a person pressed save). The
+    reel animates the studio's own ad, so it goes only where that ad does."""
+    names = {fmt.kind: F.name_for(prop, fmt.kind, mode) for fmt in render.formats_for(mode)}
+
+    def theirs(name: str) -> bool:
+        f = known.get(name)
+        return (not f or f["status"] != "ours") and team_has(name, items, ours)
+
+    out = []
+    for kind, name in names.items():
+        f = known.get(name)
+        if f and (f["status"] == "theirs" or (f["status"] == "removed" and not force)):
+            continue
+        if theirs(name) or (kind == "reel" and theirs(names["ad"])):
+            continue
+        out.append(kind)
+    return out
+
+
 # --- filing -----------------------------------------------------------------------
 
 def publish(db: str, prop: catalog.Property, w: Optional[Writer], *, force: bool = False) -> dict:
@@ -258,8 +282,10 @@ def publish(db: str, prop: catalog.Property, w: Optional[Writer], *, force: bool
         return get_set(db, prop.ref)
 
     set_status(db, prop.ref, status="saving", mode=row["mode"], message="")
+    known = files(db, prop.ref)
+    ours = {f["item_id"] for f in known.values() if f["item_id"]}
     try:
-        made = build(prop, row, items)
+        made = build(prop, row, items, kinds=_to_make(prop, row["mode"], items, known, ours, force))
     except Exception:
         log.exception("render for SharePoint %s", prop.ref)
         set_status(db, prop.ref, status="failed", message="Making the files failed; the studio tries again shortly.")

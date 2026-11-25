@@ -182,7 +182,7 @@ def _team_ctx(request: Request, prop: catalog.Property, items: list, mode: str) 
     their_ad = newest.get("auction_ad" if mode == "auction" else "forsale_ad")
     by_format = {"ad": their_ad, "ad2": their_ad, "saia": newest.get("saia"),
                  "icon": newest.get("icon"), "board": newest.get("board"), "infopack": newest.get("infopack"),
-                 "billboard": newest.get("billboard")}
+                 "billboard": newest.get("billboard"), "reel": newest.get("reel")}
     return {"team": team, "team_for": {k: v for k, v in by_format.items() if v}}
 
 
@@ -357,7 +357,7 @@ def studio_file(ref: str, kind: str, request: Request, user=Depends(_can)):
         raise HTTPException(500, "Making that file failed")
     _hand_to_proposals(_db(request), prop, files)
     name, data = next(iter(files.items()))
-    media = "application/pdf" if name.endswith(".pdf") else "image/png"
+    media = {".pdf": "application/pdf", ".mp4": "video/mp4"}.get(name[name.rfind("."):], "image/png")
     return Response(data, media_type=media,
                     headers={"Content-Disposition": f'attachment; filename="{_safe_name(name)}"'})
 

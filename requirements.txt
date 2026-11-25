@@ -29,3 +29,5 @@ segno==1.6.6
 cryptography==50.0.2
 # Reading the team's own QR codes (GoHighLevel tracking links) from the folder (D129)
 zxing-cpp==3.2.0
+# Reels (D129): a self-contained ffmpeg to encode the frames as MP4, nothing installed system-wide
+imageio-ffmpeg==0.8.1

@@ -1,0 +1,47 @@
+{% extends "ad2.html.j2" %}
+{# The reel: AD 2 brought to life over 10 seconds, the way the team's Canva reels move (DP3107, DP2965,
+   Nov 2026: the ad itself, the badge sliding in, a light sweeping across it). 1080x1350, 30 fps, no
+   sound. Every animation starts at time 0, so the renderer can step them all to any moment
+   (render.Renderer.video). In the studio's preview it simply plays once. #}
+{% block css %}
+{{ super() }}
+@keyframes rvUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+@keyframes rvIn{from{opacity:0;transform:translateX(-115%)}to{opacity:1;transform:none}}
+@keyframes rvFade{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+@keyframes rvPop{0%{opacity:0;transform:scale(.82)}70%{opacity:1;transform:scale(1.03)}100%{opacity:1;transform:none}}
+@keyframes rvZoom{from{transform:scale(1)}to{transform:scale(1.12)}}
+@keyframes rvZoomBg{from{transform:scale(1.04)}to{transform:scale(1.16)}}
+@keyframes rvShine{
+  0%,44%{transform:translateX(-140%);opacity:0}
+  45%{opacity:1}
+  54%{transform:translateX(140%);opacity:1}
+  55%,79%{transform:translateX(-140%);opacity:0}
+  80%{opacity:1}
+  89%,100%{transform:translateX(140%);opacity:1}
+}
+.bg{animation:rvZoomBg 10s linear both}
+.frame img{animation:rvZoom 10s linear both;transform-origin:50% 55%}
+.rv-head > *{animation:rvUp .6s cubic-bezier(.2,.7,.2,1) both}
+.rv-head > *:nth-child(1){animation-delay:.10s}
+.rv-head > *:nth-child(2){animation-delay:.25s}
+.rv-head > *:nth-child(3){animation-delay:.40s}
+.rv-head > .badge{animation:rvIn .55s cubic-bezier(.2,.8,.2,1) .70s both}
+.rv-main{animation:rvFade .6s ease-out .35s both}
+.rv-col > .frame{animation:rvFade .5s ease-out both}
+.rv-col > .frame:nth-child(1){animation-delay:.95s}
+.rv-col > .frame:nth-child(2){animation-delay:1.10s}
+.rv-col > .frame:nth-child(3){animation-delay:1.25s}
+.rv-feats{animation:rvFade .4s ease-out 1.30s both}
+.rv-feats .feat{animation:rvUp .45s cubic-bezier(.2,.7,.2,1) both}
+.rv-feats .feat:nth-child(1){animation-delay:1.45s}
+.rv-feats .feat:nth-child(2){animation-delay:1.57s}
+.rv-feats .feat:nth-child(3){animation-delay:1.69s}
+.rv-feats .feat:nth-child(4){animation-delay:1.81s}
+.rv-feats .feat:nth-child(5){animation-delay:1.93s}
+.rv-price{animation:rvPop .5s ease-out 2.15s both}
+.rv-late{animation:rvUp .45s ease-out 2.45s both}
+.rv-shine:not(.abs){position:relative}   /* the price box is already placed absolutely */
+.rv-shine::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(100deg,rgba(255,255,255,0) 30%,rgba(255,248,220,.7) 50%,rgba(255,255,255,0) 70%);
+  animation:rvShine 10s linear both}
+{% endblock %}

@@ -266,7 +266,7 @@ def test_default_photo_picks(mirror):
 @pytest.mark.parametrize("kind,mode", [("ad", "forsale"), ("ad", "auction"), ("ad2", "forsale"), ("ad2", "auction"),
                                        ("saia", "auction"),
                                        ("icon", "auction"), ("board", "auction"), ("board", "forsale"),
-                                       ("billboard", "auction"), ("billboard", "forsale"),
+                                       ("billboard", "auction"), ("billboard", "forsale"), ("reel", "auction"),
                                        ("infopack", "auction")])
 def test_every_template_renders_its_words(kind, mode):
     from studio import catalog, facts as F, render
@@ -281,7 +281,7 @@ def test_every_template_renders_its_words(kind, mode):
     html = render.html(kind, ctx)
     assert "RHEDE" not in html                 # the matter name never reaches an output
     assert "data-ready" not in html or True
-    text = {"ad": "MAKHADO | LIMPOPO", "ad2": "MAKHADO | LIMPOPO", "billboard": "MACADAMIA", "saia": "BUSINESS RESCUE", "icon": "PROPERTY REF: DP9001",
+    text = {"ad": "MAKHADO | LIMPOPO", "ad2": "MAKHADO | LIMPOPO", "reel": "rvShine", "billboard": "MACADAMIA", "saia": "BUSINESS RESCUE", "icon": "PROPERTY REF: DP9001",
             "board": "MAKHADO", "infopack": "PROPERTY OVERVIEW"}[kind]
     assert text in html
 
@@ -603,7 +603,7 @@ class FakeSharePoint:
         del self.paths[self.files.pop(iid)["path"]]
 
 
-def _fake_build(prop, facts, picks, mode, items_by_id, kinds=None):
+def _fake_build(prop, facts, picks, mode, items_by_id, kinds=None, with_qr=None):
     from studio import facts as F
     out = {F.name_for(prop, "ad", mode): f"AD {facts.get('headline')} {facts.get('price')} {facts.get('auction_date')} {picks.get('hero')}".encode(),
            F.name_for(prop, "ad2", mode): f"AD2 {facts.get('headline')} {facts.get('auction_date')}".encode(),
@@ -700,7 +700,7 @@ def test_files_people_changed_or_deleted_in_sharepoint_are_left_alone(auto, mirr
     auto.sp.calls.clear()
     _set_auction(mirror.db, "DP9001", SOON + timedelta(days=3))
     from studio import render
-    monkeypatch.setattr(render, "build", lambda prop, facts, picks, mode, items, kinds=None: {
+    monkeypatch.setattr(render, "build", lambda prop, facts, picks, mode, items, kinds=None, with_qr=None: {
         k: v + b" v2" for k, v in _fake_build(prop, facts, picks, mode, items).items()})
     auto.run()
     names = {n for _, n in auto.sp.calls}
@@ -1100,3 +1100,35 @@ def test_the_billboard_names_the_day_and_never_counts_as_a_gap(mirror):
     # a team billboard stops the studio's, but a missing billboard alone is no gap
     p = catalog.get("DP9001")
     assert all("BILLBOARD" not in g and " AD 2" not in g for g in publish.gaps(p, "auction", catalog.items(p)))
+
+
+def test_the_reel_goes_only_with_the_studios_own_ad(mirror):
+    from studio import catalog, facts as F, publish
+    from studio.catalog import Property
+    assert F.name_for(Property(ref="DP1", name="", folder="", status=""), "reel", "forsale") == "DP1 FOR SALE REEL.mp4"
+    p = catalog.get("DP9001")
+    items = catalog.items(p)
+    kinds = publish._to_make(p, "auction", items, {}, set(), False)
+    assert "reel" in kinds and "saia" not in kinds          # the team's own SAIA banner is in the folder
+    conn = sqlite3.connect(mirror.db)                      # the team makes its own auction ad
+    conn.execute("INSERT INTO items VALUES ('drv', 'tad', 'DP9001 AUCTION AD.png', 0, 2.0, 50000, NULL, ?)",
+                 (f"{AAA}/9001 - RHEDE BOERDERY BK_BR_/Advertisements/DP9001 AUCTION AD.png",))
+    conn.commit()
+    conn.close()
+    kinds = publish._to_make(p, "auction", catalog.items(p), {}, set(), False)
+    assert not {"ad", "ad2", "reel"} & set(kinds)
+
+
+def test_a_real_reel_when_chromium_and_ffmpeg_are_there():
+    pytest.importorskip("imageio_ffmpeg")
+    pytest.importorskip("playwright")
+    from studio import render
+    from studio.catalog import Property
+    ctx = render.context(Property(ref="DP1", name="", folder="", status=""), {"headline": "X"}, {}, "forsale",
+                         lambda i, s: "")
+    try:
+        with render.Renderer() as r:
+            data = r.video("reel", render.html("reel", ctx), seconds=1, fps=10)
+    except Exception as exc:  # no browser on this machine
+        pytest.skip(f"no Chromium: {exc}")
+    assert data[4:8] == b"ftyp" and len(data) > 1000

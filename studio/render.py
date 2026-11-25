@@ -42,6 +42,7 @@ class Format:
     pdf: bool = False
     pdf_size: tuple = ()        # points, when the PDF page differs from the px canvas
     modes: tuple = ("forsale", "auction")
+    video: bool = False         # an MP4 (the reel), REEL_SECONDS long at REEL_FPS
 
 
 FORMATS = {
@@ -52,7 +53,9 @@ FORMATS = {
     "board": Format("board", "Board", 1200, 1600, pdf=True, pdf_size=(900, 1200)),
     "billboard": Format("billboard", "Billboard", 3000, 2000, pdf=True, pdf_size=(2250, 1500)),   # 3 m x 2 m
     "infopack": Format("infopack", "Info pack", 794, 1123, pdf=True),
+    "reel": Format("reel", "Reel", 1080, 1350, video=True),   # AD 2 animated, as the team's Canva reels
 }
+REEL_SECONDS, REEL_FPS = 10, 30
 
 
 def formats_for(mode: str) -> list[Format]:
@@ -399,6 +402,43 @@ class Renderer:
         finally:
             page.close()
 
+    def video(self, kind: str, markup: str, seconds: float = REEL_SECONDS, fps: int = REEL_FPS) -> bytes:
+        """Step every animation on the page frame by frame and encode the frames as an
+        H.264 MP4 (silent, yuv420p, faststart: plays everywhere, posts everywhere)."""
+        import subprocess
+        import tempfile
+
+        import imageio_ffmpeg
+
+        fmt = FORMATS[kind]
+        page = self._page(kind, markup)
+        try:
+            page.evaluate("() => document.getAnimations().forEach(a => a.pause())")
+            with tempfile.TemporaryDirectory() as tmp:
+                out = os.path.join(tmp, "reel.mp4")
+                enc = subprocess.Popen(
+                    [imageio_ffmpeg.get_ffmpeg_exe(), "-loglevel", "error", "-y", "-f", "image2pipe",
+                     "-framerate", str(fps), "-c:v", "mjpeg", "-i", "-", "-c:v", "libx264", "-preset", "veryfast",
+                     "-crf", "20", "-pix_fmt", "yuv420p", "-movflags", "+faststart", out],
+                    stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+                try:
+                    for n in range(int(seconds * fps)):
+                        page.evaluate("t => document.getAnimations().forEach(a => { a.currentTime = t; })",
+                                      n * 1000.0 / fps)
+                        enc.stdin.write(page.screenshot(type="jpeg", quality=92,
+                                                        clip={"x": 0, "y": 0, "width": fmt.width, "height": fmt.height}))
+                    enc.stdin.close()
+                    err = enc.stderr.read().decode(errors="replace")
+                    if enc.wait() != 0:
+                        raise RuntimeError(f"ffmpeg failed: {err[-400:]}")
+                finally:
+                    if enc.poll() is None:
+                        enc.kill()
+                with open(out, "rb") as fh:
+                    return fh.read()
+        finally:
+            page.close()
+
     def pdf(self, kind: str, markup: str) -> bytes:
         page = self._page(kind, markup)
         try:
@@ -419,17 +459,20 @@ def inline_photos(prop: Property, items_by_id: dict[str, Item]) -> Callable[[str
 
 
 def build(prop: Property, facts: dict, picks: dict, mode: str, items_by_id: dict[str, Item],
-          kinds: Optional[list[str]] = None) -> dict[str, bytes]:
-    """The finished files, named the way the team names them."""
+          kinds: Optional[list[str]] = None, with_qr: Optional[bool] = None) -> dict[str, bytes]:
+    """The finished files, named the way the team names them. ``with_qr``: add the
+    two QR code files (an auction's whole set does, by default)."""
     ctx = context(prop, facts, picks, mode, inline_photos(prop, items_by_id))
+    whole = kinds is None
     kinds = kinds or [f.kind for f in formats_for(mode)]
     out: dict[str, bytes] = {}
     with Renderer() as r:
         for kind in kinds:
             fmt = FORMATS[kind]
             markup = html(kind, ctx)
-            out[F.name_for(prop, kind, mode)] = r.pdf(kind, markup) if fmt.pdf else r.png(kind, markup)
-    if kinds == [f.kind for f in formats_for(mode)] and mode == "auction":
+            out[F.name_for(prop, kind, mode)] = (r.video(kind, markup) if fmt.video else
+                                                 r.pdf(kind, markup) if fmt.pdf else r.png(kind, markup))
+    if (whole if with_qr is None else with_qr) and mode == "auction":
         link = facts.get("qr_link") or ""
         out[F.name_for(prop, "qr_black", mode)] = qr_png(link, white=False)
         out[F.name_for(prop, "qr_white", mode)] = qr_png(link, white=True)

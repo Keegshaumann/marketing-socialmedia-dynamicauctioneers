@@ -29,7 +29,7 @@ import httpx
 
 GRAPH = "https://graph.microsoft.com/v1.0"
 LOGIN = "https://login.microsoftonline.com"
-_TYPES = {".png": "image/png", ".pdf": "application/pdf", ".txt": "text/plain; charset=utf-8"}
+_TYPES = {".png": "image/png", ".pdf": "application/pdf", ".txt": "text/plain; charset=utf-8", ".mp4": "video/mp4"}
 
 
 class WriteError(RuntimeError):
