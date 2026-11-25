@@ -267,7 +267,7 @@ def photo_picks(photos: dict, all_photos: list[Item]) -> dict:
     else:
         gallery = [g for g in claude.get("gallery", []) if g in by_id]
         if not gallery:
-            gallery = [p.item_id for p in ordinary if not is_asset_photo(p)][:18]
+            gallery = [p.item_id for p in ordinary if not is_asset_photo(p)][:24]
     picks["gallery"] = gallery
     return picks
 
@@ -303,8 +303,72 @@ def context(prop: Property, facts: dict, picks: dict, mode: str, photo_src: Call
         "aerial": src("aerial") or src("hero"), "gallery": gallery,
         "extras": [photo_src(i, "view") for i in extra_ids],
         "auction_line": " | ".join(x for x in (f"{f.get('auction_kind') or 'ONLINE'} AUCTION", when) if x),
-        "pack_pages": pack_pages(f, gallery, auction),
+        **_pack_photos(picks, photo_src, pack_pages(f, gallery, auction)),
     }
+
+
+# How many photos fill the room a pack page has left (the template drops the row when the
+# words leave less than a usable height). The overview page shows the aerial instead.
+FILL = {"description": 2, "details": 2, "improvements": 2, "movables": 3, "use": 2, "highlights": 2}
+
+
+def _pack_photos(picks: dict, photo_src: Callable[[str, str], str], pages: list[dict]) -> dict:
+    """Photos for the pack's spare room: the ad's photos, then the gallery, each page
+    taking the next ones so no two pages show the same pair."""
+    ids: list[str] = []
+    for i in [picks.get("photo1"), picks.get("photo2"), picks.get("photo3"), picks.get("hero"),
+              *picks.get("gallery", [])]:
+        if i and i not in ids and i != picks.get("aerial"):
+            ids.append(i)
+    pool = [photo_src(i, "gallery") for i in ids]
+    n = 0
+
+    def take(k: int) -> list[str]:
+        nonlocal n
+        if not pool:
+            return []
+        got = [pool[(n + j) % len(pool)] for j in range(min(k, len(pool)))]
+        n += k
+        return got
+
+    contents = take(2)
+    for pg in pages:
+        pg["fill"] = take(FILL.get(pg["kind"], 0))
+    return {"pack_pages": pages, "contents_fill": contents, "back_photo": (take(1) or [""])[0]}
+
+
+MOVABLES_PER_PAGE = 36      # two columns of 18 rows
+
+
+def _improvement_pages(groups: list[dict]) -> list[list[dict]]:
+    """The improvement cards, two side by side, as many rows of them as fit a page."""
+    pages, cur, used = [], [], 0
+    for i in range(0, len(groups), 2):
+        pair = groups[i:i + 2]
+        need = 64 + 40 * max(min(len(g.get("items") or []), 10) for g in pair)
+        if cur and used + need > 840:
+            pages.append(cur)
+            cur, used = [], 0
+        cur += pair
+        used += need
+    if cur:
+        pages.append(cur)
+    return pages
+
+
+# Gallery pages take turns: one big photo over four, an even six, a tall one beside two.
+_GALLERY_TURNS = (("big", 5), ("grid", 6), ("side", 5))
+
+
+def gallery_pages(gallery: list[str]) -> list[tuple[str, list[str]]]:
+    out, i, turn = [], 0, 0
+    while i < len(gallery):
+        layout, n = _GALLERY_TURNS[turn % len(_GALLERY_TURNS)]
+        photos = gallery[i:i + n]
+        out.append((layout if len(photos) == n else f"n{len(photos)}", photos))
+        i += n
+        turn += 1
+    return out
 
 
 def pack_pages(f: dict, gallery: list[str], auction: bool) -> list[dict]:
@@ -322,13 +386,16 @@ def pack_pages(f: dict, gallery: list[str], auction: bool) -> list[dict]:
         add("description", "Property Description")
     if f.get("portions"):
         add("details", "Property Details")
-    groups = f.get("improvements") or []
-    for i in range(0, len(groups), 4):
-        add("improvements", "Main Improvements", groups=groups[i:i + 4], first=i == 0)
+    for k, groups in enumerate(_improvement_pages(f.get("improvements") or [])):
+        add("improvements", "Main Improvements", groups=groups, first=k == 0)
+    movables = f.get("movables") or []
+    for i in range(0, len(movables), MOVABLES_PER_PAGE):
+        add("movables", "Movable Assets Included", items=movables[i:i + MOVABLES_PER_PAGE], start=i + 1,
+            first=i == 0)
     if f.get("best_use") or f.get("condition"):
         add("use", "Highest & Best Use")
-    for i in range(0, len(gallery), 6):
-        add("gallery", "Photographic Overview", photos=gallery[i:i + 6], first=i == 0)
+    for k, (layout, photos) in enumerate(gallery_pages(gallery)):
+        add("gallery", "Photographic Overview", photos=photos, layout=layout, first=k == 0)
     if f.get("highlights"):
         add("highlights", "Investment Highlights")
     # Number the sections in order of first appearance, as DP2987 does.

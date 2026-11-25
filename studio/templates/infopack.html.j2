@@ -1,14 +1,19 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
-{# The A4 information pack, laid out like the team's DP2987 pack (Oct 2026). #}
+{# The A4 information pack. Pages after the team's DP2987 pack (Oct 2026), and since 25 Nov 2026 their
+   newer packs' way of filling a page (DP2969, DP3114): gold-edged cards with big icons, gold dividers,
+   tables where a list reads better as one, mixed-size photo pages, and photos in whatever room the
+   words leave, so no page ends in white space. #}
 <style>
 @page{size:A4;margin:0}
-:root{--gold:linear-gradient(90deg,#ac874a 0%,#ddc689 55%,#c7a560 100%);--goldv:linear-gradient(180deg,#f6e5ab 0%,#ddbd73 42%,#b48c47 78%,#9a7638 100%);--goldline:#c9a45c;--ink:#111}
+:root{--gold:linear-gradient(90deg,#ac874a 0%,#ddc689 55%,#c7a560 100%);--goldv:linear-gradient(180deg,#f6e5ab 0%,#ddbd73 42%,#b48c47 78%,#9a7638 100%);--goldline:#c9a45c;--golddeep:#a7843f;--ink:#111;--paper:#f6f3ec}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:#d9d9d9}
 body{font-family:'Montserrat',sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .page{width:794px;height:1123px;position:relative;overflow:hidden;background:#fff;page-break-after:always;break-after:page;margin:0 auto 16px}
 @media print{.page{margin:0}html,body{background:#fff}}
+/* a soft grey sweep low on every inner page, as on the team's pages */
+.page.inner-page::before{content:"";position:absolute;left:-10%;right:-10%;bottom:-140px;height:420px;background:radial-gradient(ellipse at 30% 100%,#ece8df 0%,rgba(236,232,223,0) 70%);z-index:0}
 /* Solid gold in print: Chrome's PDF output draws clipped gradient text as a box. */
 .goldtext{color:#c9a45c}
 .goldbar{background:var(--gold);color:var(--ink)}
@@ -17,33 +22,71 @@ body{font-family:'Montserrat',sans-serif;color:var(--ink);-webkit-font-smoothing
 .ic svg{width:100%;height:100%;display:block}
 .ic.unit{border:3px solid currentColor;border-radius:3px;font-weight:800}
 .ic.unit span{font-size:.4em;line-height:1}
-.corner-tr{position:absolute;right:0;top:0;width:118px;height:118px;background:var(--gold);clip-path:polygon(0 0,100% 0,100% 100%)}
-.corner-bl{position:absolute;left:0;bottom:0;width:150px;height:150px;background:var(--gold);clip-path:polygon(0 0,100% 100%,0 100%)}
-.pno{position:absolute;right:30px;bottom:22px;font-weight:800;font-size:13px;color:#a7843f}
-.inner{position:absolute;left:64px;right:64px;top:56px;bottom:70px}
-h1{font-weight:800;font-size:24px;text-align:center;letter-spacing:.02em;margin-bottom:22px}
-h1 b{color:#a7843f;font-weight:800}
-h2{font-weight:800;font-size:15px;letter-spacing:.02em;margin:16px 0 8px}
-table.kv{width:100%;border-collapse:collapse;font-size:10.5px}
+.corner-tr{position:absolute;right:0;top:0;width:118px;height:118px;background:var(--gold);clip-path:polygon(0 0,100% 0,100% 100%);z-index:2}
+.corner-bl{position:absolute;left:0;bottom:0;width:150px;height:150px;background:var(--gold);clip-path:polygon(0 0,100% 100%,0 100%);z-index:2}
+.pno{position:absolute;right:30px;bottom:22px;font-weight:800;font-size:13px;color:var(--golddeep);z-index:2}
+.inner{position:absolute;left:56px;right:56px;top:52px;bottom:64px;display:flex;flex-direction:column;gap:14px;z-index:1}
+h1{font-weight:800;font-size:24px;text-align:center;letter-spacing:.02em;flex:none}
+h1 b{color:var(--golddeep);font-weight:800}
+.divider{display:flex;align-items:center;gap:14px;font-weight:900;font-size:15px;letter-spacing:.05em;flex:none;white-space:nowrap}
+.divider::before,.divider::after{content:"";flex:1;height:3px;background:var(--gold);border-radius:2px}
+.card{border:2px solid var(--goldline);border-radius:10px;background:#fff;padding:14px 18px;position:relative}
+.card__t{display:inline-block;background:#111;color:#fff;font-weight:800;font-size:11px;letter-spacing:.07em;padding:5px 14px;border-radius:0 0 8px 8px;margin:-14px 0 10px;text-transform:uppercase}
+table.kv{width:100%;border-collapse:collapse;font-size:10.5px;flex:none;background:#fff}
 table.kv td{border:1px solid #d6cfbf;padding:7px 10px;vertical-align:top;line-height:1.35}
-table.kv td.k{width:34%;background:#f3efe6;font-weight:800;text-transform:uppercase;font-size:9.5px;letter-spacing:.02em}
-.terms{border:1.5px solid #222;border-radius:4px;padding:14px 18px;font-size:11px;line-height:1.6;text-align:center}
-.pill{display:inline-block;background:var(--gold);border-radius:14px;padding:4px 18px;font-weight:800;font-size:11px;margin-top:8px}
-.viewing{border:1.5px solid #222;margin-top:16px;padding:10px;text-align:center;font-weight:800;font-size:17px}
-p.body{font-size:11.5px;line-height:1.65;margin-bottom:12px;text-align:justify}
-.photo{border:3px solid var(--goldline);overflow:hidden;background:#eee}
+table.kv td.k{width:32%;background:var(--paper);font-weight:800;text-transform:uppercase;font-size:9.5px;letter-spacing:.02em}
+table.list{width:100%;border-collapse:collapse;font-size:10.5px;background:#fff}
+table.list th{background:#111;color:#fff;font-weight:800;font-size:9.5px;letter-spacing:.06em;text-align:left;padding:7px 10px}
+table.list td{border-bottom:1px solid #e4ddcc;padding:6px 10px;line-height:1.3;vertical-align:top}
+table.list tr:nth-child(even) td{background:var(--paper)}
+table.list td.no{width:34px;color:var(--golddeep);font-weight:800;text-align:right}
+.bullets{list-style:none;display:grid;gap:7px;font-size:11px;line-height:1.45}
+.bullets li{display:flex;gap:10px;align-items:flex-start}
+.bullets li::before{content:"";flex:none;width:9px;height:9px;margin-top:4px;background:var(--goldline);transform:rotate(45deg)}
+.pill{display:inline-block;background:var(--gold);border-radius:14px;padding:5px 20px;font-weight:800;font-size:11px}
+.viewing{border:2px solid #111;border-radius:8px;padding:9px;text-align:center;font-weight:800;font-size:15px;flex:none;background:#fff}
+p.body{font-size:11.5px;line-height:1.62;text-align:justify}
+.photo{border:3px solid var(--goldline);overflow:hidden;background:#eee;border-radius:6px;min-height:0}
 .photo img{width:100%;height:100%;object-fit:cover;display:block}
-.groups{display:grid;grid-template-columns:1fr 1fr;gap:26px 34px}
-.group h3{font-weight:800;font-size:13px;text-align:center;letter-spacing:.02em;margin-bottom:14px;min-height:32px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 12px}
-.item{display:flex;flex-direction:column;align-items:center;text-align:center;gap:7px;font-size:8.8px;font-weight:700;text-transform:uppercase;line-height:1.3}
-ul.dots{font-size:11.5px;line-height:1.7;padding-left:18px}
-.toc{font-size:13px;line-height:2.4}
-.toc .row{display:flex;gap:8px}
-.toc .dots{flex:1;border-bottom:1.5px dotted #888;transform:translateY(-8px)}
+/* photos in the room the words leave; dropped by the script below when too little is left */
+.filler{flex:1 1 0;min-height:0;display:grid;gap:12px}
+.filler .photo{height:100%}
+.feats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;flex:none}
+.feat{display:flex;align-items:center;gap:12px;border:2px solid var(--goldline);border-radius:10px;padding:10px 12px;background:#fff;font-weight:800;font-size:10.5px;line-height:1.25;text-transform:uppercase;min-height:64px}
+.feat .ic{color:var(--golddeep)}
+.feat small{display:block;font-size:8.5px;font-weight:700;color:#555;margin-top:2px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;flex:none}
+.irow{display:flex;align-items:center;gap:12px;padding:6px 0;font-weight:700;font-size:10.5px;line-height:1.25;text-transform:uppercase;border-bottom:1px dashed #e2dbc9}
+.irow:last-child{border-bottom:0}
+.irow .ic{color:var(--golddeep)}
+.rates{display:flex;gap:12px;flex:none}
+.rate{flex:1;border:2px solid var(--goldline);border-radius:10px;padding:9px 12px;display:flex;gap:10px;align-items:center;font-size:10.5px;background:#fff}
+.rate .ic{color:var(--golddeep)}
+.gal{flex:1 1 0;min-height:0;display:grid;gap:12px}
+.gal .photo{height:100%}
+.gal--big{grid-template-rows:2fr 1fr 1fr;grid-template-areas:"a a" "b c" "d e"}
+.gal--grid{grid-template-rows:1fr 1fr 1fr;grid-template-areas:"a b" "c d" "e f"}
+.gal--side{grid-template-columns:1.5fr 1fr;grid-template-rows:1fr 1fr 1fr;grid-template-areas:"a b" "a c" "d e"}
+.gal--n1{grid-template-areas:"a"}
+.gal--n2{grid-template-rows:1fr 1fr;grid-template-areas:"a" "b"}
+.gal--n3{grid-template-rows:1.4fr 1fr;grid-template-areas:"a a" "b c"}
+.gal--n4{grid-template-rows:1fr 1fr;grid-template-areas:"a b" "c d"}
+.gal--n5{grid-template-rows:2fr 1fr 1fr;grid-template-areas:"a a" "b c" "d e"}
+.toc{display:grid;gap:12px;flex:none}
+.toc .row{display:flex;align-items:center;gap:14px;font-size:14px;font-weight:700}
+.toc .n{width:34px;height:34px;flex:none;border-radius:8px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900}
+.toc .dots{flex:1;border-bottom:2px dotted #b9b2a3;transform:translateY(-4px)}
+.toc .pg{color:var(--golddeep);font-weight:900}
 </style></head><body>
 
 {% set auction_word = 'ON AUCTION' if auction else 'FOR SALE' %}
+{% macro filler(photos) -%}
+  {%- if photos -%}
+  <div class="filler" data-filler style="grid-template-columns:repeat({{ photos|length }},1fr)">
+    {%- for p in photos %}<div class="photo"><img src="{{ p }}"></div>{% endfor -%}
+  </div>
+  {%- endif -%}
+{%- endmacro %}
 
 {# ---------------------------------- cover ---------------------------------- #}
 <div class="page" style="background:#000">
@@ -56,120 +99,134 @@ ul.dots{font-size:11.5px;line-height:1.7;padding-left:18px}
   <div style="position:absolute;right:34px;top:0;width:164px;height:196px;background:#fff;clip-path:polygon(0 0,100% 0,100% 84%,50% 100%,0 84%);display:flex;justify-content:center"><img src="{{ logo('auctioneers-on-light' if auction else 'realestate-on-light') }}" style="width:122px;height:122px;margin-top:16px"></div>
   {% if f.pack_strapline %}<div class="goldbar fit" data-fit data-min="8" style="position:absolute;left:0;top:850px;width:794px;height:46px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;padding:0 20px">{{ f.pack_strapline | nb }}</div>{% endif %}
   <div style="position:absolute;left:0;top:896px;width:794px;height:180px;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">
-    {% if auction %}
-    <div class="fit" data-fit data-min="16" style="font-weight:900;font-size:34px;border:2px solid var(--goldline);padding:8px 26px;max-width:740px">{{ auction_line | nb }}</div>
-    {% else %}
-    <div class="fit" data-fit data-min="16" style="font-weight:900;font-size:34px;border:2px solid var(--goldline);padding:8px 26px;max-width:740px">{{ (f.price or 'MAKE US AN OFFER!') | nb }}</div>
-    {% endif %}
+    <div class="fit" data-fit data-min="16" style="font-weight:900;font-size:34px;border:2px solid var(--goldline);padding:8px 26px;max-width:740px">{{ (auction_line if auction else (f.price or 'MAKE US AN OFFER!')) | nb }}</div>
     {% if f.viewing %}<div style="font-weight:700;font-size:15px">VIEWING: {{ f.viewing | nb }}</div>{% endif %}
   </div>
   {% if f.pack_footer %}<div class="goldbar fit" data-fit data-min="8" style="position:absolute;left:0;bottom:0;width:794px;height:46px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;padding:0 20px">{{ f.pack_footer | nb }}</div>{% endif %}
 </div>
 
 {# ---------------------------------- contents ---------------------------------- #}
-<div class="page">
+<div class="page inner-page">
   <div class="corner-tr"></div><div class="corner-bl"></div>
-  {% if photo1 %}<img src="{{ photo1 }}" style="position:absolute;left:0;bottom:0;width:794px;height:420px;object-fit:cover;clip-path:polygon(0 30%,100% 0,100% 100%,0 100%)">{% endif %}
-  <div class="inner" style="top:90px">
-    <div style="font-weight:900;font-size:26px;letter-spacing:.02em;margin-bottom:30px">TABLE OF CONTENTS:</div>
+  <div class="inner" style="top:70px;gap:26px">
+    <div style="font-weight:900;font-size:28px;letter-spacing:.02em;flex:none">TABLE OF CONTENTS</div>
     <div class="toc">
     {% for no, title, pages in toc %}
-      <div class="row"><span>{{ no }}. {{ title }}</span><span class="dots"></span><span>{{ pages }}</span></div>
+      <div class="row"><span class="n">{{ no }}</span><span>{{ title }}</span><span class="dots"></span><span class="pg">{{ pages }}</span></div>
     {% endfor %}
     </div>
+    <div class="divider" style="font-size:13px">{{ (f.short_title or f.pack_title) | nb }}</div>
+    {{ filler(contents_fill) }}
   </div>
 </div>
 
 {# ---------------------------------- the sections ---------------------------------- #}
 {% for pg in pack_pages %}
-<div class="page">
+<div class="page inner-page">
   <div class="corner-tr"></div><div class="corner-bl"></div>
   <div class="pno">{{ pg.no }}.</div>
   <div class="inner">
 
   {% if pg.kind == 'overview' %}
     <h1><b>{{ pg.section }}.</b> PROPERTY OVERVIEW</h1>
-    <table class="kv">
-      {% for r in f.overview %}<tr><td class="k">{{ r.label }}</td><td>{{ r.text | nb }}</td></tr>{% endfor %}
-    </table>
+    {% if f.overview %}
+    <table class="kv">{% for r in f.overview %}<tr><td class="k">{{ r.label }}</td><td>{{ r.text | nb }}</td></tr>{% endfor %}</table>
+    {% endif %}
     {% if f.rates %}
-    <div style="display:flex;gap:16px;margin-top:16px">
+    <div class="rates">
       {% for r in f.rates[:4] %}
-      <div style="flex:1;border:1px solid #d6cfbf;padding:10px;display:flex;gap:10px;align-items:center;font-size:10.5px">
-        <span style="font-size:22px;color:#a7843f">{{ icon('home', 30) }}</span>
-        <div><div style="font-weight:800;text-transform:uppercase;font-size:9.5px">{{ r.label }}</div><div>Rates &amp; Taxes: {{ r.text | nb }}</div></div>
-      </div>
+      <div class="rate">{{ icon('home', 28) }}<div><div style="font-weight:800;text-transform:uppercase;font-size:9.5px">{{ r.label }}</div><div>Rates &amp; Taxes: {{ r.text | nb }}</div></div></div>
       {% endfor %}
     </div>
     {% endif %}
-    <div class="goldbar" style="margin:18px auto 0;width:70%;border-radius:16px;padding:6px 10px;text-align:center;font-weight:800;font-size:11px">All Outstanding Fees, if any, to be Settled by the Seller.</div>
+    <div class="goldbar" style="align-self:center;width:72%;border-radius:16px;padding:6px 10px;text-align:center;font-weight:800;font-size:11px;flex:none">All Outstanding Fees, if any, to be Settled by the Seller.</div>
     {% if f.terms or f.confirmation %}{# from the OTP; no box at all rather than an empty one #}
-    <h2 style="font-size:20px;font-weight:900">SALE OVERVIEW</h2>
-    <div class="terms">
-      {% for t in f.terms %}<div>{{ t | nb }}</div>{% endfor %}
-      {% if f.confirmation %}<div class="pill">{{ f.confirmation | nb }}</div>{% endif %}
+    <div class="divider">SALE OVERVIEW</div>
+    <div class="card" style="flex:none">
+      <ul class="bullets">{% for t in f.terms %}<li>{{ t | nb }}</li>{% endfor %}</ul>
+      {% if f.confirmation %}<div style="text-align:center;margin-top:10px"><span class="pill">{{ f.confirmation | nb }}</span></div>{% endif %}
     </div>
     {% endif %}
-    {% if f.viewing %}<div class="viewing">VIEWING:<br>{{ f.viewing | nb }}</div>{% endif %}
+    {% if f.viewing %}<div class="viewing">VIEWING: {{ f.viewing | nb }}</div>{% endif %}
+    {% if aerial %}<div class="filler" data-filler style="grid-template-columns:1fr"><div class="photo"><img src="{{ aerial }}"></div></div>{% endif %}
 
   {% elif pg.kind == 'description' %}
     <h1><b>{{ pg.section }}.</b> PROPERTY DESCRIPTION</h1>
     {% for para in f.description %}<p class="body">{{ para | nb }}</p>{% endfor %}
-    <div style="display:flex;gap:18px;margin-top:10px">
-      {% for p in [photo1, photo2] %}{% if p %}<div class="photo" style="flex:1;height:200px"><img src="{{ p }}"></div>{% endif %}{% endfor %}
-    </div>
     {% if f.features %}
-    <h2 style="text-align:center;margin-top:26px;font-size:17px">KEY FEATURES</h2>
-    <div style="display:flex;justify-content:space-around;margin-top:12px">
-      {% for ft in f.features[:5] %}<div class="item" style="width:118px">{{ icon(ft.icon, 46, 42) }}<span>{{ ft.text | nb }}</span></div>{% endfor %}
+    <div class="divider">KEY FEATURES</div>
+    <div class="feats">
+      {% for ft in f.features[:6] %}{% set parts = (ft.text or '').split(' | ', 1) %}
+      <div class="feat">{{ icon(ft.icon, 38, 34) }}<span>{{ parts[0] | nb }}{% if parts|length > 1 and parts[1] %}<small>{{ parts[1] | nb }}</small>{% endif %}</span></div>
+      {% endfor %}
     </div>
     {% endif %}
+    {{ filler(pg.fill) }}
 
   {% elif pg.kind == 'details' %}
     <h1><b>{{ pg.section }}.</b> PROPERTY DETAILS</h1>
     {% for p in f.portions[:3] %}
-      <h2>{{ p.label | nb }}</h2>
+      <div class="divider" style="font-size:13px">{{ p.label | nb }}</div>
       <table class="kv">
         {% for k, v in [('Legal description', p.legal_description), ('Extent', p.extent), ('Municipality', p.municipality), ('Zoning', p.zoning), ('Title deed', p.title_deed)] %}
           {% if v %}<tr><td class="k">{{ k }}</td><td>{{ v | nb }}</td></tr>{% endif %}
         {% endfor %}
       </table>
     {% endfor %}
-    {% if aerial %}<div class="photo" style="height:{{ 330 if f.portions|length < 2 else 230 }}px;margin-top:20px"><img src="{{ aerial }}"></div>{% endif %}
+    {{ filler(pg.fill) }}
 
   {% elif pg.kind == 'improvements' %}
-    <h1><b>{{ pg.section }}.</b> MAIN IMPROVEMENTS</h1>
-    <div class="groups">
+    <h1>{% if pg.first %}<b>{{ pg.section }}.</b> {% endif %}MAIN IMPROVEMENTS</h1>
+    <div class="cards">
       {% for g in pg.groups %}
-      <div class="group">
-        <h3>{{ g.title | nb }}</h3>
-        <div class="grid">
-          {% for it in g['items'][:8] %}<div class="item">{{ icon(it.icon, 40, 36) }}<span>{{ it.text | nb }}</span></div>{% endfor %}
-        </div>
+      <div class="card">
+        <div class="card__t">{{ g.title | nb }}</div>
+        {% for it in g['items'][:10] %}<div class="irow">{{ icon(it.icon, 30, 28) }}<span>{{ it.text | nb }}</span></div>{% endfor %}
       </div>
       {% endfor %}
     </div>
+    {{ filler(pg.fill) }}
+
+  {% elif pg.kind == 'movables' %}
+    <h1>{% if pg.first %}<b>{{ pg.section }}.</b> {% endif %}MOVABLE ASSETS INCLUDED</h1>
+    {% if pg.first %}<p class="body" style="text-align:center;flex:none">Sold together with the property{{ ' as one lot' if auction else '' }}, voetstoots, as listed in the conditions of sale.</p>{% endif %}
+    {% set half = ((pg['items']|length + 1) // 2) if pg['items']|length > 12 else pg['items']|length %}
+    <div style="display:grid;grid-template-columns:{{ '1fr 1fr' if pg['items']|length > 12 else '1fr' }};gap:14px;flex:none;align-items:start">
+      {% for col in ([pg['items'][:half], pg['items'][half:]] if pg['items']|length > 12 else [pg['items']]) %}
+      {% set offset = pg.start + (0 if loop.first else half) %}
+      <table class="list">
+        <tr><th style="text-align:right">NO.</th><th>ASSET</th></tr>
+        {% for m in col %}<tr><td class="no">{{ offset + loop.index0 }}</td><td>{{ m | nb }}</td></tr>{% endfor %}
+      </table>
+      {% endfor %}
+    </div>
+    {{ filler(pg.fill) }}
 
   {% elif pg.kind == 'use' %}
     {% if f.best_use %}
     <h1><b>{{ pg.section }}.</b> HIGHEST &amp; BEST USE</h1>
-    <p class="body">The highest and best use of the property is considered to be:</p>
-    <ul class="dots">{% for b in f.best_use %}<li>{{ b | nb }}</li>{% endfor %}</ul>
+    <div class="card" style="flex:none">
+      <div class="card__t">The highest and best use is considered to be</div>
+      <ul class="bullets">{% for b in f.best_use %}<li>{{ b | nb }}</li>{% endfor %}</ul>
+    </div>
     {% endif %}
     {% if f.condition %}
-    <h1 style="margin-top:40px">PROPERTY CONDITION</h1>
+    <div class="divider">PROPERTY CONDITION</div>
     <table class="kv">{% for r in f.condition %}<tr><td class="k">{{ r.label }}</td><td>{{ r.text | nb }}</td></tr>{% endfor %}</table>
     {% endif %}
+    {{ filler(pg.fill) }}
 
   {% elif pg.kind == 'gallery' %}
-    <h1>{% if pg.first %}<b>{{ pg.section }}.</b> PHOTOGRAPHIC OVERVIEW{% else %}&nbsp;{% endif %}</h1>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-      {% for p in pg.photos %}<div class="photo" style="height:{{ 270 if pg.first else 290 }}px"><img src="{{ p }}"></div>{% endfor %}
+    {% if pg.first %}<h1><b>{{ pg.section }}.</b> PHOTOGRAPHIC OVERVIEW</h1>{% endif %}
+    <div class="gal gal--{{ pg.layout }}">
+      {% for p in pg.photos %}<div class="photo" style="grid-area:{{ 'abcdef'[loop.index0] }}"><img src="{{ p }}"></div>{% endfor %}
     </div>
 
   {% elif pg.kind == 'highlights' %}
     <h1><b>{{ pg.section }}.</b> INVESTMENT HIGHLIGHTS</h1>
     <table class="kv">{% for r in f.highlights %}<tr><td class="k">{{ r.label | nb }}</td><td>{{ r.text | nb }}</td></tr>{% endfor %}</table>
+    <div class="goldbar" style="align-self:center;border-radius:16px;padding:7px 26px;font-weight:900;font-size:12px;flex:none;letter-spacing:.04em">{{ "DON'T MISS THIS AUCTION" if auction else "MAKE YOUR OFFER TODAY" }}</div>
+    {{ filler(pg.fill) }}
   {% endif %}
 
   </div>
@@ -177,20 +234,24 @@ ul.dots{font-size:11.5px;line-height:1.7;padding-left:18px}
 {% endfor %}
 
 {# ---------------------------------- back cover ---------------------------------- #}
-<div class="page">
-  <div style="position:absolute;left:0;right:0;top:70px;display:flex;flex-direction:column;align-items:center;text-align:center">
-    <img src="{{ logo('auctioneers-on-light') }}" style="width:230px">
-    <div class="fit" data-fit data-min="18" style="font-weight:900;font-size:34px;margin-top:26px;max-width:680px">{{ (f.pack_title or f.short_title) | nb }}</div>
-    <div style="font-weight:700;font-size:17px;margin-top:6px">{{ f.pack_region | nb }}</div>
-    <div style="font-weight:900;font-size:17px;margin-top:34px;line-height:1.4">DISCOVER THE POTENTIAL.<br>SECURE THE OPPORTUNITY.<br>{{ "DON'T MISS THIS AUCTION." if auction else "MAKE YOUR OFFER TODAY." }}</div>
-    <div style="margin-top:30px;font-size:13px;font-weight:600;line-height:2.1;text-align:left">
-      <div style="display:flex;align-items:center;gap:12px">{{ icon('location_on', 20) }}187 Gouws Avenue, Raslouw AH, Centurion</div>
-      <div style="display:flex;align-items:center;gap:12px">{{ icon('home', 20) }}dynamicauctioneers.co.za</div>
-      <div style="display:flex;align-items:center;gap:12px">{{ icon('mail', 20) }}{{ f.email }}</div>
-      <div style="display:flex;align-items:center;gap:12px">{{ icon('call', 20) }}{{ f.phone | nb }}</div>
-    </div>
+<div class="page" style="background:#000">
+  {% set back = back_photo or hero or aerial %}
+  {% if back %}<img src="{{ back }}" style="position:absolute;inset:0;width:794px;height:1123px;object-fit:cover;filter:brightness(.42)">{% endif %}
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.85) 100%)"></div>
+  <div style="position:absolute;right:46px;top:0;width:180px;height:214px;background:#fff;clip-path:polygon(0 0,100% 0,100% 84%,50% 100%,0 84%);display:flex;justify-content:center"><img src="{{ logo('auctioneers-on-light' if auction else 'realestate-on-light') }}" style="width:134px;height:134px;margin-top:18px"></div>
+  <div style="position:absolute;left:56px;right:56px;top:300px;color:#fff">
+    <div class="fit" data-fit data-min="18" style="font-weight:900;font-size:40px;line-height:1.1">{{ (f.pack_title or f.short_title) | nb }}</div>
+    <div class="goldtext" style="font-weight:700;font-size:18px;margin-top:8px">{{ f.pack_region | nb }}</div>
+    <div style="width:120px;height:4px;background:var(--gold);margin:28px 0"></div>
+    <div style="font-weight:900;font-size:20px;line-height:1.45">DISCOVER THE POTENTIAL.<br>SECURE THE OPPORTUNITY.<br>{{ "DON'T MISS THIS AUCTION." if auction else "MAKE YOUR OFFER TODAY." }}</div>
   </div>
-  {% if aerial %}<img src="{{ aerial }}" style="position:absolute;left:0;bottom:0;width:794px;height:330px;object-fit:cover;clip-path:polygon(0 25%,100% 0,100% 100%,0 100%)">{% endif %}
+  <div style="position:absolute;left:56px;right:56px;bottom:70px;color:#fff;font-size:17px;font-weight:600;line-height:2.2">
+    <div style="display:flex;align-items:center;gap:14px"><span class="goldtext">{{ icon('location_on', 24) }}</span>187 Gouws Avenue, Raslouw AH, Centurion</div>
+    <div style="display:flex;align-items:center;gap:14px"><span class="goldtext">{{ icon('home', 24) }}</span>dynamicauctioneers.co.za</div>
+    <div style="display:flex;align-items:center;gap:14px"><span class="goldtext">{{ icon('mail', 24) }}</span>{{ f.email }}</div>
+    <div style="display:flex;align-items:center;gap:14px"><span class="goldtext">{{ icon('call', 24) }}</span>{{ f.phone | nb }}</div>
+  </div>
+  <div class="goldbar" style="position:absolute;left:0;right:0;bottom:0;height:16px"></div>
 </div>
 
 <script>
@@ -203,7 +264,13 @@ ul.dots{font-size:11.5px;line-height:1.7;padding-left:18px}
       while (over() && s > min && i < 300) { s -= 1; el.style.fontSize = s + 'px'; i++; }
     });
   }
-  function done() { fit(); document.body.dataset.ready = '1'; }
+  // A row of photos squeezed under 150px by the words looks like a mistake: leave it out.
+  function fillers() {
+    document.querySelectorAll('[data-filler]').forEach(function (el) {
+      if (el.getBoundingClientRect().height < 150) el.remove();
+    });
+  }
+  function done() { fit(); fillers(); document.body.dataset.ready = '1'; }
   var waiting = [].slice.call(document.images).filter(function (i) { return !i.complete; })
     .map(function (i) { return new Promise(function (r) { i.onload = i.onerror = r; }); });
   Promise.all([document.fonts.ready].concat(waiting)).then(done);

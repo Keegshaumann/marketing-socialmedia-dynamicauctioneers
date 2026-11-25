@@ -31,8 +31,8 @@ from studio.sharepoint import store
 
 log = logging.getLogger("studio.photopick")
 
-MAX_PHOTOS = 60
-GALLERY = 18
+MAX_PHOTOS = 80
+GALLERY = 24     # the pack's photo pages, and the photos it fills spare room with
 
 
 class Picks(BaseModel):
@@ -58,7 +58,8 @@ building, the street view, or the farm's landscape. An aerial only when there is
 adverts, all different from hero and aerial and from each other, and varied: what a buyer cares about \
 most (the front or street view, the main living area, the kitchen, a pool, garden or view, a second \
 dwelling, sheds, orchards). Pick the most attractive, bright and well-composed ones.
-- gallery: up to {GALLERY} photos for the information pack's photo pages, in walk-through order: \
+- gallery: {GALLERY} photos (fewer only when the folder has fewer good ones) for the information pack's \
+photo pages and the photos it fills spare room with, in walk-through order: \
 outside first, then living areas, kitchen, bedrooms, bathrooms, outbuildings, garden and extras. \
 No near-duplicates.
 
@@ -69,8 +70,9 @@ Never choose for aerial, hero, photo1, photo2 or photo3: QR codes, logos, advert
 close-ups of damage or defects (cracks, damp, broken \
 fittings), clutter or rubbish, dark, blurred or badly tilted shots, people, vehicles with readable \
 number plates, documents, screenshots, meters, or bare walls, floors and ceilings. Leave damage out of \
-the gallery too unless the folder has nothing else. A folder named TO BE USED holds the team's own \
-choices: prefer those when they are good photos.
+the gallery too unless the folder has nothing else. Photos come from TO BE USED (the team's own picks) \
+and Overall (and the rest of the inspection photos): both are equally good sources, for the adverts and the \
+pack alike. Choose the best photos from all of them, and use plenty of them in the gallery.
 
 Answer with labels only, exactly as given (e.g. "P7")."""
 

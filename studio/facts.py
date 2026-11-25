@@ -142,7 +142,7 @@ class Facts(BaseModel):
     badge: str = Field(description='Sale badge: "INSOLVENCY SALE!", "LIQUIDATION SALE!", "BUSINESS RESCUE SALE!", '
                                    '"DECEASED ESTATE SALE!", or the same with AUCTION! for an auction')
     address: str = Field(description="Street address as the public would search it, upper case, no erf numbers")
-    features: list[Feature] = Field(description=FEATURES_RULE)
+    features: list[Feature] = Field(description="The advert's 4 or 6 headline features: see FEATURES RULES")
     main_title: str = Field(description='"MAIN HOUSE" (or "FARMHOUSE", "MAIN DWELLING") when there is another '
                                         'dwelling; "" for a single dwelling')
     other_features: list[str] = Field(description=OTHER_RULE)
@@ -178,6 +178,9 @@ class Facts(BaseModel):
     description: list[str] = Field(description="2-4 paragraphs describing the property, factual, no hype")
     portions: list[Portion]
     improvements: list[Group] = Field(description="Improvements grouped by theme, each with icon + short text")
+    movables: list[str] = Field(description="Every movable asset the sale includes (the OTP's schedule, else the "
+                                            "valuation's list), one per line: quantity, make, model, condition note; "
+                                            "no registration or VIN numbers. [] when only the property is sold")
     best_use: list[str] = Field(description="Highest and best use bullet points")
     condition: list[Row] = Field(description='e.g. label "OVERALL CONDITION", text "Fair"')
     highlights: list[Row] = Field(description="Investment highlights: short bold label + one sentence")
@@ -305,8 +308,10 @@ Privacy (strict): the ads and pack are public. Never write the owner's, debtor's
 any person's name, ID or registration numbers, bond holders, account numbers, arrears, or the internal file \
 name you are given. Legal descriptions, extents, municipality, zoning and title deed numbers are fine.
 
-Advert features: 4 or 5, the ones a buyer decides on, most important first (see the features field). \
-Never filler such as the title type, zoning, or distances to schools, police stations or shops.
+Read every document in full, to the last page, schedule and annexure, before you write. The pack must carry \
+every material fact they give: everything the sale includes (each movable asset in a schedule, the business as a \
+going concern, water rights, crops, stock), every building and improvement with its size, the services, and the \
+conditions of sale. Movable assets go in movables, every one of them, not in improvements.
 
 Examples of the team's own adverts (Nov 2026), to match in voice and wording. headline / subline / headline2 \
 are the advert's three heading lines; the features are a selection of what the team's ads list:
@@ -356,6 +361,9 @@ area, "home" for houses and buildings, "bed", "bathtub", "garage", "fence" for g
 "water_drop" for boreholes and irrigation, "bolt" for power."""
 
 
+SYSTEM += "\n\nFEATURES RULES (the advert's features field): " + FEATURES_RULE
+
+
 def _text_pdf(raw: bytes, max_pages: int, cap: int) -> str:
     import fitz
 
@@ -387,7 +395,7 @@ _READ = (
     ("valuation", "VALUATION", catalog.READ_COUNT["valuation"], 25, 40_000),
     ("otp", "OFFER TO PURCHASE / CONDITIONS OF SALE", catalog.READ_COUNT["otp"], 30, 60_000),   # 30 pages as a PDF
     ("infopack", "AN EARLIER INFO PACK FOR THIS PROPERTY", 1, 20, 30_000),
-    ("proposal", "AUCTION PROPOSAL", 1, 0, 20_000),
+    ("proposal", "AUCTION PROPOSAL", 1, 0, 60_000),
 )
 
 

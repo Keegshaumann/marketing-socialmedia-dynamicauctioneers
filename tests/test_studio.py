@@ -240,15 +240,19 @@ def test_weekday():
 def test_pack_pages_and_contents():
     from studio import render
 
-    f = {"description": ["x"], "portions": [{}], "improvements": [{"title": str(i), "items": []} for i in range(5)],
-         "best_use": ["y"], "highlights": [{"label": "a", "text": "b"}]}
-    pages = render.pack_pages(f, ["p"] * 8, auction=True)
+    six = [{"icon": "home", "text": "X"}] * 6
+    f = {"description": ["x"], "portions": [{}], "improvements": [{"title": str(i), "items": six} for i in range(5)],
+         "movables": [f"ITEM {n}" for n in range(40)], "best_use": ["y"], "highlights": [{"label": "a", "text": "b"}]}
+    pages = render.pack_pages(f, ["p"] * 12, auction=True)
     assert [p["kind"] for p in pages] == ["overview", "description", "details", "improvements", "improvements",
-                                          "use", "gallery", "gallery", "highlights"]
-    assert [p["no"] for p in pages] == list(range(1, 10))
+                                          "movables", "movables", "use", "gallery", "gallery", "gallery", "highlights"]
+    assert [p["no"] for p in pages] == list(range(1, 13))
+    assert [p["layout"] for p in pages if p["kind"] == "gallery"] == ["big", "grid", "n1"]
+    assert pages[6]["start"] == 37 and pages[6]["items"] == ["ITEM 36", "ITEM 37", "ITEM 38", "ITEM 39"]
     toc = render.toc(pages)
     assert toc[3] == (4, "Main Improvements", "4-5")
-    assert toc[-1] == (7, "Investment Highlights", "9")
+    assert toc[4] == (5, "Movable Assets Included", "6-7")
+    assert toc[-1] == (8, "Investment Highlights", "12")
 
 
 def test_default_photo_picks(mirror):
@@ -1557,3 +1561,24 @@ def test_a_file_filed_beside_the_otp_is_not_a_new_document(mirror):
     assert catalog.signatures(catalog.items(p))[1] == before
     _add_item(mirror.db, "OTP & ROA/9001 - OTP signed.pdf", "otp3", modified=6.0)   # still not the Word OTP read
     assert catalog.signatures(catalog.items(p))[1] == before
+
+
+def test_the_pack_lists_every_movable_and_fills_spare_room_with_photos():
+    from studio import catalog, facts as F, render
+
+    p = catalog.Property(ref="DP9001", name="RHEDE", folder="x", status="")
+    movables = [f"ASSET {n}" for n in range(1, 18)]
+    f = F.blank() | {"pack_title": "±38.15 HA FARM", "description": ["A farm."], "movables": movables,
+                     "terms": ["10% deposit"], "features": [{"icon": "ha", "text": "±38.15 HA | TOTAL"}]}
+    picks = {"aerial": "air", "hero": "front", "photo1": "p1", "photo2": "p2", "gallery": [f"g{n}" for n in range(9)]}
+    ctx = render.context(p, f, picks, "auction", lambda i, s: f"/img/{i}")
+    html = render.html("infopack", ctx)
+    assert "MOVABLE ASSETS INCLUDED" in html and all(m in html for m in movables)
+    assert ">17<" in html                                   # numbered, in two columns
+    assert html.count("data-filler") >= 3                   # photos wherever the words leave room
+    desc = next(pg for pg in ctx["pack_pages"] if pg["kind"] == "description")
+    mov = next(pg for pg in ctx["pack_pages"] if pg["kind"] == "movables")
+    assert desc["fill"] and mov["fill"] and not set(desc["fill"]) & set(mov["fill"])   # different photos per page
+    assert "/img/air" not in desc["fill"] + mov["fill"]     # the aerial is the overview's
+    assert "gal--big" in html and "gal--n4" in html         # mixed photo pages (5 then 4)
+    assert "<small>TOTAL</small>" in html                   # a feature's second line

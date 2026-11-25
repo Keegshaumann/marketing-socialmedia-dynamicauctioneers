@@ -15,7 +15,7 @@ STRINGS = ("headline", "subline", "headline2", "badge", "address", "disclaimer",
            "auction_kind", "auction_date", "auction_time", "short_title", "short_place", "sale_kind",
            "location_line", "pack_title", "pack_region", "pack_strapline", "pack_footer", "confirmation",
            "viewing", "caption", "listing", "master_ref", "phone", "email", "qr_link")
-LINES = ("board_lines", "board_place", "terms", "best_use")
+LINES = ("board_lines", "board_place", "terms", "best_use", "movables")
 PARAGRAPHS = ("description",)
 ROWS = ("overview", "rates", "condition", "highlights")
 PORTION_KEYS = ("label", "legal_description", "extent", "municipality", "zoning", "title_deed")
@@ -44,6 +44,7 @@ LABELS = {
     "rates": "Info pack: rates & taxes", "terms": "Info pack: sale overview (from the OTP)",
     "confirmation": "Info pack: confirmation line", "description": "Info pack: description",
     "portions": "Info pack: property details", "improvements": "Info pack: main improvements",
+    "movables": "Info pack: movable assets in the sale",
     "best_use": "Info pack: highest & best use", "condition": "Info pack: property condition",
     "highlights": "Info pack: investment highlights", "caption": "Social caption",
     "listing": "Portal listing (Propdata, Property24)",
