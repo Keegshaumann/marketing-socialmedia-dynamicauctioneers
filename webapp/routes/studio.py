@@ -114,16 +114,19 @@ def _glance(db: str, props: list, sets: dict, worked: dict) -> dict:
     count["preparing"] = sum(1 for r in worked.values() if r["reading"] == "running")
     needs = sorted((s for s in sets.values() if s["status"] in ("held", "failed") and s["ref"] in by_ref),
                    key=lambda s: s["updated_at"], reverse=True)
-    ads, seen = [], set()
+    ads, seen, ours = [], set(), set()
     for ref in sets:
         if ref not in by_ref:
             continue
         for name, f in publish.files(db, ref).items():
+            ours.add(f["item_id"])
             if name.endswith(" AD.png") and f["status"] == "ours" and f["saved_at"]:
                 when = datetime.fromisoformat(f["saved_at"])
                 ads.append({"ref": ref, "name": name, "when": when, "who": "Studio",
                             "thumb": f"/studio/{quote(ref)}/saved-thumb/{quote(name)}"})
     for p, item in (catalog.recent_artwork(props) if props else []):
+        if item.item_id in ours:      # the studio's own file, once the hourly mirror has it
+            continue
         if publish.kind_of(item.name) in ("auction_ad", "forsale_ad") and item.ext in (".png", ".jpg", ".jpeg"):
             ads.append({"ref": p.ref, "name": item.name, "who": "Team",
                         "when": datetime.fromtimestamp(item.modified, timezone.utc),
