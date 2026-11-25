@@ -90,7 +90,8 @@ FEATURES_RULE = (
 
 OTHER_RULE = (
     "Only when the property has more than one dwelling (a flat, flatlet, granny flat, cottage, bachelor unit "
-    "or apartment beside the main house); otherwise empty. Each item says where it belongs in 'place': "
+    "or apartment beside the main house); otherwise empty. Each item is one line, \"PLACE | icon | text\" "
+    "(e.g. \"FLAT | home | SEPARATE ENTRANCE\", \"PROPERTY | m2 | ±923m² PROPERTY\"), where PLACE is "
     "\"PROPERTY\" for the whole property (1 or 2 items: its size first, \"±923m² PROPERTY\", then anything "
     "shared such as \"DOUBLE GARAGE\"), or the other dwelling's heading the way the team writes it "
     "(\"FLAT\", \"COTTAGES\", \"GRANNY FLAT\"). Think as a home buyer, or an investor wanting rental income: "
@@ -101,17 +102,11 @@ OTHER_RULE = (
 )
 
 
-class Placed(BaseModel):
-    place: str = Field(description='"PROPERTY", or the other dwelling\'s heading, e.g. "FLAT", "COTTAGES"')
-    icon: str = Field(description=f"One of: {', '.join(ICONS)}")
-    text: str = Field(description='Short text; optionally " | " then a small second line')
-
-
 class Features(BaseModel):
     features: list[Feature] = Field(description=FEATURES_RULE)
     main_title: str = Field(description='"MAIN HOUSE" (or "FARMHOUSE", "MAIN DWELLING") when there is another '
                                         'dwelling; "" for a single dwelling')
-    other_features: list[Placed] = Field(description=OTHER_RULE)
+    other_features: list[str] = Field(description=OTHER_RULE)
 
 
 def placed(answer: dict) -> dict:
@@ -120,9 +115,13 @@ def placed(answer: dict) -> dict:
     out = {k: v for k, v in answer.items() if k != "other_features"}
     units: dict[str, list] = {}
     shared = []
-    for x in answer.get("other_features") or []:
-        place = (x.get("place") or "").strip().upper().rstrip(":")
-        item = {"icon": x.get("icon", "home"), "text": x.get("text", "")}
+    for line in answer.get("other_features") or []:
+        cells = [c.strip() for c in str(line).split("|")]
+        if len(cells) < 3:
+            continue
+        place = cells[0].upper().rstrip(":")
+        icon = cells[1].lower()
+        item = {"icon": icon if icon in ICONS else "home", "text": " | ".join(c for c in cells[2:] if c)}
         if not item["text"]:
             continue
         if place in ("", "PROPERTY", "WHOLE PROPERTY", "SHARED"):
@@ -146,7 +145,7 @@ class Facts(BaseModel):
     features: list[Feature] = Field(description=FEATURES_RULE)
     main_title: str = Field(description='"MAIN HOUSE" (or "FARMHOUSE", "MAIN DWELLING") when there is another '
                                         'dwelling; "" for a single dwelling')
-    other_features: list[Placed] = Field(description=OTHER_RULE)
+    other_features: list[str] = Field(description=OTHER_RULE)
     disclaimer: str = Field(description='Occupation line when occupied, e.g. "PURCHASER TO DO EVICTION | VACANT '
                                         'OCCUPATION CANNOT BE GUARANTEED"; else ""')
     price: str = Field(description='e.g. "OFFERS FROM R380 000"; "" if no price is known')
@@ -340,12 +339,12 @@ Properties with more than one dwelling (the team lists each dwelling's features 
 buyer or an investor wanting rental income):
 - Harties, house with a flat: features (main house) 3 BEDROOMS | MAIN EN-SUITE, 3 BATHROOMS, OPEN PLAN \
 LIVING WITH BUILT-IN FIRE PLACE, KITCHEN & SCULLERY, PATIO WITH BUILT-IN BRAAI, DOUBLE GARAGE; main_title MAIN \
-HOUSE; other_features: PROPERTY ±1 006m² PROPERTY; FLAT SEPARATE ENTRANCE; FLAT OPEN PLAN LIVING & BEDROOM; \
-FLAT EN-SUITE BATHROOM; FLAT KITCHENETTE
+HOUSE; other_features "PROPERTY | m2 | ±1 006m² PROPERTY", "FLAT | home | SEPARATE ENTRANCE", "FLAT | home | \
+OPEN PLAN LIVING & BEDROOM", "FLAT | bathtub | EN-SUITE BATHROOM", "FLAT | kitchen | KITCHENETTE"
 - Parktown North, house and two cottages: subline 3-BED HOME & 2 COTTAGES; features ±284m² HOME, 3 BEDROOMS \
 | MAIN HAS DRESSING ROOM, 3 BATHROOMS | 2 BATHROOMS ARE EN-SUITE, KITCHEN & SCULLERY; main_title MAIN \
-HOUSE; other_features: PROPERTY ±923m² PROPERTY; PROPERTY DOUBLE GARAGE; COTTAGES 2 BACHELOR COTTAGES; \
-COTTAGES COMMUNAL LAUNDRY ROOM
+HOUSE; other_features "PROPERTY | m2 | ±923m² PROPERTY", "PROPERTY | garage | DOUBLE GARAGE", "COTTAGES | bed | \
+2 BACHELOR COTTAGES", "COTTAGES | home | COMMUNAL LAUNDRY ROOM"
 Feature counts are even so the layout stays symmetrical: 4 or 6 for the main dwelling, 2 or 4 per extra unit.
 
 Note how the heading names what makes the property worth buying (WITH A GRANNY FLAT, INVESTMENT UNIT, OCEAN VIEWS) \

@@ -10,7 +10,7 @@
 .bottombar .c{display:flex;align-items:center;gap:14px}
 .bottombar .dot{width:46px;height:46px;border-radius:50%;background:#0b0b0b;color:#e9cf8a;display:flex;align-items:center;justify-content:center}
 .badge{background:var(--gold);color:#0b0b0b;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px rgba(0,0,0,.6);padding:0 26px}
-.box{background:rgba(0,0,0,.8);border:3px solid var(--goldline);border-radius:14px}
+.box{background:rgba(0,0,0,.56);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);border:3px solid var(--goldline);border-radius:14px;text-shadow:0 2px 6px rgba(0,0,0,.65)}
 .h1{font-weight:900;line-height:1.02}
 .h2{font-weight:800;line-height:1.05}
 .lockup{display:flex;align-items:center;gap:10px}
@@ -65,10 +65,10 @@
   {% else %}{% for ft in (f.features or [])[:6] %}{{ fx.row(ft, 25, 52, 360) }}{% endfor %}{% endif %}
 </div>
 
-<div class="abs box fit rv-price rv-shine" data-fit data-min="24" style="left:54px;top:1146px;width:972px;height:80px;padding:0 34px;border-radius:6px;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:{{ 44 if auction else 54 }}px">{% if auction %}{{ auction_line | nb }}{% else %}{{ (f.price or 'MAKE US AN OFFER!') | nb }}{% endif %}</div>
+<div class="abs box fit rv-price rv-shine" data-fit data-min="24" style="left:54px;top:1146px;width:972px;height:80px;padding:0 34px;border-radius:6px;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:{{ 44 if auction else 54 }}px">{% if auction %}{{ auction_line | nb }}{% else %}{{ (f.price or 'MAKE US AN OFFER!') | nb }}{% endif %}</div>
 
 {% if f.disclaimer %}
-<div class="abs fit rv-late" data-fit data-min="11" style="left:94px;top:1234px;width:892px;height:32px;padding:0 26px;border:2px solid var(--goldline);border-radius:16px;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px">{{ f.disclaimer | nb }}</div>
+<div class="abs fit rv-late" data-fit data-min="11" style="left:94px;top:1234px;width:892px;height:32px;padding:0 26px;border:2px solid var(--goldline);border-radius:16px;background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px">{{ f.disclaimer | nb }}</div>
 {% endif %}
 
 <div class="abs bottombar goldbar">

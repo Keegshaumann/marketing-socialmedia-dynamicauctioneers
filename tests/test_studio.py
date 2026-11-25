@@ -1206,9 +1206,12 @@ def test_photos_are_graded_but_never_changed(tmp_path):
 
 
 def test_the_answer_form_claude_fills_stays_small_enough():
-    """The API refuses a structured answer whose grammar is too large (25 Nov 2026,
-    when every feature carried its own note field). Keep the schema near its old size."""
+    """The API refuses a structured answer whose grammar is too large. On 25 Nov 2026 a
+    note field on every feature, and then a list of placed objects, were refused at
+    11 249 characters; plain "PLACE | icon | text" lines were accepted at 10 683. Any new
+    field needs a 50-token probe against the API (see DEPLOY notes) before it ships."""
     from studio import facts as F
     import json as _json
     size = len(_json.dumps(F.Facts.model_json_schema()))
-    assert size < 16000, size
+    assert size < 10900, size
+    assert F.Facts.model_json_schema()["properties"]["other_features"]["items"] == {"type": "string"}
