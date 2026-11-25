@@ -267,6 +267,18 @@ def photo_picks(photos: dict, all_photos: list[Item]) -> dict:
     return picks
 
 
+def ad_photo_ids(picks: dict, auction: bool) -> tuple[Optional[str], list[str]]:
+    """The ad's background and the (up to) three photos in the block beside the
+    features, all different."""
+    background = (picks.get("aerial") or picks.get("hero")) if auction else (picks.get("hero") or picks.get("aerial"))
+    extras: list[str] = []
+    for item_id in [picks.get("photo1"), picks.get("photo2"), picks.get("photo3"),
+                    *picks.get("gallery", []), picks.get("hero"), picks.get("aerial")]:
+        if item_id and item_id != background and item_id not in extras:
+            extras.append(item_id)
+    return background, extras[:3]
+
+
 def context(prop: Property, facts: dict, picks: dict, mode: str, photo_src: Callable[[str, str], str]) -> dict:
     f = dict(F.blank())
     f.update({k: v for k, v in (facts or {}).items() if v not in (None,)})
@@ -279,18 +291,12 @@ def context(prop: Property, facts: dict, picks: dict, mode: str, photo_src: Call
     gallery = [photo_src(i, "gallery") for i in picks.get("gallery", [])]
     auction = mode == "auction"
     when = " | ".join(x for x in (f.get("auction_date"), f.get("auction_time")) if x)
-    # The ad: one photo as the background, three more in a block beside the features.
-    background = picks.get("aerial") or picks.get("hero") if auction else picks.get("hero") or picks.get("aerial")
-    extra_ids: list[str] = []
-    for item_id in [picks.get("photo1"), picks.get("photo2"), picks.get("photo3"),
-                    *picks.get("gallery", []), picks.get("hero"), picks.get("aerial")]:
-        if item_id and item_id != background and item_id not in extra_ids:
-            extra_ids.append(item_id)
+    _, extra_ids = ad_photo_ids(picks, auction)
     return {
         "ref": f"DP{prop.number}", "f": f, "mode": mode, "auction": auction,
         "hero": src("hero"), "photo1": src("photo1"), "photo2": src("photo2"), "photo3": src("photo3"),
         "aerial": src("aerial") or src("hero"), "gallery": gallery,
-        "extras": [photo_src(i, "view") for i in extra_ids[:3]],
+        "extras": [photo_src(i, "view") for i in extra_ids],
         "auction_line": " | ".join(x for x in (f"{f.get('auction_kind') or 'ONLINE'} AUCTION", when) if x),
         "pack_pages": pack_pages(f, gallery, auction),
     }

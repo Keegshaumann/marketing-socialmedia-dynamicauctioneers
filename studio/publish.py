@@ -115,8 +115,11 @@ def missing(row: dict, pk: dict) -> list[str]:
     out = []
     if not (f.get("headline") or "").strip():
         out.append("the gold line")
-    if not pk.get("hero"):
+    background, extras = render.ad_photo_ids(pk, row["mode"] == "auction")
+    if not background:
         out.append("a background photo")
+    elif len(extras) < 2:
+        out.append("more photos in the folder (the ad uses a background and 3 more)")
     if row["mode"] == "auction" and not (f.get("auction_date") or "").strip():
         out.append("the auction date")
     real = [x for x in f.get("features") or [] if (x.get("text") or "").strip()]

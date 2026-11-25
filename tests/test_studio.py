@@ -1011,3 +1011,17 @@ def test_the_teams_qr_codes_and_covers_are_not_photos(mirror):
     names = {p.rel for p in catalog.photos(catalog.items(catalog.get("DP9001")))}
     assert "Advertisements/IMAGES/aerial view.png" in names
     assert not names & {"Advertisements/DP9001.png", "Advertisements/AUCTION/9001 (1).png", "Advertisements/Cover Image.png"}
+
+
+def test_an_ad_without_enough_photos_waits(auto, mirror):
+    from studio import publish
+    conn = sqlite3.connect(mirror.db)
+    conn.execute("DELETE FROM items WHERE name IN ('house.jpg', 'orchard.jpg')")   # leaves the aerial and a tractor
+    conn.commit()
+    conn.close()
+    from studio import catalog, prepare, state
+    state.save(auto.app.db, "DP9001", facts={"headline": "X", "auction_date": "1 JAN 2030",
+                                             "features": [{"icon": "ha", "text": f"F{n}"} for n in range(4)]},
+               mode="auction", reading="done")
+    s = publish.publish(auto.app.db, catalog.get("DP9001"), auto.sp)
+    assert s["status"] == "held" and "more photos" in s["message"]
