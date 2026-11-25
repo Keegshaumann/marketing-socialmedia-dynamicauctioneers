@@ -25,7 +25,7 @@
 {% block body %}
 {% set main = aerial if auction else (hero or aerial) %}
 {# a flat or cottages: shorter photos, a taller two-column features box #}
-{% set ph = 360 if f.extra_units else 518 %}
+{% set ph = 336 if f.extra_units else 518 %}
 {% set ftop = 400 + ph + 16 %}
 {% if main %}<img class="bg" src="{{ main }}" style="filter:brightness(.32) blur(2px);transform:scale(1.04)">{% endif %}
 

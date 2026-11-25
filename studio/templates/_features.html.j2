@@ -53,7 +53,7 @@
 {%- set left = ((f.features or [])[:6]|length) + 1 + (1 if f.shared_features else 0) -%}
 {%- set right = ns.right + ((f.shared_features or [])|length - 1 if f.shared_features else 0) -%}
 {%- set most = [left, right]|max -%}
-{%- set fs = 25 if most <= 6 else (23 if most <= 8 else (21 if most <= 10 else 19)) -%}
+{%- set fs = 24 if most <= 6 else (21 if most <= 8 else (19 if most <= 10 else 17)) -%}
 {%- set ic = (fs * 2.0)|round|int -%}
 {%- set half = ((width - 28) / 2)|int -%}
 {%- set tw = half - ic - (fs * 0.6)|round|int - 8 -%}
