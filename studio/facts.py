@@ -488,7 +488,9 @@ def team_qr_link(items: list[Item]) -> str:
             log.warning("could not read the QR code %s: %s", item.rel, exc)
             continue
         for code in found:
-            if code.text.startswith(("http://", "https://")):
+            # The studio's own QR files (named the team's way) carry only the homepage:
+            # that link adds nothing, so keep looking for the team's tracked one.
+            if code.text.startswith(("http://", "https://")) and code.text.rstrip("/") != "https://dynamicauctioneers.co.za":
                 return code.text
     return ""
 

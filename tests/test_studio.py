@@ -1236,3 +1236,18 @@ def test_files_sharing_a_folder_are_together_or_apart_as_the_teams_ads_say(mirro
     conn.commit()
     conn.close()
     assert not catalog.sold_together(p, catalog.items(p), ["DP9001.2"])          # an ad per sub-file
+
+
+def test_the_studios_own_homepage_qr_is_not_taken_for_the_teams_link(mirror):
+    pytest.importorskip("zxingcpp")
+    from studio import catalog, facts as F, render
+    folder = f"{AAA}/9001 - RHEDE BOERDERY BK_BR_"
+    f = mirror.root / "Marketing - Documents" / folder / "Advertisements/DP9001 - QR CODE BLACK.png"
+    data = render.qr_png("", False)                       # the studio's own: the homepage
+    f.write_bytes(data)
+    conn = sqlite3.connect(mirror.db)
+    conn.execute("INSERT INTO items VALUES ('drv', 'qrs', 'DP9001 - QR CODE BLACK.png', 0, 9.0, ?, NULL, ?)",
+                 (len(data), f"{folder}/Advertisements/DP9001 - QR CODE BLACK.png"))
+    conn.commit()
+    conn.close()
+    assert F.team_qr_link(catalog.items(catalog.get("DP9001"))) == ""
